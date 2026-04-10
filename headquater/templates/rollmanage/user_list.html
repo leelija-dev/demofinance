@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">{{ title }}</h1>
+        {% if 'add_user' in request.user_permissions %}
+        <a href="{% url 'register_role_user' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            Add New User
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="bg-white shadow-md rounded my-6">
+        <table class="min-w-full">
+            <thead>
+                <tr class="bg-gray-100">
+                    <th class="px-6 py-3 border-b border-gray-200 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">Username</th>
+                    <th class="px-6 py-3 border-b border-gray-200 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                    <th class="px-6 py-3 border-b border-gray-200 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                    <th class="px-6 py-3 border-b border-gray-200 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 border-b border-gray-200 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white">
+                {% for user in users %}
+                <tr>
+                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
+                        {{ user.username }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
+                        {{ user.email }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
+                        {{ user.role.name|default:"No Role" }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if user.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                            {{ user.is_active|yesno:"Active,Inactive" }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200 text-sm leading-5">
+                        {% if 'change_user' in request.user_permissions %}
+                        <a href="{% url 'edit_user' user.id %}" class="text-blue-600 hover:text-blue-900 mr-3">Edit</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-6 py-4 whitespace-no-wrap border-b border-gray-200 text-center">
+                        No users found
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %} 

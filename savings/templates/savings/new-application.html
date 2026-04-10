@@ -1,0 +1,1917 @@
+{% extends base_template|default:"branch/base.html" %}
+
+{% load static %}
+
+{% block title %}New Savings Application{% endblock %}
+
+
+
+{% block page_id %}savingsNewApplications{% endblock %}
+
+
+
+{% block extra_head %}
+
+ <link rel="stylesheet" href="{% static 'main/css/submit-loader/submit-loader.css' %}">
+
+ <style>
+
+  .doc-file-input {
+
+    width: 100%;
+
+    height: 44px;
+
+    border: 1px solid #d1d5db;
+
+    border-radius: 0.5rem;
+
+    background: transparent;
+
+    color: #6b7280;
+
+  }
+
+  .doc-file-input::file-selector-button {
+
+    height: 44px;
+
+    border: 0;
+
+    border-right: 1px solid #d1d5db;
+
+    background: #f9fafb;
+
+    color: #111827;
+
+    padding: 0 14px;
+
+    margin-right: 14px;
+
+    cursor: pointer;
+
+  }
+
+  .doc-file-input::-webkit-file-upload-button {
+
+    height: 44px;
+
+    border: 0;
+
+    border-right: 1px solid #d1d5db;
+
+    background: #f9fafb;
+
+    color: #111827;
+
+    padding: 0 14px;
+
+    margin-right: 14px;
+
+    cursor: pointer;
+
+  }
+
+ </style>
+
+{% endblock %}
+
+
+
+{% block content %}
+
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+
+        <h2 class="text-title-md2 font-bold text-black dark:text-white">New Savings Application (FD/RD)</h2>
+
+        <nav>
+
+            <ol class="flex items-center gap-2">
+
+                <li>
+
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400" href="{% url dashboard_url_name|default:'branch:dashboard' %}">
+
+                        Dashboard
+
+                    </a>
+
+                </li>
+
+                <li class="text-sm text-gray-800 dark:text-white/90">New Savings Application</li>
+
+            </ol>
+
+        </nav>
+
+    </div>
+
+
+
+    <div id="full-page-loader" class="full-page-loader" style="display:none;">
+
+        <div class="w-auto relative">
+
+            <div class="loader"></div>
+
+            <span class="absolute text-[15px] top-[36%] left-[12%] text-[#8c8b8b]">Submitting..</span>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] p-5">
+
+        <form id="savings-application-form" enctype="multipart/form-data">
+
+            <div class="-mx-2.5 flex flex-wrap gap-y-5">
+
+                <div class="w-full px-2.5">
+
+                    <h3 class="text-base font-bold text-gray-800 dark:text-white/90">Existing Customer (Loan Customer)</h3>
+
+                    <hr class="my-4">
+
+                </div>
+
+                <div class="w-full px-2.5 lg:w-1/2 xl:w-2/3">
+
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Search by Customer ID / Aadhaar / PAN / Mobile</label>
+
+                    <input id="customer_lookup_query" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs" placeholder="CUST-XXXXXXX or Aadhaar or PAN or Mobile">
+
+                    <div id="customer_lookup_suggestions" class="relative">
+                        <div id="customer_lookup_suggestions_panel" class="hidden absolute z-9999 mt-2 w-full rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-800 dark:bg-gray-900">
+                            <div id="customer_lookup_suggestions_list" class="p-1"></div>
+                        </div>
+                    </div>
+
+                    <div class="text-error-500 text-xs mt-1" id="error-customer_lookup_query"></div>
+
+                </div>
+
+                <div class="w-full px-2.5 lg:w-1/2 xl:w-1/3 flex items-end">
+
+                    <button type="button" id="customer_lookup_btn" class="flex items-center justify-center w-full gap-2 px-4 py-3 text-sm font-medium text-white rounded-lg bg-brand-500 hover:bg-brand-600">Fetch Customer</button>
+
+                </div>
+
+                <input type="hidden" id="existing_customer_id" name="existing_customer_id">
+
+
+
+                <div class="w-full px-2.5">
+
+                    <h3 class="text-base font-bold text-gray-800 dark:text-white/90 mt-6">Customer Details</h3>
+
+                    <hr class="my-4">
+
+                </div>
+
+                <div class="w-full px-2.5 lg:w-1/2 xl:w-1/3">
+
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Full Name <span class="text-[#ec4a0a]">*</span></label>
+
+                    <input id="full_name" name="full_name" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs" required>
+
+                    <div class="text-error-500 text-xs mt-1" id="error-full_name"></div>
+
+                </div>
+
+
+
+                <div class="w-full px-2.5 lg:w-1/2 xl:w-1/3">
+
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Date of Birth <span class="text-[#ec4a0a]">*</span></label>
+
+                    <input id="date_of_birth" name="date_of_birth" type="text" class="dob-datepicker dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs" required>
+
+                    <div class="text-error-500 text-xs mt-1" id="error-date_of_birth"></div>
+
+                </div>
+
+
+
+                <div class="w-full px-2.5 lg:w-1/2 xl:w-1/3">
+
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Gender <span class="text-[#ec4a0a]">*</span></label>
+
+                    <select id="gender" name="gender" class="w-full px-4 py-3 text-sm text-gray-800 bg-transparent border border-gray-300 rounded-lg appearance-none dark:bg-dark-900 h-11" required>
+
+                        <option value="">Select Gender</option>
+
+                        <option value="male">Male</option>
+
+                        <option value="female">Female</option>
+
+                        <option value="other">Other</option>
+
+                    </select>
+
+                    <div class="text-error-500 text-xs mt-1" id="error-gender"></div>
+
+                </div>
+
+
+
+                <div class="w-full px-2.5 lg:w-1/2 xl:w-1/3">
+
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Contact <span class="text-[#ec4a0a]">*</span></label>
+
+                    <input id="contact" name="contact" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs" required>
+
+                    <div class="text-error-500 text-xs mt-1" id="error-contact"></div>
+
+                </div>
+
+
+
+                <div class="w-full px-2.5 lg:w-1/2 xl:w-1/3">
+
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Aadhaar Number <span class="text-[#ec4a0a]">*</span></label>
+
+                    <input id="adhar_number" name="adhar_number" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs" required>
+
+                    <div class="text-error-500 text-xs mt-1" id="error-adhar_number"></div>
+
+                </div>
+
+
+
+                <div class="w-full px-2.5 lg:w-1/2 xl:w-1/3">
+
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">PAN Number </label>
+
+                    <input id="pan_number" name="pan_number" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs">
+
+                    <div class="text-error-500 text-xs mt-1" id="error-pan_number"></div>
+
+                </div>
+
+
+
+                <div class="w-full px-2.5">
+
+                    <h4 class="pb-2 text-base font-medium text-gray-800 border-b border-gray-200 dark:border-gray-800 dark:text-white/90">Address :</h4>
+
+                </div>
+
+                <div class="w-full px-2.5 xl:w-1/2">
+
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+
+                        Address line 1 <span class="text-[#ec4a0a]">*</span>
+
+                    </label>
+
+                    <input id="address_line_1" name="address_line_1" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs" required>
+
+                    <div class="text-error-500 text-xs mt-1" id="error-address_line_1"></div>
+
+                </div>
+
+                <div class="w-full px-2.5 xl:w-1/2">
+
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Address line 2</label>
+
+                    <input id="address_line_2" name="address_line_2" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs">
+
+                    <div class="text-error-500 text-xs mt-1" id="error-address_line_2"></div>
+
+                </div>
+
+                <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Landmark</label>
+
+                    <input id="landmark" name="landmark" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs">
+
+                    <div class="text-error-500 text-xs mt-1" id="error-landmark"></div>
+
+                </div>
+
+                <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+
+                        Post Code <span class="text-[#ec4a0a]">*</span>
+
+                        <span class="text-xs text-gray-500 ml-1">(Auto-fills address details)</span>
+
+                    </label>
+
+                    <input id="post_code" name="post_code" type="text" maxlength="6" pattern="\d{6}" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs" required>
+
+                    <div class="text-error-500 text-xs mt-1" id="error-post_code"></div>
+
+                </div>
+
+                <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Post Office</label>
+
+                    <input id="post_office" name="post_office" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs">
+
+                    <div class="text-error-500 text-xs mt-1" id="error-post_office"></div>
+
+                </div>
+
+                <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">City/Town <span class="text-[#ec4a0a]">*</span></label>
+
+                    <input id="city_or_town" name="city_or_town" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs" required>
+
+                    <div class="text-error-500 text-xs mt-1" id="error-city_or_town"></div>
+
+                </div>
+
+                <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">District <span class="text-[#ec4a0a]">*</span></label>
+
+                    <input id="district" name="district" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs" required>
+
+                    <div class="text-error-500 text-xs mt-1" id="error-district"></div>
+
+                </div>
+
+                <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">State <span class="text-[#ec4a0a]">*</span></label>
+
+                    <input id="state" name="state" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs" required>
+
+                    <div class="text-error-500 text-xs mt-1" id="error-state"></div>
+
+                </div>
+
+                <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Country</label>
+
+                    <input id="country" name="country" type="text" value="India" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs">
+
+                    <div class="text-error-500 text-xs mt-1" id="error-country"></div>
+
+                </div>
+
+
+
+                <div class="w-full px-2.5">
+
+                    <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-400">
+
+                        <input type="checkbox" id="same-address" name="same_address" class="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-900">
+
+                        Permanent and Current Address are the same
+
+                    </label>
+
+                </div>
+
+
+
+                <div id="current-address-section" class="w-full flex flex-wrap gap-y-5">
+
+                    <div class="w-full px-2.5">
+
+                        <h4 class="pb-2 text-base font-medium text-gray-800 border-b border-gray-200 dark:border-gray-800 dark:text-white/90">Current Address :</h4>
+
+                    </div>
+
+                    <div class="w-full px-2.5 xl:w-1/2">
+
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Current Address Line 1 <span class="text-[#ec4a0a]">*</span></label>
+
+                        <input id="current_address_line_1" name="current_address_line_1" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs" required>
+
+                        <div class="text-error-500 text-xs mt-1" id="error-current_address_line_1"></div>
+
+                    </div>
+
+                    <div class="w-full px-2.5 xl:w-1/2">
+
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Current Address Line 2</label>
+
+                        <input id="current_address_line_2" name="current_address_line_2" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs">
+
+                        <div class="text-error-500 text-xs mt-1" id="error-current_address_line_2"></div>
+
+                    </div>
+
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Current Landmark</label>
+
+                        <input id="current_landmark" name="current_landmark" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs">
+
+                        <div class="text-error-500 text-xs mt-1" id="error-current_landmark"></div>
+
+                    </div>
+
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+
+                            Current Post Code <span class="text-[#ec4a0a]">*</span>
+
+                            <span class="text-xs text-gray-500 ml-1">(Auto-fills address details)</span>
+
+                        </label>
+
+                        <input id="current_post_code" name="current_post_code" type="text" maxlength="6" pattern="\d{6}" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs" required>
+
+                        <div class="text-error-500 text-xs mt-1" id="error-current_post_code"></div>
+
+                    </div>
+
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Current Post Office</label>
+
+                        <input id="current_post_office" name="current_post_office" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs">
+
+                        <div class="text-error-500 text-xs mt-1" id="error-current_post_office"></div>
+
+                    </div>
+
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Current City/Town <span class="text-[#ec4a0a]">*</span></label>
+
+                        <input id="current_city_or_town" name="current_city_or_town" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs" required>
+
+                        <div class="text-error-500 text-xs mt-1" id="error-current_city_or_town"></div>
+
+                    </div>
+
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Current District <span class="text-[#ec4a0a]">*</span></label>
+
+                        <input id="current_district" name="current_district" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs" required>
+
+                        <div class="text-error-500 text-xs mt-1" id="error-current_district"></div>
+
+                    </div>
+
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Current State <span class="text-[#ec4a0a]">*</span></label>
+
+                        <input id="current_state" name="current_state" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs" required>
+
+                        <div class="text-error-500 text-xs mt-1" id="error-current_state"></div>
+
+                    </div>
+
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Current Country</label>
+
+                        <input id="current_country" name="current_country" type="text" value="India" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs">
+
+                        <div class="text-error-500 text-xs mt-1" id="error-current_country"></div>
+
+                    </div>
+
+
+
+                    <div class="w-full px-2.5 residential-proof-section">
+
+                        <h4 class="pb-2 text-base font-medium text-gray-800 border-b border-gray-200 dark:border-gray-800 dark:text-white/90">Residential Proof for Current Address :</h4>
+
+                        <p class="text-xs text-gray-600 dark:text-gray-400 mt-2 mb-4">
+
+                            <strong>Note:</strong> Residential proof is required only when your current address is different from your permanent address.
+
+                            If both addresses are the same, you can check the "same address" checkbox above to skip this section.
+
+                        </p>
+
+                    </div>
+
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/3 residential-proof-section">
+
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Residential Proof Type <span class="text-[#ec4a0a]">*</span></label>
+
+                        <select id="residential_proof_type" name="residential_proof_type" class="w-full px-4 py-3 text-sm text-gray-800 bg-transparent border border-gray-300 rounded-lg appearance-none dark:bg-dark-900 h-11" required>
+
+                            <option value="">Select Proof Type</option>
+
+                            <option value="electricity_bill">Electricity Bill</option>
+
+                            <option value="water_bill">Water Bill</option>
+
+                            <option value="gas_bill">Gas Bill</option>
+
+                            <option value="rental_agreement">Rental Agreement (with landlord signature)</option>
+
+                            <option value="bank_passbook">Bank Passbook with current address</option>
+
+                            <option value="government_certificate">Government-issued Address Certificate</option>
+
+                            <option value="mobile_bill">Post-paid Mobile Bill</option>
+
+                        </select>
+
+                        <div class="text-error-500 text-xs mt-1" id="error-residential_proof_type"></div>
+
+                    </div>
+
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-2/3 residential-proof-section">
+
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400" for="residential_proof_file">Residential Proof Document <span class="text-[#ec4a0a]">*</span></label>
+
+                        <input id="residential_proof_file" name="residential_proof_file" type="file" accept="image/*,application/pdf" class="doc-file-input h-11 w-full overflow-hidden rounded-lg border border-gray-300 bg-transparent text-sm text-gray-500" required>
+
+                        <div class="text-error-500 text-xs mt-1" id="error-residential_proof_file"></div>
+
+                    </div>
+
+                </div>
+
+
+
+                <div class="w-full px-2.5">
+
+                    <h3 class="text-base font-bold text-gray-800 dark:text-white/90 mt-6">Nominee Details</h3>
+
+                    <hr class="my-4">
+
+                </div>
+
+
+
+                <div class="w-full px-2.5 lg:w-1/2 xl:w-1/3">
+
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Nominee Name <span class="text-[#ec4a0a]">*</span></label>
+
+                    <input id="nominee_name" name="nominee_name" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs" required>
+
+                    <div class="text-error-500 text-xs mt-1" id="error-nominee_name"></div>
+
+                </div>
+
+
+
+                <div class="w-full px-2.5 lg:w-1/2 xl:w-1/3">
+
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Relationship <span class="text-[#ec4a0a]">*</span></label>
+
+                    <input id="nominee_relationship" name="nominee_relationship" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs" required>
+
+                    <div class="text-error-500 text-xs mt-1" id="error-nominee_relationship"></div>
+
+                </div>
+
+
+
+                <div class="w-full px-2.5 lg:w-1/2 xl:w-1/3">
+
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Nominee KYC Type </label>
+
+                    <select id="nominee_kyc_type" name="nominee_kyc_type" class="w-full px-4 py-3 text-sm text-gray-800 bg-transparent border border-gray-300 rounded-lg appearance-none dark:bg-dark-900 h-11" >
+
+                        <option value="">Select KYC Type</option>
+
+                        <option value="aadhaar">Aadhaar</option>
+
+                        <option value="pan">PAN</option>
+
+                    </select>
+
+                    <div class="text-error-500 text-xs mt-1" id="error-nominee_kyc_type"></div>
+
+                </div>
+
+
+
+                <div class="w-full px-2.5 lg:w-1/2 xl:w-1/3">
+
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Nominee KYC Number </label>
+
+                    <input id="nominee_kyc_number" name="nominee_kyc_number" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs" >
+
+                    <div class="text-error-500 text-xs mt-1" id="error-nominee_kyc_number"></div>
+
+                </div>
+
+
+
+                <div class="w-full px-2.5 lg:w-1/2 xl:w-1/3">
+
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400" for="nominee_kyc_document">Nominee KYC Document (Aadhaar/PAN) </label>
+
+                    <input id="nominee_kyc_document" name="nominee_kyc_document" type="file" accept="image/*,application/pdf" class="doc-file-input h-11 w-full overflow-hidden rounded-lg border border-gray-300 bg-transparent text-sm text-gray-500" >
+
+                    <div class="text-error-500 text-xs mt-1" id="error-nominee_kyc_document"></div>
+
+                </div>
+
+
+
+                <div class="w-full px-2.5">
+
+                    <h3 class="text-base font-bold text-gray-800 dark:text-white/90 mt-6">Savings Product Details</h3>
+
+                    <hr class="my-4">
+
+                </div>
+
+
+
+                <div class="w-full px-2.5 lg:w-1/2 xl:w-1/3">
+
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Saving Type <span class="text-[#ec4a0a]">*</span></label>
+
+                    <select id="saving_type" class="w-full px-4 py-3 text-sm text-gray-800 bg-transparent border border-gray-300 rounded-lg appearance-none dark:bg-dark-900 h-11" required>
+
+                        <option value="">Select Saving Type</option>
+
+                    </select>
+
+                    <input type="hidden" id="product_type" name="product_type">
+
+                    <div class="text-error-500 text-xs mt-1" id="error-product_type"></div>
+
+                </div>
+
+
+
+                <div class="w-full px-2.5 lg:w-1/2 xl:w-1/3">
+
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Product <span class="text-[#ec4a0a]">*</span></label>
+
+                    <select id="saving_product" class="hidden" required>
+
+                        <option value="">Select Product</option>
+
+                    </select>
+
+
+
+                    <div id="saving_product_dropdown" class="relative">
+
+                        <button id="saving_product_button" type="button" class="w-full h-11 px-4 py-3 text-sm text-left text-gray-800 bg-transparent border border-gray-300 rounded-lg dark:bg-dark-900 dark:text-white/90">
+
+                            <span id="saving_product_button_text" class="block truncate">Select Product</span>
+
+                        </button>
+
+
+
+                        <div id="saving_product_panel" class="hidden absolute z-50 mt-2 w-full rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-800 dark:bg-gray-900">
+
+                            <div id="saving_product_options" class="max-h-64 overflow-auto p-1"></div>
+
+                        </div>
+
+                    </div>
+
+                    <input type="hidden" id="product_id" name="product_id">
+
+                    <div class="text-error-500 text-xs mt-1" id="error-product_id"></div>
+
+                </div>
+
+
+
+                <input type="hidden" id="tenure" name="tenure">
+
+                <input type="hidden" id="interest_rate" name="interest_rate">
+
+
+
+                <div class="w-full px-2.5">
+
+                    <h3 class="text-base font-bold text-gray-800 dark:text-white/90 mt-6">Document Upload</h3>
+
+                    <hr class="my-4">
+
+                </div>
+
+
+
+                <div class="w-full px-2.5" id="use-existing-documents-container" style="display:none;">
+
+                    <label class="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-400">
+
+                        <input type="checkbox" id="use_existing_documents" name="use_existing_documents">
+
+                        Reuse documents from this customer's loan application
+
+                    </label>
+
+                    <div class="text-error-500 text-xs mt-1" id="error-use_existing_documents"></div>
+
+                </div>
+
+
+
+                <div class="w-full px-2.5" id="existing-documents-preview" style="display:none;"></div>
+
+
+
+                <div class="w-full px-2.5 xl:w-1/2">
+
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400" for="id_proof">Id Proof (Front) <span class="text-[#ec4a0a]">*</span></label>
+
+                    <input id="id_proof" name="id_proof" type="file" accept="image/*,application/pdf" class="doc-file-input h-11 w-full overflow-hidden rounded-lg border border-gray-300 bg-transparent text-sm text-gray-500" required>
+
+                    <div class="text-error-500 text-xs mt-1" id="error-id_proof"></div>
+
+                </div>
+
+
+
+                <div class="w-full px-2.5 xl:w-1/2">
+
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400" for="id_proof_back">Id Proof (Back)</label>
+
+                    <input id="id_proof_back" name="id_proof_back" type="file" accept="image/*,application/pdf" class="doc-file-input h-11 w-full overflow-hidden rounded-lg border border-gray-300 bg-transparent text-sm text-gray-500">
+
+                    <div class="text-error-500 text-xs mt-1" id="error-id_proof_back"></div>
+
+                </div>
+
+
+
+                <div class="w-full px-2.5 xl:w-1/2">
+
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400" for="pan_card_document">PAN Card </label>
+
+                    <input id="pan_card_document" name="pan_card_document" type="file" accept="image/*,application/pdf" class="doc-file-input h-11 w-full overflow-hidden rounded-lg border border-gray-300 bg-transparent text-sm text-gray-500" >
+
+                    <div class="text-error-500 text-xs mt-1" id="error-pan_card_document"></div>
+
+                </div>
+
+
+
+                <div class="w-full px-2.5 xl:w-1/2">
+
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400" for="photo">Photo </label>
+
+                    <input id="photo" name="photo" type="file" accept="image/*" class="doc-file-input h-11 w-full overflow-hidden rounded-lg border border-gray-300 bg-transparent text-sm text-gray-500" >
+
+                    <div class="text-error-500 text-xs mt-1" id="error-photo"></div>
+
+                </div>
+
+
+
+                <div class="w-full px-2.5 xl:w-1/2">
+
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400" for="signature">Signature </label>
+
+                    <input id="signature" name="signature" type="file" accept="image/*,application/pdf" class="doc-file-input h-11 w-full overflow-hidden rounded-lg border border-gray-300 bg-transparent text-sm text-gray-500" >
+
+                    <div class="text-error-500 text-xs mt-1" id="error-signature"></div>
+
+                </div>
+
+
+
+            </div>
+
+
+
+            <div class="w-full py-5 mt-6">
+
+                <div class="flex flex-col justify-end gap-5 xl:flex-row xl:items-center">
+
+                    <button id="continue-btn" type="button" class="flex items-center justify-center w-full gap-2 px-4 py-3 text-sm font-medium text-white rounded-lg bg-brand-500 hover:bg-brand-600 xl:w-auto">
+
+                        Continue
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+
+{% include 'savings/preview-saving-modal.html' %}
+
+
+
+<script>
+
+function getCookie(name) {
+
+    let cookieValue = null;
+
+    if (document.cookie && document.cookie !== '') {
+
+        const cookies = document.cookie.split(';');
+
+        for (let i = 0; i < cookies.length; i++) {
+
+            const cookie = cookies[i].trim();
+
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+
+                break;
+
+            }
+
+        }
+
+    }
+
+    return cookieValue;
+
+}
+
+async function loadSavingsMasterData() {
+
+    if (SAVINGS_MASTER.loaded) return;
+
+    const isBranch = window.location.pathname.startsWith('/branch/');
+
+    const isAgent = window.location.pathname.startsWith('/agent/');
+
+    const url = isBranch
+
+        ? '/branch/savings/api/master-data/'
+
+        : (isAgent ? '/agent/savings/api/master-data/' : '/savings/api/master-data/');
+
+    const csrftoken = getCookie('csrftoken');
+
+
+
+    const res = await fetch(url, {
+
+        method: 'GET',
+
+        headers: { 'X-CSRFToken': csrftoken },
+
+        credentials: 'same-origin'
+
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+
+        throw new Error(data.message || 'Failed to load master data');
+
+    }
+
+
+
+    SAVINGS_MASTER.types = data.types || [];
+
+
+
+    SAVINGS_MASTER.one_time_deposits = Array.isArray(data.one_time_deposits) ? data.one_time_deposits : [];
+
+    SAVINGS_MASTER.daily_products = Array.isArray(data.daily_products) ? data.daily_products : [];
+
+
+
+    const hasLegacy = Array.isArray(data.interests) && Array.isArray(data.tenures) && (data.interests.length || data.tenures.length);
+
+    if (hasLegacy) {
+
+        SAVINGS_MASTER.interests = data.interests || [];
+
+        SAVINGS_MASTER.tenures = data.tenures || [];
+
+    } else {
+
+        const oneTime = SAVINGS_MASTER.one_time_deposits;
+
+        const daily = SAVINGS_MASTER.daily_products;
+
+
+
+        function findTypeIdByCode(code) {
+
+            const t = (SAVINGS_MASTER.types || []).find(x => (x.name || '').toString().toLowerCase().includes(code));
+
+            return t ? t.id : null;
+
+        }
+
+
+
+        const fdTypeId = findTypeIdByCode('fd');
+
+        const rdTypeId = findTypeIdByCode('rd');
+
+
+
+        const interests = [];
+
+        const tenures = [];
+
+
+
+        oneTime.forEach(row => {
+
+            const interestId = row.id;
+
+            interests.push({
+
+                id: interestId,
+
+                type_id: fdTypeId,
+
+                rate: String(row.interest_rate ?? ''),
+
+                description: null,
+
+                deposit_amount: String(row.deposit_amount ?? ''),
+
+            });
+
+            tenures.push({
+
+                id: interestId,
+
+                interest_id: interestId,
+
+                value: row.tenure,
+
+                unit: row.tenure_unit || 'months',
+
+                display: `${row.tenure} ${(row.tenure_unit || 'months')} (${row.interest_rate}%) - ${row.deposit_amount}`,
+
+            });
+
+        });
+
+
+
+        daily.forEach(row => {
+
+            const interestId = row.id;
+
+            interests.push({
+
+                id: interestId,
+
+                type_id: rdTypeId,
+
+                rate: String(row.interest_rate ?? ''),
+
+                description: null,
+
+                deposit_amount: String(row.deposit_amount ?? ''),
+
+            });
+
+            tenures.push({
+
+                id: interestId,
+
+                interest_id: interestId,
+
+                value: row.tenure,
+
+                unit: row.tenure_unit || 'days',
+
+                display: `${row.tenure} ${(row.tenure_unit || 'days')} (${row.interest_rate}%) - ${row.deposit_amount}`,
+
+            });
+
+        });
+
+
+
+        SAVINGS_MASTER.interests = interests;
+
+        SAVINGS_MASTER.tenures = tenures;
+
+    }
+
+    SAVINGS_MASTER.loaded = true;
+
+}
+
+
+
+window.SAVINGS_MASTER = window.SAVINGS_MASTER || {
+
+    loaded: false,
+
+    types: [],
+
+    interests: [],
+
+    tenures: [],
+
+};
+
+
+
+var SAVINGS_MASTER = window.SAVINGS_MASTER;
+
+
+
+window.loadSavingsMasterData = loadSavingsMasterData;
+
+
+
+async function fetchAddressFromPincode(pincode) {
+
+    try {
+
+        const response = await fetch(`https://api.postalpincode.in/pincode/${pincode}`);
+
+        const data = await response.json();
+
+
+
+        if (data && data.length > 0 && data[0].Status === 'Success' && data[0].PostOffice && data[0].PostOffice.length > 0) {
+
+            const postOffice = data[0].PostOffice[0];
+
+            return {
+
+                postOffice: postOffice.Name,
+
+                city: postOffice.Block || postOffice.Division,
+
+                district: postOffice.District,
+
+                state: postOffice.State
+
+            };
+
+        }
+
+        return null;
+
+    } catch (error) {
+
+        console.error('Error fetching address details:', error);
+
+        return null;
+
+    }
+
+}
+
+
+
+window.fetchAddressFromPincode = fetchAddressFromPincode;
+
+
+
+function setFieldValue(id, value) {
+
+    const el = document.getElementById(id);
+
+    if (!el) return;
+
+    el.value = value == null ? '' : value;
+
+    el.dispatchEvent(new Event('input'));
+
+    el.dispatchEvent(new Event('change'));
+
+}
+
+
+
+async function fetchExistingCustomer() {
+
+    const btn = document.getElementById('customer_lookup_btn');
+
+    const btnOriginalText = btn ? btn.textContent : '';
+
+    const setBtnLoading = (loading) => {
+
+        if (!btn) return;
+
+        btn.disabled = loading;
+
+        btn.textContent = loading ? 'Fetching...' : btnOriginalText;
+
+        if (btn.classList) {
+
+            btn.classList.toggle('opacity-60', loading);
+
+            btn.classList.toggle('cursor-not-allowed', loading);
+
+        }
+
+    };
+
+
+
+    const q = (document.getElementById('customer_lookup_query')?.value || '').trim();
+
+    if (!q) {
+
+        const errDiv = document.getElementById('error-customer_lookup_query');
+
+        if (errDiv) errDiv.textContent = 'Please enter a search value.';
+
+        return;
+
+    }
+
+
+
+    const isBranch = window.location.pathname.startsWith('/branch/');
+
+    const isAgent = window.location.pathname.startsWith('/agent/');
+
+    const url = isBranch
+
+        ? `/branch/savings/api/customer-lookup/?q=${encodeURIComponent(q)}`
+
+        : (isAgent
+
+            ? `/agent/savings/api/customer-lookup/?q=${encodeURIComponent(q)}`
+
+            : `/savings/api/customer-lookup/?q=${encodeURIComponent(q)}`);
+
+
+
+    const csrftoken = getCookie('csrftoken');
+
+    try {
+
+        const errDiv = document.getElementById('error-customer_lookup_query');
+
+        if (errDiv) errDiv.textContent = '';
+
+        setBtnLoading(true);
+
+
+
+        const preview = document.getElementById('existing-documents-preview');
+
+        if (preview) {
+
+            preview.style.display = 'none';
+
+            preview.innerHTML = '';
+
+        }
+
+        const useExistingDocsContainer = document.getElementById('use-existing-documents-container');
+
+        if (useExistingDocsContainer) {
+
+            useExistingDocsContainer.style.display = 'none';
+
+        }
+
+        const useExistingDocs = document.getElementById('use_existing_documents');
+
+        if (useExistingDocs) {
+
+            useExistingDocs.checked = false;
+
+            useExistingDocs.disabled = true;
+
+        }
+
+        const useDocsErr = document.getElementById('error-use_existing_documents');
+
+        if (useDocsErr) useDocsErr.textContent = '';
+
+
+
+        const res = await fetch(url, {
+
+            method: 'GET',
+
+            headers: { 'X-CSRFToken': csrftoken },
+
+            credentials: 'same-origin'
+
+        });
+
+
+
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+
+            if (errDiv) errDiv.textContent = data.message || 'Customer not found.';
+
+            return;
+
+        }
+
+
+
+        setFieldValue('existing_customer_id', data.customer.customer_id);
+
+
+
+        setFieldValue('full_name', data.customer.full_name);
+
+        setFieldValue('date_of_birth', data.customer.date_of_birth);
+
+        const rawGender = (data.customer.gender || '').toString().trim().toLowerCase();
+
+        const genderValue = rawGender === 'm' ? 'male'
+
+            : (rawGender === 'f' ? 'female'
+
+                : (rawGender === 'male' || rawGender === 'female' || rawGender === 'other')
+
+                    ? rawGender
+
+                    : '');
+
+        setFieldValue('gender', genderValue);
+
+        setFieldValue('contact', data.customer.contact);
+
+        setFieldValue('email', data.customer.email);
+
+        setFieldValue('adhar_number', data.customer.adhar_number);
+
+        setFieldValue('pan_number', data.customer.pan_number);
+
+
+
+        setFieldValue('address_line_1', data.address.address_line_1);
+
+        setFieldValue('address_line_2', data.address.address_line_2);
+
+        setFieldValue('landmark', data.address.landmark);
+
+        setFieldValue('post_office', data.address.post_office);
+
+        setFieldValue('city_or_town', data.address.city_or_town);
+
+        setFieldValue('district', data.address.district);
+
+        setFieldValue('state', data.address.state);
+
+        setFieldValue('country', data.address.country);
+
+        setFieldValue('post_code', data.address.post_code);
+
+
+
+        setFieldValue('current_address_line_1', data.address.current_address_line_1);
+
+        setFieldValue('current_address_line_2', data.address.current_address_line_2);
+
+        setFieldValue('current_landmark', data.address.current_landmark);
+
+        setFieldValue('current_post_office', data.address.current_post_office);
+
+        setFieldValue('current_city_or_town', data.address.current_city_or_town);
+
+        setFieldValue('current_district', data.address.current_district);
+
+        setFieldValue('current_state', data.address.current_state);
+
+        setFieldValue('current_country', data.address.current_country);
+
+        setFieldValue('current_post_code', data.address.current_post_code);
+
+
+
+        const sameAddressCheckbox = document.getElementById('same-address');
+
+        if (sameAddressCheckbox) {
+
+            const normalize = (v) => (v == null ? '' : String(v)).trim().toLowerCase();
+
+            const eq = (a, b) => normalize(a) === normalize(b);
+
+
+
+            const permanent = {
+
+                address_line_1: data.address.address_line_1,
+
+                address_line_2: data.address.address_line_2,
+
+                landmark: data.address.landmark,
+
+                post_office: data.address.post_office,
+
+                city_or_town: data.address.city_or_town,
+
+                district: data.address.district,
+
+                state: data.address.state,
+
+                country: data.address.country,
+
+                post_code: data.address.post_code,
+
+            };
+
+
+
+            const current = {
+
+                address_line_1: data.address.current_address_line_1,
+
+                address_line_2: data.address.current_address_line_2,
+
+                landmark: data.address.current_landmark,
+
+                post_office: data.address.current_post_office,
+
+                city_or_town: data.address.current_city_or_town,
+
+                district: data.address.current_district,
+
+                state: data.address.current_state,
+
+                country: data.address.current_country,
+
+                post_code: data.address.current_post_code,
+
+            };
+
+
+
+            const isSame = (
+
+                eq(permanent.address_line_1, current.address_line_1) &&
+
+                eq(permanent.address_line_2, current.address_line_2) &&
+
+                eq(permanent.landmark, current.landmark) &&
+
+                eq(permanent.post_office, current.post_office) &&
+
+                eq(permanent.city_or_town, current.city_or_town) &&
+
+                eq(permanent.district, current.district) &&
+
+                eq(permanent.state, current.state) &&
+
+                eq(permanent.country, current.country) &&
+
+                eq(permanent.post_code, current.post_code)
+
+            );
+
+
+
+            sameAddressCheckbox.checked = isSame;
+
+            sameAddressCheckbox.dispatchEvent(new Event('change'));
+
+        }
+
+
+
+        const docs = data.documents || {};
+
+        const rows = [
+
+            ['ID Proof (Front)', docs.id_proof],
+
+            ['ID Proof (Back)', docs.id_proof_back],
+            ['PAN Card', docs.pan_card_document],
+            ['Photo', docs.photo],
+
+            ['Signature', docs.signature],
+
+            ['Residential Proof', docs.residential_proof_file],
+
+        ].filter((x) => x[1]);
+
+
+
+        if (preview && rows.length) {
+
+            preview.style.display = '';
+
+            preview.innerHTML = rows.map(([label, url]) => {
+
+                const safeLabel = String(label || 'Document');
+
+                const safeUrl = String(url || '#');
+
+                return `<div class="text-sm mb-1"><span class="font-medium text-gray-700 dark:text-gray-400">${safeLabel}:</span> <a href="${safeUrl}" target="_blank" class="text-brand-600 hover:underline">View</a></div>`;
+
+            }).join('');
+
+        }
+
+
+
+        const hasReusableDocs = !!(docs && docs.has_any);
+
+        const hasReusablePanCard = !!(docs && docs.pan_card_document);
+
+        const hasReusableIdProofBack = !!(docs && docs.id_proof_back);
+
+        const hasReusableIdProof = !!(docs && docs.id_proof);
+
+        const hasReusablePhoto = !!(docs && docs.photo);
+
+        const hasReusableSignature = !!(docs && docs.signature);
+
+        if (useExistingDocsContainer) {
+
+            useExistingDocsContainer.style.display = hasReusableDocs ? '' : 'none';
+
+        }
+
+        if (useExistingDocs) {
+
+            useExistingDocs.disabled = !hasReusableDocs;
+
+            useExistingDocs.dataset.reusablePanCard = hasReusablePanCard ? '1' : '0';
+
+            useExistingDocs.dataset.reusableIdProofBack = hasReusableIdProofBack ? '1' : '0';
+
+            useExistingDocs.dataset.reusableIdProof = hasReusableIdProof ? '1' : '0';
+
+            useExistingDocs.dataset.reusablePhoto = hasReusablePhoto ? '1' : '0';
+
+            useExistingDocs.dataset.reusableSignature = hasReusableSignature ? '1' : '0';
+
+            useExistingDocs.checked = false;
+
+            useExistingDocs.dispatchEvent(new Event('change'));
+
+        }
+
+    } catch (e) {
+
+        console.error(e);
+
+        const errDiv = document.getElementById('error-customer_lookup_query');
+
+        if (errDiv) errDiv.textContent = 'Failed to fetch customer.';
+
+    } finally {
+
+        setBtnLoading(false);
+
+    }
+
+}
+
+
+
+(function setupUseExistingDocumentsToggle() {
+
+    const useExistingDocs = document.getElementById('use_existing_documents');
+
+    if (!useExistingDocs) return;
+
+
+
+    const fileIds = ['id_proof', 'photo', 'signature'];
+
+    const panInput = document.getElementById('pan_card_document');
+    const panContainer = panInput ? panInput.closest('div.w-full') : null;
+
+    const setDocFieldState = (inputEl, { disabled, required, dim } = {}) => {
+        if (!inputEl) return;
+        if (inputEl.id === 'signature' || inputEl.id === 'photo') {
+            required = false;
+        }
+        const container = inputEl.closest('div.w-full');
+
+        if (required) inputEl.setAttribute('required', 'required');
+        else inputEl.removeAttribute('required');
+
+        inputEl.disabled = !!disabled;
+
+        if (container) {
+            if (dim) {
+                container.style.opacity = '0.6';
+                container.style.pointerEvents = 'none';
+            } else {
+                container.style.opacity = '';
+                container.style.pointerEvents = '';
+            }
+        }
+
+        if (disabled) {
+            const errDiv = document.getElementById('error-' + inputEl.id);
+            if (errDiv) errDiv.textContent = '';
+            if (inputEl.classList) inputEl.classList.remove('border-red-500');
+        }
+    };
+
+    const getFiles = () => fileIds.map(id => document.getElementById(id)).filter(Boolean);
+
+
+
+    const clearFileErrors = () => {
+
+        getFiles().forEach((f) => {
+
+            const errDiv = document.getElementById('error-' + f.id);
+
+            if (errDiv) errDiv.textContent = '';
+
+            if (f.classList) f.classList.remove('border-red-500');
+
+        });
+
+    };
+
+
+
+    const showRequiredFileErrors = () => {
+
+        getFiles().forEach((f) => {
+
+            if (!f.hasAttribute('required') || f.disabled) return;
+
+            const hasFile = !!(f.files && f.files.length);
+
+            if (hasFile) return;
+
+            const errDiv = document.getElementById('error-' + f.id);
+
+            if (errDiv) errDiv.textContent = 'This file is required.';
+
+            if (f.classList) f.classList.add('border-red-500');
+
+        });
+
+    };
+
+
+
+    const applyRequiredState = () => {
+
+        const useDocsErr = document.getElementById('error-use_existing_documents');
+
+        if (useDocsErr) useDocsErr.textContent = '';
+
+
+
+        const checked = !!useExistingDocs.checked;
+
+        const canReusePan = (useExistingDocs.dataset.reusablePanCard || '') === '1';
+
+        const canReuseIdProof = (useExistingDocs.dataset.reusableIdProof || '') === '1';
+
+        const canReusePhoto = (useExistingDocs.dataset.reusablePhoto || '') === '1';
+
+        const canReuseSignature = (useExistingDocs.dataset.reusableSignature || '') === '1';
+
+        const files = getFiles();
+
+        files.forEach(f => {
+
+            const id = f.id;
+            const canReuse = id === 'id_proof'
+                ? canReuseIdProof
+                : (id === 'photo' ? canReusePhoto : (id === 'signature' ? canReuseSignature : false));
+
+            if (checked && canReuse) {
+                setDocFieldState(f, { disabled: true, required: false, dim: true });
+            } else {
+                setDocFieldState(f, { disabled: false, required: true, dim: false });
+            }
+
+        });
+
+        if (panInput) {
+            if (checked && canReusePan) {
+                setDocFieldState(panInput, { disabled: true, required: false, dim: true });
+            } else {
+                setDocFieldState(panInput, { disabled: false, required: false, dim: false });
+            }
+        }
+
+
+
+        if (checked) {
+
+            clearFileErrors();
+
+        } else {
+
+            showRequiredFileErrors();
+
+        }
+
+    };
+
+
+
+    useExistingDocs.addEventListener('change', function () {
+
+        if (this.checked && this.disabled) {
+
+            this.checked = false;
+
+        }
+
+        applyRequiredState();
+
+    });
+
+
+
+    applyRequiredState();
+
+})();
+
+
+
+window.fetchExistingCustomer = fetchExistingCustomer;
+
+
+
+let isSubmitting = false;
+
+
+
+document.getElementById('savings-application-form').addEventListener('submit', async function(e) {
+
+    e.preventDefault();
+
+    if (isSubmitting) return;
+
+    isSubmitting = true;
+
+
+
+    document.querySelectorAll('[id^="error-"]').forEach(el => el.textContent = '');
+
+
+
+    if (typeof window.validateNomineeSection === 'function') {
+
+        const ok = window.validateNomineeSection();
+
+        if (!ok) {
+
+            isSubmitting = false;
+
+            if (typeof showToast === 'function') {
+
+                showToast('Please fix the errors.', 'error');
+
+            } else {
+
+                alert('Please fix the errors.');
+
+            }
+
+            return;
+
+        }
+
+    }
+
+
+
+    const loader = document.getElementById('full-page-loader');
+
+    loader.style.display = 'flex';
+
+
+
+    const form = e.target;
+
+    const formData = new FormData(form);
+
+
+
+    const sameAddressChecked = document.getElementById('same-address')?.checked;
+
+    if (sameAddressChecked) {
+
+        formData.set('current_address_line_1', formData.get('address_line_1'));
+
+        formData.set('current_address_line_2', formData.get('address_line_2'));
+
+        formData.set('current_landmark', formData.get('landmark'));
+
+        formData.set('current_post_office', formData.get('post_office'));
+
+        formData.set('current_city_or_town', formData.get('city_or_town'));
+
+        formData.set('current_district', formData.get('district'));
+
+        formData.set('current_state', formData.get('state'));
+
+        formData.set('current_country', formData.get('country'));
+
+        formData.set('current_post_code', formData.get('post_code'));
+
+
+
+        formData.delete('residential_proof_type');
+
+        formData.delete('residential_proof_file');
+
+
+
+        const residentialProofFileInput = document.getElementById('residential_proof_file');
+
+        if (residentialProofFileInput) residentialProofFileInput.value = '';
+
+
+
+        const residentialProofTypeSelect = document.getElementById('residential_proof_type');
+
+        if (residentialProofTypeSelect) residentialProofTypeSelect.selectedIndex = 0;
+
+    }
+
+
+
+    const csrftoken = getCookie('csrftoken');
+
+    let result = null;
+
+
+
+    try {
+
+        const isBranch = window.location.pathname.startsWith('/branch/');
+
+        const isAgent = window.location.pathname.startsWith('/agent/');
+
+        const submitUrl = isBranch
+
+            ? '/branch/savings/api/application/'
+
+            : (isAgent ? '/agent/savings/api/application/' : '/savings/api/application/');
+
+
+
+        const response = await fetch(submitUrl, {
+
+            method: 'POST',
+
+            body: formData,
+
+            headers: { 'X-CSRFToken': csrftoken },
+
+            credentials: 'same-origin'
+
+        });
+
+
+
+        const contentType = response.headers.get('content-type') || '';
+
+        if (contentType.includes('application/json')) {
+
+            result = await response.json();
+
+        } else {
+
+            const text = await response.text();
+
+            console.error('Non-JSON response:', text.substring(0, 200));
+
+            if (typeof showToast === 'function') {
+
+                showToast('Server returned unexpected response.', 'error');
+
+            } else {
+
+                alert('Server returned unexpected response.');
+
+            }
+
+            return;
+
+        }
+
+
+
+        if (response.ok && result.success) {
+
+            if (result.pdf_url) {
+                try {
+                    const pdfResponse = await fetch(result.pdf_url, {
+                        method: 'GET',
+                        credentials: 'same-origin'
+                    });
+
+                    if (pdfResponse.ok) {
+                        const blob = await pdfResponse.blob();
+
+                        const blobUrl = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = blobUrl;
+                        a.download = `savings_application_${result.application_id || 'download'}.pdf`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(blobUrl);
+                    } else {
+                        console.error('PDF download failed with status', pdfResponse.status);
+                    }
+                } catch (e) {
+                    console.error('Auto-download PDF failed', e);
+                }
+            }
+
+            if (typeof showToast === 'function') {
+
+                showToast(result.message + ' (Customer ID: ' + result.customer_id + ', App: ' + result.application_id + ')', 'success');
+
+            } else {
+
+                alert(result.message + ' (Customer ID: ' + result.customer_id + ', App: ' + result.application_id + ')');
+
+            }
+
+            form.reset();
+
+            toggleAmountFields();
+
+            return;
+
+        }
+
+
+
+        if (result && result.errors) {
+
+            for (const [field, msg] of Object.entries(result.errors)) {
+
+                const errDiv = document.getElementById('error-' + field);
+
+                if (errDiv) errDiv.textContent = msg;
+
+            }
+
+            if (typeof showToast === 'function') {
+
+                showToast('Please fix the errors.', 'error');
+
+            } else {
+
+                alert('Please fix the errors.');
+
+            }
+
+        } else {
+
+            if (typeof showToast === 'function') {
+
+                showToast(result && result.message ? result.message : 'Failed to submit.', 'error');
+
+            } else {
+
+                alert(result && result.message ? result.message : 'Failed to submit.');
+
+            }
+
+        }
+
+
+
+    } catch (err) {
+
+        console.error(err);
+
+        if (typeof showToast === 'function') {
+
+            showToast('Network error.', 'error');
+
+        } else {
+
+            alert('Network error.');
+
+        }
+
+    } finally {
+
+        loader.style.display = 'none';
+
+        isSubmitting = false;
+
+    }
+
+});
+
+</script>
+
+<script src="{% static 'savings/js/new-application.js' %}"></script>
+
+{% endblock %}
+

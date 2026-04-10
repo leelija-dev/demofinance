@@ -1,0 +1,234 @@
+<div id="preview-modal"
+    class="fixed inset-0 z-999999 flex justify-center bg-gray-400/50 backdrop-blur-[32px] bg-opacity-50 hidden overflow-y-auto">
+    <div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10 w-full max-w-[700px]">
+        <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] shadow-2xl w-full p-0 relative">
+            <div class="p-5 space-y-6 border-gray-100 dark:border-gray-800 sm:p-6">
+                <div class="flex items-center justify-between mb-4 border-b border-gray-100 dark:border-gray-800 pb-4">
+                    <h2 class="text-title-md2 font-bold text-black dark:text-white">Savings Application Preview</h2>
+                    <button id="close-preview-x"
+                        type="button"
+                        class="text-2xl text-gray-400 hover:text-gray-700 dark:hover:text-white focus:outline-none">&times;</button>
+                </div>
+
+                <div class="py-2 text-center">
+                    <h3 class="text-base font-bold text-gray-800 dark:text-white/90">Customer Details</h3>
+                </div>
+                <hr class="pb-5">
+                <div class="-mx-2.5 flex flex-wrap gap-y-5">
+                    <div class="w-full px-2.5 lg:w-1/2">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Full Name</label>
+                        <input id="preview_full_name" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Date of Birth</label>
+                        <input id="preview_date_of_birth" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Gender</label>
+                        <input id="preview_gender" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Contact</label>
+                        <input id="preview_contact" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Aadhaar Number</label>
+                        <input id="preview_adhar_number" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">PAN Number</label>
+                        <input id="preview_pan_number" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+
+                    <div class="w-full px-2.5">
+                        <h4 class="pb-2 text-base font-medium text-gray-800 border-b border-gray-200 dark:border-gray-800 dark:text-white/90">Address :</h4>
+                    </div>
+
+                    <div class="w-full px-2.5 xl:w-1/2">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Address line 1</label>
+                        <input id="preview_address_line_1" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+                    <div class="w-full px-2.5 xl:w-1/2">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Address line 2</label>
+                        <input id="preview_address_line_2" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Landmark</label>
+                        <input id="preview_landmark" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Post Office</label>
+                        <input id="preview_post_office" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">City/Town</label>
+                        <input id="preview_city_or_town" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">District</label>
+                        <input id="preview_district" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">State</label>
+                        <input id="preview_state" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Country</label>
+                        <input id="preview_country" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Post Code</label>
+                        <input id="preview_post_code" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+
+                    <div id="current-address-same-note" class="w-full px-2.5" style="display:none;">
+                        <h4 class="pb-2 text-base font-medium text-gray-800 border-b border-gray-200 dark:border-gray-800 dark:text-white/90">Current Address :</h4>
+                        <p class="text-xs text-gray-600 dark:text-gray-400 mt-2">Current Address is same as Permanent Address.</p>
+                    </div>
+
+                    <div id="current-address-preview-section" class="w-full flex flex-wrap gap-y-5">
+                        <div class="w-full px-2.5">
+                            <h4 class="pb-2 text-base font-medium text-gray-800 border-b border-gray-200 dark:border-gray-800 dark:text-white/90">Current Address :</h4>
+                        </div>
+
+                        <div class="w-full px-2.5 xl:w-1/2">
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Current Address Line 1</label>
+                            <input id="preview_current_address_line_1" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                        </div>
+                    <div class="w-full px-2.5 xl:w-1/2">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Current Address Line 2</label>
+                        <input id="preview_current_address_line_2" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Current Landmark</label>
+                        <input id="preview_current_landmark" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Current Post Office</label>
+                        <input id="preview_current_post_office" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Current City/Town</label>
+                        <input id="preview_current_city_or_town" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Current District</label>
+                        <input id="preview_current_district" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Current State</label>
+                        <input id="preview_current_state" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Current Country</label>
+                        <input id="preview_current_country" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Current Post Code</label>
+                        <input id="preview_current_post_code" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+                    </div>
+
+                    <div id="residential-proof-preview-section" class="w-full flex flex-wrap gap-y-5">
+                        <div class="w-full px-2.5">
+                            <h4 class="pb-2 text-base font-medium text-gray-800 border-b border-gray-200 dark:border-gray-800 dark:text-white/90">Residential Proof for Current Address :</h4>
+                        </div>
+
+                        <div class="w-full px-2.5 lg:w-1/2 xl:w-1/3">
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Residential Proof Type</label>
+                            <input id="preview_residential_proof_type" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                        </div>
+                        <div class="w-full px-2.5 lg:w-1/2 xl:w-2/3">
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Residential Proof Document</label>
+                            <input id="preview_residential_proof_file" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-10 py-4 text-center">
+                    <h3 class="text-base font-bold text-gray-800 dark:text-white/90">Savings Product Details</h3>
+                </div>
+                <hr class="pb-5">
+                <div class="-mx-2.5 flex flex-wrap gap-y-5">
+                    <div class="w-full px-2.5 lg:w-1/2">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Saving Type</label>
+                        <input id="preview_saving_type" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Product</label>
+                        <input id="preview_saving_product" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+                </div>
+
+                <div class="mt-10 py-4 text-center">
+                    <h3 class="text-base font-bold text-gray-800 dark:text-white/90">Nominee Details</h3>
+                </div>
+                <hr class="pb-5">
+                <div class="-mx-2.5 flex flex-wrap gap-y-5">
+                    <div class="w-full px-2.5 lg:w-1/2">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Nominee Name</label>
+                        <input id="preview_nominee_name" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Relationship</label>
+                        <input id="preview_nominee_relationship" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Nominee KYC Type</label>
+                        <input id="preview_nominee_kyc_type" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Nominee KYC Number</label>
+                        <input id="preview_nominee_kyc_number" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+                    <div class="w-full px-2.5">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Nominee KYC Document</label>
+                        <input id="preview_nominee_kyc_document" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+                </div>
+
+                <div class="mt-10 py-4 text-center">
+                    <h3 class="text-base font-bold text-gray-800 dark:text-white/90">Document Details</h3>
+                </div>
+                <hr class="pb-5">
+                <div class="-mx-2.5 flex flex-wrap gap-y-5">
+                    <div class="w-full px-2.5">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Use Existing Documents</label>
+                        <input id="preview_use_existing_documents" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+                    <div class="w-full px-2.5 xl:w-1/2">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Id Proof (Front)</label>
+                        <input id="preview_id_proof" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+                    <div class="w-full px-2.5 xl:w-1/2">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Id Proof (Back)</label>
+                        <input id="preview_id_proof_back" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+                    <div class="w-full px-2.5 xl:w-1/2">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">PAN Card Document</label>
+                        <input id="preview_pan_card_document" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+                    <div class="w-full px-2.5 xl:w-1/2">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Photo</label>
+                        <input id="preview_photo" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+                    <div class="w-full px-2.5 xl:w-1/2">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Signature</label>
+                        <input id="preview_signature" type="text" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" readonly>
+                    </div>
+                </div>
+
+                <div class="w-full py-5 mt-6">
+                    <div class="flex flex-col justify-end gap-5 xl:flex-row xl:items-center">
+                        <button id="close-preview"
+                            type="button"
+                            class="flex items-center justify-center w-full gap-2 px-4 py-3 text-sm font-medium text-gray-800 dark:text-white rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 xl:w-auto transition">Cancel</button>
+                        <button id="submit-preview"
+                            type="button"
+                            class="flex items-center justify-center w-full gap-2 px-4 py-3 text-sm font-medium text-white rounded-lg bg-brand-500 hover:bg-brand-600 xl:w-auto transition font-semibold">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

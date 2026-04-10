@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Disbursement Report</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            margin: 0;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .header p {
+            color: #7f8c8d;
+            margin: 5px 0 0 0;
+            font-size: 14px;
+        }
+        
+        .section {
+            margin-bottom: 25px;
+        }
+        
+        .section-title {
+            background-color: #f8f9fa;
+            padding: 10px 15px;
+            font-weight: bold;
+            color: #2c3e50;
+            border-left: 4px solid #3498db;
+            margin-bottom: 15px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .info-item {
+            margin-bottom: 15px;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #555;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+        
+        .info-value {
+            font-size: 14px;
+            color: #333;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .loan-details {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .loan-details h3 {
+            margin: 0 0 15px 0;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+        
+        .amount {
+            font-weight: bold;
+            color: #27ae60;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 5px 12px;
+            background-color: #27ae60;
+            color: white;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+        
+        .company-logo {
+            max-width: 150px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+        
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Loan Disbursement Report</h1>
+        <p>Generated on: {{ generated_date }}</p>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Loan Information</div>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Loan Number</div>
+                <div class="info-value">{{ loan_application.loan_ref_no }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Disbursed Date</div>
+                <div class="info-value">{{ loan_application.disbursed_at|date:"F d, Y" }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Status</div>
+                <div class="info-value">
+                    <span class="status">Fund Released</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Customer & Agent Details</div>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Customer Name</div>
+                <div class="info-value">{{ customer.full_name|default:"N/A" }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Customer ID</div>
+                <div class="info-value">{{ customer.customer_id|default:"N/A" }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Agent Name</div>
+                <div class="info-value">{{ agent.full_name|default:"N/A" }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Agent ID</div>
+                <div class="info-value">{{ agent.agent_id|default:"N/A" }}</div>
+            </div>
+        </div>
+    </div>
+
+    {% if loan %}
+    <div class="section">
+        <div class="section-title">Loan Terms</div>
+        <div class="loan-details">
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Loan Amount</div>
+                    <div class="info-value amount">₹{{ loan.loan_amount }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Tenure</div>
+                    <div class="info-value">{{ loan.tenure.display_name|default:"N/A" }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Interest Rate</div>
+                    <div class="info-value">{{ loan.interest_rate.rate_of_interest|default:"N/A" }}%</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">EMI Amount</div>
+                    <div class="info-value amount">₹{{ loan.emi_amount }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Loan Category</div>
+                    <div class="info-value">{{ loan.loan_category.name|default:"N/A" }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="footer">
+        <p>This is an official loan disbursement report generated by the system.</p>
+        <p>For any queries, please contact your branch manager.</p>
+    </div>
+</body>
+</html> 

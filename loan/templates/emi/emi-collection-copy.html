@@ -1,0 +1,1768 @@
+{% extends "agent/base.html" %}
+{% load static %}
+{% block title %}EMI Collect{% endblock %}
+
+{% block page_id %}emiCollect{% endblock %}
+
+{% block content %}
+
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+    <!-- Breadcrumb Start -->
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 class="text-title-md2 font-bold text-black dark:text-white">
+            EMI Collect
+        </h2>
+        <nav>
+            <ol class="flex items-center gap-2">
+                <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+                        href="{% url 'agent:dashboard' %}">Dashboard <svg class="stroke-current" width="17" height="16"
+                            viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                            </path>
+                        </svg></a></li>
+                <li class="text-sm text-gray-800 dark:text-white/90">EMI Collect</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        <div class="flex flex-wrap gap-4 p-5 border-t border-gray-100 dark:border-gray-800 sm:p-6">
+            <!-- Loan Search -->
+            <div class="flex-1 min-w-[200px]">
+                <div class="relative w-full">
+                    <div class="relative">
+                        <input type="text" id="loanSearch" placeholder="Search by Loan Number"
+                            class="w-full p-2 pl-3 pr-10 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            autocomplete="off">
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                            <!-- Clear button (initially hidden) -->
+                            <button id="clearSearchBtn" type="button" 
+                                class="hidden absolute right-3 text-red-400 hover:text-red-600 focus:outline-none pointer-events-auto">
+                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" 
+                                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" 
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                            <svg id="searchIcon" class="h-5 w-5 text-gray-400 pointer-events-none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                                fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div id="loanSuggestions"
+                        class="hidden absolute z-10 w-64 mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Date Filter -->
+            <div class="flex-1 min-w-[150px]">
+                <input type="text" id="dateFilter" placeholder="Filter by Date"
+                       class="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                       style="appearance: none; -webkit-appearance: none; -moz-appearance: textfield;">
+            </div>
+
+            <!-- Clear Filters Button -->
+            <div class="flex-shrink-0">
+                <button id="clearFiltersBtn" type="button"
+                        class="px-3 py-2 text-sm bg-red-500 text-white rounded-md hover:bg-gray-600 focus:outline-none">
+                    Clear Filters
+                </button>
+            </div>
+        </div>
+        <div class="p-5 space-y-6 border-t border-gray-100 dark:border-gray-800 sm:p-6 overflow-auto">
+            <div class="">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Assigned ID
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Loan No
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Customer Name
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Branch
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Installment Date
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Principal
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Interest
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                EMI Amount
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Action
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="emi-collect-tbody" class="bg-white divide-y divide-gray-200">
+                        {% include "emi/partials/emi-collect-rows.html" with rows=rows %}
+                    </tbody>
+                </table>
+            </div>
+            <div id="no-emi-collect" class="hidden p-6 text-center text-red-500">
+                No EMIs Collection Found
+            </div>
+            <div id="emi-scroll-sentinel" class="h-8" data-next-page="{% if next_page_number %}{{ next_page_number }}{% endif %}" data-has-next="{% if has_next %}1{% else %}0{% endif %}"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm Modal -->
+<div id="confirm-modal" class="fixed inset-0 z-99999 hidden">
+    <div class="absolute inset-0 bg-black/50"></div>
+    <div id="confirm-panel" class="absolute w-[320px] rounded-lg bg-white p-5 shadow-xl border border-gray-200">
+        <button id="confirm-cancel" type="button"
+            class="absolute right-5 top-5 text-sm font-medium text-gray-400 transition hover:text-gray-600 focus:outline-none">
+            Cancel
+        </button>
+        <h3 class="text-lg font-semibold text-gray-800 pr-12">Confirm</h3>
+        <p id="confirm-modal-text" class="mt-2 text-sm text-gray-600">Confirm to mark this EMI as collected?</p>
+        
+        <!-- Overdue Penalty Input (initially hidden) -->
+        <div id="penalty-container" class="mt-3 hidden">
+            <div class="flex items-center justify-between">
+                <label for="penalty-amount" class="block text-sm font-medium text-red-600">Overdue Penalty</label>
+                <span id="overdue-days" class="text-xs text-red-500"></span>
+            </div>
+            <input id="penalty-amount" type="number" step="0.01" inputmode="decimal"
+                   class="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                   placeholder="0.00" value="0" />
+            <p id="penalty-amount-error" class="hidden mt-1 text-xs text-red-600"></p>
+        </div>
+
+        <!-- Main EMI Amount -->
+        <div class="mt-2">
+            <label for="confirm-amount" class="block text-sm text-gray-700">Enter Collected amount</label>
+            <input id="confirm-amount" type="number" step="0.01" inputmode="decimal"
+                   class="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                   placeholder="0.00" value="0" />
+            <p id="confirm-amount-error" class="hidden mt-1 text-xs text-red-600"></p>
+        </div>
+        
+        <!-- Total Amount Display -->
+        <!-- <div id="total-container" class="mt-3 pt-2 border-t border-gray-100 hidden">
+            <div class="flex justify-between font-medium">
+                <span>Total Amount:</span>
+                <span id="total-amount" class="text-brand-600">0.00</span>
+            </div>
+        </div> -->
+
+        <div class="mt-6 flex items-center justify-between">
+            <button id="confirm-reject" type="button"
+                class="px-4 py-2 rounded border border-red-500 text-sm font-medium text-red-600 transition hover:bg-red-50">
+                Reject
+            </button>
+            <button id="confirm-ok" type="button"
+                class="px-4 py-2 rounded bg-brand-500 text-sm text-white hover:bg-brand-600">Collected</button>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Modal -->
+<div id="reject-modal" class="fixed inset-0 z-99999 hidden">
+    <div class="absolute inset-0 bg-black/50"></div>
+    <div id="reject-panel" class="absolute w-[360px] rounded-lg bg-white p-6 shadow-xl border border-gray-200">
+        <button id="reject-cancel" type="button"
+            class="absolute right-6 top-6 text-sm font-medium text-gray-400 transition hover:text-gray-600 focus:outline-none">
+            Cancel
+        </button>
+        <h3 class="text-lg font-semibold text-gray-800 pr-12">Reject EMI Collection</h3>
+        <p class="mt-2 text-sm text-gray-600">Provide a reason for rejecting this EMI collection.</p>
+        <div class="mt-4">
+            <label for="reject-reason" class="block text-sm font-medium text-gray-700">Reject Reason</label>
+            <textarea id="reject-reason" rows="4"
+                class="mt-2 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                placeholder="Enter the rejection reason"></textarea>
+            <p id="reject-reason-error" class="hidden mt-1 text-xs text-red-600"></p>
+        </div>
+        <div class="mt-6 flex justify-end gap-3">
+            <button id="reject-submit" type="button"
+                class="px-4 py-2 rounded bg-red-500 text-sm font-medium text-white transition hover:bg-red-600">
+                Submit
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Current EMI Modal -->
+<div id="current-emi-modal" class="fixed inset-0 z-99999 hidden p-4 sm:p-6 flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/50"></div>
+    <div id="current-emi-panel" class="relative w-full max-w-[420px] sm:max-w-[520px] max-h-[90vh] overflow-y-auto rounded-lg bg-white p-4 sm:p-6 shadow-xl border border-gray-200">
+        <button id="current-emi-cancel" type="button"
+            class="absolute right-6 top-6 text-sm font-medium text-red-400 transition hover:text-red-600 focus:outline-none">
+            Close
+        </button>
+        <h3 class="text-lg font-semibold text-gray-800 pr-12 dark:text-gray-200">Due EMIs</h3>
+
+        <div class="mt-4 grid grid-cols-2 gap-3 text-sm text-gray-700">
+            <div class="rounded border border-gray-200 p-3">
+                <div class="text-xs text-gray-500">Loan No</div>
+                <div id="current-emi-loan" class="mt-1 font-medium text-gray-800 dark:text-gray-200"></div>
+            </div>
+            <div class="rounded border border-gray-200 p-3">
+                <div class="text-xs text-gray-500">Total Due EMIs</div>
+                <div id="current-emi-due-count" class="mt-1 font-medium text-gray-800 dark:text-gray-200">0</div>
+            </div>
+            <div class="rounded border border-gray-200 p-3 col-span-2">
+                <div class="text-xs text-gray-500">Total Due Amount</div>
+                <div id="current-emi-due-amount" class="mt-1 font-medium text-gray-800 dark:text-gray-200">₹0.00</div>
+            </div>
+        </div>
+
+        <div class="mt-4 overflow-auto border border-gray-200 rounded">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Loan No</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assignment ID</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Installment Date</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">EMI Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="current-emi-tbody" class="bg-white divide-y divide-gray-200"></tbody>
+            </table>
+        </div>
+
+        <div id="current-emi-empty" class="hidden mt-3 text-sm text-red-600">No due EMIs found.</div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+        // async function fetchEmiSchedules(loanRefNo) {
+        //     try {
+        //         // const response = await fetch(`{% url 'branch:api_emi_statement' %}?loan_ref_no=${loanRefNo}`);
+        //         const response = await fetch(`/agent/api/emi-statement/?loan_ref_no=${loanRefNo}`);
+        //         const data = await response.json();
+        //         console.log('fetch emi data', data.schedules);
+                
+        //         if (!data || !Array.isArray(data.schedules)) {
+        //         throw new Error('Invalid EMI schedule format');
+        //         }
+
+        //         const totalEmiAmount = (data.schedules || []).reduce((sum, schedule) => {
+        //             const val = typeof schedule.installment_amount === 'string' ? parseFloat(schedule.installment_amount) : Number(schedule.installment_amount || 0);
+        //             return sum + (Number.isFinite(val) ? val : 0);
+        //         }, 0);
+        //         window.TOTAL_EMI_AMOUNT = totalEmiAmount;
+        //         console.log('TOTAL_EMI_AMOUNT (sum):', window.TOTAL_EMI_AMOUNT);
+        //     } catch (error) {
+        //     console.error('Error:', error);
+        //     // alert('An error occurred while fetching EMI schedules');
+        //     }
+        // }
+
+        async function fetchEmiSchedules(loanRefNo) {
+            try {
+                const response = await fetch(`/agent/api/emi-statement/?loan_ref_no=${loanRefNo}`);
+                if (!response.ok) {
+                    const errText = await response.text().catch(() => '');
+                    const message = errText?.trim() ? errText.trim() : `HTTP ${response.status}`;
+                    throw new Error(message);
+                }
+        
+                const data = await response.json();
+                if (!data || !Array.isArray(data.schedules)) {
+                    throw new Error('Invalid EMI schedule format');
+                }        
+                const totalEmiAmount = data.schedules.reduce((sum, schedule) => {
+                    const val = typeof schedule.installment_amount === 'string'
+                        ? parseFloat(schedule.installment_amount)
+                        : Number(schedule.installment_amount || 0);
+                    return sum + (Number.isFinite(val) ? val : 0);
+                }, 0);
+        
+                window.TOTAL_EMI_AMOUNT = totalEmiAmount;
+            } catch (error) {
+                console.error('Failed to fetch EMI schedules:', error);
+                window.TOTAL_EMI_AMOUNT = 0;
+                alert('An error occurred while fetching EMI schedules');
+            }
+        }
+
+        // Fetch rescheduled EMI aggregates for a loan (branch-side API), used
+        // only for validation of reschedule EMIs on agent side.
+        async function fetchRescheduleAggregates(loanRefNo) {
+            try {
+                const url = `{% url 'branch:api_loan_reschedule_emis' loan_ref_no='__REF__' %}`.replace('__REF__', encodeURIComponent(loanRefNo));
+                const resp = await fetch(url);
+                if (!resp.ok) {
+                    throw new Error(`HTTP ${resp.status}`);
+                }
+                const data = await resp.json();
+                const emis = Array.isArray(data?.emis) ? data.emis : [];
+
+                const toNum = (v) => {
+                    const n = typeof v === 'string' ? parseFloat(v) : (typeof v === 'number' ? v : 0);
+                    return Number.isFinite(n) ? n : 0;
+                };
+
+                let totalEmi = 0;
+                let totalPaidEmi = 0;
+
+                emis.forEach(e => {
+                    const emiAmt = toNum(e.installment_amount);
+                    totalEmi += emiAmt;
+                    if (e.paid) {
+                        totalPaidEmi += emiAmt;
+                    }
+                });
+
+                const remainingBalance = toNum(data?.remaining_balance);
+                const remainingEmi = Math.max(totalEmi - totalPaidEmi, 0);
+
+                const lastEmi = emis.length ? emis[emis.length - 1] : null;
+                const lastEmiId = lastEmi ? lastEmi.id : null;
+
+                window.RES_RESCHEDULE_AGG = {
+                    loanRefNo,
+                    totalEmi,
+                    totalPaidEmi,
+                    remainingEmi,
+                    remainingBalance,
+                    // For consistency with normal validation, treat totalCollected as
+                    // the sum of paid EMI amounts within this reschedule plan.
+                    totalCollected: totalPaidEmi,
+                    lastEmiId,
+                };
+
+            } catch (err) {
+                console.error('Failed to fetch reschedule aggregates:', err);
+                window.RES_RESCHEDULE_AGG = null;
+            }
+        }
+
+        async function fetchEmiSchedules(loanRefNo) {
+            try {
+                const response = await fetch(`/agent/api/emi-statement/?loan_ref_no=${loanRefNo}`);
+                if (!response.ok) {
+                    const errText = await response.text().catch(() => '');
+                    const message = errText?.trim() ? errText.trim() : `HTTP ${response.status}`;
+                    throw new Error(message);
+                }
+        
+                const data = await response.json();
+                if (!data || !Array.isArray(data.schedules)) {
+                    throw new Error('Invalid EMI schedule format');
+                }        
+                const totalEmiAmount = data.schedules.reduce((sum, schedule) => {
+                    const val = typeof schedule.installment_amount === 'string'
+                        ? parseFloat(schedule.installment_amount)
+                        : Number(schedule.installment_amount || 0);
+                    return sum + (Number.isFinite(val) ? val : 0);
+                }, 0);
+        
+                window.TOTAL_EMI_AMOUNT = totalEmiAmount;
+            } catch (error) {
+                console.error('Failed to fetch EMI schedules:', error);
+                window.TOTAL_EMI_AMOUNT = 0;
+                alert('An error occurred while fetching EMI schedules');
+            }
+        }
+
+        function getCSRFToken() {
+            const name = 'csrftoken=';
+            const decodedCookie = decodeURIComponent(document.cookie);
+            const ca = decodedCookie.split(';');
+            for (let i = 0; i < ca.length; i++) {
+                let c = ca[i].trim();
+                if (c.indexOf(name) === 0) {
+                    return c.substring(name.length, c.length);
+                }
+            }
+            return '';
+        }
+
+        // Ensure exactly two decimal places to satisfy backend DecimalField
+        function toTwoDecimals(value) {
+            const n = Number(value);
+            if (isNaN(n)) return '0.00';
+            // Round to 2 DP and format as string with exactly 2 decimals
+            return (Math.round(n * 100) / 100).toFixed(2);
+        }
+
+        // Always format any amount to a 2-decimal string for display
+        const toFixed2 = (v) => {
+            const n = (typeof v === 'string') ? Number(v.replace(/,/g, '')) : Number(v);
+            return Number.isFinite(n) ? n.toFixed(2) : (0).toFixed(2);
+        };
+
+        if (typeof window.formatDateDisplay !== 'function') {
+            window.formatDateDisplay = (dateValue) => {
+                if (!dateValue) return '';
+                const raw = String(dateValue);
+                const datePart = raw.includes('T') ? raw.split('T')[0] : raw;
+                const parts = datePart.split('-');
+                if (parts.length === 3) {
+                    const y = parts[0];
+                    const m = parts[1];
+                    const d = parts[2];
+                    if (y && m && d) return `${d}-${m}-${y}`;
+                }
+                return datePart;
+            };
+        }
+
+        // Modal helpers
+        const confirmModal = document.getElementById('confirm-modal');
+        const confirmPanel = document.getElementById('confirm-panel');
+        const confirmText = document.getElementById('confirm-modal-text');
+        const confirmOk = document.getElementById('confirm-ok');
+        const confirmCancel = document.getElementById('confirm-cancel');
+        const confirmReject = document.getElementById('confirm-reject');
+        const penaltyAmount = document.getElementById('penalty-amount');
+        const penaltyAmountError = document.getElementById('penalty-amount-error');
+        const confirmAmount = document.getElementById('confirm-amount');
+        const confirmAmountError = document.getElementById('confirm-amount-error');
+        const rejectModal = document.getElementById('reject-modal');
+        const rejectPanel = document.getElementById('reject-panel');
+        const rejectCancel = document.getElementById('reject-cancel');
+        const rejectReason = document.getElementById('reject-reason');
+        const rejectReasonError = document.getElementById('reject-reason-error');
+        const rejectSubmit = document.getElementById('reject-submit');
+        let confirmCallback = null;
+        let rejectContext = null;
+
+        function openConfirm(message, onConfirm, anchorEl, onReject) {
+            confirmText.textContent = message || 'Are you sure?';
+            confirmCallback = onConfirm;
+            rejectContext = (typeof onReject === 'function') ? { callback: onReject } : null;
+            // Show modal first (hidden positioning), then place the panel near the anchor
+            confirmModal.classList.remove('hidden');
+            // Place panel below/right of the anchor, clamped within viewport
+            try {
+                if (confirmPanel) {
+                    const isMobile = window.innerWidth < 768; // Tailwind md breakpoint
+                    if (!anchorEl || isMobile) {
+                        // Centered modal for small screens or when no anchor available
+                        confirmPanel.style.position = 'fixed';
+                        confirmPanel.style.top = '50%';
+                        confirmPanel.style.left = '50%';
+                        confirmPanel.style.transform = 'translate(-50%, -50%)';
+                        confirmPanel.style.visibility = 'visible';
+                        confirmPanel.style.width = 'min(92vw, 360px)';
+                        return;
+                    }
+
+                    const rect = anchorEl.getBoundingClientRect();
+                    // Temporarily set visibility hidden to measure size without flicker
+                    confirmPanel.style.visibility = 'hidden';
+                    confirmPanel.style.transform = '';
+                    confirmPanel.style.position = 'absolute';
+                    confirmPanel.style.top = '0px';
+                    confirmPanel.style.left = '0px';
+                    confirmPanel.style.width = '';
+                    // Force a reflow to get offsetWidth/Height
+                    const panelWidth = confirmPanel.offsetWidth || 320;
+                    const panelHeight = confirmPanel.offsetHeight || 160;
+
+                    const margin = 8;
+                    let top = rect.bottom + margin + window.scrollY;
+                    // Base left aligned to anchor's left
+                    let left = rect.left + window.scrollX;
+
+                    // Responsive left-shift: increase offset as screen width grows (md+)
+                    const baseW = 1024; // start shifting from lg
+                    const step = 256;
+                    const perStep = 16; // px shift per bucket
+                    const buckets = Math.max(0, Math.floor((window.innerWidth - baseW) / step));
+                    const shift = buckets * perStep;
+                    left = (left - 120) - shift;
+
+                    // Clamp within viewport width
+                    const maxLeft = window.scrollX + window.innerWidth - panelWidth - 16;
+                    left = Math.max(window.scrollX + 16, Math.min(left, maxLeft));
+
+                    // If bottom overflows viewport height, place above the button
+                    const bottomOverflow = top + panelHeight - (window.scrollY + window.innerHeight);
+                    if (bottomOverflow > 0) {
+                        top = rect.top - panelHeight - margin + window.scrollY;
+                    }
+
+                    // Apply final position
+                    confirmPanel.style.top = `${top}px`;
+                    confirmPanel.style.left = `${left}px`;
+                    confirmPanel.style.visibility = 'visible';
+                }
+            } catch (e) {
+                // Fallback: center the modal
+                confirmPanel.style.position = 'fixed';
+                confirmPanel.style.top = '50%';
+                confirmPanel.style.left = '50%';
+                confirmPanel.style.transform = 'translate(-50%, -50%)';
+                confirmPanel.style.width = 'min(92vw, 360px)';
+                confirmPanel.style.visibility = 'visible';
+            }
+        }
+
+        function closeConfirm(options = {}) {
+            const { preserveRejectContext = false } = options;
+            confirmModal.classList.add('hidden');
+            confirmCallback = null;
+            if (!preserveRejectContext) {
+                rejectContext = null;
+            }
+        }
+
+        function openRejectModal() {
+            if (!rejectModal) return;
+            rejectModal.classList.remove('hidden');
+            if (rejectPanel) {
+                rejectPanel.style.position = 'fixed';
+                rejectPanel.style.top = '50%';
+                rejectPanel.style.left = '50%';
+                rejectPanel.style.transform = 'translate(-50%, -50%)';
+                rejectPanel.style.width = 'min(92vw, 400px)';
+            }
+            if (rejectReason) {
+                rejectReason.value = '';
+                window.requestAnimationFrame(() => rejectReason.focus());
+            }
+            if (rejectReasonError) {
+                rejectReasonError.classList.add('hidden');
+                rejectReasonError.textContent = '';
+            }
+        }
+
+        function closeRejectModal() {
+            if (!rejectModal) return;
+            rejectModal.classList.add('hidden');
+            if (rejectReason) {
+                rejectReason.value = '';
+            }
+            if (rejectReasonError) {
+                rejectReasonError.classList.add('hidden');
+            }
+            rejectContext = null;
+        }
+
+        const currentEmiModal = document.getElementById('current-emi-modal');
+        const currentEmiPanel = document.getElementById('current-emi-panel');
+        const currentEmiCancel = document.getElementById('current-emi-cancel');
+        const currentEmiLoan = document.getElementById('current-emi-loan');
+        const currentEmiDueCount = document.getElementById('current-emi-due-count');
+        const currentEmiDueAmount = document.getElementById('current-emi-due-amount');
+        const currentEmiTbody = document.getElementById('current-emi-tbody');
+        const currentEmiEmpty = document.getElementById('current-emi-empty');
+
+        async function openCurrentEmiModal(loanRefNo) {
+            if (!currentEmiModal) return;
+            currentEmiModal.classList.remove('hidden');
+
+            if (currentEmiPanel) {
+                currentEmiPanel.style.position = 'fixed';
+                currentEmiPanel.style.top = '50%';
+                currentEmiPanel.style.left = '50%';
+                currentEmiPanel.style.transform = 'translate(-50%, -50%)';
+                currentEmiPanel.style.width = 'min(92vw, 720px)';
+            }
+
+            if (currentEmiLoan) currentEmiLoan.textContent = loanRefNo || '';
+            if (currentEmiDueCount) currentEmiDueCount.textContent = '...';
+            if (currentEmiDueAmount) currentEmiDueAmount.textContent = '...';
+            if (currentEmiTbody) currentEmiTbody.innerHTML = '';
+            if (currentEmiEmpty) currentEmiEmpty.classList.add('hidden');
+
+            if (!loanRefNo) {
+                if (currentEmiDueCount) currentEmiDueCount.textContent = '0';
+                if (currentEmiDueAmount) currentEmiDueAmount.textContent = '₹0.00';
+                if (currentEmiEmpty) currentEmiEmpty.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                const res = await fetch(`/agent/api/loan-due-emis/${encodeURIComponent(loanRefNo)}/`);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+
+                const dueCount = Number(data?.due_count || 0);
+                const dueAmount = Number(data?.due_amount || 0);
+                const rows = Array.isArray(data?.results) ? data.results : [];
+
+                if (currentEmiDueCount) currentEmiDueCount.textContent = String(dueCount);
+                if (currentEmiDueAmount) currentEmiDueAmount.textContent = `₹${toFixed2(dueAmount)}`;
+
+                if (!currentEmiTbody) return;
+                currentEmiTbody.innerHTML = '';
+
+                if (!rows.length) {
+                    if (currentEmiEmpty) currentEmiEmpty.classList.remove('hidden');
+                    return;
+                }
+
+                rows.forEach(r => {
+                    const loan = r.loan_ref_no ?? loanRefNo;
+                    const assignment = r.assignment_id ?? '';
+                    const date = (typeof formatDateDisplay === 'function') ? formatDateDisplay(r.installment_date) : (r.installment_date ?? '');
+                    const amt = toFixed2(r.installment_amount ?? 0);
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="px-4 py-2 text-sm text-gray-700">${loan}</td>
+                        <td class="px-4 py-2 text-sm text-gray-700">${assignment}</td>
+                        <td class="px-4 py-2 text-sm text-gray-700">${date}</td>
+                        <td class="px-4 py-2 text-sm text-gray-700">₹${amt}</td>
+                    `;
+                    currentEmiTbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error('Failed to fetch due EMIs:', err);
+                if (currentEmiDueCount) currentEmiDueCount.textContent = '0';
+                if (currentEmiDueAmount) currentEmiDueAmount.textContent = '₹0.00';
+                if (currentEmiEmpty) currentEmiEmpty.classList.remove('hidden');
+            }
+        }
+
+        function closeCurrentEmiModal() {
+            if (!currentEmiModal) return;
+            currentEmiModal.classList.add('hidden');
+        }
+
+        if (currentEmiCancel) currentEmiCancel.addEventListener('click', closeCurrentEmiModal);
+        if (currentEmiModal) {
+            currentEmiModal.addEventListener('click', (e) => {
+                if (e.target === currentEmiModal) closeCurrentEmiModal();
+            });
+        }
+
+        // Make OK handler async so we can await callback result
+        confirmOk.addEventListener('click', async () => {
+            // validate amount
+            // const chargeAmount = Number(penaltyAmount?.value || '0');
+            // if (chargeAmount <= 0) {
+            //     if (penaltyAmountError) {
+            //         penaltyAmountError.textContent = 'Please enter a valid penalty amount greater than 0.';
+            //         penaltyAmountError.classList.remove('hidden');
+            //     }
+            //     penaltyAmount?.focus();
+            //     return;
+            // }
+            // if (penaltyAmountError) penaltyAmountError.classList.add('hidden');
+
+            // validate penalty only when mandatory (overdue with enforced penalty)
+            const penaltyContainerEl = document.getElementById('penalty-container');
+            const penaltySectionVisible = !!(penaltyContainerEl && !penaltyContainerEl.classList.contains('hidden'));
+            const penaltyIsMandatory = penaltySectionVisible && penaltyAmount && penaltyAmount.disabled === true;
+            const penaltyValRaw = (penaltyAmount?.value ?? '').toString().trim();
+            const chargeAmount = Number(penaltyValRaw || '0');
+
+            if (penaltySectionVisible) {
+              if (penaltyIsMandatory) {
+                // mandatory penalty (auto-applied overdue fee): must be > 0
+                if (!Number.isFinite(chargeAmount) || chargeAmount <= 0) {
+                  if (penaltyAmountError) {
+                    penaltyAmountError.textContent = 'Penalty is mandatory for overdue EMI.';
+                    penaltyAmountError.classList.remove('hidden');
+                  }
+                  penaltyAmount?.focus();
+                  return;
+                }
+              } else {
+                // overdue but not mandatory: require an explicit entry (0 allowed) to avoid accidental empty submissions
+                if (penaltyValRaw === '') {
+                  if (penaltyAmountError) {
+                    penaltyAmountError.textContent = 'Please enter penalty amount (enter 0 if none).';
+                    penaltyAmountError.classList.remove('hidden');
+                  }
+                  penaltyAmount?.focus();
+                  return;
+                }
+              }
+            }
+            if (penaltyAmountError) penaltyAmountError.classList.add('hidden');
+
+            const val = (confirmAmount?.value || '').trim();
+            const num = Number(val);
+            if (!val || isNaN(num) || num <= 0) {
+                if (confirmAmountError) {
+                    confirmAmountError.textContent = 'Please enter a valid collected amount greater than 0.';
+                    confirmAmountError.classList.remove('hidden');
+                }
+                confirmAmount?.focus();
+                return;
+            }
+            if (confirmAmountError) confirmAmountError.classList.add('hidden');
+
+            let shouldClose = true;
+            if (typeof confirmCallback === 'function') {
+                try {
+                    // Await the callback because it may be async
+                    const res = await confirmCallback(val, chargeAmount);
+                    // If callback returns false, do NOT close modal
+                    if (res === false) shouldClose = false;
+                } catch {
+                    // If callback threw, keep modal open to show any error the callback set
+                    shouldClose = false;
+                }
+            }
+            if (shouldClose) closeConfirm();
+        });
+
+        confirmCancel.addEventListener('click', () => closeConfirm());
+        confirmModal.addEventListener('click', (e) => {
+            if (e.target === confirmModal) closeConfirm();
+        });
+
+        if (confirmReject) {
+            confirmReject.addEventListener('click', () => {
+                const hasReject = !!rejectContext;
+                closeConfirm({ preserveRejectContext: hasReject });
+                if (hasReject) {
+                    openRejectModal();
+                }
+            });
+        }
+
+        if (rejectCancel) {
+            rejectCancel.addEventListener('click', closeRejectModal);
+        }
+
+        if (rejectModal) {
+            rejectModal.addEventListener('click', (e) => {
+                if (e.target === rejectModal) {
+                    closeRejectModal();
+                }
+            });
+        }
+
+        if (rejectReason) {
+            rejectReason.addEventListener('input', () => {
+                if (rejectReasonError && !rejectReasonError.classList.contains('hidden')) {
+                    rejectReasonError.classList.add('hidden');
+                }
+            });
+        }
+
+        if (rejectSubmit) {
+            rejectSubmit.addEventListener('click', async () => {
+                const reason = (rejectReason?.value || '').trim();
+                if (!reason) {
+                    if (rejectReasonError) {
+                        rejectReasonError.textContent = 'Please provide a rejection reason.';
+                        rejectReasonError.classList.remove('hidden');
+                    }
+                    rejectReason?.focus();
+                    return;
+                }
+
+                let shouldClose = true;
+                if (rejectContext?.callback) {
+                    try {
+                        const result = await rejectContext.callback(reason);
+                        if (result === false) {
+                            shouldClose = false;
+                        }
+                    } catch (err) {
+                        console.error('Reject handler failed:', err);
+                        shouldClose = false;
+                    }
+                } else {
+                    window.showToast && window.showToast('Rejection recorded.', 'info');
+                }
+
+                if (shouldClose) {
+                    closeRejectModal();
+                }
+            });
+        }
+
+        confirmAmount.addEventListener('blur', () => {
+            confirmAmount.value = toFixed2(confirmAmount.value);
+        });
+
+        const tbody = document.getElementById('emi-collect-tbody');
+        const noMsg = document.getElementById('no-emi-collect');
+
+        // Infinite scroll init (shared module)
+        if (window.LoanInfiniteScroll && typeof window.LoanInfiniteScroll.create === 'function') {
+            window.LoanInfiniteScroll.create({
+                containerSelector: '#emi-collect-tbody',
+                sentinelSelector: '#emi-scroll-sentinel',
+                noDataSelector: '#no-emi-collect',
+                buildUrl: (page) => `/agent/api/emi-collection-list-page/?page=${encodeURIComponent(page)}`,
+                afterAppend: () => {
+                    updateCollectButtonStates && updateCollectButtonStates();
+                    try {
+                        const tds2 = Array.from(document.querySelectorAll('#emi-collect-tbody tr td:nth-child(2)'));
+                        window.loanRefs = [...new Set(tds2.map(td => (td.textContent || '').trim()).filter(Boolean))];
+                    } catch (e) { /* noop */ }
+                }
+            });
+        }
+
+        // Delegate click handling for collect buttons
+        tbody.addEventListener('click', async function (e) {
+            const btn = e.target.closest('.btn-collect');
+            const viewBtn = e.target.closest('.btn-view-current-emi');
+            if (!btn && viewBtn) {
+                e.preventDefault();
+                await openCurrentEmiModal(viewBtn.dataset.loanRefNo);
+                return;
+            }
+            if (!btn) return;
+            e.preventDefault();
+            if (btn.disabled) return;
+
+            if (btn.dataset && btn.dataset.canCollect === '0') {
+                window.showToast && window.showToast('Previous EMI collection is not yet verified.', 'error');
+                return;
+            }
+
+            const penaltyContainer = document.getElementById('penalty-container');
+            const overdueDays = document.getElementById('overdue-days');
+
+            // Fetch and render EMI schedules for this specific loan before proceeding
+            const loanRefNo = btn.dataset.loanRefNo;
+            // console.log('after clic loanRefNo---', loanRefNo);
+            const isReschedule = btn.dataset.isReschedule === '1';
+            if (!isReschedule && loanRefNo && typeof fetchEmiSchedules === 'function') {
+                try { 
+                    fetchEmiSchedules(loanRefNo); 
+                } catch (err) { 
+                    console.error('Failed to fetch EMI schedules for loan:', loanRefNo, err); 
+                }
+            }
+
+            // Also refresh remaining and paid EMI aggregates for this specific loan
+            // IMPORTANT: only for original EMIs. For reschedule EMIs, the agent
+            // endpoints may return 404, so we keep the old behavior and skip
+            // these loan-level aggregate calls.
+            if (!isReschedule && loanRefNo) {
+
+                // fetch emi collect only data
+                fetch(`/branch/api/emi-collect-only-data/${encodeURIComponent(loanRefNo)}/`)
+                    .then(res => res.json())
+                    .then(data => {
+                        // console.log('emi collect only data-', data);
+                        const totalCollected = (data || []).reduce((sum, item) => {
+                            const amt = parseFloat(item.amount_received);
+                            return sum + (Number.isFinite(amt) ? amt : 0);
+                        }, 0);
+
+                        window.TOTAL_COLLECTED = totalCollected.toFixed(2);
+                        // console.log('total collected---', window.TOTAL_COLLECTED);
+                    })
+                    .catch(err => {
+                        console.error('Failed to fetch emi collect only data:', err);
+                    });
+
+                // Remaining EMI details
+                // fetch(`/branch/api/loan-emi-remaining/${encodeURIComponent(loanRefNo)}/`)
+                fetch(`/agent/api/loan-emi-remaining/${encodeURIComponent(loanRefNo)}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // console.log('remaining emi scedule----', window.REMAINING_EMI_DATA = data);
+                        window.REMAINING_EMI_DATA = data;
+                    })
+                    .catch(err => console.error('Failed to fetch remaining EMI data:', err));
+
+                // Paid EMI schedule sums for this loan
+                // fetch(`/branch/api/loan-emi-collected/${encodeURIComponent(loanRefNo)}/`)
+                fetch(`/agent/api/loan-emi-collected/${encodeURIComponent(loanRefNo)}/`)
+                    .then(response => {
+                        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                        return response.json();
+                    })
+                    .then(data => {
+                        const items = Array.isArray(data?.results) ? data.results : Array.isArray(data) ? data : [];
+                        const singleInstallmentAmount = items[0]?.installment_amount ?? 0;
+
+                        // console.log('Loan EMI Collected:', items);
+                        const toNum = v => {
+                            const n = typeof v === 'string' ? parseFloat(v) : (typeof v === 'number' ? v : 0);
+                            return Number.isFinite(n) ? n : 0;
+                        };
+                        const sumBy = (arr, key) => arr.reduce((acc, it) => acc + toNum(it?.[key]), 0);
+
+                        const paidEmiSum = sumBy(items, 'installment_amount');
+                        const paidPrincipalSum = sumBy(items, 'principal_amount');
+                        const paidInterestSum = sumBy(items, 'interest_amount');
+
+                        // Update header counters if present on this page
+                        const emiEl = document.getElementById('collected-emi-amount');
+                        const prinEl = document.getElementById('collected-principal-amount');
+                        const intEl = document.getElementById('collected-interest-amount');
+                        if (emiEl) emiEl.textContent = `₹ ${paidEmiSum.toFixed(2)}`;
+                        if (prinEl) prinEl.textContent = `₹ ${paidPrincipalSum.toFixed(2)}`;
+                        if (intEl) intEl.textContent = `₹ ${paidInterestSum.toFixed(2)}`;
+
+                        // Expose globally for validation logic
+                        window.PAID_EMI_SUM_BY_LOAN = {
+                            loanRefNo,
+                            total_installment_amount: paidEmiSum,
+                            total_principal_amount: paidPrincipalSum,
+                            total_interest_amount: paidInterestSum,
+                            single_installment_amount: singleInstallmentAmount,
+                        };
+
+                        // console.log('paid emi scedule based on loan_ref_no-', data);
+                    })
+                    .catch(err => {
+                        console.error('Failed to fetch paid EMI schedule by loan_ref_no:', err);
+                    });
+            }
+
+            // For rescheduled EMIs, load reschedule-specific aggregates from the
+            // branch API so we can apply the same strict rules without relying
+            // on agent loan-emi-remaining/collected endpoints.
+            if (isReschedule && loanRefNo && typeof fetchRescheduleAggregates === 'function') {
+                try {
+                    await fetchRescheduleAggregates(loanRefNo);
+                } catch (err) {
+                    console.error('Failed to fetch reschedule aggregates for loan:', loanRefNo, err);
+                }
+            }
+
+            const assignmentId = btn.dataset.assignmentId;
+            const amountReceived = parseFloat(btn.dataset.installmentAmount || '0');
+            const principalReceived = parseFloat(btn.dataset.principalAmount || '0');
+            const interestReceived = parseFloat(btn.dataset.interestAmount || '0');
+            const emiId = btn.dataset.emiId;
+
+            if (!assignmentId) {
+                window.showToast('Missing assignment id', 'error');
+                return;
+            }
+
+            // If this is a Re-collect button, confirm and run recollectEmi()
+            const isRecollect = btn.textContent && btn.textContent.trim().toLowerCase() === 're-collect';
+            if (isRecollect) {
+                // Prefill modal amount (default to 0.00) and let recollectEmi handle the confirmation
+                if (confirmAmount) {
+                    confirmAmount.value = '';
+                    if (confirmAmountError) confirmAmountError.classList.add('hidden');
+                }
+                recollectEmi(btn, emiId);
+                return;
+            }
+
+            // Prefill modal amount (default to 0.00)
+            if (confirmAmount) {
+                confirmAmount.value = '';
+                if (confirmAmountError) confirmAmountError.classList.add('hidden');
+            }
+
+            // Late-fee fetch and confirm message
+            let confirmMsg = 'Confirm to mark this EMI as collected?';
+            let hasPenaltyInfo = false;  // track if backend explicitly marked this EMI overdue
+            try {
+                if (emiId) {
+                    const url = !isReschedule
+                        ? `/agent/api/emi-late-fee/${encodeURIComponent(emiId)}/`
+                        : `/agent/api/reschedule-emi-late-fee/${encodeURIComponent(emiId)}/`;
+
+                    const res = await fetch(url);
+                    if (res.ok) {
+                        const info = await res.json();
+                        const isOverdue = !!info?.is_overdue;
+                        const lateFee = Number(info?.late_fee || 0);
+                        const days = Number(info?.overdue_days || 0);
+
+                        if (isOverdue) {
+                            hasPenaltyInfo = true;
+                            penaltyContainer.classList.remove('hidden');
+                            overdueDays.textContent = `for ${days} days`;
+                            if (lateFee > 0) {
+                                penaltyAmount.value = lateFee.toFixed(2);
+                                penaltyAmount.disabled = true;
+                                penaltyAmountError.classList.remove('hidden');
+                                penaltyAmountError.textContent = 'Penalty is mandatory!';
+                            } else {
+                                penaltyAmount.disabled = false;
+                                penaltyAmountError.classList.add('hidden');
+                                penaltyAmountError.textContent = '';
+                            }
+                        }
+                        if (isOverdue && lateFee > 0) {
+                            const emiAmountNum = Number(btn.dataset.installmentAmount || '0');
+                            confirmMsg = `This EMI is overdue${days ? ` by ${days} day(s)` : ''}. Penalty: ₹${lateFee.toFixed(2)} Applied.`;
+
+                            btn.dataset.prefillAmount = emiAmountNum.toFixed(2);
+                            btn.dataset.requiredExact = '1';
+                            btn.dataset.requiredAmount = emiAmountNum.toFixed(2);
+                            if (confirmAmount) confirmAmount.value = emiAmountNum.toFixed(2);
+
+                        } else {
+                            delete btn.dataset.prefillAmount;
+                            delete btn.dataset.requiredExact;
+                            delete btn.dataset.requiredAmount;
+                        }
+                    }
+                }
+            } catch (_) {
+                // ignore network errors
+            }
+
+            // For both original and rescheduled EMIs, only show penalty section
+            // when backend marks this EMI as overdue via the late-fee API.
+            if (!hasPenaltyInfo && penaltyContainer) {
+                penaltyContainer.classList.add('hidden');
+                overdueDays.textContent = '';
+                penaltyAmount.disabled = false;
+                penaltyAmount.value = toFixed2(0);
+                if (penaltyAmountError) {
+                    penaltyAmountError.classList.add('hidden');
+                    penaltyAmountError.textContent = '';
+                }
+            }
+
+            // Ask for confirmation via modal, then proceed (position near this button)
+            // openConfirm('Confirm to mark this EMI as collected?', async (collectedAmount) => {
+            openConfirm(confirmMsg, async (collectedAmount, collectedPenalty) => {
+                const originalBtnHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.textContent = 'Collecting...';
+
+                // Ensure the entered amount is normalized to two decimals for display
+                if (confirmAmount) {
+                    confirmAmount.value = toFixed2(confirmAmount.value);
+                }
+
+                // console.log('collectedPenalty-', toFixed2(collectedPenalty));
+                // ---- Validation rules on collected amount ----
+                const amount = toTwoDecimals(collectedAmount);
+                const amountNum = Number(amount);
+
+                // Always require a valid positive amount
+                if (!Number.isFinite(amountNum) || amountNum <= 0) {
+                    if (btn) { btn.disabled = false; btn.innerHTML = originalBtnHtml || 'Collect'; }
+                    window.showToast && showToast('Please enter a valid collected amount greater than 0.', 'error');
+                    return;
+                }
+
+                if (!isReschedule) {
+                    // Original EMI logic: use loan-level aggregates and enforce strict rules
+                    const totalEmi = toTwoDecimals(window.TOTAL_EMI_AMOUNT || 0);
+                    const singleInstallmentAmount = toTwoDecimals(window.PAID_EMI_SUM_BY_LOAN?.single_installment_amount || 0);
+                    const totalPaid = toTwoDecimals(window.PAID_EMI_SUM_BY_LOAN?.total_installment_amount || 0);
+                    const remainingBalance = toTwoDecimals(window.REMAINING_EMI_DATA?.remaining_balance || 0);
+                    const totalCollected = toTwoDecimals(window.TOTAL_COLLECTED || 0);
+                    const totalCollectedPlusRemaining = toTwoDecimals(totalEmi - totalCollected);
+
+                    const dueAmount = toTwoDecimals(Math.max(0, totalEmi - totalPaid));
+                    const lastInstallmentAmount = toTwoDecimals(singleInstallmentAmount - remainingBalance || 0);
+                    const maxPayable = toTwoDecimals((dueAmount - remainingBalance)); // exactly finish the loan
+
+                    // Enforce exact amount when overdue late-fee present (show in modal)
+                    const requiredExact = (btn.dataset && btn.dataset.requiredExact === '1');
+                    const requiredAmount = Number(btn.dataset?.requiredAmount || '0');
+                    if (requiredExact) {
+                        const epsilon = 0.01; // rounding tolerance
+                        if (Math.abs(amountNum - requiredAmount) > epsilon) {
+                            // restore button state
+                            btn.disabled = false;
+                            btn.innerHTML = originalBtnHtml || 'Collect';
+                            // show error in confirm modal
+                            if (confirmAmountError) {
+                                confirmAmountError.textContent = `This EMI is overdue. You must collect ₹${toFixed2(requiredAmount)} (EMI) + Penalty.`;
+                                confirmAmountError.classList.remove('hidden');
+                            }
+                            if (confirmAmount) confirmAmount.focus();
+                            return false;
+                        }
+                    }
+
+                    // Detect second-to-last / last EMI
+                    const rows = Array.from(document.querySelectorAll('#emi-schedules-tbody tr[data-id]'));
+                    const lastEmiId = rows.at(-1)?.getAttribute('data-id') ?? null;
+                    const secondLastEmiId = rows.at(-2)?.getAttribute('data-id') ?? null;
+                    const isSecondLastEmi = String(emiId) === String(secondLastEmiId);
+                    const isLastEmi = String(emiId) === String(lastEmiId);
+
+                    // Must be a valid positive number
+                    if (!Number.isFinite(amountNum) || amountNum <= 0) {
+                        if (btn) { btn.disabled = false; btn.innerHTML = originalBtnHtml || 'Collect'; }
+                        window.showToast && showToast('Please enter a valid collected amount greater than 0.', 'error');
+                        return;
+                    }
+                    // 1) Collected amount must be less than the total EMI amount
+                    if (!(amountNum <= Number(totalEmi))) {
+                        if (btn) { btn.disabled = false; btn.innerHTML = originalBtnHtml || 'Collect'; }
+                        window.showToast && showToast(`Collected amount must be less than total EMI amount (₹${toFixed2(totalEmi)}).`, 'error');
+                        return;
+                    }
+                    // 2) Collected amount must be less than the due amount
+                    if (!(amountNum <= Number(dueAmount))) {
+                        if (btn) { btn.disabled = false; btn.innerHTML = originalBtnHtml || 'Collect'; }
+                        window.showToast && showToast(`Collected amount must be less than Due amount.  (₹${toFixed2(dueAmount)})`, 'error');
+                        return;
+                    }
+
+                    // 3) Collected amount must be less than the total collected amount
+                    if (amountNum > Number(totalCollectedPlusRemaining)) {
+                        if (btn) { btn.disabled = false; btn.innerHTML = originalBtnHtml || 'Collect'; }
+                        window.showToast && showToast(`Collected amount must be less than total collected amount. or (₹${toFixed2(totalCollectedPlusRemaining)})`, 'error');
+                        return;
+                    }
+
+                    if (amountNum > Number(maxPayable)) {
+                        if (btn) { btn.disabled = false; btn.innerHTML = originalBtnHtml || 'Collect'; }
+                        window.showToast && showToast(
+                            `Max you can collect now (final EMI) is ₹${toFixed2(maxPayable)}. Your existing extra collected amount ₹${toFixed2(remainingBalance)}.`,
+                            'error'
+                        );
+                        return;
+                    }
+
+                    // On the last EMI, amount must be EXACTLY equal to maxPayable (no less, no more)
+                    if (isLastEmi) {
+                        const epsilon = 0.01; // rounding tolerance
+                        const diff = Math.abs(amountNum - Number(maxPayable));
+                        if (diff > epsilon) {
+                            if (btn) { btn.disabled = false; btn.innerHTML = originalBtnHtml || 'Collect'; }
+                            const relation = amountNum < Number(maxPayable) ? 'less than' : 'greater than';
+                            window.showToast && showToast(
+                                `Final EMI must be exactly ₹${toFixed2(maxPayable)}. You entered ₹${toFixed2(amountNum)} (${relation} required amount).`,
+                                'error'
+                            );
+                            return;
+                        }
+                    }
+                } else {
+                    // Rescheduled EMI logic: apply STRICT rules based on the
+                    // reschedule aggregates we fetched from the branch API.
+                    const agg = window.RES_RESCHEDULE_AGG || {};
+
+                    const totalEmi = toTwoDecimals(agg.totalEmi || 0);
+                    const totalPaid = toTwoDecimals(agg.totalPaidEmi || 0);
+                    const remainingBalance = toTwoDecimals(agg.remainingBalance || 0);
+                    const dueAmount = toTwoDecimals(Math.max(0, totalEmi - totalPaid));
+                    const totalCollected = toTwoDecimals(agg.totalCollected || 0);
+                    const totalCollectedPlusRemaining = toTwoDecimals(totalEmi - totalCollected);
+                    const maxPayable = toTwoDecimals((dueAmount - remainingBalance)); // exactly finish the loan
+
+                    const lastResEmiId = agg.lastEmiId != null ? String(agg.lastEmiId) : null;
+                    const isLastEmi = lastResEmiId && String(emiId) === lastResEmiId;
+
+                    // 1) Collected amount must be less than the total EMI amount
+                    if (!(amountNum <= Number(totalEmi))) {
+                        if (btn) { btn.disabled = false; btn.innerHTML = originalBtnHtml || 'Collect'; }
+                        window.showToast && showToast(`Collected amount must be less than total EMI amount (₹${toFixed2(totalEmi)}).`, 'error');
+                        return;
+                    }
+                    // 2) Collected amount must be less than the due amount
+                    if (!(amountNum <= Number(dueAmount))) {
+                        if (btn) { btn.disabled = false; btn.innerHTML = originalBtnHtml || 'Collect'; }
+                        window.showToast && showToast(`Collected amount must be less than Due amount.  (₹${toFixed2(dueAmount)})`, 'error');
+                        return;
+                    }
+
+                    // 3) Collected amount must be less than the total collected amount
+                    if (amountNum > Number(totalCollectedPlusRemaining)) {
+                        if (btn) { btn.disabled = false; btn.innerHTML = originalBtnHtml || 'Collect'; }
+                        window.showToast && showToast(`Collected amount must be less than total collected amount. or (₹${toFixed2(totalCollectedPlusRemaining)})`, 'error');
+                        return;
+                    }
+
+                    if (amountNum > Number(maxPayable)) {
+                        if (btn) { btn.disabled = false; btn.innerHTML = originalBtnHtml || 'Collect'; }
+                        window.showToast && showToast(
+                            `Max you can collect now (final EMI) is ₹${toFixed2(maxPayable)}. Your existing extra collected amount ₹${toFixed2(remainingBalance)}.`,
+                            'error'
+                        );
+                        return;
+                    }
+
+                    // On the last RESCHEDULE EMI, amount must be a WHOLE rupee
+                    // value (no paise). This overrides the exact-decimal rule
+                    // used for original EMIs.
+                    if (isLastEmi) {
+                        const rounded = Math.round(amountNum);
+                        const isInteger = Math.abs(amountNum - rounded) < 0.001;
+                        if (!isInteger) {
+                            if (btn) { btn.disabled = false; btn.innerHTML = originalBtnHtml || 'Collect'; }
+                            window.showToast && showToast(
+                                `Final EMI must be a whole rupee amount without paise. You entered ₹${toFixed2(amountNum)}.`,
+                                'error'
+                            );
+                            return;
+                        }
+                    }
+                }
+
+                const installmentAmount = amountReceived;
+
+                const principalAmount = principalReceived;
+                const interestAmount = interestReceived;
+
+                const fullInstallment = Math.floor(collectedAmount / installmentAmount);
+                const balance = collectedAmount % installmentAmount;
+                const fullprincipal = fullInstallment * principalAmount;
+                const fullinterest = fullInstallment * interestAmount;
+                const balancePrincipal = balance * (principalAmount / installmentAmount);
+                const balanceInterest = balance * (interestAmount / installmentAmount);
+                const totalPrincipal = +(fullprincipal + balancePrincipal).toFixed(2);
+                const totalInterest = +(fullinterest + balanceInterest).toFixed(2);
+
+                try {
+                    const res = await fetch('/agent/api/emi-collected/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCSRFToken(),
+                        },
+                        body: JSON.stringify({
+                            assignment_id: assignmentId,
+                            amount_received: toTwoDecimals(collectedAmount),
+                            principal_received: toTwoDecimals(totalPrincipal),
+                            interest_received: toTwoDecimals(totalInterest),
+                            penalty_received: toTwoDecimals(collectedPenalty),
+                            payment_mode: 'Cash'
+                        })
+                    });
+
+                    const json = await res.json();
+                    if (res.ok && json.success) {
+                        btn.textContent = 'Collected';
+                        btn.classList.remove('bg-brand-500', 'hover:bg-brand-600', 'text-white', 'bg-green-500');
+                        btn.classList.add('cursor-not-allowed', 'bg-green-100', 'border', 'border-green-500', 'text-green-700');
+                        const row = btn.closest('tr');
+                        if (row) row.classList.add('bg-green-50');
+                        window.showToast('EMI collected successfully', 'success');
+
+                        // Reload page after short delay so that agent's EMI list
+                        // (including rescheduled EMIs) is fully refreshed.
+                        // setTimeout(() => {
+                        //     window.location.reload();
+                        // }, 2000);
+
+                        // After collection: remove this row and fetch the next pending EMI for the same loan
+                        const loanRefNo = btn.dataset.loanRefNo;
+                        if (row) {
+                            row.parentElement && row.parentElement.removeChild(row);
+                        }
+
+                        if (loanRefNo) {
+                            fetch(`/agent/api/next-emi/${encodeURIComponent(loanRefNo)}/`)
+                                .then(nres => {
+                                    if (!nres.ok) throw new Error(`HTTP ${nres.status}`);
+                                    return nres.json();
+                                })
+                                .then(nextEmi => {
+                                    if (!nextEmi || !nextEmi.assignment_id) return;
+                                    const rowHtml = `
+                                        <tr>
+                                            <td class="px-6 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">${nextEmi.assignment_id}</p></td>
+                                            <td class="px-6 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">${nextEmi.loan_ref_no ?? ''}</p></td>
+                                            <td class="px-6 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">${nextEmi.customer_name ?? ''}</p></td>
+                                            <td class="px-6 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">${nextEmi.branch_name ?? ''}</p></td>
+                                            <td class="px-6 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">${formatDateDisplay(nextEmi.installment_date)}</p></td>
+                                            <td class="px-6 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">${nextEmi.principal_amount}</p></td>
+                                            <td class="px-6 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">${nextEmi.interest_amount}</p></td>
+                                            <td class="px-6 py-2"><p class="text-blue-700 font-semibold text-theme-sm dark:text-blue-400">₹${nextEmi.installment_amount}</p></td>
+                                            <td class="px-6 py-2">
+                                                <div class="flex items-center gap-2">
+                                                    <a href="#" class="btn-collect inline-block px-3 py-1 text-sm rounded bg-brand-500 text-white hover:bg-brand-600"
+                                                       data-assignment-id="${nextEmi.assignment_id}"
+                                                       data-emi-id="${nextEmi.emi || nextEmi.reschedule_emi}"
+                                                       data-installment-amount="${nextEmi.installment_amount}"
+                                                       data-principal-amount="${nextEmi.principal_amount}"
+                                                       data-interest-amount="${nextEmi.interest_amount}"
+                                                       data-loan-ref-no="${nextEmi.loan_ref_no}"
+                                                       data-can-collect="${nextEmi.can_collect ? '1' : '0'}">Collect</a>
+                                                    <button type="button" class="btn-view-current-emi inline-flex items-center justify-center h-8 w-8 rounded border border-gray-300 text-gray-600 hover:text-gray-800 hover:border-gray-400"
+                                                        data-assignment-id="${nextEmi.assignment_id}"
+                                                        data-loan-ref-no="${nextEmi.loan_ref_no}"
+                                                        data-installment-date="${nextEmi.installment_date}"
+                                                        data-installment-amount="${nextEmi.installment_amount}"
+                                                        data-principal-amount="${nextEmi.principal_amount}"
+                                                        data-interest-amount="${nextEmi.interest_amount}"
+                                                        data-is-reschedule="${nextEmi.reschedule_emi ? '1' : '0'}"
+                                                        aria-label="View Current EMI">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"></path>
+                                                            <circle cx="12" cy="12" r="3"></circle>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>`;
+                                    const tbodyEl = document.getElementById('emi-collect-tbody');
+                                    if (tbodyEl) tbodyEl.insertAdjacentHTML('beforeend', rowHtml);
+
+                                    // Keep suggestions up to date after inserting next row
+                                    try {
+                                        const tds3 = Array.from(document.querySelectorAll('#emi-collect-tbody tr td:nth-child(2)'));
+                                        window.loanRefs = [...new Set(tds3.map(td => (td.textContent || '').trim()).filter(Boolean))];
+                                    } catch (e) { /* noop */ }
+
+                                    // Ensure only the first pending per loan is enabled (now this is the only one for this loan)
+                                    updateCollectButtonStates && updateCollectButtonStates();
+                                })
+                                .catch(() => {
+                                    // No next EMI pending or API error: nothing to append
+                                });
+                        }
+                    } else {
+                        window.showToast && window.showToast((json && (json.message || json.detail)) || 'Failed to collect EMI', 'error');
+                        btn.disabled = false;
+                        btn.innerHTML = originalBtnHtml || 'Collect';
+                    }
+                } catch (err) {
+                    console.error('Collection failed:', err);
+                    window.showToast && window.showToast('Network error while collecting EMI', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = originalBtnHtml || 'Collect';
+                }
+            }, btn, async (reason) => {
+                // Rejection handler
+                if (!reason?.trim()) {
+                    window.showToast && window.showToast('Rejection reason is required.', 'error');
+                    return false;
+                }
+                
+                const originalBtnHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.textContent = 'Rejecting...';
+                
+                try {
+                    const res = await fetch('/agent/api/emi-reject/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCSRFToken(),
+                        },
+                        body: JSON.stringify({
+                            assignment_id: btn.dataset.assignmentId,
+                            remarks: reason
+                        })
+                    });
+                    
+                    const json = await res.json();
+                    if (res.ok && json.success) {
+                        btn.textContent = 'Rejected';
+                        btn.classList.remove('bg-brand-500', 'hover:bg-brand-600', 'text-white');
+                        btn.classList.add('cursor-not-allowed', 'bg-red-100', 'border', 'border-red-500', 'text-red-700');
+                        window.showToast('EMI rejected successfully', 'success');
+                        return true;
+                    } else {
+                        window.showToast && window.showToast((json && (json.message || json.detail)) || 'Failed to reject EMI', 'error');
+                        btn.disabled = false;
+                        btn.innerHTML = originalBtnHtml || 'Collect';
+                        return false;
+                    }
+                } catch (err) {
+                    window.showToast && window.showToast('Network error while rejecting EMI', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = originalBtnHtml || 'Collect';
+                    return false;
+                }
+            });
+        });
+
+        /// -------- Initial load: fetch only first pending EMI per loan -------- ///
+        // fetch('/agent/api/emi-collection-list/?first=1')
+        //     .then(response => response.json())
+        //     .then(data => {
+        //         tbody.innerHTML = '';
+        //         if (!Array.isArray(data) || data.length === 0) {
+        //             noMsg.classList.remove('hidden');
+        //             return;
+        //         }
+        //         noMsg.classList.add('hidden');
+
+        //         data.forEach(collectEMI => {
+        //             tbody.innerHTML += `
+        //             <tr>
+        //                 <td class="px-6 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">${collectEMI.assignment_id}</p></td>
+        //                 <td class="px-6 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">${collectEMI.loan_ref_no ?? ''}</p></td>
+        //                 <td class="px-6 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">${collectEMI.customer_name ?? ''}</p></td>
+        //                 <td class="px-6 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">${collectEMI.branch_name ?? ''}</p></td>
+        //                 <td class="px-6 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">${formatDateDisplay(collectEMI.installment_date)}</p></td>
+        //                 <td class="px-6 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">${collectEMI.principal_amount}</p></td>
+        //                 <td class="px-6 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">${collectEMI.interest_amount}</p></td>
+        //                 <td class="px-6 py-2"><p class="text-blue-700 font-semibold text-theme-sm dark:text-blue-400">₹${collectEMI.installment_amount}</p></td>
+        //                 <td class="px-6 py-2">
+        //                     <div class="flex items-center gap-2">
+        //                         <a href="#" class="btn-collect inline-block px-3 py-1 text-sm rounded bg-brand-500 text-white hover:bg-brand-600"
+        //                            data-assignment-id="${collectEMI.assignment_id}"
+        //                            data-emi-id="${collectEMI.emi || collectEMI.reschedule_emi}"
+        //                            data-installment-amount="${collectEMI.installment_amount}"
+        //                            data-principal-amount="${collectEMI.principal_amount}"
+        //                            data-interest-amount="${collectEMI.interest_amount}"
+        //                            data-loan-ref-no="${collectEMI.loan_ref_no}"
+        //                            data-can-collect="${collectEMI.can_collect ? '1' : '0'}"
+        //                            data-is-reschedule="${collectEMI.reschedule_emi ? '1' : '0'}">Collect</a>
+        //                         <button type="button" class="btn-view-current-emi inline-flex items-center justify-center h-8 w-8 rounded border border-gray-300 text-gray-600 hover:text-gray-800 hover:border-gray-400"
+        //                             data-assignment-id="${collectEMI.assignment_id}"
+        //                             data-loan-ref-no="${collectEMI.loan_ref_no}"
+        //                             data-installment-date="${collectEMI.installment_date}"
+        //                             data-installment-amount="${collectEMI.installment_amount}"
+        //                             data-principal-amount="${collectEMI.principal_amount}"
+        //                             data-interest-amount="${collectEMI.interest_amount}"
+        //                             data-is-reschedule="${collectEMI.reschedule_emi ? '1' : '0'}"
+        //                             aria-label="View Current EMI">
+        //                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        //                                 <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"></path>
+        //                                 <circle cx="12" cy="12" r="3"></circle>
+        //                             </svg>
+        //                         </button>
+        //                     </div>
+        //                 </td>
+        //             </tr>`
+        //         });
+
+        //         updateCollectButtonStates && updateCollectButtonStates();
+
+        //         // Rebuild suggestions list now that rows are present
+        //         try {
+        //             const tds2 = Array.from(document.querySelectorAll('#emi-collect-tbody tr td:nth-child(2)'));
+        //             window.loanRefs = [...new Set(tds2.map(td => (td.textContent || '').trim()).filter(Boolean))];
+        //         } catch (e) { /* noop */ }
+
+        //         // After rendering, fetch collection statuses and update buttons
+        //         return fetch('/agent/api/emi-collected-detail/').then(res => res.json());
+        //     })
+        //     .then(statusList => {
+        //         if (!statusList) return;
+        //         const collectedSet = new Set(
+        //             (statusList || [])
+        //                 .filter(item => item.status === 'collected' || item.status === 'verified')
+        //                 .map(item => String(item.assignment_id))
+        //         );
+        //         const collectedReject = new Set(
+        //             (statusList || [])
+        //                 .filter(item => item.status === 'rejected')
+        //                 .map(item => String(item.assignment_id))
+        //         );
+
+        //         document.querySelectorAll('.btn-collect').forEach(btn => {
+        //             const aid = btn.dataset.assignmentId;
+        //             if (collectedSet.has(String(aid))) {
+        //                 const statusItem = (statusList || []).find(item => String(item.assignment_id) === String(aid));
+        //                 const isBranchCollected = statusItem && statusItem.collected_by_branch;
+        //                 btn.textContent = isBranchCollected ? 'Collected by Branch' : 'Collected';
+        //                 btn.disabled = true;
+        //                 btn.classList.remove('bg-brand-500', 'hover:bg-brand-600', 'text-white', 'bg-green-500');
+        //                 btn.classList.add('cursor-not-allowed', 'bg-green-100', 'border', 'border-green-500', 'text-green-700');
+        //                 const row = btn.closest('tr');
+        //                 if (row) row.classList.add('bg-green-50');
+        //             }
+        //             if (collectedReject.has(String(aid))){
+        //                 btn.textContent = 'Re-collect';
+        //                 btn.disabled = false;
+        //                 btn.classList.remove('bg-brand-500', 'hover:bg-brand-600', 'text-white', 'bg-green-500');
+        //                 btn.classList.add('bg-orange-600', 'border', 'border-orange-900', 'text-white');
+        //                 const row = btn.closest('tr');
+        //                 if (row) row.classList.add('bg-orange-50');
+        //             }
+        //         });
+
+        //         // Enable only the first pending per loan
+        //         updateCollectButtonStates && updateCollectButtonStates();
+        //     })
+        //     .catch(() => {
+        //         // Non-blocking
+        //     });
+
+        // Dedicated handler for Re-collect action
+        async function recollectEmi(btn, emiId) {
+
+            // Late-fee fetch and confirm message
+            let confirmMsg = 'Confirm to re-collect this EMI?';
+            try {
+                const res = await fetch(`/agent/api/emi-late-fee/${encodeURIComponent(emiId)}/`);
+                if (res.ok) {
+                    const info = await res.json();
+                    const isOverdue = !!info?.is_overdue;
+                    const lateFee = Number(info?.late_fee || 0);
+                    const days = Number(info?.overdue_days || 0);
+                    if (isOverdue && lateFee > 0) {
+                        const emiAmountNum = Number(btn.dataset.installmentAmount || '0');
+                        const required = Number((Math.round((emiAmountNum + lateFee) * 100) / 100).toFixed(2));
+                        confirmMsg = `This EMI is overdue${days ? ` by ${days} day(s)` : ''}. Late Fee: ₹${lateFee.toFixed(2)}.\n\nCollected amount: ₹${required.toFixed(2)}`;
+                        btn.dataset.prefillAmount = required.toFixed(2);
+                        btn.dataset.requiredExact = '1';
+                        btn.dataset.requiredAmount = required.toFixed(2);
+                        if (confirmAmount) confirmAmount.value = required.toFixed(2);
+                    } else {
+                        delete btn.dataset.prefillAmount;
+                        delete btn.dataset.requiredExact;
+                        delete btn.dataset.requiredAmount;
+                    }
+                }
+            } catch (_) {
+                // ignore
+            }
+
+            // Ask for collected amount first, then proceed like normal collect
+            // openConfirm('Confirm to re-collect this EMI?', async (collectedAmount) => {
+            openConfirm(confirmMsg, async (collectedAmount, collectedPenalty) => {
+                // Normalize input display to two decimals
+                if (confirmAmount) {
+                    confirmAmount.value = toFixed2(confirmAmount.value);
+                }
+
+                    // ---- Validation rules on collected amount (same as Collect) ----
+                    const amount = toTwoDecimals(collectedAmount);
+                    const amountNum = Number(amount);
+                    // console.log('recollect amount-', toFixed2(amountNum));
+                    const totalEmi = toTwoDecimals(window.TOTAL_EMI_AMOUNT || 0);
+                    const singleInstallmentAmount = toTwoDecimals(window.PAID_EMI_SUM_BY_LOAN?.single_installment_amount || 0);
+                    const totalPaid = toTwoDecimals(window.PAID_EMI_SUM_BY_LOAN?.total_installment_amount || 0);
+                    const remainingBalance = toTwoDecimals(window.REMAINING_EMI_DATA?.remaining_balance || 0);
+                    const dueAmount = toTwoDecimals(Math.max(0, totalEmi - totalPaid));
+                    const lastInstallmentAmount = toTwoDecimals(singleInstallmentAmount - remainingBalance || 0);
+                    const maxPayable = toTwoDecimals((dueAmount - remainingBalance)); // exactly finish the loan
+                    const totalCollected = toTwoDecimals(window.TOTAL_COLLECTED || 0);
+                    const totalCollectedPlusRemaining = toTwoDecimals(totalEmi - totalCollected);
+
+                    // NEW: enforce exact amount when overdue late-fee present (show in modal)
+                    const requiredExact = (btn.dataset && btn.dataset.requiredExact === '1');
+                    const requiredAmount = Number(btn.dataset?.requiredAmount || '0');
+                    if (requiredExact) {
+                        const epsilon = 0.01;
+                        if (Math.abs(amountNum - requiredAmount) > epsilon) {
+                            if (confirmAmountError) {
+                                confirmAmountError.textContent = `This EMI is overdue. You must collect exactly ₹${toFixed2(requiredAmount)} (EMI + Late Fee).`;
+                                confirmAmountError.classList.remove('hidden');
+                            }
+                            if (confirmAmount) confirmAmount.focus();
+                            return false;
+                        }
+                    }
+
+                    // Must be a valid positive number
+                    if (!Number.isFinite(amountNum) || amountNum <= 0) {
+                        window.showToast && showToast('Please enter a valid collected amount greater than 0.', 'error');
+                        return;
+                    }
+                    // 1) Collected amount must be less than the total EMI amount
+                    if (!(amountNum <= Number(totalEmi))) {
+                        window.showToast && showToast(`Collected amount must be less than total EMI amount (₹${toFixed2(totalEmi)}).`, 'error');
+                        return;
+                    }
+                    // 2) Collected amount must be less than the due amount
+                    if (!(amountNum <= Number(dueAmount))) {
+                        window.showToast && showToast(`Collected amount must be less than Due amount.  (₹${toFixed2(dueAmount)})`, 'error');
+                        return;
+                    }
+                    // 3) Collected amount must be less than the total collected amount
+                    if (amountNum > Number(totalCollectedPlusRemaining)) {
+                        window.showToast && showToast(`Collected amount must be less than total collected amount. or (₹${toFixed2(totalCollectedPlusRemaining)})`, 'error');
+                        return;
+                    }
+                    // Additional guard when trying to close a loan with extra payment
+                    if (amountNum > Number(maxPayable)) {
+                        window.showToast && showToast(
+                            `Max you can collect now (final EMI) is ₹${toFixed2(maxPayable)}. Your existing extra collected amount ₹${toFixed2(remainingBalance)}.`,
+                            'error'
+                        );
+                        return;
+                    }
+
+                    // For last EMI, enforce exact amount match within tolerance
+                    const rows = Array.from(document.querySelectorAll('#emi-schedules-tbody tr[data-id]'));
+                    const lastEmiId = rows.at(-1)?.getAttribute('data-id') ?? null;
+                    const isLastEmi = String(emiId) === String(lastEmiId);
+                    if (isLastEmi) {
+                        const epsilon = 0.01;
+                        const diff = Math.abs(amountNum - Number(maxPayable));
+                        if (diff > epsilon) {
+                            const relation = amountNum < Number(maxPayable) ? 'less than' : 'greater than';
+                            window.showToast && showToast(
+                                `Final EMI must be exactly ₹${toFixed2(maxPayable)}. You entered ₹${toFixed2(amountNum)} (${relation} required amount).`,
+                                'error'
+                            );
+                            return;
+                        }
+                    }
+
+                    // Compute split based on the same logic used for collect
+                    const installmentAmount = parseFloat(btn.dataset.installmentAmount || '0');
+                    const principalAmount = parseFloat(btn.dataset.principalAmount || '0');
+                    const interestAmount = parseFloat(btn.dataset.interestAmount || '0');
+
+                    const fullInstallment = Math.floor(collectedAmount / installmentAmount);
+                    const balance = collectedAmount % installmentAmount;
+                    const fullprincipal = fullInstallment * principalAmount;
+                    const fullinterest = fullInstallment * interestAmount;
+                    const balancePrincipal = balance * (principalAmount / installmentAmount);
+                    const balanceInterest = balance * (interestAmount / installmentAmount);
+                    const totalPrincipal = +(fullprincipal + balancePrincipal).toFixed(2);
+                    const totalInterest = +(fullinterest + balanceInterest).toFixed(2);
+
+                    // button loading state
+                    btn.disabled = true;
+                    const prevLabel = btn.textContent;
+                    btn.textContent = 'Re-collecting...';
+
+                    try {
+                        const res = await fetch(`/branch/api/emi-re-collected/${encodeURIComponent(emiId)}/`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': getCSRFToken(),
+                            },
+                            body: JSON.stringify({
+                                amount_received: toTwoDecimals(collectedAmount),
+                                principal_received: toTwoDecimals(totalPrincipal),
+                                interest_received: toTwoDecimals(totalInterest),
+                                penalty_received: toTwoDecimals(collectedPenalty),
+                                payment_mode: 'Cash'
+                            })
+                        });
+
+                        const json = await res.json();
+                        if (res.ok && json.success) {
+                            btn.textContent = 'Collected';
+                            btn.classList.remove('bg-brand-500', 'hover:bg-brand-600', 'text-white', 'bg-green-500', 'bg-orange-600', 'border', 'border-orange-900');
+                            btn.classList.add('cursor-not-allowed', 'bg-green-100', 'border', 'border-green-500', 'text-green-700');
+                            const row = btn.closest('tr');
+                            if (row) {
+                                row.classList.remove('bg-orange-50');
+                                row.classList.add('bg-green-50');
+                            }
+                            window.showToast && window.showToast('EMI re-collected successfully', 'success');
+
+                            // After successful re-collection, reload page after 2 seconds
+                            // so that the agent sees the latest EMI status.
+                            // setTimeout(() => {
+                            //     window.location.reload();
+                            // }, 2000);
+                        } else {
+                            btn.disabled = false;
+                            btn.textContent = prevLabel || 'Re-collect';
+                            window.showToast && window.showToast((json && (json.message || json.detail)) || 'Failed to re-collect EMI', 'error');
+                        }
+                    } catch (err) {
+                        btn.disabled = false;
+                        btn.textContent = prevLabel || 'Re-collect';
+                        window.showToast && window.showToast('Network error while re-collecting EMI', 'error');
+                    }
+                // }, btn);
+                }, btn, async (reason) => {
+                    if (!reason?.trim()) {
+                        window.showToast && window.showToast('Rejection reason is required.', 'error');
+                        return false;
+                    }
+                    // TODO: Hook up rejection API for re-collect flow when available.
+                    window.showToast && window.showToast('EMI re-collection rejected.', 'info');
+                    return true;
+                });
+            }
+
+    // Update collect button states per-loan for visible EMIs (sequential logic)
+    function updateCollectButtonStates() {
+        const allButtons = Array.from(document.querySelectorAll('.btn-collect'));
+        const byLoan = new Map();
+        allButtons.forEach(btn => {
+            const row = btn.closest('tr');
+            if (!(row && row.style.display !== 'none')) return;
+            const loan = btn.dataset.loanRefNo || '';
+            if (!byLoan.has(loan)) byLoan.set(loan, []);
+            byLoan.get(loan).push({
+                button: btn,
+                emiId: parseInt(btn.dataset.emiId || '0'),
+                label: (btn.textContent || '').trim(),
+                canCollect: btn.dataset.canCollect === '1',
+            });
+        });
+        byLoan.forEach(items => {
+            items.sort((a, b) => a.emiId - b.emiId);
+            let firstPendingEnabled = false;
+            items.forEach(({ button: btn, label, canCollect }) => {
+                const isCollected = btn.disabled && (label === 'Collected' || label === 'Collected by Branch');
+                const isRecollect = label === 'Re-collect';
+                if (isCollected) return;
+                if (isRecollect) {
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-50');
+                    btn.classList.remove('bg-brand-500', 'hover:bg-brand-600', 'text-white');
+                    btn.classList.remove('bg-gray-200', 'text-gray-400', 'border', 'border-gray-300');
+                    btn.classList.add('bg-orange-600', 'border', 'border-orange-900', 'text-white');
+                    return;
+                }
+                if (label === 'Collect') {
+                    if (!firstPendingEnabled && canCollect) {
+                        firstPendingEnabled = true;
+                        btn.disabled = false;
+                        btn.classList.remove(
+                            'opacity-50',
+                            'bg-green-100',
+                            'border',
+                            'border-green-500',
+                            'text-green-700',
+                            'bg-gray-200',
+                            'text-gray-400',
+                            'border-gray-300'
+                        );
+                        if (!btn.classList.contains('bg-brand-500')) {
+                            btn.classList.add('bg-brand-500', 'hover:bg-brand-600', 'text-white');
+                        }
+                        btn.removeAttribute('title');
+                    } else {
+                        btn.disabled = true;
+                        btn.classList.add('opacity-50');
+                        btn.classList.remove('bg-brand-500', 'hover:bg-brand-600', 'text-white');
+                        btn.classList.remove('bg-green-100', 'border', 'border-green-500', 'text-green-700');
+                        btn.classList.add('bg-gray-200', 'text-gray-400', 'border', 'border-gray-300');
+                        if (!canCollect) {
+                            btn.setAttribute('title', 'Previous EMI collection is not yet verified.');
+                        } else {
+                            btn.removeAttribute('title');
+                        }
+                    }
+                }
+            });
+        });
+    }
+
+
+    // Build loanRefs from current table rows (Loan No is column 2)
+      const tds = Array.from(document.querySelectorAll('#emi-collect-tbody tr td:nth-child(2)'));
+      window.loanRefs = [...new Set(tds.map(td => (td.textContent || '').trim()).filter(Boolean))];
+
+      // Apply initial per-loan collect enable/disable state immediately on first render
+      // (otherwise buttons may appear enabled until the first infinite-scroll append)
+      if (typeof updateCollectButtonStates === 'function') {
+        updateCollectButtonStates();
+      }
+    
+      if (window.AgentFilters && !window._collectionFiltersInit) {
+        window.AgentFilters.init({
+          tableBodySelector: '#emi-collect-tbody',
+          noDataSelector: '#no-emi-collect',
+          dateInputSelector: '#dateFilter',
+          loanInputSelector: '#loanSearch',
+          statusSelectSelector: null,
+          clearBtnSelector: '#clearFiltersBtn',
+          searchIconSelector: '#searchIcon',
+          clearSearchBtnSelector: '#clearSearchBtn',
+          suggestionsBoxSelector: '#loanSuggestions',
+          getLoanRefs: () => window.loanRefs || [],
+          columnIndex: { loan: 2, date: 8, status: 0 },
+          enableDatePicker: true,
+        });
+        window._collectionFiltersInit = true;
+      }
+    });
+</script>
+
+<script src="{% static 'loan/js/infinite-scroll.js' %}"></script>
+<script src="{% static 'agent/js/table-filters.js' %}"></script>
+
+{% endblock %}

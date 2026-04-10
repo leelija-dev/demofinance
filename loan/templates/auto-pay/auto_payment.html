@@ -1,0 +1,105 @@
+{% extends 'agent/base.html' %}
+{% block title %}Setup Auto Payment | eNACH{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <!-- Main Content Column -->
+    <div class="col-md-8 col-lg-6">
+        <div class="glass-card animate-up">
+            <div class="text-center mb-4">
+                <div class="icon-blob mb-3 mx-auto bg-primary-soft">
+                    <i class="bi bi-arrow-repeat fs-2 text-primary"></i>
+                </div>
+                <h2 class="fw-bold mb-2">Setup Auto Payment</h2>
+                <p class="text-muted">Subscribe to a plan via eNACH mandates for automated monthly deductions.</p>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                        <i class="bi {% if message.tags == 'success' %}bi-check-circle{% else %}bi-exclamation-circle{% endif %}-fill me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post" action="{% url 'agent:auto_payment' %}">
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    <label for="{{ form.plan.id_for_label }}" class="form-label fw-semibold">
+                        <i class="bi bi-card-checklist text-primary me-2"></i>{{ form.plan.label }}
+                    </label>
+                    <div class="input-group input-group-lg shadow-sm rounded-3">
+                        {{ form.plan }}
+                    </div>
+                    {% if form.plan.errors %}
+                        <div class="text-danger small mt-1">{{ form.plan.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    <label for="{{ form.account_holder_name.id_for_label }}" class="form-label fw-semibold">
+                        <i class="bi bi-person text-primary me-2"></i>{{ form.account_holder_name.label }}
+                    </label>
+                    <div class="input-group input-group-lg shadow-sm rounded-3">
+                        <span class="input-group-text bg-white border-end-0 text-muted">
+                            <i class="bi bi-person"></i>
+                        </span>
+                        {{ form.account_holder_name }}
+                    </div>
+                    {% if form.account_holder_name.errors %}
+                        <div class="text-danger small mt-1">{{ form.account_holder_name.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    <label for="{{ form.phone_number.id_for_label }}" class="form-label fw-semibold">
+                        <i class="bi bi-telephone text-primary me-2"></i>{{ form.phone_number.label }}
+                    </label>
+                    <div class="input-group input-group-lg shadow-sm rounded-3">
+                        <span class="input-group-text bg-white border-end-0 text-muted">+91</span>
+                        {{ form.phone_number }}
+                    </div>
+                    {% if form.phone_number.errors %}
+                        <div class="text-danger small mt-1">{{ form.phone_number.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-4">
+                    <label for="{{ form.email.id_for_label }}" class="form-label fw-semibold">
+                        <i class="bi bi-envelope text-primary me-2"></i>{{ form.email.label }} (Optional)
+                    </label>
+                    <div class="input-group input-group-lg shadow-sm rounded-3">
+                        <span class="input-group-text bg-white border-end-0 text-muted">
+                            <i class="bi bi-envelope"></i>
+                        </span>
+                        {{ form.email }}
+                    </div>
+                    {% if form.email.errors %}
+                        <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="bg-light bg-opacity-50 p-3 rounded-3 mb-4 border border-secondary border-opacity-10 text-center">
+                    <small class="text-muted d-block">
+                        <i class="bi bi-shield-check text-success me-1"></i>
+                        You will be redirected to Cashfree to authorize the eNACH mandate securely.
+                    </small>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold shadow-sm mb-3">
+                    <i class="bi bi-check-circle me-2"></i> Proceed to Authorize
+                </button>
+                
+                <div class="text-center">
+                    <a href="{% url 'agent:dashboard' %}" class="text-decoration-none text-muted hover-primary transition">
+                        <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

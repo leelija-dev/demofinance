@@ -1,0 +1,437 @@
+{% extends 'hq/base.html' %}
+{% block title %}User Management{% endblock %}
+{% block page_id %}EmployeeManagement{% endblock %}
+
+{% load static %}
+
+{% block extra_head %}
+<!-- Alpine.js Core -->
+<!-- <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script> -->
+<!-- Alpine.js Persist Plugin -->
+<!--<script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.13.3/dist/cdn.min.js"></script> -->
+
+<script>
+  // Function to get CSRF token from cookie
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+</script>
+
+<!-- Custom CSS -->
+<link href="{% static 'branch/css/style.css' %}" rel="stylesheet">
+<link href="{% static 'branch/css/input.css' %}" rel="stylesheet">
+
+<style>
+  [x-cloak] {
+    display: none !important;
+  }
+
+  body {
+    min-height: 100vh;
+    background-color: #f1f5f9;
+  }
+
+  .swal2-container {
+    z-index: 9999 !important;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+  <!-- Breadcrumb Start -->
+  <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <h2 class="text-title-md2 font-bold text-black dark:text-white">
+      Employee Management
+    </h2>
+    <nav>
+      <ol class="flex items-center gap-2">
+        <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+            href="{% url 'hq:dashboard' %}">Dashboard <svg class="stroke-current" width="17" height="16"
+              viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2"
+                stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg></a></li>
+        <li class="text-sm text-gray-800 dark:text-white/90">Employee Management</li>
+      </ol>
+    </nav>
+  </div>
+  <!-- Breadcrumb End -->
+
+  <!-- User Management Content -->
+  <div
+    class="rounded-2xl border border-stroke bg-white px-6 pt-8 pb-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-8">
+    <!-- Add User Button -->
+    <div class="mb-4 flex flex-col gap-2 px-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+      <a href="{% url 'hq:add_user' %}"
+        class="inline-flex items-center gap-2 px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600">
+        <svg class="fill-current" width="20" height="20" viewBox="0 0 20 20" fill="none"
+          xmlns="http://www.w3.org/2000/svg">
+          <path fill-rule="evenodd" clip-rule="evenodd"
+            d="M9.77692 3.24224C9.91768 3.17186 10.0834 3.17186 10.2241 3.24224L15.3713 5.81573L10.3359 8.33331C10.1248 8.43888 9.87626 8.43888 9.66512 8.33331L4.6298 5.81573L9.77692 3.24224ZM3.70264 7.0292V13.4124C3.70264 13.6018 3.80964 13.775 3.97903 13.8597L9.25016 16.4952L9.25016 9.7837C9.16327 9.75296 9.07782 9.71671 8.99432 9.67496L3.70264 7.0292ZM10.7502 16.4955V9.78396C10.8373 9.75316 10.923 9.71683 11.0067 9.67496L16.2984 7.0292V13.4124C16.2984 13.6018 16.1914 13.775 16.022 13.8597L10.7502 16.4955ZM9.41463 17.4831L9.10612 18.1002C9.66916 18.3817 10.3319 18.3817 10.8949 18.1002L16.6928 15.2013C17.3704 14.8625 17.7984 14.17 17.7984 13.4124V6.58831C17.7984 5.83076 17.3704 5.13823 16.6928 4.79945L10.8949 1.90059C10.3319 1.61908 9.66916 1.61907 9.10612 1.90059L9.44152 2.57141L9.10612 1.90059L3.30823 4.79945C2.63065 5.13823 2.20264 5.83076 2.20264 6.58831V13.4124C2.20264 14.17 2.63065 14.8625 3.30823 15.2013L9.10612 18.1002L9.41463 17.4831Z"
+            fill=""></path>
+        </svg>
+        Add New Employee
+      </a>
+    </div>
+    <div class="custom-scrollbar max-w-full overflow-x-auto overflow-y-visible px-5 sm:px-6">
+      <table class="min-w-full">
+        <thead class="border-y border-gray-100 py-3 dark:border-gray-800">
+          <tr>
+            <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6">
+              <div class="flex items-center">
+                <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                  Name
+                </p>
+              </div>
+            </th>
+            <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6">
+              <div class="flex items-center">
+                <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                  Email
+                </p>
+              </div>
+            </th>
+            <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6">
+              <div class="flex items-center">
+                <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                  Phone Number
+                </p>
+              </div>
+            </th>
+            <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6">
+              <div class="flex items-center">
+                <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                  Role
+                </p>
+              </div>
+            </th>
+            <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6">
+              <div class="flex items-center">
+                <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                  Status
+                </p>
+              </div>
+            </th>
+            <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6">
+              <div class="flex items-center">
+                <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                  Actions
+                </p>
+              </div>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+          <tr class="border-b border-stroke dark:border-strokedark hover:bg-gray-50 dark:hover:bg-meta-4">
+            <td class="py-3">
+              <div class="flex items-center">
+                <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                  {{ user.get_full_name|default:user.username }}
+                </p>
+              </div>
+            </td>
+            <td class="py-3">
+              <div class="flex items-center">
+                <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                  {{ user.email }}
+                </p>
+              </div>
+            </td>
+            <td class="py-3">
+              <div class="flex items-center">
+                <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                  {{ user.phone_number|default:"Not provided" }}
+                </p>
+              </div>
+            </td>
+            <td class="py-3">
+              <div class="flex items-center">
+                <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                  {{ user.get_role_name }}
+                </p>
+              </div>
+            </td>
+            <td class="py-3">
+              <div class="flex items-center">
+                {% if user.is_active %}
+                <p
+                  class="rounded-full bg-success-50 px-2 py-0.5 text-theme-xs font-medium text-success-600 dark:bg-success-500/15 dark:text-success-500">
+                  Active
+                </p>
+                {% else %}
+                <p
+                  class="rounded-full bg-red-100 px-2 py-0.5 text-theme-xs font-medium text-red-600 dark:bg-red-500/15 dark:text-red-500">
+                  Inactive
+                </p>
+                {% endif %}
+              </div>
+            </td>
+            <td class="py-3">
+              <div class="flex items-center gap-3">
+                <a href="{% url 'hq:edit_user' user.id %}" class="hover:text-primary">
+                  <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </a>
+
+                {% if user.is_active %}
+                <button onclick="deactivateUser('{{ user.id }}')" class="hover:text-danger" title="Deactivate">
+                  <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 7H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M10 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M14 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M6 7L7 20H17L18 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M9 7V4H15V7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </button>
+                {% else %}
+                <button onclick="activateUser('{{ user.id }}')" class="hover:text-success" title="Activate">
+                  <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 22C6.477 22 2 17.523 2 12C2 6.477 6.477 2 12 2C17.523 2 22 6.477 22 12C22 17.523 17.523 22 12 22Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M8 12.5L10.8 15.3L16.5 9.6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </button>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr class="border-b border-stroke dark:border-strokedark">
+            <td colspan="6" class="py-3 text-center">
+              <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                No emplyee found
+              </p>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const renderActivitiesTable = (activities) => {
+    if (!activities || activities.length === 0) {
+      return `
+        <div class="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-600">
+          No related activities found.
+        </div>
+      `;
+    }
+
+    let html = '';
+    html += '<div class="mt-3 max-h-80 overflow-auto rounded-lg border border-gray-200">';
+    html += '<table class="w-full border-collapse text-sm">';
+    html += '<thead class="bg-gray-50">';
+    html += '<tr>';
+    html += '<th class="px-3 py-2 text-left font-semibold text-gray-700">Activity</th>';
+    html += '<th class="px-3 py-2 text-right font-semibold text-gray-700">Count</th>';
+    html += '<th class="px-3 py-2 text-left font-semibold text-gray-700">Preview</th>';
+    html += '</tr>';
+    html += '</thead>';
+    html += '<tbody class="bg-white">';
+
+    activities.forEach((a) => {
+      const preview = (a.items && a.items.length) ? a.items.join(', ') : '';
+      html += '<tr>';
+      html += `<td class="border-t border-gray-100 px-3 py-2 align-top text-gray-800">${a.title}</td>`;
+      html += `<td class="border-t border-gray-100 px-3 py-2 text-right align-top font-semibold text-gray-800">${a.count}</td>`;
+      html += `<td class="border-t border-gray-100 px-3 py-2 align-top text-gray-600">${preview || '-'}</td>`;
+      html += '</tr>';
+    });
+
+    html += '</tbody>';
+    html += '</table>';
+    html += '</div>';
+    return html;
+  }
+
+  const renderLoanStats = (loanStats) => {
+    const approved = loanStats && loanStats.hq_approved ? loanStats.hq_approved : { count: 0, items: [] };
+    const rejected = loanStats && loanStats.hq_rejected ? loanStats.hq_rejected : { count: 0, items: [] };
+    const disbursed = loanStats && loanStats.disbursed_fund_released ? loanStats.disbursed_fund_released : { count: 0, items: [] };
+
+    const total = (Number(approved.count) || 0) + (Number(rejected.count) || 0) + (Number(disbursed.count) || 0);
+    if (total <= 0) return '';
+
+    const listOrDash = (items) => {
+      if (!items || !items.length) return '<div class="text-xs text-gray-500">-</div>';
+      return '<div class="mt-1 space-y-0.5">' + items.map(i => `<div class="text-xs text-gray-600">${i}</div>`).join('') + '</div>';
+    }
+
+    return `
+      <div class="rounded-lg border border-gray-200 bg-white p-3">
+        <div class="text-sm font-semibold text-gray-900">Loan actions (overall)</div>
+        <div class="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
+          <div class="rounded-md border border-gray-100 bg-gray-50 p-2">
+            <div class="flex items-center justify-between">
+              <div class="text-xs font-semibold text-gray-700">HQ Approved</div>
+              <div class="text-sm font-bold text-gray-900">${approved.count || 0}</div>
+            </div>
+            ${listOrDash(approved.items)}
+          </div>
+          <div class="rounded-md border border-gray-100 bg-gray-50 p-2">
+            <div class="flex items-center justify-between">
+              <div class="text-xs font-semibold text-gray-700">HQ Rejected</div>
+              <div class="text-sm font-bold text-gray-900">${rejected.count || 0}</div>
+            </div>
+            ${listOrDash(rejected.items)}
+          </div>
+          <div class="rounded-md border border-gray-100 bg-gray-50 p-2">
+            <div class="flex items-center justify-between">
+              <div class="text-xs font-semibold text-gray-700">Disbursed (Fund Released)</div>
+              <div class="text-sm font-bold text-gray-900">${disbursed.count || 0}</div>
+            </div>
+            ${listOrDash(disbursed.items)}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  const deactivateUser = (userId) => {
+    Swal.fire({
+      title: 'Loading...',
+      text: 'Fetching user activities',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
+    fetch(`/hq/users/${userId}/activity-summary/`, {
+      method: 'GET',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+      .then(response => response.json())
+      .then(data => {
+        Swal.close();
+        if (!data.success) {
+          Swal.fire({ title: 'Failed!', text: data.message || 'Unable to load user activities.', icon: 'error' });
+          return;
+        }
+
+        const role = data.user.role || '';
+        const email = data.user.email || '';
+
+        Swal.fire({
+          title: 'Confirm Deactivate',
+          width: '900px',
+          html: `
+            <div class="space-y-3 text-left">
+              <div class="rounded-lg border border-gray-200 bg-white p-3">
+                <div class="text-sm text-gray-600">You are deactivating</div>
+                <div class="mt-0.5 text-base font-semibold text-gray-900">${data.user.name}</div>
+                ${(email || role) ? `
+                  <div class="mt-1 text-xs text-gray-500">
+                    ${email ? `<span>${email}</span>` : ''}
+                    ${(email && role) ? `<span class="px-1">•</span>` : ''}
+                    ${role ? `<span>${role}</span>` : ''}
+                  </div>
+                ` : ''}
+              </div>
+
+              ${renderLoanStats(data.loan_stats)}
+
+              <div>
+                <div class="text-sm font-semibold text-gray-900">Related activities</div>
+                ${renderActivitiesTable(data.activities)}
+              </div>
+            </div>
+          `,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#d33',
+          cancelButtonColor: '#3085d6',
+          confirmButtonText: 'Deactivate'
+        }).then((result) => {
+          if (!result.isConfirmed) return;
+
+          const formData = new FormData();
+          formData.append('is_active', 'false');
+
+          fetch(`/hq/users/${userId}/toggle-active/`, {
+            method: 'POST',
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: formData
+          })
+            .then(r => r.json())
+            .then(res => {
+              if (res.success) {
+                window.location.href = res.redirect_url || '{% url "hq:user_management" %}';
+              } else {
+                Swal.fire({ title: 'Failed!', text: res.message || 'Unable to deactivate user.', icon: 'error' });
+              }
+            })
+            .catch(() => {
+              Swal.fire({ title: 'Error!', text: 'An error occurred while deactivating the user.', icon: 'error' });
+            });
+        });
+      })
+      .catch(() => {
+        Swal.close();
+        Swal.fire({ title: 'Error!', text: 'An error occurred while loading activities.', icon: 'error' });
+      });
+  }
+
+  const activateUser = (userId) => {
+    Swal.fire({
+      title: 'Confirm Activate',
+      text: 'Do you want to activate this user?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#16a34a',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Activate'
+    }).then((result) => {
+      if (!result.isConfirmed) return;
+
+      const formData = new FormData();
+      formData.append('is_active', 'true');
+
+      fetch(`/hq/users/${userId}/toggle-active/`, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: formData
+      })
+        .then(r => r.json())
+        .then(res => {
+          if (res.success) {
+            window.location.href = res.redirect_url || '{% url "hq:user_management" %}';
+          } else {
+            Swal.fire({ title: 'Failed!', text: res.message || 'Unable to activate user.', icon: 'error' });
+          }
+        })
+        .catch(() => {
+          Swal.fire({ title: 'Error!', text: 'An error occurred while activating the user.', icon: 'error' });
+        });
+    });
+  }
+</script>
+{% endblock %}

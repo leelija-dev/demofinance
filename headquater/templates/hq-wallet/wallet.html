@@ -1,0 +1,1523 @@
+{% extends 'hq/base.html' %}
+{% load static %}
+{% block title %}Wallet Dashboard{% endblock %}
+
+{% block page_id %}hqWallet{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+{% endblock %}
+{% block content %}
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Wallet Dashboard</h1>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Manage your wallet transactions and view balance history</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="document.getElementById('balanceModal').classList.remove('hidden')" 
+                        class="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    Add Funds
+                </button>
+                <button onclick="document.getElementById('transferModal').classList.remove('hidden')" 
+                        class="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                    </svg>
+                    Transfer to Branch
+                </button>
+                <div class="relative">
+                    <button id="menuButton" type="button" onclick="toggleMenu()"
+                      class="p-2 rounded-lg bg-gray-200 hover:bg-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 transition flex items-center justify-center">
+                      <!-- Larger Vertical Ellipsis Icon -->
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700 dark:text-gray-300" viewBox="0 0 24 24"
+                        fill="currentColor">
+                        <path
+                          d="M12 5a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm0 9a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm0 9a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" />
+                      </svg>
+                    </button>
+                
+                    <!-- Dropdown Menu -->
+                    <div id="menuDropdown"
+                      class="hidden absolute right-0 mt-2 w-max p-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-100 dark:border-gray-700 z-50">
+                      <ul class="py-1 text-sm text-gray-700 dark:text-gray-200">
+                        <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700" onclick="openAddAccountModal()">Add Account</a></li>
+                      </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Stats Cards -->
+        <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Total Balance -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Balance</p>
+                        <p class="mt-1 text-2xl font-semibold text-blue-600 dark:text-blue-400">
+                            <span class="balance-amount"></span>₹{{ wallet.balance|default:"0.00"|floatformat:2 }}</span>
+                        </p>
+                    </div>
+                    <div class="p-3 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </div>
+                </div>
+                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    Updated: {{ wallet.last_updated|date:"M d, Y H:i" }}
+                </p>
+            </div>
+            
+            <!-- Cash Balance -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Cash</p>
+                        <p class="mt-1 text-2xl font-semibold text-green-600 dark:text-green-400">
+                            ₹{{ cash_balance|default:"0.00"|floatformat:2 }}
+                        </p>
+                    </div>
+                    <div class="p-3 rounded-full bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 8h6m-5 0a3 3 0 110 6H9l3 3m-3-6h6m6 1a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                </div>
+                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    Updated: {{ wallet.last_updated|date:"M d, Y H:i" }}
+                </p>
+            </div>
+            
+            <!-- Bank Balance -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Bank Balance</p>
+                        <p class="mt-1 text-2xl font-semibold text-purple-600 dark:text-purple-400">
+                            ₹{{ account_balance|default:"0.00"|floatformat:2 }}
+                        </p>
+                    </div>
+                    <div class="p-3 rounded-full bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="flex items-center ">
+                    <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                        Updated: {{ wallet.last_updated|date:"M d, Y H:i" }}
+                    </p>
+                    <button type="button" onclick="AllAccountModal()" title="All Account" class="flex items-center justify-center gap-8 px-2 pt-2 text-purple-600 dark:text-purple-400 text-sm font-medium rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor" class="w-5">
+                            <path d="M528 320C528 434.9 434.9 528 320 528C205.1 528 112 434.9 112 320C112 205.1 205.1 112 320 112C434.9 112 528 205.1 528 320zM64 320C64 461.4 178.6 576 320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320zM451.3 331.3C457.5 325.1 457.5 314.9 451.3 308.7L347.3 204.7C342.7 200.1 335.8 198.8 329.9 201.2C324 203.6 320 209.5 320 216L320 288L216 288C202.7 288 192 298.7 192 312L192 328C192 341.3 202.7 352 216 352L320 352L320 424C320 430.5 323.9 436.3 329.9 438.8C335.9 441.3 342.8 439.9 347.3 435.3z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <script id="hqBankAccountsData" type="application/json">{{ hq_bank_accounts_json|safe }}</script>
+
+            <div id="allAccountsModal" class="hidden w-full fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center backdrop-blur-[32px] transition-opacity z-99999 overflow-y-auto">
+                <div class="absolute inset-0 bg-black/50" onclick="CloseAllAccountModal()"></div>
+                <div class="relative mx-auto mt-16 w-[90%] max-w-3xl bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">HQ Bank Accounts</h3>
+                        <button type="button" onclick="CloseAllAccountModal()" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    </div>
+                    <div class="px-6 py-4 overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-800">
+                                <tr>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Bank</th>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Account No.</th>
+                                    <th class="px-3 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Balance</th>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Updated</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bankAccountsTbody" class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700"></tbody>
+                        </table>
+                        <div id="bankAccountsEmpty" class="hidden py-8 text-center text-sm text-gray-500 dark:text-gray-400">No bank accounts found.</div>
+                    </div>
+                    <div class="flex justify-end px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+                        <!-- <button type="button" onclick="CloseAllAccountModal()" class="px-4 py-2 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-100">Close</button> -->
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                // function maskAccount(num){
+                //     if(!num) return '';
+                //     const s = String(num);
+                //     if(s.length <= 4) return s;
+                //     return '•••• ' + s.slice(-4);
+                // }
+                function fmtCurrency(n){
+                    try { return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(Number(n||0)); } catch(e){ return '₹' + (Number(n||0)).toFixed(2); }
+                }
+                function AllAccountModal(){
+                    const script = document.getElementById('hqBankAccountsData');
+                    if (!script) { return; }
+                    let raw = (script.textContent || '').trim();
+                    if (!raw) raw = '[]';
+                    let data = [];
+                    try { data = JSON.parse(raw); } catch(e){ console.warn('Invalid bank accounts JSON', e, raw); data = []; }
+                    const tbody = document.getElementById('bankAccountsTbody');
+                    const empty = document.getElementById('bankAccountsEmpty');
+                    tbody.innerHTML = '';
+                    if(!data.length){
+                        if (empty) empty.classList.remove('hidden');
+                    } else {
+                        if (empty) empty.classList.add('hidden');
+                        data.forEach(acc => {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                <td class="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">${acc.name || (acc.bank_name ? acc.bank_name : 'Bank Account')}</td>
+                                <td class="px-3 py-2 text-sm text-gray-700 dark:text-gray-300">${acc.bank_name || '-'}</td>
+                                <td class="px-3 py-2 text-sm text-blue-600 dark:text-blue-400 font-mono">${acc.account_number}</td>
+                                <td class="px-3 py-2 text-sm text-right font-semibold text-purple-600 dark:text-purple-400">${fmtCurrency(acc.balance)}</td>
+                                <td class="px-3 py-2 text-xs text-gray-500 dark:text-gray-400">${acc.last_updated ? new Date(acc.last_updated).toLocaleString() : '-'}</td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+                    }
+                    document.getElementById('allAccountsModal').classList.remove('hidden');
+                }
+                function CloseAllAccountModal(){
+                    document.getElementById('allAccountsModal').classList.add('hidden');
+                }
+            </script>
+            
+            <!-- Quick Stats -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Transactions</p>
+                        <p class="mt-1 text-2xl font-semibold text-orange-600 dark:text-orange-400">
+                            {% with hqtransaction|length as total_transactions %}
+                            {{ total_transactions|default:0 }}
+                            {% endwith %}
+                        </p>
+                    </div>
+                    <div class="p-3 rounded-full bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                    </div>
+                </div>
+                <!-- <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    {{ pending_transactions|default:0 }} pending
+                </p> -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Transaction History Section -->
+<div class="mt-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <!-- Header -->
+    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 pb-2 lg:mb-0">
+            Transactions History
+        </h3>
+
+        <!-- Filters -->
+        <div class="flex flex-col gap-3 lg:flex-wrap lg:flex-row lg:gap-4 xl:flex-nowrap xl:gap-3">
+            <!-- Search -->
+            <div class="w-full lg:flex-1 xl:w-auto">
+                <input id="hqTxSearch" type="text" placeholder="Search..."
+                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white" />
+            </div>
+
+            <!-- Type Filter -->
+            <div class="w-full lg:w-36">
+                <select id="hqTxType"
+                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                    <option value="">Type</option>
+                    <option value="credit">Credit</option>
+                    <option value="debit">Debit</option>
+                </select>
+            </div>
+
+            <!-- Code Filter -->
+            <div class="w-full lg:w-40">
+                <select id="hqTxCode"
+                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                    <option value="">Code</option>
+                    {% for tx in hqtransaction %}
+                        {% if tx.code %}
+                            <option value="{{ tx.code }}">{{ tx.code }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Purpose Filter -->
+            <div class="w-full lg:w-48">
+                <select id="hqTxPurpose"
+                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                    <option value="">Purpose</option>
+                    {% for tx in hqtransaction %}
+                        {% if tx.purpose %}
+                            <option value="{{ tx.purpose }}">{{ tx.purpose|truncatewords:3 }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Branch Filter -->
+            <div class="w-full lg:w-48">
+                <select id="hqTxBranch"
+                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                    <option value="">Branch</option>
+                </select>
+            </div>
+
+            <!-- Date Filter -->
+            <div class="w-full lg:w-64 flex items-center relative">
+                <input id="hqTxDateFrom" type="text"
+                    class="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                    placeholder="Select date range" readonly />
+                <div class="absolute inset-y-0 left-0 flex items-center pointer-events-none pl-3">
+                    <svg class="fill-gray-700 dark:fill-gray-400" width="20" height="20" viewBox="0 0 20 20"
+                        fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" clip-rule="evenodd"
+                            d="M6.66683 1.54199C7.08104 1.54199 7.41683 1.87778 7.41683 2.29199V3.00033H12.5835V2.29199C12.5835 1.87778 12.9193 1.54199 13.3335 1.54199C13.7477 1.54199 14.0835 1.87778 14.0835 2.29199V3.00033L15.4168 3.00033C16.5214 3.00033 17.4168 3.89576 17.4168 5.00033V7.50033V15.8337C17.4168 16.9382 16.5214 17.8337 15.4168 17.8337H4.5835C3.47893 17.8337 2.5835 16.9382 2.5835 15.8337V7.50033V5.00033C2.5835 3.89576 3.47893 3.00033 4.5835 3.00033L5.91683 3.00033V2.29199C5.91683 1.87778 6.25262 1.54199 6.66683 1.54199ZM6.66683 4.50033H4.5835C4.30735 4.50033 4.0835 4.72418 4.0835 5.00033V6.75033H15.9168V5.00033C15.9168 4.72418 15.693 4.50033 15.4168 4.50033H13.3335H6.66683ZM15.9168 8.25033H4.0835V15.8337C4.0835 16.1098 4.30735 16.3337 4.5835 16.3337H15.4168C15.693 16.3337 15.9168 16.1098 15.9168 15.8337V8.25033Z">
+                        </path>
+                    </svg>
+                </div>
+                <input id="hqTxDateTo" type="hidden" />
+            </div>
+
+            <!-- Reset Button -->
+            <div class="w-full lg:w-auto">
+                <button id="hqTxReset" type="button"
+                    class="w-full md:w-auto group inline-flex items-center justify-center gap-2 px-3.5 py-2 text-sm font-medium rounded-md border border-gray-300 bg-white text-gray-700 shadow-sm hover:bg-blue-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 dark:hover:bg-blue-900/40">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="#000000" viewBox="0 0 512 512"
+                        class="h-4 w-4 transition-transform duration-500 group-hover:rotate-[360deg]">
+                        <path
+                            d="M64,256H34A222,222,0,0,1,430,118.15V85h30V190H355V160h67.27A192.21,192.21,0,0,0,256,64C150.13,64,64,150.13,64,256Zm384,0c0,105.87-86.13,192-192,192A192.21,192.21,0,0,1,89.73,352H157V322H52V427H82V393.85A222,222,0,0,0,478,256Z" />
+                    </svg>
+                    Reset
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    {% if hqtransaction %}
+        <div class="px-5 py-4">
+            <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700" id="txTableWrapper">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead class="bg-gray-50 dark:bg-gray-800">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Type</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Code</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Purpose</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Branch</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Reference</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider w-64">Description</th>
+                            <th scope="col" class="px-2 py-3 gap-6 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider flex items-center justify-between">
+                                <p>Amount</p>
+                                <a href="#" class="text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+                                    View All
+                                </a>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        <tr id="hqTxEmptyRow" class="hidden">
+                            <td colspan="8" class="px-6 py-6 text-center text-red-500 dark:text-gray-400">
+                                No wallet transactions found
+                            </td>
+                        </tr>
+                        {% for transaction in hqtransaction %}
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700"
+                            data-type="{{ transaction.transaction_type }}"
+                            data-code="{% if transaction.code %}{{ transaction.code }}{% else %}-{% endif %}"
+                            data-purpose="{% if transaction.purpose %}{{ transaction.purpose }}{% else %}-{% endif %}"
+                            data-date="{{ transaction.transaction_date|date:'Y-m-d' }}"
+                            data-branch="{{ transaction.branch_name|default:'-' }}"
+                            data-reference="{% if transaction.reference_number %}{{ transaction.reference_number }}{% else %}-{% endif %}"
+                            data-description="{% if transaction.description %}{{ transaction.description }}{% else %}-{% endif %}">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{{ transaction.transaction_date|date:"M d, Y H:i" }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    {% if transaction.transaction_type == 'credit' %}
+                                        bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
+                                    {% else %}
+                                        bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200
+                                    {% endif %}">
+                                    {{ transaction.get_transaction_type_display }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                                {% if transaction.code %}
+                                    <span class="font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs">
+                                        {{ transaction.code }}
+                                    </span>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                                {% if transaction.purpose %}
+                                    {{ transaction.purpose }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                                {% if transaction.branch_name %}
+                                    {{ transaction.branch_name }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                                {% if transaction.reference_number %}
+                                    {{ transaction.reference_number }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300 whitespace-normal break-words max-w-[24rem]">
+                                <div class="flex items-center gap-2">
+                                    <!-- Always show description -->
+                                    <span class="flex-1">{{ transaction.description|default:'-' }}</span>
+                                    
+                                    <!-- Show document icon only if proof document exists -->
+                                    {% if transaction.proof_document %}
+                                        {% with transaction.proof_document.name as filename %}
+                                            {% if filename %}
+                                                {% with filename|cut:"hq/transaction_proof/" as clean_filename %}
+                                                    <a href="/static/hq/transaction_proof/{{ clean_filename }}" 
+                                                       target="_blank" 
+                                                       class="text-blue-600 hover:text-blue-800 dark:text-blue-400 flex items-center gap-1 shrink-0"
+                                                       title="View proof document">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                                        </svg>
+                                                    </a>
+                                                {% endwith %}
+                                            {% endif %}
+                                        {% endwith %}
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="px-2 py-4 whitespace-nowrap text-sm font-semibold {% if transaction.transaction_type == 'credit' %} text-green-700 dark:text-green-200 {% else %} text-red-600 dark:text-red-200 {% endif %}">
+                                {% if transaction.transaction_type == 'credit' %}
+                                    + ₹ {{ transaction.amount|floatformat:2 }}
+                                {% else %}
+                                    - ₹ {{ transaction.amount|floatformat:2 }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% else %}
+        <!-- Empty state remains the same -->
+        <div class="p-8 text-center">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No transactions yet</h3>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Your transaction history will appear here.</p>
+            <div class="mt-4 flex justify-center space-x-3">
+                <button onclick="document.getElementById('balanceModal').classList.remove('hidden')" 
+                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Add Funds
+                </button>
+                <button onclick="document.getElementById('transferModal').classList.remove('hidden')" 
+                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    Transfer to Branch
+                </button>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+    <!-- Transfer to Branch Modal -->
+<div id="transferModal" class="hidden fixed inset-0 z-99999 bg-gray-400/50 backdrop-blur-[32px] overflow-y-auto h-full w-full flex items-center justify-center">
+    <div class="relative p-5 border w-full max-w-md shadow-lg rounded-2xl bg-white dark:bg-gray-800">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Transfer to Branch</h3>
+            <button type="button" onclick="closeTransferModal()" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-2xl">&times;</button>
+        </div>
+        
+        <form method="post" action="{% url 'hq:wallet' %}" id="transferForm" enctype="multipart/form-data" onsubmit="return handleTransferSubmit(this);" data-hq-balance="{{ wallet.balance|default:'0'|floatformat:2 }}">
+            {% csrf_token %}
+            <input type="hidden" name="transfer_submit" value="1">
+            
+            <!-- Form Errors -->
+            {% if transfer_form.non_field_errors %}
+                <div class="mb-4 p-3 bg-red-50 text-red-700 rounded-md text-sm">
+                    {% for error in transfer_form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <div class="space-y-4">
+                <!-- Branch Selection -->
+                <div>
+                    <label for="{{ transfer_form.branch.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        {{ transfer_form.branch.label }}
+                    </label>
+                    {{ transfer_form.branch }}
+                    {% if transfer_form.branch.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ transfer_form.branch.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- HQ Account -->
+                <div>
+                    <label for="{{ transfer_form.hq_account.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        {{ transfer_form.hq_account.label }} (From)
+                    </label>
+                    {{ transfer_form.hq_account }}
+                    {% if transfer_form.hq_account.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ transfer_form.hq_account.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Payment Mode -->
+                <div id="paymentModeContainer">
+                    <label for="{{ transfer_form.payment_mode.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        {{ transfer_form.payment_mode.label }} (To)
+                    </label>
+                    {{ transfer_form.payment_mode }}
+                    {% if transfer_form.payment_mode.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ transfer_form.payment_mode.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Bank Method (only when Bank) -->
+                <div id="bankMethodContainer" class="hidden">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        {{ transfer_form.transfer_bank_payment_method.label }}
+                    </label>
+                    {{ transfer_form.transfer_bank_payment_method }}
+                    {% if transfer_form.transfer_bank_payment_method.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ transfer_form.transfer_bank_payment_method.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Accounts (hidden on Cash) -->
+                <div id="accountsContainer" class="hidden">
+                    <label for="{{ transfer_form.accounts.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        {{ transfer_form.accounts.label }}
+                    </label>
+                    {{ transfer_form.accounts }}
+                    {% if transfer_form.accounts.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ transfer_form.accounts.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Amount -->
+                <div>
+                    <label for="{{ transfer_form.amount.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        {{ transfer_form.amount.label }}
+                    </label>
+                    <div class="relative rounded-md shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <!-- <span class="text-gray-500 sm:text-sm mr-6">₹ </span> -->
+                        </div>
+                        {{ transfer_form.amount }}
+                    </div>
+                    <p id="hqTransferAmountError" class="mt-1 text-sm text-red-600 hidden"></p>
+                    {% if transfer_form.amount.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ transfer_form.amount.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Purpose (Chart of Account) - Required -->
+                <div>
+                    <label for="{{ transfer_form.purpose_account.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        {{ transfer_form.purpose_account.label }} *
+                    </label>
+                    {{ transfer_form.purpose_account }}
+                    {% if transfer_form.purpose_account.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ transfer_form.purpose_account.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Submit Button -->
+                <div class="pt-2">
+                    <button type="submit" name="transfer_submit" class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Transfer Funds
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+    <!-- Add Balance Modal -->
+        <div id="balanceModal" class="hidden fixed inset-0 z-99999 bg-gray-400/50 backdrop-blur-[32px] overflow-y-auto h-full w-full flex items-center justify-center">
+            <div class="relative p-5 border w-full max-w-md shadow-lg rounded-2xl bg-white dark:bg-gray-800">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Add/Update Balance</h3>
+                    <button type="button" onclick="closeBalanceModal()" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-2xl">&times;</button>
+                </div>
+                
+                <!-- Form with CSRF and prevent double submission -->
+                <form method="post" action="{% url 'hq:wallet' %}" id="balanceForm" onsubmit="return handleFormSubmit(this);" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <!-- Form Errors -->
+                    {% if form.non_field_errors %}
+                        <div class="mb-4 p-4 bg-red-50 text-red-700 rounded-lg">
+                            {% for error in form.non_field_errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="space-y-4">
+                        <!-- Transaction Type -->
+                        <div>
+                            <label for="id_transaction_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                Transaction Type *
+                            </label>
+                            {{ form.transaction_type }}
+                            {% if form.transaction_type.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.transaction_type.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Amount -->
+                        <div>
+                            <label for="id_amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                Amount *
+                            </label>
+                            {{ form.amount }}
+                            {% if form.amount.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.amount.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <!-- HQ Account -->
+                        <div>
+                          <label for="{{ form.hq_account.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            {{ form.hq_account.label }} *
+                          </label>
+                          {{ form.hq_account }}
+                          {% if form.hq_account.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.hq_account.errors.0 }}</p>
+                          {% endif %}
+                        </div>
+                        <!-- Purpose (Chart of Account) - Required -->
+                        <div>
+                            <label for="{{ form.purpose_account.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                {{ form.purpose_account.label }} *
+                            </label>
+                            {{ form.purpose_account }}
+                            {% if form.purpose_account.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.purpose_account.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+        
+                        <!-- Optional Reference Number -->
+                        <div>
+                            <label for="id_reference_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                Reference Number (Optional)
+                            </label>
+                            {{ form.reference_number }}
+                            {% if form.reference_number.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.reference_number.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Optional Proof Document -->
+                        <div>
+                            <label for="id_proof_document" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                Proof Document (Optional)
+                            </label>
+                            {{ form.proof_document }}
+                            <p class="mt-1 text-xs text-gray-500">{{ form.proof_document.help_text }}</p>
+                            {% if form.proof_document.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.proof_document.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Description (Additional notes) -->
+                        <div>
+                            <label for="id_description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                Description (Optional)
+                            </label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.description.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Submit Button -->
+                        <div class="pt-2">
+                            <button type="submit" class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-brand-500 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500">
+                                Process Transaction
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+
+      <!-- Add HQ Account Modal -->
+      <div id="hqAddAccountModal" class="hidden">
+          <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center backdrop-blur-[32px] transition-opacity z-99999 overflow-y-auto"> 
+              <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md">
+                  <div class="flex items-center justify-between py-4 border-b border-gray-200 dark:border-gray-700">
+                      <h3 class="text-lg font-medium text-gray-900 dark:text-white">Add Account</h3>
+                      <button type="button" onclick="closeAddAccountModal()"
+                          class="rounded-md bg-white dark:bg-gray-800 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
+                          <span class="sr-only">Close</span>
+                          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                      </button>
+                  </div>
+                  
+                  <form id="addAccountForm" method="post" action="{% url 'hq:wallet' %}">
+                      {% csrf_token %}
+                      <input type="hidden" name="hq_add_account" value="1" />
+                      <div class="py-4 max-h-[70vh] overflow-y-auto">
+                          <div class="space-y-4">
+                              {% if hq_wallet_form %}
+                            <!-- HeadquartersWalletForm Fields -->
+                            <div>
+                                <label for="{{ hq_wallet_form.name.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                                    Account Name *
+                                </label>
+                                {{ hq_wallet_form.name }}
+                                {% if hq_wallet_form.name.errors %}
+                                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ hq_wallet_form.name.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label for="{{ hq_wallet_form.bank_name.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                                    Bank Name *
+                                </label>
+                                {{ hq_wallet_form.bank_name }}
+                                {% if hq_wallet_form.bank_name.errors %}
+                                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ hq_wallet_form.bank_name.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label for="{{ hq_wallet_form.account_number.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                                    Account Number *
+                                </label>
+                                {{ hq_wallet_form.account_number }}
+                                {% if hq_wallet_form.account_number.errors %}
+                                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ hq_wallet_form.account_number.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label for="hq_account_amount" class="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                                    Amount *
+                                </label>
+                                <input type="number" id="hq_account_amount" name="amount" required min="0" step="0.01"
+                                       placeholder="Enter initial amount"
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white" />
+                            </div>
+                            {% else %}
+                            <!-- Fallback to existing markup until form is passed in context -->
+                            <!-- Account Name (fallback) -->
+                            <div>
+                                <label for="accountName" class="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                                    Account Name *
+                                </label>
+                                <input type="text" id="accountName" name="name" required
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                                    placeholder="Enter account name" />
+                            </div>
+
+                            <!-- Account Number (fallback) -->
+                            <div>
+                                <label for="accountNumber" class="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                                    Account Number *
+                                </label>
+                                <input type="text" id="accountNumber" name="account_number" required
+                                    placeholder="Enter account number"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white" />
+                            </div>
+
+                            <!-- Bank Name (fallback) -->
+                            <div>
+                                <label for="bankName" class="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                                    Bank Name *
+                                </label>
+                                <input type="text" id="bankName" name="bank_name" required
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                                    placeholder="Enter bank name" />
+                            </div>
+                            <!-- Amount (fallback) -->
+                            <div>
+                                <label for="fallback_hq_account_amount" class="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                                    Amount *
+                                </label>
+                                <input type="number" id="fallback_hq_account_amount" name="amount" required min="0" step="0.01"
+                                       placeholder="Enter initial amount"
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white" />
+                            </div>
+                            {% endif %}
+                          </div>
+                      </div>
+                      
+                      <div class="flex justify-end gap-2 pt-4">
+                          <button type="button" onclick="closeAddAccountModal()"
+                              class="rounded-md px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600">
+                              Cancel
+                          </button>
+                          <button type="submit" id="submitBtn"
+                              class="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                              Submit
+                          </button>
+                      </div>
+                  </form>
+              </div>
+          </div>
+      </div>
+    
+    <script>
+        // Track if form has been submitted to prevent double submission
+        let formSubmitted = false;
+        
+        // Format amount field to 2 decimal places
+        document.addEventListener('DOMContentLoaded', function() {
+            const amountField = document.querySelector('#{{ transfer_form.amount.id_for_label }}');
+            if (amountField) {
+                amountField.addEventListener('blur', function() {
+                    let value = parseFloat(this.value);
+                    if (!isNaN(value)) {
+                        this.value = value.toFixed(2);
+                    }
+                });
+            }
+
+            // Populate Accounts select based on selected Branch
+            try {
+                const accountsMap = JSON.parse('{{ all_accounts_json|default:"{}"|escapejs }}');
+                const branchSelect = document.getElementById('id_branch');
+                const accountsSelect = document.getElementById('id_accounts');
+                const paymentModeSelect = document.getElementById('id_payment_mode');
+                const accountsContainer = document.getElementById('accountsContainer');
+                const bankMethodContainer = document.getElementById('bankMethodContainer');
+                const hqSelect = document.getElementById('id_hq_account');
+                // Do not filter HQ accounts; always show both CASH and BANK
+                function updatePaymentModeUI() {
+                    const mode = paymentModeSelect ? paymentModeSelect.value : '';
+                    const isBank = mode === 'bank';
+                    if (accountsContainer) accountsContainer.classList.toggle('hidden', !isBank);
+                    if (bankMethodContainer) bankMethodContainer.classList.toggle('hidden', !isBank);
+                    if (accountsSelect && !isBank) {
+                        accountsSelect.value = '';
+                    }
+                    // Keep HQ account list intact (no filtering)
+                }
+
+                function populateAccounts(branchId) {
+                    if (!accountsSelect) return;
+                    const currentVal = accountsSelect.value;
+                    while (accountsSelect.firstChild) accountsSelect.removeChild(accountsSelect.firstChild);
+                    const placeholder = document.createElement('option');
+                    placeholder.value = '';
+                    placeholder.textContent = 'Select an account';
+                    accountsSelect.appendChild(placeholder);
+
+                    const list = accountsMap[String(branchId)] || [];
+                    list.forEach(item => {
+                        const opt = document.createElement('option');
+                        opt.value = item.id;
+                        opt.textContent = item.label;
+                        accountsSelect.appendChild(opt);
+                    });
+
+                    if (currentVal) {
+                        const exists = Array.from(accountsSelect.options).some(o => o.value === currentVal);
+                        if (exists) accountsSelect.value = currentVal;
+                    }
+                }
+
+                if (branchSelect && accountsSelect) {
+                    if (branchSelect.value) {
+                        populateAccounts(branchSelect.value);
+                    } else if ('{{ selected_branch_id|default:"" }}') {
+                        populateAccounts('{{ selected_branch_id|default:"" }}');
+                    }
+                    branchSelect.addEventListener('change', function() {
+                        populateAccounts(this.value);
+                    });
+                }
+
+                if (paymentModeSelect) {
+                    updatePaymentModeUI();
+                    paymentModeSelect.addEventListener('change', updatePaymentModeUI);
+                } else {
+                    // If no payment mode element (unlikely), at least ensure HQ list shows both as-is
+                    if (hqSelect && hqOptionsAll.length) {
+                        while (hqSelect.firstChild) hqSelect.removeChild(hqSelect.firstChild);
+                        hqOptionsAll.forEach(opt => {
+                            const o = document.createElement('option');
+                            o.value = opt.value;
+                            o.textContent = opt.text;
+                            hqSelect.appendChild(o);
+                        });
+                    }
+                }
+            } catch (e) {
+            }
+        });
+        
+        // Function to toggle proof fields based on selected source
+        function toggleProofFields(source) {
+            const referenceField = document.getElementById('referenceNumberField');
+            const proofField = document.getElementById('proofDocumentField');
+            
+            if (source === 'cash') {
+                referenceField.classList.add('hidden');
+                proofField.classList.add('hidden');
+            } else {
+                referenceField.classList.remove('hidden');
+                proofField.classList.remove('hidden');
+            }
+        }
+        
+        async function handleFormSubmit(form) {
+            event.preventDefault();
+            
+            if (formSubmitted) {
+                return false;
+            }
+            
+            // Client-side validation
+            //const source = form.querySelector('select[name="source"]').value;
+            const purposeAccount = form.querySelector('select[name="purpose_account"]').value;
+            const amount = form.querySelector('input[name="amount"]').value;
+            // const referenceNumber = form.querySelector('input[name="reference_number"]')?.value || '';
+            // const proofFile = form.querySelector('input[name="proof_document"]')?.files[0];
+            const submitButton = form.querySelector('button[type="submit"]');
+            const originalButtonText = submitButton ? submitButton.innerHTML : '';
+            
+            try {
+
+                // Validate required fields
+                if (!purposeAccount) {
+                    window.showToast('Please select a purpose account for this transaction.', 'error');
+                    return false;
+                }
+                // For non-cash transactions, require either reference number or proof document
+                // if (source !== 'cash' && !referenceNumber && !proofFile) {
+                //     window.showToast('Please provide either a reference number or upload a proof document for non-cash transactions.', 'error');
+                //     return false;
+                // }
+
+                if (!amount || parseFloat(amount) <= 0) {
+                    window.showToast('Please enter a valid amount greater than 0.', 'error');
+                    return false;
+                }
+                
+                // Disable submit button and show loading state
+                if (submitButton) {
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = 'Processing...';
+                }
+                
+                formSubmitted = true;
+                
+                const formData = new FormData(form);
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Show success toast
+                    window.showToast(data.message || 'Funds added successfully!', 'success');
+                    
+                    // Update balance display if available
+                    const balanceElement = document.querySelector('.balance-amount');
+                    if (balanceElement && data.new_balance) {
+                        balanceElement.textContent = '₹' + parseFloat(data.new_balance).toLocaleString('en-IN', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        });
+                    }
+                    
+                    // Close modal and reset form
+                    closeBalanceModal();
+                    
+                    // Reload the page to update recent transactions
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    // Show error toast
+                    window.showToast(data.message || 'Failed to add funds. Please try again.', 'error');
+                }
+            } catch (error) {
+                console.error('Error adding funds:', error);
+                window.showToast('An unexpected error occurred. Please try again.', 'error');
+            } finally {
+                // Re-enable submit button
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalButtonText;
+                }
+                formSubmitted = false;
+            }
+            
+            return false;
+        }
+        
+        // Function to close the modal and reset the form
+        function closeBalanceModal() {
+            const modal = document.getElementById('balanceModal');
+            const form = document.getElementById('balanceForm');
+            
+            if (form) {
+                form.reset();
+                const submitButton = form.querySelector('button[type="submit"]');
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = 'Process Transaction';
+                }
+                // Remove hidden classes from optional fields since they're now always visible
+                const referenceField = document.getElementById('referenceNumberField');
+                const proofField = document.getElementById('proofDocumentField');
+                if (referenceField) referenceField.classList.remove('hidden');
+                if (proofField) proofField.classList.remove('hidden');
+            }
+            
+            // Clear any error messages
+            const errorMessages = document.querySelectorAll('.text-red-600');
+            errorMessages.forEach(el => el.remove());
+            
+            // Reset form submission flag
+            formSubmitted = false;
+            
+            // Actually close the modal by adding hidden class
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+            
+            // console.log('Balance modal closed');
+        }
+        
+        // Function to close the transfer modal
+        function closeTransferModal() {
+            document.getElementById('transferModal').classList.add('hidden');
+            // Reset the form when closing
+            const form = document.getElementById('transferForm');
+            if (form) {
+                form.reset();
+            }
+        }
+        
+        // Using base.html's showToast function
+        // The function is already available in the global scope
+        
+        // Handle transfer form submission with AJAX
+        // Handle transfer form submission with AJAX
+async function handleTransferSubmit(form) {
+    event.preventDefault();
+    
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn ? submitBtn.innerHTML : '';
+    const amountInput = form.querySelector('input[name="amount"]');
+    const purposeAccount = form.querySelector('select[name="purpose_account"]');
+    const amountErr = document.getElementById('hqTransferAmountError');
+    const availableStr = form.dataset.hqBalance || '0';
+    const available = parseFloat(availableStr.replace(/,/g, '')) || 0;
+    
+    // Clear previous error
+    if (amountErr) { amountErr.textContent = ''; amountErr.classList.add('hidden'); }
+    
+    try {
+        // Client-side validations
+        const amountVal = parseFloat((amountInput?.value || '').toString().replace(/,/g, '')) || 0;
+        const purposeAccountVal = purposeAccount?.value || '';
+        const branchVal = form.querySelector('select[name="branch"]')?.value || '';
+        const modeVal = form.querySelector('select[name="payment_mode"]')?.value || '';
+        const accountVal = form.querySelector('select[name="accounts"]')?.value || '';
+        const bankMethodVal = form.querySelector('input[name="transfer_bank_payment_method"]:checked')?.value || '';
+
+        if (available <= 0) {
+            if (amountErr) { amountErr.textContent = 'Insufficient HQ wallet balance.'; amountErr.classList.remove('hidden'); }
+            window.showToast('Insufficient HQ wallet balance. Please add funds before transferring.', 'error');
+            return false;
+        }
+        if (!branchVal) {
+            window.showToast('Please select a branch.', 'error');
+            return false;
+        }
+        if (!amountVal || amountVal <= 0) {
+            if (amountErr) { amountErr.textContent = 'Enter a valid transfer amount.'; amountErr.classList.remove('hidden'); }
+            window.showToast('Please enter a valid transfer amount.', 'error');
+            return false;
+        }
+        if (amountVal > available) {
+            if (amountErr) { amountErr.textContent = 'Amount exceeds available HQ wallet balance (₹' + available.toFixed(2) + ').'; amountErr.classList.remove('hidden'); }
+            window.showToast('Transfer amount exceeds HQ wallet balance.', 'error');
+            return false;
+        }
+        if (!purposeAccountVal) {
+            window.showToast('Please select a purpose account for this transfer.', 'error');
+            return false;
+        }
+        if (!modeVal) {
+            window.showToast('Please select a payment mode.', 'error');
+            return false;
+        }
+        if (modeVal === 'bank') {
+            if (!accountVal) {
+                window.showToast('Please select an account for Bank payment mode.', 'error');
+                return false;
+            }
+            if (!bankMethodVal) {
+                window.showToast('Please select a bank payment method.', 'error');
+                return false;
+            }
+        }
+        
+        // Show loading state
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'Transferring...';
+        }
+        
+        const formData = new FormData(form);
+        formData.append('transfer_submit', 'true');
+        
+        const response = await fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Show success toast
+            window.showToast(data.message, 'success');
+            
+            // Update balance display if available
+            const balanceElement = document.querySelector('.balance-amount');
+            if (balanceElement && data.new_balance) {
+                balanceElement.textContent = '₹' + parseFloat(data.new_balance).toLocaleString('en-IN', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            }
+            
+            // Close modal and reset form
+            closeTransferModal();
+            
+            // Reload the page to update recent transactions
+            setTimeout(() => window.location.reload(), 1500);
+        } else {
+            // Show detailed error toast if available
+            let msg = data.message || 'Failed to complete transfer. Please try again.';
+            if (data.errors) {
+                try {
+                    const parts = [];
+                    Object.entries(data.errors).forEach(([field, errs]) => {
+                        const label = field.replace(/_/g, ' ');
+                        const text = Array.isArray(errs) ? errs.join('; ') : String(errs);
+                        parts.push(`${label}: ${text}`);
+                    });
+                    if (parts.length) msg += `\n` + parts.join('\n');
+                } catch {}
+            }
+            window.showToast(msg, 'error');
+            
+            // Re-enable submit button
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+            }
+        }
+    } catch (error) {
+        console.error('Error during transfer:', error);
+        window.showToast('An unexpected error occurred. Please try again.', 'error');
+        
+        // Re-enable submit button
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+        }
+    }
+    
+    return false;
+}
+        
+        // Close modal when clicking outside
+        document.getElementById('transferModal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeTransferModal();
+            }
+        });
+        
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !document.getElementById('transferModal').classList.contains('hidden')) {
+                closeTransferModal();
+            }
+        });
+        
+        // Initialize the form when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            const sourceSelect = document.querySelector('select[name="source"]');
+            if (sourceSelect) {
+                toggleProofFields(sourceSelect.value);
+                
+                sourceSelect.addEventListener('change', function() {
+                    toggleProofFields(this.value);
+                });
+            }
+            
+            // Initialize amount field with 2 decimal places
+            const amountField = document.getElementById('{{ transfer_form.amount.id_for_label }}');
+            if (amountField) {
+                amountField.addEventListener('change', function() {
+                    let value = parseFloat(this.value);
+                    if (!isNaN(value)) {
+                        this.value = value.toFixed(2);
+                    }
+                });
+            }
+        });
+
+
+        // -------------------Three dot button toggle-------------------///
+        function toggleMenu() {
+          const menu = document.getElementById('menuDropdown');
+          menu.classList.toggle('hidden');
+        }
+
+        window.addEventListener('click', function (e) {
+          const menu = document.getElementById('menuDropdown');
+          const button = document.getElementById('menuButton');
+          if (!button.contains(e.target) && !menu.contains(e.target)) {
+            menu.classList.add('hidden');
+          }
+        });
+
+        // Open/Close Add Account modal
+        function openAddAccountModal() {
+            document.getElementById('hqAddAccountModal').classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+            // Clear previous values and errors when opening
+            try {
+                document.getElementById('addAccountForm').reset();
+                clearAddAccountError();
+            } catch (e) {}
+        }
+        function closeAddAccountModal() {
+            document.getElementById('hqAddAccountModal').classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+    </script>
+
+
+<script>
+(function () {
+  const $ = (sel) => document.querySelector(sel);
+  const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+  const search = $('#hqTxSearch');
+  const type = $('#hqTxType');
+  const code = $('#hqTxCode');
+  const purpose = $('#hqTxPurpose');
+  const branch = $('#hqTxBranch');
+  const dateFrom = $('#hqTxDateFrom');
+  const dateTo = $('#hqTxDateTo');
+  const resetBtn = $('#hqTxReset');
+  const rows = () => $$('#txTableWrapper tbody tr:not(#hqTxEmptyRow)');
+  const emptyRow = document.getElementById('hqTxEmptyRow');
+
+  let fpFrom = null; // Flatpickr instance
+
+  // Deduplicate select options
+  function dedupeSelect(selectEl) {
+    if (!selectEl) return;
+    const seen = new Set();
+    const opts = Array.from(selectEl.querySelectorAll('option'));
+    opts.forEach((opt, idx) => {
+      const val = (opt.value || '').trim();
+      if (idx === 0) return; // keep placeholder
+      if (seen.has(val)) opt.remove();
+      else seen.add(val);
+    });
+  }
+
+  // Initialize filter options
+  function initializeFilters() {
+    // Deduplicate all select options
+    [code, purpose, branch].forEach(dedupeSelect);
+    
+    // Build branch options from rows
+    if (branch) {
+      const seen = new Set();
+      rows().forEach(tr => {
+        const b = tr.dataset.branch || '-';
+        if (b && b !== '-' && !seen.has(b)) {
+          const opt = document.createElement('option');
+          opt.value = b; 
+          opt.textContent = b;
+          branch.appendChild(opt);
+          seen.add(b);
+        }
+      });
+    }
+  }
+
+  // Date range validation
+  function inDateRange(dateStr, fromStr, toStr) {
+    if (!fromStr && !toStr) return true;
+    const d = new Date(dateStr);
+    
+    if (fromStr) {
+      const f = new Date(fromStr);
+      if (d < f) return false;
+    }
+    
+    if (toStr) {
+      const t = new Date(toStr);
+      t.setHours(23, 59, 59, 999); // inclusive end
+      if (d > t) return false;
+    }
+    
+    return true;
+  }
+
+  // Extract date range from flatpickr input
+  function getDateRange() {
+    const value = dateFrom?.value || '';
+    if (!value) return { from: null, to: null };
+    
+    const dates = value.split(' - ');
+    if (dates.length === 2) {
+      return { from: dates[0].trim(), to: dates[1].trim() };
+    }
+    return { from: null, to: null };
+  }
+
+  // Main filter function - Show all rows by default
+  function applyFilters() {
+    const searchTerm = (search?.value || '').toLowerCase().trim();
+    const typeFilter = (type?.value || '').trim();
+    const codeFilter = (code?.value || '').trim();
+    const purposeFilter = (purpose?.value || '').trim();
+    const branchFilter = (branch?.value || '').trim();
+    const { from: dateFromFilter, to: dateToFilter } = getDateRange();
+
+    let anyVisible = false;
+    let visibleCount = 0;
+    
+    rows().forEach(tr => {
+      const rowText = tr.textContent.toLowerCase();
+      const rowType = (tr.dataset.type || '').trim();
+      const rowCode = (tr.dataset.code || '').trim();
+      const rowPurpose = (tr.dataset.purpose || '').trim();
+      const rowBranch = (tr.dataset.branch || '').trim();
+      const rowReference = (tr.dataset.reference || '').trim();
+      const rowDescription = (tr.dataset.description || '').trim();
+      const rowDate = (tr.dataset.date || '').trim();
+
+      // Search across all text content
+      const matchSearch = !searchTerm || 
+                         rowText.includes(searchTerm) ||
+                         rowCode.toLowerCase().includes(searchTerm) ||
+                         rowPurpose.toLowerCase().includes(searchTerm) ||
+                         rowReference.toLowerCase().includes(searchTerm) ||
+                         rowDescription.toLowerCase().includes(searchTerm);
+
+      // Type filter
+      const matchType = !typeFilter || rowType === typeFilter;
+
+      // Code filter (exact match)
+      const matchCode = !codeFilter || rowCode === codeFilter;
+
+      // Purpose filter (partial match)
+      const matchPurpose = !purposeFilter || 
+                          rowPurpose.toLowerCase().includes(purposeFilter.toLowerCase());
+
+      // Branch filter
+      const matchBranch = !branchFilter || 
+                         rowBranch === branchFilter || 
+                         rowBranch.toLowerCase().includes(branchFilter.toLowerCase());
+
+      // Date filter
+      const matchDate = inDateRange(rowDate, dateFromFilter, dateToFilter);
+
+      // Combine all filters - ALL conditions must be true to show row
+      const show = matchSearch && matchType && matchCode && matchPurpose && matchBranch && matchDate;
+      
+      tr.classList.toggle('hidden', !show);
+      if (show) {
+        anyVisible = true;
+        visibleCount++;
+      }
+    });
+
+    // Show/hide empty row message
+    emptyRow.classList.toggle('hidden', anyVisible);
+    
+    // Debug log
+    // console.log(`Filtered: ${visibleCount} visible out of ${rows().length} total rows`);
+  }
+
+  // Reset all filters - COMPLETELY clear everything
+  function resetFilters() {
+    // console.log('Resetting all filters...');
+    
+    // Clear all input fields
+    if (search) {
+      search.value = '';
+    //   console.log('Cleared search');
+    }
+    
+    // Reset all select fields to empty (placeholder)
+    const selects = [type, code, purpose, branch];
+    selects.forEach(select => {
+      if (select) {
+        select.selectedIndex = 0;
+        // console.log(`Reset ${select.id} to placeholder`);
+      }
+    });
+    
+    // Reset date picker COMPLETELY
+    if (fpFrom) {
+      fpFrom.clear();
+      if (dateFrom) {
+        dateFrom.value = '';
+        if (fpFrom.altInput) {
+          fpFrom.altInput.value = '';
+        }
+      }
+    //   console.log('Cleared date filter');
+    }
+    
+    // Apply filters to show ALL rows
+    setTimeout(() => {
+      applyFilters();
+      console.log('Applied filters after reset');
+    }, 100);
+  }
+
+  // Initialize event listeners
+  function initializeEventListeners() {
+    // Text input search
+    if (search) {
+      search.addEventListener('input', applyFilters);
+    }
+
+    // Select filters
+    [type, code, purpose, branch].forEach(el => {
+      if (el) {
+        el.addEventListener('change', applyFilters);
+      }
+    });
+
+    // Reset button
+    if (resetBtn) {
+      resetBtn.addEventListener('click', resetFilters);
+    }
+
+    // Date filter - listen for changes on the actual input
+    if (dateFrom) {
+      dateFrom.addEventListener('change', applyFilters);
+    }
+  }
+
+  // Initialize Flatpickr
+  function initializeDatePicker() {
+    if (window.flatpickr && dateFrom) {
+      fpFrom = window.flatpickr(dateFrom, {
+        mode: 'range',
+        dateFormat: 'Y-m-d',
+        allowInput: false,
+        clickOpens: true,
+        altInput: true,
+        altFormat: 'M j, Y',
+        locale: { rangeSeparator: ' - ' },
+        maxDate: 'today',
+        onReady: function(selectedDates, dateStr, instance) {
+          // Don't set any default date - start completely empty
+          instance.altInput.value = '';
+          
+          // Copy styling/classes
+          if (instance.input && instance.altInput) {
+            instance.altInput.className = instance.input.className;
+            instance.altInput.setAttribute('readonly', 'readonly');
+            if (instance.input.placeholder) {
+              instance.altInput.setAttribute('placeholder', instance.input.placeholder);
+            }
+          }
+        },
+        onChange: function(selectedDates, dateStr, instance) {
+          // Apply filters when date changes
+          setTimeout(applyFilters, 100);
+        },
+        onClear: function(selectedDates, dateStr, instance) {
+          // Ensure filters are applied when cleared
+          setTimeout(applyFilters, 100);
+        }
+      });
+      
+      // Store the instance globally for reset access
+      window.fpFrom = fpFrom;
+    }
+  }
+
+  // Show all transactions by default
+  function showAllTransactions() {
+    // console.log('Showing all transactions by default');
+    rows().forEach(tr => {
+      tr.classList.remove('hidden');
+    });
+    emptyRow.classList.add('hidden');
+  }
+
+  // Initialize everything when DOM is ready
+  document.addEventListener('DOMContentLoaded', function() {
+    // console.log('Initializing HQ Wallet filters...');
+    
+    initializeFilters();
+    initializeEventListeners();
+    initializeDatePicker();
+    
+    // Show ALL transactions by default (no filtering)
+    showAllTransactions();
+    
+    // console.log('HQ Wallet filters initialized successfully');
+  });
+
+})();
+</script>
+    {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+{% endblock %}
+{% endblock %}

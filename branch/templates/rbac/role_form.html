@@ -1,0 +1,254 @@
+{% extends "branch/base.html" %}
+{% load static %}
+
+{% block title %}Create New Role{% endblock %}
+{% block page_id %}role_create{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+    <!-- Breadcrumb Start -->
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 class="text-title-md2 font-bold text-black dark:text-white">
+            {% if form.instance.pk %}Edit Role{% else %}Create New Role{% endif %}
+        </h2>
+        <nav>
+            <ol class="flex items-center gap-2">
+                <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+                        href="{% url 'branch:dashboard' %}">
+                        Dashboard
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2"
+                                stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </a></li>
+                <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+                        href="{% url 'branch:role_list' %}">
+                        Roles
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2"
+                                stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </a></li>
+                <li class="text-sm text-gray-800 dark:text-white/90">
+                    {% if form.instance.pk %}Edit{% else %}Create{% endif %} Role
+                </li>
+            </ol>
+        </nav>
+    </div>
+    <!-- Breadcrumb End -->
+
+    <div class="rounded-2xl border border-stroke bg-white px-6 pt-8 pb-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-8">
+        <!-- Display form errors -->
+        {% if form.errors %}
+        <div class="mb-6 rounded-lg border border-danger-200 bg-danger-50 p-4 text-sm text-danger-700 dark:border-danger-900/30 dark:bg-danger-900/20"
+            role="alert">
+            <h3 class="font-medium">Please correct the following errors:</h3>
+            <ul class="mt-1.5 list-disc pl-4">
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <li>{{ field.label }}: {{ error|escape }}</li>
+                    {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                    <li>{{ error|escape }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <form id="role-form" method="post" class="space-y-6" novalidate>
+            {% csrf_token %}
+            
+            <h3 class="mb-6 text-xl font-semibold text-black dark:text-white">
+                Role Information
+            </h3>
+
+            <!-- Role Name -->
+            <div>
+                <label for="{{ form.name.id_for_label }}" class="mb-2.5 block font-medium text-black dark:text-white">
+                    Role Name <span class="text-danger">*</span>
+                </label>
+                {{ form.name }}
+                {% if form.name.help_text %}
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ form.name.help_text }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Description -->
+            <div class="md:col-span-2">
+                <label for="{{ form.description.id_for_label }}" class="mb-2.5 block font-medium text-black dark:text-white">
+                    Description
+                </label>
+                {{ form.description }}
+            </div>
+
+            <!-- Status -->
+            <div class="flex items-center space-x-3">
+                {{ form.is_active }}
+                <label for="{{ form.is_active.id_for_label }}" class="font-medium text-black dark:text-white">
+                    Active
+                </label>
+            </div>
+            <!-- Permissions Card -->
+            <div class="mb-8 space-y-6">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xl font-semibold text-black dark:text-white">
+                        Permissions
+                    </h3>
+                    <span id="permissions-error" class="permissions-error-message text-red-600 text-sm"></span>
+                </div>
+                
+                <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                    {% for group_name, permissions in permission_groups %}
+                    <div class="rounded-lg border border-stroke p-4 shadow-sm dark:border-strokedark">
+                        <h4 class="mb-3 text-lg font-medium text-gray-900 dark:text-white">
+                            {{ group_name }}
+                        </h4>
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            {% for permission in permissions %}
+                            <div class="flex items-start">
+                                <div class="flex h-5 items-center">
+                                    <input type="checkbox" 
+                                        name="permissions" 
+                                        id="perm_{{ permission.id }}"
+                                        value="{{ permission.id }}" 
+                                        class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                        {% if permission in form.instance.permissions.all %}checked{% endif %}>
+                                </div>
+                                <div class="ml-3">
+                                    <label for="perm_{{ permission.id }}" 
+                                        class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        {{ permission.name }}
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex items-center justify-end space-x-4">
+                <a href="{% url 'branch:role_list' %}"
+                    class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600">
+                    Cancel
+                </a>
+                <button type="submit"
+                    class="inline-flex items-center justify-center rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+                    {% if form.instance.pk %}Save Changes{% else %}Create Role{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize any JavaScript functionality here
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('role-form') || document.querySelector('form');
+        if (!form) return;
+
+        const roleName = form.querySelector('#id_name');
+        const permissionCheckboxes = form.querySelectorAll('input[type="checkbox"][name="permissions"]');
+
+        function clearFieldError(input) {
+            if (!input) return;
+            input.classList.remove('is-invalid', 'border-red-500', 'focus:border-red-500', 'focus:ring-red-500');
+            const parent = input.parentNode;
+            if (!parent) return;
+            parent.querySelectorAll('.error-message').forEach(el => el.remove());
+        }
+
+        function showError(input, message) {
+            if (!input) return;
+            const parent = input.parentNode;
+            if (!parent) return;
+
+            parent.querySelectorAll('.error-message').forEach(el => el.remove());
+            input.classList.add('is-invalid', 'border-red-500', 'focus:border-red-500', 'focus:ring-red-500');
+
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message text-red-600 text-sm mt-1';
+            errorDiv.textContent = message;
+
+            if (input.nextSibling) {
+                parent.insertBefore(errorDiv, input.nextSibling);
+            } else {
+                parent.appendChild(errorDiv);
+            }
+        }
+
+        function clearPermissionsError() {
+            const slot = form.querySelector('#permissions-error');
+            if (slot) {
+                slot.textContent = '';
+            }
+        }
+
+        function showPermissionsError(message) {
+            clearPermissionsError();
+            const slot = form.querySelector('#permissions-error');
+            if (!slot) return;
+            slot.textContent = message;
+        }
+
+        if (roleName) {
+            roleName.addEventListener('input', function() {
+                if (this.value.trim()) {
+                    clearFieldError(this);
+                }
+            });
+            roleName.addEventListener('blur', function() {
+                if (!this.value.trim()) {
+                    showError(this, 'Role Name is required');
+                }
+            });
+        }
+
+        permissionCheckboxes.forEach(cb => {
+            cb.addEventListener('change', function() {
+                const anyChecked = Array.from(permissionCheckboxes).some(x => x.checked);
+                if (anyChecked) {
+                    clearPermissionsError();
+                }
+            });
+        });
+
+        form.addEventListener('submit', function(e) {
+            let isValid = true;
+
+            clearPermissionsError();
+
+            if (roleName) {
+                clearFieldError(roleName);
+                if (!roleName.value.trim()) {
+                    showError(roleName, 'Role Name is required');
+                    isValid = false;
+                }
+            }
+
+            if (permissionCheckboxes.length) {
+                const anyChecked = Array.from(permissionCheckboxes).some(x => x.checked);
+                if (!anyChecked) {
+                    showPermissionsError('Please select at least one permission');
+                    isValid = false;
+                }
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+                const firstError = form.querySelector('.is-invalid') || form.querySelector('.permissions-error-message');
+                if (firstError && typeof firstError.scrollIntoView === 'function') {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

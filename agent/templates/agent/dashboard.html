@@ -1,0 +1,432 @@
+{% extends "agent/base.html" %}
+{% load static %}
+
+{% block title %}Agent Dashboard{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-white dark:bg-gray-900 p-4 sm:p-6 safe-pad" x-data="dashboardData()" x-init="init()">
+  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+      <h2 class="text-lg hidden sm:block font-semibold text-gray-800 dark:text-gray-200">Trends & Distribution</h2>
+      <div class="relative flex flex-col sm:flex-row items-end gap-2 mb-2 w-full sm:w-auto">
+        <select x-model="filterMode" @change="onFilterModeChange()" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[150px]">
+             <!-- inset-ring-1 inset-ring-white/5 hover:bg-white/20 -->
+          <option value="month">Current month</option>
+          <option value="custom">Custom range</option>
+        </select>
+        <div x-show="filterMode === 'custom'" x-cloak class="bg-white dark:bg-gray-800 rounded-lg z-50 flex flex-col sm:flex-row items-center gap-2 w-full sm:w-64 justify-center sm:justify-start">
+          <input type="text" placeholder="Select date range" class="distribution-range text-sm px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 w-full focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <button @click="applyCustomRange()" class="text-sm px-3 py-2 rounded-lg bg-indigo-600 text-white whitespace-nowrap">Apply</button>
+        </div>
+      </div>
+    </div>
+    
+  <!-- Stat cards -->
+  <div class="grid grid-cols-2 sm:grid-cols-2 gap-3 mb-4">
+    <div class="col-span-1 rounded-2xl p-4 flex items-center justify-between bg-indigo-50 dark:bg-transparent border border-indigo-600 dark:border-indigo-400">
+         <div>
+           <div class="text-xs text-indigo-600 dark:text-indigo-300">Applied</div>
+           <div class="text-2xl font-bold text-indigo-600 dark:text-indigo-300" x-text="loanStats.applied">0</div>
+         </div>
+         <button @click="openApply()" aria-label="Open Applied" class="w-8 h-8 rounded-md flex items-center justify-center bg-indigo-100 dark:bg-indigo-900">
+           <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+         </button>
+    </div>
+
+    <div class="rounded-2xl p-4 flex items-center justify-between bg-indigo-50 dark:bg-transparent border border-indigo-600 dark:border-indigo-400">
+         <div>
+           <div class="text-xs text-indigo-600 dark:text-indigo-300">Pending</div>
+           <div class="text-2xl font-bold text-indigo-600 dark:text-indigo-300" x-text="loanStats.pending">0</div>
+         </div>
+         <button @click="openPending()" aria-label="Open Pending" class="w-8 h-8 rounded-md flex items-center justify-center bg-indigo-100 dark:bg-indigo-900">
+           <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3"/></svg>
+         </button>
+    </div>
+
+    <div class="rounded-2xl p-4 flex items-center justify-between bg-indigo-50 dark:bg-transparent border border-indigo-600 dark:border-indigo-400">
+         <div>
+           <div class="text-xs text-indigo-600 dark:text-indigo-300">Approved</div>
+           <div class="text-2xl font-bold text-indigo-600 dark:text-indigo-300" x-text="loanStats.approved">0</div>
+         </div>
+         <button @click="openApproved()" aria-label="Open Approved" class="w-8 h-8 rounded-md flex items-center justify-center bg-indigo-100 dark:bg-indigo-900">
+           <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+         </button>
+    </div>
+
+    <div class="rounded-2xl p-4 flex items-center justify-between bg-indigo-50 dark:bg-transparent border border-indigo-600 dark:border-indigo-400">
+         <div>
+           <div class="text-xs text-indigo-600 dark:text-indigo-300">Rejected</div>
+           <div class="text-2xl font-bold text-indigo-600 dark:text-indigo-300" x-text="loanStats.rejected">0</div>
+         </div>
+         <button @click="openRejected()" aria-label="Open Rejected" class="w-8 h-8 rounded-md flex items-center justify-center bg-indigo-100 dark:bg-indigo-900">
+           <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+         </button>
+    </div>
+
+    <div class="col-span-2 rounded-2xl p-4 flex items-center justify-between bg-indigo-50 dark:bg-transparent border border-indigo-600 dark:border-indigo-400">
+         <div>
+           <div class="text-xs text-indigo-600 dark:text-indigo-300">Collected EMI (count)</div>
+           <div class="text-xl font-bold text-indigo-600 dark:text-indigo-300" x-text="emi.count">0</div>
+           <div class="text-xs text-indigo-600 dark:text-indigo-300 mt-1">Collected Amount</div>
+           <div class="text-lg font-semibold mt-1 text-indigo-600 dark:text-indigo-300" x-text="formatCurrency(emi.amount)">₹0</div>
+         </div>
+         <button @click="openCollect()" aria-label="Open Collect" class="w-8 h-8 rounded-md flex items-center justify-center bg-indigo-100 dark:bg-indigo-900">
+           <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2"/></svg>
+         </button>
+    </div>
+  </div>
+
+  <!-- Compact donut / trend toggle (collapses on mobile) -->
+  <div>
+
+    <div x-show="showCharts" x-cloak class="space-y-3 relative">
+      <!-- Donut chart with legend -->
+      <div id="distributionChart" class="rounded-2xl p-3 bg-indigo-50 dark:bg-transparent border border-indigo-600 dark:border-indigo-400 h-48 flex">
+        <div id="chartCanvas" class="w-1/2 h-full"></div>
+        <div class="w-1/2 flex items-center">
+          <ul class="space-y-2 w-full">
+            <template x-for="(value, index) in statusDistribution" :key="index">
+              <li class="flex items-center text-xs">
+                <span class="w-3 h-3 rounded-full mr-2" :style="{ backgroundColor: distColors[index] }"></span>
+                <span class="text-indigo-600 dark:text-indigo-300" x-text="`${distLabels[index]}: ${value}`"></span>
+              </li>
+            </template>
+          </ul>
+        </div>
+      </div>
+      <!-- Empty state message for chart -->
+      <div x-show="statusDistribution.every(v => v === 0)" class="absolute inset-0 flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">
+        No data available for this period
+      </div>
+    </div>
+
+  <!-- Recent activity (table) -->
+  <div class="mt-4 mb-6">
+    <div class="flex items-center justify-between mb-2">
+      <h3 class="text-sm font-medium text-gray-800 dark:text-gray-200">Recent Activity</h3>
+      <a href="#" @click.prevent="openActivity()" class="text-xs text-indigo-600">View all</a>
+    </div>
+    <div class="bg-white dark:bg-gray-800 rounded-2xl overflow-x-auto">
+      <table class="min-w-full text-sm text-gray-900 dark:text-white">
+        <thead class="bg-indigo-50 dark:bg-gray-700">
+          <tr>
+            <th class="px-4 py-2 text-left text-xs font-medium text-indigo-600 dark:text-indigo-300">ID</th>
+            <th class="px-4 py-2 text-left text-xs font-medium text-indigo-600 dark:text-indigo-300">Action</th>
+            <th class="px-4 py-2 text-left text-xs font-medium text-indigo-600 dark:text-indigo-300">Details</th>
+            <th class="px-4 py-2 text-left text-xs font-medium text-indigo-600 dark:text-indigo-300">Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          <template x-for="item in recent" :key="item.id">
+            <tr class="border-b dark:border-gray-700">
+              <td class="px-4 py-2 text-xs" x-text="item.id"></td>
+              <td class="px-4 py-2 text-xs font-semibold" x-text="item.title"></td>
+              <td class="px-4 py-2 text-xs text-gray-500 dark:text-gray-400" x-text="item.subtitle"></td>
+              <td class="px-4 py-2 text-xs text-gray-700 dark:text-gray-200" x-text="item.time"></td>
+            </tr>
+          </template>
+          <template x-if="recent.length === 0">
+            <tr>
+              <td colspan="4" class="px-4 py-2 text-xs text-gray-500 dark:text-gray-400 text-center">No recent activity</td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<!-- Bottom Navigation -->
+<nav class="bottom-nav bg-white/95 dark:bg-gray-800/95 border-t border-gray-200 dark:border-gray-700 flex items-center justify-around px-2 fixed bottom-0 left-0 right-0">
+  <a href="/agent/dashboard/" class="flex flex-col items-center text-gray-700 dark:text-gray-200 tap">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0h6"/></svg>
+    <span class="text-[11px]">Home</span>
+  </a>
+  <a href="/agent/new-application/" class="flex flex-col items-center text-gray-700 dark:text-gray-200 tap">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+    <span class="text-[11px]">Apply</span>
+  </a>
+  <a href="/agent/emi-collect/" class="flex flex-col items-center text-gray-700 dark:text-gray-200 tap">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3"/></svg>
+    <span class="text-[11px]">Collect</span>
+  </a>
+  <a href="/agent/profile/" class="flex flex-col items-center text-gray-700 dark:text-gray-200 tap">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A7 7 0 0112 15a7 7 0 016.879 2.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+    <span class="text-[11px]">Profile</span>
+  </a>
+</nav>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<script>
+function dashboardData() {
+  return {
+    loaded: false,
+    showCharts: true,
+    timeRange: 'month',
+    filterMode: 'month',
+    startDate: null,
+    endDate: null,
+    selectedYear: String(new Date().getFullYear()),
+    selectedMonth: String(new Date().getMonth() + 1),
+    selectedDay: String(new Date().getDate()),
+    loanStats: { applied: 0, pending: 0, approved: 0, disbursed: 0, rejected: 0 },
+    emi: { count: 0, amount: 0 },
+    monthlyTrends: [],
+    statusDistribution: [],
+    recent: [],
+    distChart: null,
+    distLabels: ['Applied', 'Pending', 'Approved', 'Disbursed', 'Rejected'],
+    distColors: ['#3b82f6', '#f59e0b', '#10b981', '#8b5cf6', '#ef4444'],
+    distributionFilters: [true, true, true, true, true],
+
+    init() {
+      const y = String(this.selectedYear);
+      const m = String(this.selectedMonth).padStart(2, '0');
+      const start = `${y}-${m}-01`;
+      const lastDay = new Date(Number(y), Number(m), 0).getDate();
+      const end = `${y}-${m}-${String(lastDay).padStart(2, '0')}`;
+      this.startDate = start;
+      this.endDate = end;
+      setTimeout(() => {
+        const el = document.querySelector('.distribution-range');
+        if (el && el._flatpickr) {
+          el._flatpickr.setDate([this.startDate, this.endDate]);
+        }
+      }, 50);
+      this.fetchData();
+    },
+
+    formatCurrency(val) {
+      try {
+        return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val || 0);
+      } catch (e) {
+        return '₹' + (val || 0);
+      }
+    },
+
+    async fetchData() {
+      this.loaded = false;
+      try {
+        const params = { range: this.timeRange, _: Date.now().toString() };
+        if (this.timeRange === 'month') {
+          const y = String(this.selectedYear);
+          const m = String(this.selectedMonth).padStart(2, '0');
+          const start = `${y}-${m}-01`;
+          const lastDay = new Date(Number(y), Number(m), 0).getDate();
+          const end = `${y}-${m}-${String(lastDay).padStart(2, '0')}`;
+          params.start_date = start;
+          params.end_date = end;
+        } else if (this.timeRange === 'custom' && this.startDate && this.endDate) {
+          params.start_date = this.startDate;
+          params.end_date = this.endDate;
+        } else {
+          throw new Error('Invalid date range parameters');
+        }
+        //console.log('Fetching with:', params);
+        const qs = new URLSearchParams(params).toString();
+        const res = await fetch(`/agent/api/dashboard-stats/?${qs}`, { credentials: 'same-origin' });
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error('Fetch error:', res.status, res.statusText, 'Response:', errorText);
+          throw new Error(`Network error: ${res.status} ${res.statusText}`);
+        }
+        const data = await res.json();
+        //console.log('API response:', data);
+        if (data.detail) {
+          console.error('API returned error:', data.detail);
+          throw new Error(data.detail);
+        }
+        this.loanStats = data.stats || this.loanStats;
+        this.emi = data.emi || this.emi;
+        this.monthlyTrends = (data.trends || []).map(t => ({ month: t.label, count: t.count }));
+        this.statusDistribution = data.distribution || [0, 0, 0, 0, 0];
+        //console.log('statusDistribution:', this.statusDistribution);
+        this.recent = data.recent || [];
+      } catch (e) {
+        console.warn('Failed to fetch data, using fallback:', e);
+        this.loanStats = { applied: 0, pending: 0, approved: 0, disbursed: 0, rejected: 0 };
+        this.emi = { count: 0, amount: 0 };
+        this.monthlyTrends = [];
+        this.statusDistribution = [0, 0, 0, 0, 0];
+        this.recent = [];
+      } finally {
+        if (!this.distributionFilters || this.distributionFilters.length !== this.statusDistribution.length) {
+          this.distributionFilters = this.statusDistribution.map(() => true);
+        }
+        this.$nextTick(() => {
+          this.initCharts();
+        });
+        this.loaded = true;
+      }
+    },
+
+    refresh() { this.fetchData(); },
+
+    openApply() {
+      window.location.href = '/agent/new-application/';
+    },
+    openCollect() {
+      window.location.href = '/agent/collected-emi/';
+    },
+    sendToBranch() {
+      if (!confirm('Send collected funds to branch?')) return;
+      fetch('/agent/api/send-to-branch/', { method: 'POST', credentials: 'same-origin' })
+        .then(r => { if (r.ok) alert('Sent to branch'); this.fetchData(); })
+        .catch(() => alert('Failed to send'));
+    },
+    openPending() { window.location.href = '/agent/application/'; },
+    openApproved() { window.location.href = '/agent/application/'; },
+    openRejected() { window.location.href = '/agent/application/'; },
+    openActivity() { window.location.href = '/agent/assigned-emi/'; },
+
+    applyCustomRange() {
+      const el = document.querySelector('.distribution-range');
+      if (!el) {
+        alert('Range input not found');
+        return;
+      }
+      const val = el.value.trim();
+      if (!val) {
+        alert('Please select a date range');
+        return;
+      }
+      const parts = val.split(/\s+to\s+/i);
+      if (parts.length < 2) {
+        alert('Please select a valid start and end date');
+        return;
+      }
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (!dateRegex.test(parts[0]) || !dateRegex.test(parts[1])) {
+        alert('Invalid date format. Use YYYY-MM-DD.');
+        return;
+      }
+      const start = new Date(parts[0]);
+      const end = new Date(parts[1]);
+      if (start > end) {
+        alert('End date cannot be before start date.');
+        return;
+      }
+      this.startDate = parts[0];
+      this.endDate = parts[1];
+      this.timeRange = 'custom';
+      this.filterMode = 'custom';
+      if (el._flatpickr) {
+        el._flatpickr.close();
+      }
+      this.fetchData();
+    },
+
+    onFilterModeChange() {
+      if (this.filterMode === 'month') {
+        this.timeRange = 'month';
+        const today = new Date();
+        this.selectedYear = String(today.getFullYear());
+        this.selectedMonth = String(today.getMonth() + 1);
+        const y = String(this.selectedYear);
+        const m = String(this.selectedMonth).padStart(2, '0');
+        const start = `${y}-${m}-01`;
+        const lastDay = new Date(Number(y), Number(m), 0).getDate();
+        const end = `${y}-${m}-${String(lastDay).padStart(2, '0')}`;
+        this.startDate = start;
+        this.endDate = end;
+        this.fetchData();
+        setTimeout(() => {
+          const el = document.querySelector('.distribution-range');
+          if (el && el._flatpickr) {
+            el._flatpickr.setDate([this.startDate, this.endDate]);
+          }
+        }, 50);
+        return;
+      }
+      this.timeRange = 'custom';
+      setTimeout(() => {
+        const el = document.querySelector('.distribution-range');
+        if (el && el._flatpickr) {
+          const today = new Date();
+          const y = today.getFullYear();
+          const m = String(today.getMonth() + 1).padStart(2, '0');
+          const start = `${y}-${m}-01`;
+          const end = `${y}-${m}-${String(today.getDate()).padStart(2, '0')}`;
+          this.startDate = start;
+          this.endDate = end;
+          el._flatpickr.setDate([start, end]);
+          el._flatpickr.open();
+        }
+      }, 50);
+    },
+
+    initCharts() {
+      if (this.distChart) {
+        this.distChart.destroy();
+        this.distChart = null;
+      }
+
+      const finalLabels = [];
+      const finalSeries = [];
+      const finalColors = [];
+      for (let i = 0; i < this.distLabels.length; i++) {
+        if (this.distributionFilters[i]) {
+          finalLabels.push(this.distLabels[i]);
+          finalSeries.push(this.statusDistribution[i] || 0);
+          finalColors.push(this.distColors[i] || '#cbd5e1');
+        }
+      }
+      const useLabels = finalLabels.length ? finalLabels : this.distLabels.slice();
+      const useSeries = finalSeries.length ? finalSeries : this.statusDistribution.slice();
+      const useColors = finalColors.length ? finalColors : this.distColors.slice();
+
+      const distOpts = {
+        series: useSeries,
+        chart: { type: 'donut', height: 160, width: '100%' },
+        labels: useLabels,
+        colors: useColors,
+        legend: { show: false },
+        dataLabels: { enabled: false },
+        tooltip: { theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light' }
+      };
+      const distElement = document.querySelector("#chartCanvas");
+      if (distElement) {
+        this.distChart = new ApexCharts(distElement, distOpts);
+        this.distChart.render();
+      } else {
+        console.warn('Chart canvas element not found');
+      }
+    }
+  };
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  const rangeEl = document.querySelector('.distribution-range');
+  if (rangeEl) {
+    flatpickr(rangeEl, { 
+      mode: 'range', 
+      dateFormat: 'Y-m-d', 
+      allowInput: true,
+      position: 'below',
+      static: true,
+      appendTo: rangeEl.parentElement || document.body,
+      onReady: function(selectedDates, dateStr, instance) {
+        if (window.innerWidth <= 640) {
+          instance.calendarContainer.style.left = 'auto';
+          instance.calendarContainer.style.right = 'auto';
+          instance.calendarContainer.style.transform = 'translateX(0%)';
+        }
+      },
+      onOpen: function(selectedDates, dateStr, instance) {
+        if (window.innerWidth <= 640) {
+          instance.calendarContainer.style.left = 'auto';
+          instance.calendarContainer.style.right = 'auto';
+          instance.calendarContainer.style.transform = 'translateX(0%)';
+        }
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

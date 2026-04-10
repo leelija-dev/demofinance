@@ -1,0 +1,43 @@
+<div class="bg-white rounded-lg p-4 border border-stroke dark:border-gray-700 dark:bg-boxdark">
+  <div class="flex items-center justify-between mb-4 sm:flex-row flex-col">
+    <div class="sm:text-left text-center">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+        Finance Statistics
+      </h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        EMI Schedule vs Collected
+      </p>
+    </div>
+    <div
+      class="flex items-start w-full gap-3 sm:justify-end justify-center flex-wrap sm:mt-0  mt-2"
+    >
+      <div
+        x-data="{selected: 'overview'}"
+        class="inline-flex w-fit items-center gap-0.5 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-900"
+      >
+        <button
+          @click="selected = 'overview'; showOverview();"
+          :class="selected === 'overview' ? 'shadow-theme-xs text-gray-900 dark:text-white bg-white dark:bg-gray-800' : 'text-gray-500 dark:text-gray-400'"
+          class="px-3 py-2 text-sm font-medium rounded-md text-theme-sm hover:text-gray-900 dark:hover:text-white"
+        >
+          Overview
+        </button>
+        <button
+          @click="selected = 'emiSchedule'; showSales();"
+          :class="selected === 'emiSchedule' ? 'shadow-theme-xs text-gray-900 dark:text-white bg-white dark:bg-gray-800' : 'text-gray-500 dark:text-gray-400'"
+          class="px-3 py-2 text-sm font-medium rounded-md text-theme-sm hover:text-gray-900 dark:hover:text-white"
+        >
+          EMI Schedule
+        </button>
+        <button
+          @click="selected = 'emiCollected'; showRevenue();"
+          :class="selected === 'emiCollected' ? 'shadow-theme-xs text-gray-900 dark:text-white bg-white dark:bg-gray-800' : 'text-gray-500 dark:text-gray-400'"
+          class="px-3 py-2 text-sm font-medium rounded-md text-theme-sm hover:text-gray-900 dark:hover:text-white"
+        >
+          EMI Collected
+        </button>
+      </div>
+    </div>
+  </div>
+  <div id="statsChart"></div>
+</div>

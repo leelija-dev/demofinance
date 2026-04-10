@@ -1,0 +1,131 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url(https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap)
+layer(base);
+
+.menu-item-inactive {
+  color: var(--color-gray-700);
+  &:hover {
+    @media (hover: hover) {
+      background-color: var(--color-gray-100);
+    }
+  }
+  &:hover {
+    @media (hover: hover) {
+      color: var(--color-gray-700);
+    }
+  }
+  &:is(.dark *) {
+    color: var(--color-gray-300);
+  }
+  &:is(.dark *) {
+    &:hover {
+      @media (hover: hover) {
+        background-color: color-mix(
+          in oklab,
+          var(--color-white) 5%,
+          transparent
+        );
+      }
+    }
+  }
+  &:is(.dark *) {
+    &:hover {
+      @media (hover: hover) {
+        color: var(--color-gray-300);
+      }
+    }
+  }
+}
+.menu-dropdown-item-active {
+  background-color: var(--color-brand-50);
+  color: var(--color-brand-500);
+  &:is(.dark *) {
+    background-color: color-mix(
+      in oklab,
+      var(--color-brand-500) 12%,
+      transparent
+    );
+  }
+  &:is(.dark *) {
+    color: var(--color-brand-400);
+  }
+}
+.menu-dropdown-item-inactive {
+  color: var(--color-gray-700);
+  &:hover {
+    @media (hover: hover) {
+      background-color: var(--color-gray-100);
+    }
+  }
+  &:is(.dark *) {
+    color: var(--color-gray-300);
+  }
+  &:is(.dark *) {
+    &:hover {
+      @media (hover: hover) {
+        background-color: color-mix(
+          in oklab,
+          var(--color-white) 5%,
+          transparent
+        );
+      }
+    }
+  }
+}
+.menu-item-active {
+  background-color: var(--color-brand-50);
+  color: var(--color-brand-500);
+  &:is(.dark *) {
+    background-color: color-mix(
+      in oklab,
+      var(--color-brand-500) 12%,
+      transparent
+    );
+  }
+  &:is(.dark *) {
+    color: var(--color-brand-400);
+  }
+}
+.menu-dropdown-badge-inactive {
+  background-color: var(--color-success-50);
+  &:is(:where(.group):hover *) {
+    @media (hover: hover) {
+      background-color: var(--color-success-100);
+    }
+  }
+  &:is(.dark *) {
+    background-color: color-mix(
+      in oklab,
+      var(--color-success-500) 15%,
+      transparent
+    );
+  }
+  &:is(.dark *) {
+    &:is(:where(.group):hover *) {
+      @media (hover: hover) {
+        background-color: color-mix(
+          in oklab,
+          var(--color-success-500) 20%,
+          transparent
+        );
+      }
+    }
+  }
+}
+.menu-dropdown-badge-active {
+  background-color: var(--color-success-100);
+  &:is(.dark *) {
+    background-color: color-mix(
+      in oklab,
+      var(--color-success-500) 20%,
+      transparent
+    );
+  }
+}
+
+body {
+  font-family: "Poppins", sans-serif !important;
+}

@@ -1,0 +1,67 @@
+{% extends 'hq/base.html' %}
+{% load static %}
+
+{% block title %}{% endblock %}
+{% block page_id %}LoanMonitoring{% endblock %}
+
+
+{% block content %}
+<div class="mx-auto max-w-(--breakpoint-2xl) p-4 md:p-6">
+    <h2 class="text-title-md2 font-bold text-black dark:text-white mb-6">Loan Monitoring</h2>
+
+    <!-- Categories Section -->
+    <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] mb-10">
+        <!-- <div class="px-5 py-4 sm:px-6 sm:py-5 flex justify-between">
+            <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Loan Categories</h3>
+            <a href="?add=1" class="bg-brand-500 text-white px-4 py-2 rounded">Add Category</a>
+        </div> -->
+        <div class="border-t border-gray-100 p-5 sm:p-6 dark:border-gray-800">
+            <div class="overflow-hidden bg-white dark:border-gray-800 dark:bg-white[0.03] ">
+                <div class="max-w-full overflow-x-auto custom-scrollbar">
+            <table class="w-full min-w-[1102px]">
+                <thead>
+                    <tr class="border-b border-gray-100 dark:border-gray-800">
+                        <th class="px-5 py-3 text-left sm:px-6"><p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">ID</p></th>
+                        <th class="px-5 py-3 text-left sm:px-6"><p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Application ID</p></th>
+                        <th class="px-5 py-3 text-left sm:px-6"><p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Loan Amount</p></th>
+                        <th class="px-5 py-3 text-left sm:px-6"><p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Realizable Amount</p></th>
+                        <th class="px-5 py-3 text-left sm:px-6"><p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Rate Of Interest</p></th>
+                        <th class="px-5 py-3 text-left sm:px-6"><p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Installment(EMI)</p></th>
+                        <th class="px-5 py-3 text-left sm:px-6"><p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Number Of Installment</p></th>
+            
+                    </tr>
+                </thead>
+                <tbody>
+                {% for list in periodList %}
+                    <tr class="border-b border-gray-100 dark:border-gray-800">
+                        <td class="px-5 py-4 sm:px-6"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ list.id }}</p></td>
+                        <td class="px-5 py-4 sm:px-6"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ list.loan_application_id }}</p></td>
+                        <td class="px-5 py-4 sm:px-6"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ list.loan_amount }}</p></td>
+                        <td class="px-5 py-4 sm:px-6"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ list.realizable_amount }}</p></td>
+                        <td class="px-5 py-4 sm:px-6"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ list.rate_of_interest }}</p></td>
+                        <td class="px-5 py-4 sm:px-6"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ list.installment_size }}</p></td>
+                        <td class="px-5 py-4 sm:px-6"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ list.number_of_installments }}</p></td>
+                        
+                    </tr>
+                {% empty %}
+                    <tr><td class="px-5 py-4 sm:px-6 text-center text-red-600 mx-auto" colspan="4">No List Found.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            </div>  
+        </div>
+        </div>
+    </div>
+
+    
+
+
+{% if messages %}
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var toasts = JSON.parse('[{% for message in messages %}{"msg": "{{ message|escapejs }}", "type": "{{ message.tags|default:"success" }}"}{% if not forloop.last %},{% endif %}{% endfor %}]');
+      toasts.forEach(function(t) { showToast(t.msg, t.type); });
+    });
+  </script>
+{% endif %}
+{% endblock %}

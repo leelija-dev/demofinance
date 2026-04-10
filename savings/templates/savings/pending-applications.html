@@ -1,0 +1,61 @@
+{% extends "branch/base.html" %}
+{% load static %}
+{% block title %}savingsPendingApplications{% endblock %}
+
+{% block page_id %}savingsPendingApplications{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 class="text-title-md2 font-bold text-black dark:text-white">Pending Savings Applications</h2>
+        <nav>
+            <ol class="flex items-center gap-2">
+                <li>
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400" href="{% url 'branch:dashboard' %}">Dashboard</a>
+                </li>
+                <li class="text-sm text-gray-800 dark:text-white/90">Pending Savings Applications</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        <div class="p-5 space-y-6 border-t border-gray-100 dark:border-gray-800 sm:p-6">
+            <div class="custom-scrollbar overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead>
+                        <tr>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Application ID</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Applied By</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Installment</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Interest</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tenure</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Unit</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Submitted At</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pendingSavingsApplicationsTbody" class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                        {% include 'savings/partials/pending-applications-rows.html' %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'savings/js/infinite-scroll.js' %}"></script>
+
+<script>
+    window.addEventListener('DOMContentLoaded', function () {
+        if (typeof window.initInfiniteScroll !== 'function') return;
+        window.initInfiniteScroll({
+            tbodyId: 'pendingSavingsApplicationsTbody',
+            sentinelId: 'pendingSavingsApplicationsLoadMoreRow',
+            rootMargin: '200px',
+        });
+    });
+</script>
+{% endblock %}

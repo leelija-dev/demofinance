@@ -1,0 +1,158 @@
+{% extends 'hq/base.html' %}
+{% load static %}
+{% block title %}Surrender Account Detail{% endblock %}
+
+{% block page_id %}hqSurrenderAccountDetail{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h2 class="text-title-md2 font-bold text-black dark:text-white">Surrender Account Detail</h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Application: {{ account.application_id }}{% if account.account_id %} | Account: {{ account.account_id }}{% endif %}</p>
+        </div>
+        <nav>
+            <ol class="flex items-center gap-2">
+                <li>
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400" href="{% url 'hq:dashboard' %}">Dashboard</a>
+                </li>
+                <li>
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400" href="{% url 'hq:hq_savings_surrender_requests' %}">Surrender Requests</a>
+                </li>
+                <li class="text-sm text-gray-800 dark:text-white/90">Detail</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Customer</p>
+                    <p class="text-base font-medium text-gray-800 dark:text-white/90">{{ account.customer.full_name }} <span class="text-sm text-gray-500">({{ account.customer.customer_id }})</span></p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Branch: {{ account.branch.branch_name|default:'-' }} | Agent: {{ account.agent.full_name|default:'-' }}</p>
+                </div>
+                <div class="flex flex-col items-start gap-2 sm:items-end">
+                    <div class="text-right flex gap-2">
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Surrender Status</p>
+                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-orange-100 text-orange-700">{{ account.get_surrender_status_display|default:account.surrender_status }}</span>
+                    </div>
+                </div>
+                {% if account.surrender_status == 'processing' %}
+                    <div class="flex items-center gap-2">
+                        <form method="post" action="{% url 'hq:hq_savings_surrender_decision' account.application_id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="decision" value="approve" />
+                            <button type="submit" class="inline-flex items-center justify-center rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 transition">Approve</button>
+                        </form>
+
+                        <!-- <form method="post" action="{% url 'hq:hq_savings_surrender_decision' account.application_id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="decision" value="reject" />
+                            <button type="submit" class="inline-flex items-center justify-center rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition">Reject</button>
+                        </form> -->
+                    </div>
+                    <a href="{{ back_url }}" class="inline-flex items-center justify-center rounded-md bg-gray-500 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 transition">Back</a>
+                {% endif %}
+                
+            </div>
+
+            {% if account.product_type == 'rd' and rd_summary %}
+            <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">RD Principal Collected</p>
+                    <p class="text-sm font-semibold text-gray-800 dark:text-white/90">₹{{ rd_summary.principal }}</p>
+                </div>
+                <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Interest Accrued</p>
+                    <p class="text-sm font-semibold text-gray-800 dark:text-white/90">₹{{ rd_summary.interest_accrued }}</p>
+                </div>
+                <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Interest Pending (till {{ rd_summary.as_of_date }})</p>
+                    <p class="text-sm font-semibold text-gray-800 dark:text-white/90">₹{{ rd_summary.interest_pending }}</p>
+                </div>
+                <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Total Interest</p>
+                    <p class="text-sm font-semibold text-gray-800 dark:text-white/90">₹{{ rd_summary.interest_total }}</p>
+                </div>
+                <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+                    {% if account.surrender_status and account.surrender_status != 'none' %}
+                        <p class="text-xs font-semibold text-gray-500 dark:text-gray-400">Payable (Principal Only)</p>
+                        <p class="text-md font-semibold text-gray-800 dark:text-white/90">₹{{ rd_summary.principal }}</p>
+                    {% else %}
+                        <p class="text-xs font-semibold text-gray-500 dark:text-gray-400">Payable (Principal + Interest)</p>
+                        <p class="text-md font-semibold text-gray-800 dark:text-white/90">₹{{ rd_summary.payable }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if account.product_type == 'fd' %}
+            <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">FD Principal Deposited</p>
+                    <p class="text-sm font-semibold text-gray-800 dark:text-white/90">₹{{ fd_principal|default_if_none:'0.00' }}</p>
+                </div>
+                <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Interest Rate</p>
+                    <p class="text-sm font-semibold text-gray-800 dark:text-white/90">{{ account.interest_rate|default_if_none:'-' }}%</p>
+                </div>
+                <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Tenure</p>
+                    <p class="text-sm font-semibold text-gray-800 dark:text-white/90">{{ account.tenure|default_if_none:'-' }}</p>
+                </div>
+                <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Maturity Date</p>
+                    <p class="text-sm font-semibold text-gray-800 dark:text-white/90">{{ account.maturity_date|date:'d/m/Y'|default:'-' }}</p>
+                </div>
+                <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Maturity Amount</p>
+                    <p class="text-sm font-semibold text-gray-800 dark:text-white/90">₹{{ account.maturity_amount|default_if_none:'-' }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="p-5 space-y-6 border-t border-gray-100 dark:border-gray-800 sm:p-6">
+            <div class="flex items-center justify-between">
+                <h3 class="text-base font-semibold text-gray-900 dark:text-white">Collections</h3>
+                <div class="text-right">
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Total Collected</p>
+                    <p class="text-base font-semibold text-gray-800 dark:text-white/90">₹{{ total_amount }}</p>
+                </div>
+            </div>
+
+            <div class="custom-scrollbar overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead>
+                        <tr>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Collection ID</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Receipt</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Collected By</th>
+                        </tr>
+                    </thead>
+                    <tbody id="hqSurrenderAccountDetailTbody" class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                        {% include 'savings/partials/surrender_account_detail_rows.html' %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'savings/js/infinite-scroll.js' %}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (typeof initInfiniteScroll !== 'function') return;
+    initInfiniteScroll({
+      tbodyId: 'hqSurrenderAccountDetailTbody',
+      sentinelId: 'hqSurrenderAccountDetailLoadMoreRow',
+      rootMargin: '200px',
+    });
+  });
+</script>
+{% endblock %}

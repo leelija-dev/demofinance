@@ -1,0 +1,433 @@
+{% extends "agent/base.html" %}
+{% load static %}
+{% block title %}Collected EMI{% endblock %}
+
+{% block page_id %}CollectedEmi{% endblock %}
+
+{% block content %}
+
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+    <!-- Breadcrumb Start -->
+    <div class="mb-6 flex justify-between gap-3 sm:items-center sm:justify-between">
+        <h2 class="text-title-md2 font-bold text-black dark:text-white">
+           Collected EMI
+        </h2>
+        <nav>
+            <ol class="flex items-center gap-2">
+                <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+                        href="{% url 'agent:dashboard' %}">Dashboard <svg class="stroke-current" width="17" height="16"
+                            viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                            </path>
+                        </svg></a></li>
+                <li class="text-sm text-gray-800 dark:text-white/90">Collected EMI</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        <div class="flex justify-between gap-3 p-5 border-t border-gray-100 dark:border-gray-800">
+            <!-- Loan Search -->
+            <div class="flex-1 w-full">
+                <div class="relative w-full">
+                    <div class="relative">
+                        <input type="text" id="loanSearch" placeholder="Search by Loan Number"
+                            class="w-full p-2 pl-3 pr-10 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            autocomplete="off">
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                            <!-- Clear button (initially hidden) -->
+                            <button id="clearSearchBtn" type="button" 
+                                class="hidden absolute right-3 text-red-400 hover:text-red-600 focus:outline-none pointer-events-auto">
+                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" 
+                                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" 
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                            <svg id="searchIcon" class="h-5 w-5 text-gray-400 pointer-events-none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                                fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div id="loanSuggestions"
+                        class="hidden absolute z-10 w-64 mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Date Filter -->
+            <div class="flex-1">
+                <input type="text" id="dateFilter" placeholder="Filter by Date"
+                       class="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                       style="appearance: none; -webkit-appearance: none; -moz-appearance: textfield;">
+            </div>
+
+            <!-- Clear Filters Button -->
+            <div class="flex-1">
+                <button id="clearFiltersBtn" type="button"
+                        class="px-3 py-2 text-sm bg-red-500 text-white rounded-md hover:bg-gray-600 focus:outline-none">
+                    <span class="block sm:hidden ">Clear</span>
+                    <span class="hidden sm:block">Clear Filters</span>
+                </button>
+            </div>
+        </div>
+        <div class="flex gap-2 px-5 pb-2">
+            <div class="flex-1 rounded-lg border border-gray-200 bg-white p-3">
+                <div class="text-sm sm:text-theme-xs tracking-wide text-gray-500 block sm:hidden ">Total</div>
+                <div class="text-sm sm:text-theme-xs tracking-wide text-gray-500 hidden sm:block">Total Collected</div>
+                <div class="mt-0.5 text-xl sm:text-theme-sm font-semibold text-gray-900 leading-tight" id="sum-collected">₹{{ summary.collected|default:0|floatformat:2 }}</div>
+            </div>
+            <div class="flex-1 rounded-lg border border-gray-200 bg-white p-3">
+                <div class="text-sm sm:text-theme-xs tracking-wide text-gray-500 block sm:hidden">EMI</div>
+                <div class="text-sm sm:text-theme-xs tracking-wide text-gray-500 hidden sm:block">EMI Collected</div>
+                <div class="mt-0.5 text-xl sm:text-theme-sm font-semibold text-gray-900 leading-tight" id="sum-emi-collected">₹{{ summary.emi_collected|default:0|floatformat:2 }}</div>
+            </div>
+            <div class="flex-1 rounded-lg border border-gray-200 bg-white p-3">
+                <div class="text-sm sm:text-theme-xs tracking-wide text-gray-500 block sm:hidden">Penalty</div>
+                <div class="text-sm sm:text-theme-xs tracking-wide text-gray-500 hidden sm:block">Penalty Collected</div>
+                <div class="mt-0.5 text-xl sm:text-theme-sm font-semibold text-gray-900 leading-tight" id="sum-penalty-collected">₹{{ summary.penalty_collected|default:0|floatformat:2 }}</div>
+            </div>
+        </div>
+        <div class="p-5 space-y-6 border-t border-gray-100 dark:border-gray-800 sm:p-6 overflow-auto">
+            <div class="">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Assigned ID
+                            </th>
+                            <!-- <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Loan No
+                            </th> -->
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Customer Name
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Branch
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                EMI Amount
+                            </th>
+                            <!-- <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Principal
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Interest
+                            </th> -->
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Installment Date
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Penalty
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Collected 
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Action
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="emi-collect-tbody" class="bg-white divide-y divide-gray-200">
+                        {% if collections %}
+                            {% for r in collections %}
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ r.assignment_id|default:"-" }}</td>
+                                    <!-- <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ r.loan_ref_no|default:"-" }}</td> -->
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 flex flex-col gap-1 ">
+                                        {{ r.customer_name|default:"-" }}
+                                        <span class="text-xs text-gray-500">
+                                            {{ r.loan_ref_no|default:"-" }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ r.branch_name|default:"-" }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 flex flex-col gap-1">₹
+                                        {{ r.emi_amount|floatformat:2 }}
+                                        <span class="text-xs text-gray-500">
+                                            ({{ r.principal_amount|floatformat:2 }} + {{ r.interest_amount|floatformat:2 }})
+                                        </span>
+                                    </td>
+                                    <!-- <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ r.principal_amount|floatformat:2 }}</td> -->
+                                    <!-- <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ r.interest_amount|floatformat:2 }}</td> -->
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700"><span class="js-date" data-date="{{ r.installment_date }}">{{ r.installment_date }}</span></td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ r.penalty_received|floatformat:2 }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 flex flex-col gap-1 font-bold">₹
+                                        {{ r.total_collected|floatformat:2 }}
+                                        <span class="js-date text-xs text-gray-500 font-medium" data-date="{{ r.collected_at }}">{{ r.collected_at }}</span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        {% if r.collected_id %}
+                                        <button onclick="showEmiDetails('{{ r.collected_id }}')" class="inline-flex items-center px-3 py-1 rounded bg-brand-500 text-white text-xs hover:bg-brand-600">View</button>
+                                        {% else %}
+                                        <span class="text-gray-400 text-xs">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+            <div id="no-emi-collect" class="{% if collections %}hidden{% endif %} p-6 text-center text-red-500">
+                No Collected EMI Found
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- EMI Details Modal -->
+<div id="emiDetailsModal" class="fixed inset-0 z-9999 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <!-- Background overlay -->
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+
+    <div class="flex min-h-screen items-center justify-center p-4 text-center sm:items-center sm:p-0">
+        <!-- Modal panel - Reduced max-width and adjusted padding -->
+        <div class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 md:w-full sm:max-w-lg sm:p-4">
+            <div class="absolute right-2 top-2">
+                <button type="button" onclick="closeEmiDetails()" class="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">
+                    <span class="sr-only">Close</span>
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="w-full">
+                <div class="text-center sm:text-left">
+                    <h3 class="text-base font-medium leading-6 text-gray-900" id="modal-title">
+                        EMI Collection Details
+                    </h3>
+                </div>
+                <div class="mt-3">
+                    <div class="grid grid-cols-1 gap-3">
+                        <!-- Loan Details -->
+                        <div class="bg-gray-50 p-3 rounded">
+                            <h4 class="font-medium text-gray-500 text-sm mb-1">Loan Details</h4>
+                            <dl class="space-y-1 text-sm">
+                                <div class="flex justify-between">
+                                    <dt class="text-gray-500">Loan No:</dt>
+                                    <dd class="font-medium text-gray-900" id="modal-loan-no">-</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-gray-500">Customer:</dt>
+                                    <dd class="font-medium text-gray-900" id="modal-customer">-</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-gray-500">Branch:</dt>
+                                    <dd class="font-medium text-gray-900" id="modal-branch">-</dd>
+                                </div>
+                            </dl>
+                        </div>
+
+                        <!-- Payment Details -->
+                        <div class="bg-gray-50 p-3 rounded">
+                            <h4 class="font-medium text-gray-500 text-sm mb-1">Payment Details</h4>
+                            <dl class="space-y-1 text-sm">
+                                <div class="flex justify-between">
+                                    <dt class="text-gray-500">Amount:</dt>
+                                    <dd class="font-medium text-gray-900" id="modal-amount-received">-</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-gray-500">Principal:</dt>
+                                    <dd class="font-medium text-gray-900" id="modal-principal">-</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-gray-500">Interest:</dt>
+                                    <dd class="font-medium text-gray-900" id="modal-interest">-</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-gray-500">Late Fee:</dt>
+                                    <dd class="font-medium text-gray-900" id="modal-late-fee">-</dd>
+                                </div>
+                            </dl>
+                        </div>
+
+                        <!-- Payment Info -->
+                        <div class="bg-gray-50 p-3 rounded">
+                            <h4 class="font-medium text-gray-500 text-sm mb-1">Payment Info</h4>
+                            <dl class="space-y-1 text-sm">
+                                <div class="flex justify-between">
+                                    <dt class="text-gray-500">Payment Mode:</dt>
+                                    <dd class="font-medium text-gray-900" id="modal-payment-mode">-</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-gray-500">Reference:</dt>
+                                    <dd class="font-medium text-gray-900 truncate max-w-[150px]" id="modal-reference">-</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-gray-500">Collected By:</dt>
+                                    <dd class="font-medium text-gray-900" id="modal-collected-by">-</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-gray-500">Collected At:</dt>
+                                    <dd class="font-medium text-gray-900" id="modal-collected-at">-</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-gray-500">Status:</dt>
+                                    <dd class="font-medium" id="modal-status">-</dd>
+                                </div>
+                            </dl>
+                        </div>
+
+                        <!-- Remarks -->
+                        <div class="bg-gray-50 p-3 rounded">
+                            <h4 class="font-medium text-gray-500 text-xs mb-1">Remarks</h4>
+                            <p class="text-xs text-gray-700" id="modal-remarks">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Format any inline dates rendered in the list using the global helper
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.js-date').forEach(function(el) {
+            var v = el.getAttribute('data-date') || el.textContent;
+            if (window.formatDateDisplay) {
+                el.textContent = window.formatDateDisplay(v);
+            }
+        });
+    });
+
+    // Format a datetime for the details modal: 'DD Mon YYYY, hh:mm AM/PM'
+    function formatDate(dateString) {
+        if (!dateString) return '-';
+        var datePart = window.formatDateDisplay ? window.formatDateDisplay(dateString) : dateString;
+        var dt = new Date(dateString);
+        if (!isNaN(dt)) {
+            var timePart = dt.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+            return datePart + ', ' + timePart;
+        }
+        return datePart;
+    }
+
+    function formatCurrency(amount) {
+        if (amount === null || amount === undefined) return '-';
+        return '₹' + parseFloat(amount).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+    }
+
+    function showEmiDetails(collectedId) {
+        // Show modal immediately
+        const modal = document.getElementById('emiDetailsModal');
+        modal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+
+        // Fetch EMI details
+        fetch(`/agent/api/collect-emi-detail/${collectedId}/`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch EMI details');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Update modal with data
+                document.getElementById('modal-loan-no').textContent = data.loan_ref_no || '-';
+                document.getElementById('modal-customer').textContent = data.customer_name || '-';
+                document.getElementById('modal-branch').textContent = data.branch_name || '-';
+                document.getElementById('modal-amount-received').textContent = data.amount_received ? formatCurrency(data.amount_received) : '-';
+                document.getElementById('modal-principal').textContent = data.principal_received ? formatCurrency(data.principal_received) : '-';
+                document.getElementById('modal-interest').textContent = data.interest_received ? formatCurrency(data.interest_received) : '-';
+                document.getElementById('modal-late-fee').textContent = data.late_fee ? formatCurrency(data.late_fee) : formatCurrency(0);
+                document.getElementById('modal-payment-mode').textContent = data.payment_mode || '-';
+                document.getElementById('modal-reference').textContent = data.payment_reference || '-';
+                
+                // Collector info
+                const collector = data.collector || {};
+                let collectorText = collector.name || '-';
+                if (collector.type === 'agent') {
+                    collectorText += ' (Agent)';
+                } else if (collector.type === 'branch') {
+                    collectorText += ' (Branch)';
+                }
+                document.getElementById('modal-collected-by').textContent = collectorText;
+                
+                // Format dates
+                document.getElementById('modal-collected-at').textContent = data.collected_at ? formatDate(data.collected_at) : '-';
+                
+                // Status with color coding
+                const statusElement = document.getElementById('modal-status');
+                if (statusElement) {
+                    statusElement.textContent = data.status || '-';
+                    statusElement.className = 'text-sm font-medium ' + 
+                        (data.status === 'collected' ? 'text-green-600' : 
+                         data.status === 'rejected' ? 'text-red-600' : 'text-gray-900');
+                }
+                
+                // Remarks
+                document.getElementById('modal-remarks').textContent = data.remarks || 'No remarks';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to load EMI details. Please try again.');
+                closeEmiDetails();
+            });
+    }
+
+    function closeEmiDetails() {
+        const modal = document.getElementById('emiDetailsModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('emiDetailsModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeEmiDetails();
+        }
+    });
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeEmiDetails();
+        }
+    });
+
+    // Shared filtering via AgentFilters
+    document.addEventListener('DOMContentLoaded', function() {
+        // Build loanRefs from current table rows
+        const tds = Array.from(document.querySelectorAll('#emi-collect-tbody tr td:nth-child(2)'));
+        window.loanRefs = [...new Set(tds.map(td => (td.textContent || '').trim()).filter(Boolean))];
+
+        if (window.AgentFilters && !window._collectedFiltersInit) {
+            window.AgentFilters.init({
+                tableBodySelector: '#emi-collect-tbody',
+                noDataSelector: '#no-emi-collect',
+                dateInputSelector: '#dateFilter',
+                loanInputSelector: '#loanSearch',
+                statusSelectSelector: null,
+                clearBtnSelector: '#clearFiltersBtn',
+                searchIconSelector: '#searchIcon',
+                clearSearchBtnSelector: '#clearSearchBtn',
+                suggestionsBoxSelector: '#loanSuggestions',
+                getLoanRefs: () => window.loanRefs || [],
+                columnIndex: { loan: 2, date: 7, status: 0 },
+                enableDatePicker: true,
+            });
+            window._collectedFiltersInit = true;
+        }
+    });
+</script>
+<script src="{% static 'agent/js/table-filters.js' %}"></script>
+
+{% endblock %}

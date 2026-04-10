@@ -1,0 +1,178 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Application Summary</title>
+<style>
+  .container {
+    max-width: 900px;
+    margin: 2rem auto;
+    background: #fff;
+    padding: 40px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    box-shadow: 0px 6px 20px rgba(0,0,0,0.08);
+    position: relative;
+  }
+
+  /* Header */
+  .header {
+    text-align: left;
+    display: flex ;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .header img {
+    height: 120px;
+
+  }
+
+  .header h2 {
+ color: #030368;
+  font-weight: 700;
+    margin: 5px 0;
+    font-size: 24px;
+ 
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .header p {
+    font-size: 14px;
+    margin: 2px 0;
+    color: #444;
+  }
+
+  /* Section Title */
+  .section-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #030368;
+    border-bottom: 2px solid #030368;
+    margin: 30px 0 15px;
+    padding-bottom: 5px;
+  }
+
+  /* Details Table */
+  .details {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+
+  .details th, .details td {
+    text-align: left;
+    padding: 10px 12px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+  }
+
+  .details th {
+    background: #f9fbfd;
+    font-weight: 600;
+    width: 35%;
+    color: #34495e;
+  }
+
+  .details td {
+    color: #2c3e50;
+    background: #fff;
+  }
+
+  /* Footer */
+  .footer-note {
+    text-align: center;
+    font-size: 12px;
+    color: #666;
+    margin-top: 30px;
+    padding-top: 10px;
+    border-top: 1px dashed #bbb;
+    font-style: italic;
+  }
+  .sub-head-loan{
+    text-align: center;
+  }
+  .sub-head-loan i{
+    font-size: 20px;
+  color: #030368;
+  border-bottom: 1px solid #030368;
+  padding-bottom: 3px;
+  }
+   .container .generated-head{
+    position: absolute;
+  top: 7px;
+  right: 19px;
+  color: #b5b5b5;
+  font-size: 15px;
+  margin: 0 !important;
+  font-style: italic;
+  }
+</style>
+
+</head>
+<body>
+
+<div class="">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left-block">
+        <h2>SUNDARAM (K.S.S.F)</h2>
+    <p>Human Development Is Our Aim</p>
+    <p><b>Phone:</b> +91 33 2526 1030</p>
+    <p><b>Address:</b> Kolkata - 700128, West Bengal</p>
+    <p><b>Email:</b> kssfsundaram@gmail.com</p>
+    </div>
+    {% if logo_base64 %}
+    <img class="header-right-block" src="{{ logo_base64 }}" alt="Company Logo">
+    {% else %}
+    <img class="header-right-block" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==" alt="Company Logo">
+    {% endif %}
+    
+  </div>
+  <p class="generated-head">Generated on {{ loan_application.submitted_at|date:"d/m/Y"|default:"N/A" }}</p>
+
+  <div>
+    <h3 class="sub-head-loan"><i>Loan Application Summary</i></h3>
+    <!-- Applicant Info -->
+  <div class="section-title" style="margin-top: 10px !important;">Applicant Information</div>
+  <table class="details">
+    <tr><th>Full Name</th><td>{{ customer.full_name|default:"N/A" }}</td></tr>
+    <tr><th>Father Name</th><td>{{ customer.father_name|default:"N/A" }}</td></tr>
+    <tr><th>Date of Birth</th><td>{% if customer.date_of_birth %}{{ customer.date_of_birth|date:"d/m/Y" }}{% else %}N/A{% endif %}</td></tr>
+    <tr><th>Gender</th><td>{{ customer.gender|default:"N/A" }}</td></tr>
+    <tr><th>Contact</th><td>{{ customer.contact|default:"N/A" }}</td></tr>
+    <tr><th>Email</th><td>{{ customer.email|default:"N/A" }}</td></tr>
+    <tr><th>Aadhaar Number</th><td>{{ customer.adhar_number|default:"N/A" }}</td></tr>
+    <tr><th>PAN Number</th><td>{{ customer.pan_number|default:"N/A" }}</td></tr>
+    <tr><th>Voter ID</th><td>{{ customer.voter_number|default:"N/A" }}</td></tr>
+  </table>
+
+  <!-- Loan Details -->
+  <div class="section-title">Loan Details</div>
+  <table class="details">
+    <tr><th>Loan Reference No</th><td>{{ loan_application.loan_ref_no|default:"N/A" }}</td></tr>
+    <tr><th>Loan Category</th><td>{{ loan_detail.loan_category.name|default:"N/A" }}</td></tr>
+    {% if loan_detail.product %}
+    <tr><th>Product</th><td>{{ loan_detail.product.0 }} - {{ loan_detail.product.1 }} - {{ loan_detail.product.2 }}</td></tr>
+    {% endif %}
+    <tr><th>Loan Purpose</th><td>{{ loan_detail.loan_purpose|default:"N/A" }}</td></tr>
+    <tr><th>Loan Amount</th><td>₹ {{ loan_detail.loan_amount|floatformat:2|default:"N/A" }}</td></tr>
+    <tr><th>Tenure</th><td>{{ loan_detail.tenure.display_name|default:"N/A" }}</td></tr>
+    <tr><th>Interest Rate</th><td>{{ loan_detail.interest_rate.rate_of_interest|default:"N/A" }}%</td></tr>
+    <tr><th>Application Date</th><td>{{ loan_application.submitted_at|date:"d/m/Y"|default:"N/A" }}</td></tr>
+  </table>
+
+  <!-- Footer -->
+  <div class="footer-note">
+    This summary is system-generated and does not require signature.  
+    Please contact your branch for further processing.
+  </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,108 @@
+{% extends 'hq/base.html' %}
+{% load static %}
+{% block title %}All Opened Accounts{% endblock %}
+
+{% block page_id %}hqSavingsAllOpenedAccounts{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 class="text-title-md2 font-bold text-black dark:text-white">All Opened Accounts</h2>
+        <nav>
+            <ol class="flex items-center gap-2">
+                <li>
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400" href="{% url 'hq:dashboard' %}">
+                        Dashboard
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                    </a>
+                </li>
+                <li class="text-sm text-gray-800 dark:text-white/90">All Opened Accounts</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        <div class="p-5 space-y-6 border-t border-gray-100 dark:border-gray-800 sm:p-6">
+            <form method="get" class="grid grid-cols-1 gap-4 md:grid-cols-4">
+                <div class="md:col-span-2">
+                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Search</label>
+                    <input type="text" name="q" value="{{ q|default:'' }}" placeholder="Account ID / Application ID / Customer / Agent" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white" />
+                </div>
+
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Account Type</label>
+                    <select name="product_type" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                        <option value="" {% if not selected_product_type %}selected{% endif %}>All</option>
+                        <option value="rd" {% if selected_product_type == 'rd' %}selected{% endif %}>RD</option>
+                        <option value="fd" {% if selected_product_type == 'fd' %}selected{% endif %}>FD</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Branch</label>
+                    <select name="branch_id" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                        <option value="" {% if not selected_branch_id %}selected{% endif %}>All</option>
+                        {% for b in branches %}
+                            <option value="{{ b.branch_id }}" {% if selected_branch_id|stringformat:'s' == b.branch_id|stringformat:'s' %}selected{% endif %}>{{ b.branch_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Agent</label>
+                    <select name="agent_id" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                        <option value="" {% if not selected_agent_id %}selected{% endif %}>All</option>
+                        {% for a in agents %}
+                            <option value="{{ a.agent_id }}" {% if selected_agent_id|stringformat:'s' == a.agent_id|stringformat:'s' %}selected{% endif %}>{{ a.full_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Account Status</label>
+                    <select name="account_status" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                        <option value="" {% if not selected_account_status %}selected{% endif %}>All</option>
+                        <option value="active" {% if selected_account_status == 'active' %}selected{% endif %}>Active</option>
+                        <option value="inactive" {% if selected_account_status == 'inactive' %}selected{% endif %}>Inactive</option>
+                    </select>
+                </div>
+
+                <div class="md:col-span-4 flex items-center gap-3 mt-6">
+                    <button type="submit" class="inline-flex items-center justify-center rounded-md bg-brand-500 px-5 py-2 text-sm font-medium text-white hover:bg-brand-600 transition">Filter</button>
+                    <a href="{% url 'hq:hq_savings_accounts_all' %}" class="inline-flex items-center justify-center rounded-md bg-gray-200 px-5 py-2 text-sm font-medium text-gray-800 hover:bg-gray-300 transition dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600">Clear</a>
+                </div>
+            </form>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead>
+                        <tr>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Account ID</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Application ID</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Branch</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Agent</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="hqSavingsAccountsTbody" class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                        {% include 'savings/partials/savings_accounts_rows.html' %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'savings/js/infinite-scroll.js' %}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (typeof initInfiniteScroll !== 'function') return;
+    initInfiniteScroll({ tbodyId: 'hqSavingsAccountsTbody', sentinelId: 'hqSavingsAccountsLoadMoreRow' });
+  });
+</script>
+{% endblock %}

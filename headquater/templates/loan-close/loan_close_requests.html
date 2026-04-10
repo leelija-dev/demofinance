@@ -1,0 +1,203 @@
+{% extends 'hq/base.html' %}
+{% load static %}
+{% block title %}Loan Close Requests{% endblock %}
+{% block page_id %}LoanCloseRequests{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+  <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <h2 class="text-title-md2 font-bold text-black dark:text-white">Loan Close Requests</h2>
+    <form method="get" class="flex items-center gap-2">
+      <label class="text-sm text-gray-600">Status</label>
+      <select name="status" class="border rounded px-2 py-1 text-sm">
+        <option value="">All</option>
+        {% for s in valid_status %}
+          <option value="{{ s }}" {% if s == status_filter %}selected{% endif %}>{{ s|title }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="px-3 py-1.5 rounded bg-blue-600 text-white text-sm hover:bg-blue-700">Filter</button>
+    </form>
+  </div>
+
+  <div class="overflow-x-auto bg-white rounded-lg shadow">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Request ID</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Loan Ref</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Branch</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requested By</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requested At</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Approved At</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        {% if requests %}
+          {% for r in requests %}
+          <tr>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ r.request_id }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-700">
+              <a href="{% url 'hq:hq_loan_detail' r.loan_ref_no %}?source=loan_close_requests" class="hover:underline">{{ r.loan_ref_no }}</a>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm">{{ r.customer|default:'-' }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm">{{ r.branch|default:'-' }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm">{{ r.requested_by|default:'-' }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-xs">
+              <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                {% if r.status == 'pending' %}bg-yellow-100 text-yellow-800{% elif r.status == 'approved' %}bg-green-100 text-green-800{% elif r.status == 'rejected' %}bg-red-100 text-red-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                {{ r.status|title }}
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm">{{ r.requested_at|date:'Y-m-d H:i' }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm">{{ r.approved_at|date:'Y-m-d H:i'|default:'-' }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm">
+              {% if r.status == 'pending' %}
+                <button type="button" class="px-3 py-1.5 rounded bg-green-600 text-white text-xs hover:bg-green-700"
+                        data-status="{{ status_filter|default:'' }}"
+                        onclick="openLcrConfirm('{{ r.request_id }}', 'approve', this.dataset.status)">
+                  Approve
+                </button>
+                <button type="button" class="px-3 py-1.5 rounded bg-red-600 text-white text-xs hover:bg-red-700 ml-2"
+                        data-status="{{ status_filter|default:'' }}"
+                        onclick="openLcrConfirm('{{ r.request_id }}', 'reject', this.dataset.status)">
+                  Reject
+                </button>
+              {% elif r.status == 'approved' %}
+                <a href="{% url 'hq:loan_noc_pdf' r.request_id %}"
+                   class="px-3 py-1.5 rounded bg-indigo-600 text-white text-xs hover:bg-indigo-700"
+                   title="Download Loan Close NOC PDF">
+                  Download NOC
+                </a>
+              {% else %}
+                <span class="text-gray-400 text-xs">No actions</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="9" class="px-6 py-8 text-center text-gray-500">No results</td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="flex items-center justify-between pt-4">
+    <div class="text-sm text-gray-600">
+      {% if page_obj %}
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+      {% endif %}
+    </div>
+    {% if page_obj and page_obj.paginator.num_pages > 1 %}
+      <div class="inline-flex gap-2">
+        {% if page_obj.has_previous %}
+          <a class="px-3 py-1 text-sm border rounded-md" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
+        {% else %}
+          <span class="px-3 py-1 text-sm border rounded-md text-gray-400">Previous</span>
+        {% endif %}
+
+        {% for p in page_links %}
+          {% if p == '…' or p == '...' %}
+            <span class="px-3 py-1 text-sm border rounded-md text-gray-400">{{ p }}</span>
+          {% elif p == page_obj.number %}
+            <span class="px-3 py-1 text-sm border rounded-md bg-blue-500 text-white">{{ p }}</span>
+          {% else %}
+            <a class="px-3 py-1 text-sm border rounded-md" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ p }}">{{ p }}</a>
+          {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+          <a class="px-3 py-1 text-sm border rounded-md" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
+        {% else %}
+          <span class="px-3 py-1 text-sm border rounded-md text-gray-400">Next</span>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+<div id="lcr-confirm-modal" class="fixed inset-0 z-9999 hidden">
+  <div class="absolute inset-0 bg-black/50" onclick="closeLcrConfirm()"></div>
+  <div id="lcr-confirm-panel" class="absolute w-[380px] rounded-lg bg-white p-5 shadow-xl border border-gray-200">
+    <h3 class="text-lg font-semibold text-gray-800">Confirm</h3>
+    <p id="lcr-confirm-text" class="mt-2 text-sm text-gray-600">Are you sure?</p>
+
+    <!-- Reject remarks (shown only when action='reject') -->
+    <div id="lcr-reject-remark" class="mt-4 hidden">
+      <label for="lcr-remark-textarea" class="block text-sm font-medium text-gray-700 mb-1">Reject reason (optional)</label>
+      <textarea id="lcr-remark-textarea" name="remarks" form="lcr-confirm-form" rows="3" class="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Write a short reason..."></textarea>
+    </div>
+
+    <div class="mt-5 flex justify-between">
+      <button type="button" class="px-4 py-2 rounded border border-gray-300 text-sm text-gray-700 hover:bg-gray-50" onclick="closeLcrConfirm()">Cancel</button>
+      <form id="lcr-confirm-form" method="post" action="">
+        {% csrf_token %}
+        <input type="hidden" name="action" id="lcr-confirm-action" value="approve">
+        <input type="hidden" name="status" id="lcr-confirm-status" value="">
+        <button id="lcr-confirm-btn" type="submit" class="px-4 py-2 rounded bg-blue-600 text-sm text-white hover:bg-blue-700">Confirm</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openLcrConfirm(requestId, action, statusFilter) {
+    try {
+      const modal = document.getElementById('lcr-confirm-modal');
+      const panel = document.getElementById('lcr-confirm-panel');
+      const txt = document.getElementById('lcr-confirm-text');
+      const form = document.getElementById('lcr-confirm-form');
+      const actInput = document.getElementById('lcr-confirm-action');
+      const statusInput = document.getElementById('lcr-confirm-status');
+      const remarkWrap = document.getElementById('lcr-reject-remark');
+      const confirmBtn = document.getElementById('lcr-confirm-btn');
+
+      const isReject = (action === 'reject');
+
+      actInput.value = (action || 'approve');
+      statusInput.value = (statusFilter || '');
+
+      // Set form action to HQ endpoint
+      form.action = `/hq/loan-close-requests/${encodeURIComponent(requestId)}/action/`;
+
+      // Set confirm text and show/hide remarks for rejection
+      if (isReject) {
+        txt.textContent = `Reject this Loan Close request (${requestId})?`;
+        remarkWrap.classList.remove('hidden');
+        confirmBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+        confirmBtn.classList.add('bg-red-600', 'hover:bg-red-700');
+        confirmBtn.textContent = 'Reject';
+      } else {
+        txt.textContent = `Approve this Loan Close request (${requestId})?`;
+        remarkWrap.classList.add('hidden');
+        // Clear previous text if any
+        const ta = document.getElementById('lcr-remark-textarea');
+        if (ta) ta.value = '';
+        confirmBtn.classList.remove('bg-red-600', 'hover:bg-red-700');
+        confirmBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+        confirmBtn.textContent = 'Approve';
+      }
+
+      modal.classList.remove('hidden');
+
+      // Center panel
+      panel.style.position = 'fixed';
+      panel.style.top = '50%';
+      panel.style.left = '50%';
+      panel.style.transform = 'translate(-50%, -50%)';
+      panel.style.width = 'min(92vw, 420px)';
+    } catch (_) {}
+  }
+
+  function closeLcrConfirm() {
+    const modal = document.getElementById('lcr-confirm-modal');
+    if (modal) modal.classList.add('hidden');
+  }
+</script>
+
+{% endblock %}

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>New Loan Application Notification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f8f8f8;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: auto;
+            max-width: 100%;
+            margin: auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 32px 24px;
+        }
+        .header {
+            text-align: left;
+            background: #fff;
+            color: #005baa;
+            border-radius: 8px 8px 0 0;
+            padding: 16px 0 12px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .header img {
+            width: 50px;
+            height: 50px;
+            margin-right: 10px;
+        }
+        .header h2 {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .details {
+            margin-top: 28px;
+        }
+        .details p {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+        .footer {
+            margin-top: 32px;
+            text-align: center;
+            color: #888;
+            font-size: 13px;
+            border-top: 1px solid #5f6061;
+            padding-top: 16px;
+        }
+        .ref {
+            font-weight: bold;
+            color: #005baa;
+        }
+        .loan-table {
+            width: 80%;
+            margin-top: 10px;
+            border-collapse: collapse;
+        }
+        .loan-table thead tr {
+            background-color: #005baa;
+            color: #fff;
+            border-bottom: 1px solid #5f6061;
+        }
+        .loan-table th, .loan-table td {
+            padding: 8px;
+            text-align: left;
+        }
+        .loan-table th {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        {% if logo_base64 %}
+        <img
+              src="{{ logo_base64 }}"
+              style="width: 50px; height: 50px; margin-right: 10px;"
+              alt="Logo"
+            />
+        {% else %}
+        <div style="width: 50px; height: 50px; background-color: #005baa; border-radius: 4px; margin-right: 10px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">S</div>
+        {% endif %}
+        <h2>SUNDARAM</h2>
+    </div>
+    {% if purpose_flag == 'loan_application_submitted' %}
+    <div style="font-size:15px;letter-spacing:1px;">{{ sub_header|default:'New Loan Application Received' }} - {{ loan_ref_no }}</div>
+    {% elif purpose_flag == 'loan_disbursed' %}
+    <div style="font-size:15px;letter-spacing:1px;">{{ sub_header|default:'Loan Disbursed' }} - {{ loan_ref_no }}</div>
+    {% elif purpose_flag == 'loan_rejected' %}
+    <div style="font-size:15px;letter-spacing:1px;">{{ sub_header|default:'Loan Rejected' }} - {{ loan_ref_no }}</div>
+    {% elif purpose_flag == 'loan_approved' %}
+    <div style="font-size:15px;letter-spacing:1px;">{{ sub_header|default:'Loan Approved' }} - {{ loan_ref_no }}</div>
+    {% elif purpose_flag == 'emi_received' %}
+    <div style="font-size:15px;letter-spacing:1px;">{{ sub_header|default:'EMI Payment Received' }} - {{ loan_ref_no }}</div>
+    {% else %}
+    <div style="font-size:15px;letter-spacing:1px;">{{ sub_header|default:'Loan Disbursed' }} - {{ loan_ref_no }}</div>
+    {% endif %}
+
+    {% if purpose_flag == 'loan_application_submitted' %}
+    <div class="details">
+        <table class="loan-table">
+            <thead>
+                <tr>
+                    <th>Reference No:</th>
+                    <th>Customer Name:</th>
+                    <th>Contact Number:</th>
+                    <th>Loan Amount Requested:</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ loan_ref_no }}</td>
+                    <td>{{ customer_name }}</td>
+                    <td>{{ customer_contact }}</td>
+                    <td>{{ loan_amount }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+    {% if purpose_flag == 'loan_disbursed' %}
+    <div class="details">
+        <table class="loan-table">
+            <thead>
+                <tr>
+                    <th>Reference No:</th>
+                    <th>Customer Name:</th>
+                    <th>Contact Number:</th>
+                    <th>Loan Amount Requested:</th>
+                    <th>Net Amount:</th>
+                    <th>EMI:</th>
+                    <th>Tenure:</th>
+                    <th>Percentage:</th>
+                    <th>Disbursement Mode:</th>
+                    <th>Tax Charges:</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ loan_ref_no }}</td>
+                    <td>{{ customer_name }}</td>
+                    <td>{{ customer_contact }}</td>
+                    <td>{{ loan_amount }}</td>
+                    <td>{{ net_amount_cust }}</td>
+                    <td>{{ emi }}</td>
+                    <td>{{ tenure }}</td>
+                    <td>{{ percentage }}</td>
+                    <td>{{ disb_mode }}</td>
+                    <td>{{ tax_charges }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+    {% if purpose_flag == 'emi_received' %}
+    <div class="details">
+        <table class="loan-table">
+            <thead>
+                <tr>
+                    <th>Reference No:</th>
+                    <th>EMI ID:</th>
+                    <th>Installment Amount:</th>
+                    <th>Paid Date:</th>
+                    <th>Payment Ref:</th>
+                </tr>
+            </thead>
+            <tbody style="border-bottom: 1px #d1c8c8 solid;">
+                <tr>
+                    <td>{{ loan_ref_no }}</td>
+                    <td>{{ emi_id }}</td>
+                    <td>{{ installment_amount }}</td>
+                    <td>{{ paid_date }}</td>
+                    <td>{{ payment_reference }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+     {% if unpaid_emis_to_next and unpaid_emis_to_next|length > 0 %}
+     <div class="details" style="margin-top:8px;">
+        <div style="color:#005baa; padding:14px 0px;">
+            <div style="font-size:12px; letter-spacing:0.6px; text-transform:uppercase; opacity:0.95; font-weight:700;">Unpaid EMIs up to Next Due</div>
+            <table class="loan-table" style="margin-top:8px;">
+                <thead>
+                    <tr>
+                        <th>EMI ID</th>
+                        <th>Amount</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in unpaid_emis_to_next %}
+                    <tr>
+                        <td>{{ u.id }}</td>
+                        <td>{{ u.amount }}</td>
+                        <td>{{ u.due_date }}</td>
+                        <td>{% if u.is_overdue %}<span style="color:#b91c1c; font-weight:700;">Overdue</span>{% else %}Upcoming{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="1" style="text-align:right;">Total</th>
+                        <th>{{ unpaid_emis_total }}</th>
+                        <th colspan="2"></th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+     </div>
+     {% endif %}
+     {% if next_emi_amount or next_emi_due_date %}
+     <div class="details" style="margin-top:8px;">
+        <div style="color:#005baa; padding:14px 16px;">
+            <div style="font-size:12px; letter-spacing:0.6px; text-transform:uppercase; opacity:0.95; font-weight: 700;">Next EMI :</div>
+            <div style="margin-top:6px;">
+                <div style="font-size:12px; font-weight:500;">Amount: <span style="font-size:14px; font-weight:800; color: rgb(248, 66, 66);">{{ next_emi_amount|default:'N/A' }}</span></div>
+                <div style="font-size:12px; font-weight:500; margin-top:4px;">Due: <span style="font-weight:800; color: rgb(248, 66, 66);">{{ next_emi_due_date|default:'N/A' }}</span></div>
+            </div>
+         </div>
+     </div>
+     {% endif %}
+     {% endif %}
+    <div class="footer">
+        This is an automated notification from Sundaram Loan Management System.
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,57 @@
+{% for app in applications %}
+<tr class="border-t">
+    <td class="px-4 py-2">
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ app.application_id }}</p>
+    </td>
+    <td class="px-4 py-2">
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ app.customer.full_name }}</p>
+        <p class="text-xs text-gray-400">{{ app.customer.customer_id }}</p>
+    </td>
+    <td class="px-4 py-2">
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ app.branch.branch_name|default:"-" }}</p>
+    </td>
+    <td class="px-4 py-2">
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ app.agent.full_name|default:"-" }}</p>
+    </td>
+    <td class="px-4 py-2">
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ app.get_product_type_display }}</p>
+    </td>
+    <td class="px-4 py-2">
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+            {{ app.tenure }}
+            {% if app.tenure_unit %}
+            (
+            {% if app.tenure_unit == 'days' or app.tenure_unit == 'daily' %}daily{% elif app.tenure_unit == 'weeks' or app.tenure_unit == 'weekly' %}weekly{% elif app.tenure_unit == 'months' or app.tenure_unit == 'monthly' %}monthly{% elif app.tenure_unit == 'years' or app.tenure_unit == 'yearly' %}yearly{% else %}{{ app.tenure_unit }}{% endif %}
+            )
+            {% endif %}
+        </p>
+    </td>
+    <td class="px-4 py-2">
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+            {% if app.tenure_unit %}
+            {% if app.tenure_unit == 'days' or app.tenure_unit == 'daily' %}{% if app.tenure == 1 %}day{% else %}days{% endif %}{% elif app.tenure_unit == 'weeks' or app.tenure_unit == 'weekly' %}{% if app.tenure == 1 %}week{% else %}weeks{% endif %}{% elif app.tenure_unit == 'months' or app.tenure_unit == 'monthly' %}{% if app.tenure == 1 %}month{% else %}months{% endif %}{% elif app.tenure_unit == 'years' or app.tenure_unit == 'yearly' %}{% if app.tenure == 1 %}year{% else %}years{% endif %}{% else %}{{ app.tenure_unit }}{% endif %}
+            {% else %}
+            -
+            {% endif %}
+        </p>
+    </td>
+    <td class="px-4 py-2">
+        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-red-100 text-red-700">{{ app.get_status_display|default:app.status }}</span>
+    </td>
+    <td class="px-4 py-2">
+        <a href="{% url 'hq:hq_savings_application_detail' app.application_id %}?from=rejected" class="inline-flex items-center justify-center rounded-md bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 transition">View</a>
+    </td>
+</tr>
+{% empty %}
+{% if page_obj.number == 1 %}
+<tr>
+    <td class="px-4 py-8 text-center text-gray-500 dark:text-gray-400" colspan="9">No rejected savings applications</td>
+</tr>
+{% endif %}
+{% endfor %}
+
+{% if page_obj.has_next %}
+<tr id="hqRejectedLoadMoreRow" data-next-page="{{ page_obj.next_page_number }}">
+    <td class="px-4 py-4 text-center text-sm text-gray-500 dark:text-gray-400" colspan="9">Loading…</td>
+</tr>
+{% endif %}

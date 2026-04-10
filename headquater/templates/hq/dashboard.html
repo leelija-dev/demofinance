@@ -1,0 +1,299 @@
+{% extends "hq/base.html" %}
+{% load static %}
+
+{% block title %}HQ Dashboard{% endblock %}
+
+{% block extra_head %}
+<!-- ApexCharts CSS (if needed) -->
+<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/apexcharts@3.35.0/dist/apexcharts.min.css"> -->
+ <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+ 
+{% endblock %}
+
+{% block content %}
+<div class="p-4 md:p-6" x-data="dashboardData()" x-init="init()">
+    {% include 'partials/chart/hq-head-chart.html' %}
+    
+    <!-- Charts Section -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
+        
+        
+        <!-- loan Trend Chart -->
+        {% include 'partials/chart/hq-loan-trend.html' %}
+        <!-- Distribution Chart -->
+        {% include 'partials/chart/hq-distribution-chart.html' %}
+    </div>
+    <div class="w-full mb-3">
+      <!-- New Stats Chart Card -->
+       {% include 'partials/chart/hq-line-wave.html' %}
+    </div>
+    
+    {% include 'partials/table/hq-recent-activity.html' %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- ApexCharts JS -->
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+<!-- Inject backend data for dashboard if available -->
+<script>
+  window.HQ_DASHBOARD = window.HQ_DASHBOARD || (function(){
+    try {
+      return JSON.parse('{{ hq_dashboard_json|default:"{}"|escapejs }}');
+    } catch (e) { return {}; }
+  })();
+</script>
+
+<script>
+function dashboardData() {
+    return {
+        loaded: false,
+        timeRange: 'month',
+        selectedYear: new Date().getFullYear(),
+        selectedMonth: new Date().getMonth() + 1,
+        selectedDay: new Date().getDate(),
+        years: Array.from({length: 5}, (_, i) => new Date().getFullYear() - i),
+        months: [
+            {value: 1, name: 'January'}, {value: 2, name: 'February'}, {value: 3, name: 'March'},
+            {value: 4, name: 'April'}, {value: 5, name: 'May'}, {value: 6, name: 'June'},
+            {value: 7, name: 'July'}, {value: 8, name: 'August'}, {value: 9, name: 'September'},
+            {value: 10, name: 'October'}, {value: 11, name: 'November'}, {value: 12, name: 'December'}
+        ],
+        days: Array.from({length: 31}, (_, i) => i + 1),
+        loanStats: { applied: 0, pending: 0, approved: 0, disbursed: 0, rejected: 0 },
+        loanStatsDeltaPct: { applied: 0, pending: 0, approved: 0, disbursed: 0, rejected: 0 },
+        loanStatsDeltaStr: { applied: '+0%', pending: '+0%', approved: '+0%', disbursed: '+0%', rejected: '+0%' },
+        savingsStats: { applied: 0, pending: 0, approved: 0, disbursed: 0, rejected: 0 },
+        savingsStatsDeltaPct: { applied: 0, pending: 0, approved: 0, disbursed: 0, rejected: 0 },
+        savingsStatsDeltaStr: { applied: '+0%', pending: '+0%', approved: '+0%', disbursed: '+0%', rejected: '+0%' },
+        monthlyTrends: [],
+        statusDistribution: [],
+        trendsByStatus: { labels: [], applied: [], approved: [], disbursed: [] },
+        trendsFinance: { labels: [], loan_amounts: [], emi_scheduled: [], emi_collected: [] },
+        recentLoans: [],
+        recentBranches: [],
+        totalApplications: 0,
+        trendChart: null,
+        distChart: null,
+        statsChart: null,
+        statsView: 'overview', // 'overview', 'sales', or 'revenue'
+        
+        init() {
+            this.fetchData();
+        },
+        
+        async fetchData() {
+            this.loaded = false;
+            const params = new URLSearchParams({
+                timeRange: this.timeRange,
+                year: String(this.selectedYear),
+                month: String(this.selectedMonth),
+                day: String(this.selectedDay),
+            });
+            try {
+                const res = await fetch('{% url "hq:hq_dashboard_data" %}?'+params.toString(), {
+                    headers: { 'Accept': 'application/json' },
+                    credentials: 'same-origin'
+                });
+                if (!res.ok) throw new Error('Failed to load dashboard data');
+                const d = await res.json();
+                this.loanStats = d.loanStats || this.loanStats;
+                this.loanStatsDeltaPct = d.loanStatsDeltaPct || this.loanStatsDeltaPct;
+                this.loanStatsDeltaStr = d.loanStatsDeltaStr || this.loanStatsDeltaStr;
+                this.savingsStats = d.savingsStats || this.savingsStats;
+                this.savingsStatsDeltaPct = d.savingsStatsDeltaPct || this.savingsStatsDeltaPct;
+                this.savingsStatsDeltaStr = d.savingsStatsDeltaStr || this.savingsStatsDeltaStr;
+                this.monthlyTrends = Array.isArray(d.monthlyTrends) ? d.monthlyTrends : [];
+                this.statusDistribution = Array.isArray(d.statusDistribution) ? d.statusDistribution : [];
+                this.trendsByStatus = d.trendsByStatus || { labels: [], applied: [], approved: [], disbursed: [] };
+                this.trendsFinance = d.trendsFinance || { labels: [], loan_amounts: [], emi_scheduled: [], emi_collected: [] };
+                this.recentLoans = Array.isArray(d.recentLoans) ? d.recentLoans : [];
+                this.recentBranches = Array.isArray(d.recentBranches) ? d.recentBranches : [];
+                this.totalApplications = typeof d.totalApplications === 'number' ? d.totalApplications : 0;
+                this.initCharts();
+                this.loaded = true;
+            } catch (err) {
+                console.error(err);
+                this.loaded = true;
+            }
+        },
+        
+        showOverview() {
+            this.statsView = 'overview';
+            this.updateStatsChart();
+        },
+        
+        showSales() {
+            this.statsView = 'sales';
+            this.updateStatsChart();
+        },
+        
+        showRevenue() {
+            this.statsView = 'revenue';
+            this.updateStatsChart();
+        },
+        
+        updateStatsChart() {
+            if (!this.statsChart) return;
+            let series, colors;
+            // Use finance series: total loan amounts, total EMI scheduled, collected EMI
+             switch(this.statsView) {
+                 case 'sales':
+                    // Show EMI Scheduled
+                    series = [{ name: 'EMI Scheduled', data: this.trendsFinance.emi_scheduled }];
+                    colors = ['#f59e0b'];
+                     break;
+                 case 'revenue':
+                    // Show EMI Collected
+                    series = [{ name: 'EMI Collected', data: this.trendsFinance.emi_collected }];
+                    colors = ['#10b981'];
+                     break;
+                 case 'overview':
+                 default:
+                    // Show Loan Amounts + EMI Scheduled + EMI Collected
+                     series = [
+                        { name: 'EMI Scheduled', data: this.trendsFinance.emi_scheduled },
+                        { name: 'EMI Collected', data: this.trendsFinance.emi_collected }
+                     ];
+                     colors = ['#f59e0b', '#10b981'];
+                     break;
+             }
+             this.statsChart.updateOptions({
+                 series: series,
+                 colors: colors,
+                 xaxis: { categories: this.trendsFinance.labels }
+             });
+        },
+        
+        initCharts() {
+            // Destroy existing charts if they exist
+            if (this.trendChart) this.trendChart.destroy();
+            if (this.distChart) this.distChart.destroy();
+            if (this.statsChart) this.statsChart.destroy();
+            
+            // Loan Trends (Column Chart)
+            const trendOptions = {
+                series: [{
+                    name: "Loan Applications",
+                    data: this.monthlyTrends.map(item => item.count)
+                }],
+                chart: {
+                    height: '100%',
+                    type: 'bar',
+                    toolbar: { show: true },
+                    animations: { enabled: true, easing: 'easeinout', speed: 800 }
+                },
+                colors: ['#3b82f6'],
+                plotOptions: { bar: { horizontal: false, columnWidth: '50%', borderRadius: 6 } },
+                dataLabels: { enabled: false },
+                xaxis: {
+                    categories: this.monthlyTrends.map(item => item.month),
+                    labels: { style: { colors: document.documentElement.classList.contains('dark') ? '#e5e7eb' : '#6b7280' } }
+                },
+                yaxis: { labels: { style: { colors: document.documentElement.classList.contains('dark') ? '#e5e7eb' : '#6b7280' } } },
+                tooltip: { theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light' },
+                grid: { borderColor: document.documentElement.classList.contains('dark') ? '#374151' : '#e5e7eb', strokeDashArray: 4 }
+            };
+            this.trendChart = new ApexCharts(document.querySelector("#trendChart"), trendOptions);
+            this.trendChart.render();
+            
+            // Loan Status Distribution (Donut)
+            // Ensure 'Applied' slice is always visible even when the remainder bucket is 0
+            const seriesForChart = [...this.statusDistribution];
+            if ((seriesForChart[0] ?? 0) === 0 && (this.totalApplications ?? 0) > 0) {
+                seriesForChart[0] = 0.0001; // epsilon to render a visible wedge
+            }
+            const distOptions = {
+                series: seriesForChart,
+                chart: {
+                  type: 'donut',
+                  height: '100%',
+                  toolbar: {
+                    show: true,
+                    tools: {
+                      download: true,
+                      selection: false,
+                      zoom: false,
+                      zoomin: false,
+                      zoomout: false,
+                      pan: false,
+                      reset: false,
+                    },
+                    export: {
+                      csv: { filename: 'loan-status-distribution', headerCategory: 'Status', headerValue: 'Count' },
+                      svg: { filename: 'loan-status-distribution' },
+                      png: { filename: 'loan-status-distribution' }
+                    }
+                  }
+                },
+                 labels: ['Applied', 'Pending', 'Approved', 'Disbursed', 'Rejected'],
+                 colors: ['#3b82f6', '#f59e0b', '#10b981', '#8b5cf6', '#ef4444'],
+                 legend: {
+                   position: 'right',
+                   labels: { colors: document.documentElement.classList.contains('dark') ? '#e5e7eb' : '#6b7280' },
+                   formatter: (seriesName, opts) => {
+                     const idx = opts.seriesIndex;
+                     const val = idx === 0 ? this.totalApplications : opts.w.globals.series[idx];
+                     return `${seriesName}: ${val}`;
+                   }
+                 },
+                 responsive: [{ breakpoint: 480, options: { chart: { width: 200 }, legend: { position: 'bottom' } } }],
+                 plotOptions: { pie: { donut: { labels: { show: true, total: { show: true, label: 'Total Loans', color: document.documentElement.classList.contains('dark') ? '#e5e7eb' : '#6b7280', formatter: () => `${this.totalApplications}` } } } } },
+                 dataLabels: { enabled: true, formatter: (percent, opts) => { const idx = opts.seriesIndex; const value = idx === 0 ? this.totalApplications : opts.w.globals.series[idx]; return `${value}`; } },
+                 tooltip: { theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light', y: { formatter: (val, { seriesIndex }) => seriesIndex === 0 ? this.totalApplications : val } }
+            };
+            this.distChart = new ApexCharts(document.querySelector("#distributionChart"), distOptions);
+            this.distChart.render();
+
+            // Statistics Chart (uses real data)
+            const statsOptions = {
+                series: [
+                    { name: 'EMI Scheduled', data: this.trendsFinance.emi_scheduled },
+                    { name: 'EMI Collected', data: this.trendsFinance.emi_collected }
+                ],
+                chart: {
+                    type: 'area',
+                    height: 350,
+                    toolbar: {
+                        show: true,
+                        tools: {
+                            download: true,
+                            selection: false,
+                            zoom: false,
+                            zoomin: false,
+                            zoomout: false,
+                            pan: false,
+                            reset: false,
+                        },
+                        export: {
+                            csv: { filename: 'finance-statistics', headerCategory: 'Period', headerValue: 'Value' },
+                            svg: { filename: 'finance-statistics' },
+                            png: { filename: 'finance-statistics' }
+                        }
+                    }
+                },
+                colors: ['#f59e0b', '#10b981'],
+                dataLabels: { enabled: false },
+                stroke: { curve: 'smooth', width: 2 },
+                fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.5, opacityTo: 0.1, stops: [0, 90, 100] } },
+                xaxis: { categories: this.trendsFinance.labels, labels: { style: { colors: document.documentElement.classList.contains('dark') ? '#e5e7eb' : '#6b7280' } } },
+                yaxis: { labels: { style: { colors: document.documentElement.classList.contains('dark') ? '#e5e7eb' : '#6b7280' } } },
+                tooltip: { shared: true, intersect: false, theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light' },
+                legend: { position: 'top', horizontalAlign: 'right', labels: { colors: document.documentElement.classList.contains('dark') ? '#e5e7eb' : '#6b7280' } }
+            };
+            this.statsChart = new ApexCharts(document.querySelector("#statsChart"), statsOptions);
+            this.statsChart.render();
+        }
+    };
+}
+</script>
+<!-- <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      flatpickr(".datepicker-input", {
+        dateFormat: "Y-m-d",
+        allowInput: true
+      });
+    });
+  </script> -->
+{% endblock %}

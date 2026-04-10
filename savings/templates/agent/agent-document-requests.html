@@ -1,0 +1,222 @@
+{% extends "agent/base.html" %}
+{% load static %}
+{% block title %}AgentSavingsDocumentRequests{% endblock %}
+
+{% block page_id %}agentSavingsDocumentRequests{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 class="text-title-md2 font-bold text-black dark:text-white">Document Requests</h2>
+        <nav>
+            <ol class="flex items-center gap-2">
+                <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400" href="{% url 'agent:dashboard' %}">Dashboard</a></li>
+                <li class="text-sm text-gray-800 dark:text-white/90">Document Requests</li>
+            </ol>
+        </nav>
+    </div>
+
+    {% regroup document_requests by savings_application.customer.customer_id as grouped_requests %}
+
+    <div id="document-requests-content">
+        {% for group in grouped_requests %}
+            {% if group.grouper %}
+            <div class="mb-6 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+                <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-800 dark:text-white/90">{{ group.list.0.savings_application.customer.full_name|default:"-" }}</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Customer ID: {{ group.grouper }}</p>
+                        </div>
+                        {% if group.list.0.savings_application %}
+                        <a href="{% url 'agent:savings_application_detail' group.list.0.savings_application.application_id %}"
+                           class="inline-flex items-center px-3 py-1 text-sm font-medium text-brand-500 bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 rounded-md hover:bg-brand-100 dark:hover:bg-brand-900/30 transition">
+                            View Application
+                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="p-5 space-y-4 sm:p-6">
+                    {% for req in group.list %}
+                        {% if not req.is_resolved %}
+                        <div class="border border-red-200 dark:border-red-800 rounded-lg p-4 bg-red-50 dark:bg-red-900/20">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">Action Required</span>
+                                        <span class="text-sm text-gray-600 dark:text-gray-400">{{ req.requested_at|date:"Y-m-d H:i" }}</span>
+                                    </div>
+                                    <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-1">{{ req.get_document_type_display|default:req.document_type }}</h4>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2"><strong>Reason:</strong> {{ req.get_reason_display|default:req.reason }}</p>
+                                    {% if req.comment %}
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-3"><strong>Comment:</strong> {{ req.comment }}</p>
+                                    {% endif %}
+                                    {% if req.savings_application %}
+                                    <button onclick="openDocumentUploadModal('{{ req.id }}', '{{ req.document_type }}', '{{ req.get_document_type_display|default:req.document_type }}')"
+                                            class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-brand-500 border border-transparent rounded-md hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 transition">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                        </svg>
+                                        Upload Document
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    {% if not document_requests %}
+    <div id="no-document-requests-message" class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] p-5 text-center text-gray-500 dark:text-gray-400">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-red-600">No Document Requests</h3>
+        <p class="mt-1 text-sm text-red-600">There are no pending document requests for your customers.</p>
+    </div>
+    {% endif %}
+</div>
+
+<div id="documentUploadModal" class="fixed inset-0 z-9999 bg-gray-400/50 backdrop-blur-[32px] hidden">
+    <div class="absolute inset-0 bg-black bg-opacity-50"></div>
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">Upload Document</h3>
+                    <button onclick="closeDocumentUploadModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <form id="documentUploadForm" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Document Type</label>
+                            <input type="text" id="uploadDocumentType" readonly
+                                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select File</label>
+                            <input type="file" id="uploadedFile" name="uploaded_file" required accept=".pdf,.jpg,.jpeg,.png"
+                                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Accepted formats: PDF, JPG, JPEG, PNG</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Note (Optional)</label>
+                            <textarea id="agentNote" name="agent_note" rows="3"
+                                      class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                                      placeholder="Add any additional notes..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3 mt-6">
+                        <button type="button" onclick="closeDocumentUploadModal()"
+                                class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                                class="flex-1 px-4 py-2 text-sm font-medium text-white bg-brand-500 border border-transparent rounded-md hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 transition">
+                            Upload Document
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentDocumentRequestId = '';
+let currentDocumentType = '';
+
+function openDocumentUploadModal(documentRequestId, documentType, documentName) {
+    currentDocumentRequestId = documentRequestId;
+    currentDocumentType = documentType;
+    document.getElementById('uploadDocumentType').value = documentName;
+    document.getElementById('documentUploadModal').classList.remove('hidden');
+}
+
+function closeDocumentUploadModal() {
+    document.getElementById('documentUploadModal').classList.add('hidden');
+    document.getElementById('documentUploadForm').reset();
+}
+
+document.getElementById('documentUploadForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const formData = new FormData();
+    formData.append('document_request_id', currentDocumentRequestId);
+    formData.append('document_type', currentDocumentType);
+    formData.append('uploaded_file', document.getElementById('uploadedFile').files[0]);
+    formData.append('agent_note', document.getElementById('agentNote').value);
+
+    const csrfInput = document.querySelector('#documentUploadForm [name=csrfmiddlewaretoken]');
+    if (!csrfInput) {
+        if (typeof showToast === 'function') {
+            showToast('CSRF token not found in the form. Please reload the page or contact support.', 'error');
+        } else {
+            alert('CSRF token not found in the form. Please reload the page or contact support.');
+        }
+        return;
+    }
+    const csrfToken = csrfInput.value;
+
+    fetch('{% url "agent:api_savings_document_upload" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': csrfToken
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            if (typeof showToast === 'function') {
+                showToast('Document uploaded successfully!', 'success');
+            } else {
+                alert('Document uploaded successfully!');
+            }
+            closeDocumentUploadModal();
+            window.location.reload();
+        } else {
+            if (typeof showToast === 'function') {
+                showToast('Error: ' + (data.detail || data.message || 'Upload failed'), 'error');
+            } else {
+                alert('Error: ' + (data.detail || data.message || 'Upload failed'));
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        if (typeof showToast === 'function') {
+            showToast('An error occurred while uploading the document.', 'error');
+        } else {
+            alert('An error occurred while uploading the document.');
+        }
+    });
+});
+
+if (document.getElementById('documentUploadModal')) {
+    document.getElementById('documentUploadModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeDocumentUploadModal();
+        }
+    });
+}
+</script>
+{% endblock %}

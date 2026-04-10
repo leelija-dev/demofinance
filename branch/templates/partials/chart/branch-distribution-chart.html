@@ -1,0 +1,20 @@
+<!-- Distribution Chart -->
+<div class="bg-white rounded-lg p-4 border border-stroke dark:border-gray-700 dark:bg-boxdark">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+      Loan Status Distribution
+    </h3>
+    <div class="flex items-center space-x-1">
+      <!-- Applied (total) shown as legend item but not a slice in the donut -->
+      <span class="w-2 h-2 rounded-full bg-blue-500" title="Applied"></span>
+      <!-- Pending, Approved, Disbursed, Rejected -->
+      <span class="w-2 h-2 rounded-full bg-yellow-500" title="Pending"></span>
+      <span class="w-2 h-2 rounded-full bg-green-500" title="Approved"></span>
+      <span class="w-2 h-2 rounded-full bg-purple-500" title="Disbursed"></span>
+      <span class="w-2 h-2 rounded-full bg-red-500" title="Rejected"></span>
+    </div>
+  </div>
+  <div class="chart-container">
+    <div id="distributionChart" class="sm:block flex justify-center"></div>
+  </div>
+</div>

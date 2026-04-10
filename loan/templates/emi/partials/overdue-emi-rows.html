@@ -1,0 +1,58 @@
+{% for emi in rows %}
+<tr class="overdue-emi-row">
+    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ emi.assignment_id }}</td>
+    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ emi.loan_id }}</td>
+    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ emi.customer_name|default_if_none:"N/A" }}</td>
+    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ emi.branch|default_if_none:"N/A" }}</td>
+    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ emi.installment_amount|default_if_none:"0.00" }}</td>
+    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ emi.due_date|default_if_none:"" }}</td>
+    <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-medium">{{ emi.days_overdue }} days</td>
+    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+        <button data-emi-id="{{ emi.emi_id }}" class="view-emi-btn inline-block px-3 py-1 text-sm rounded bg-brand-500 text-white hover:bg-brand-600">
+            View
+        </button>
+    </td>
+</tr>
+<tr class="details-row bg-gray-50" style="display: none;">
+    <td colspan="8" class="px-6 py-4">
+        <div class="bg-white shadow rounded-lg p-4">
+            <div class="mb-3 flex justify-between items-center">
+                <h4 class="font-semibold text-gray-900">EMI Details</h4>
+                <button class="close-details-btn text-sm font-medium bg-red-600 text-white hover:bg-red-800 px-3 py-1 rounded">
+                    Close Details
+                </button>
+            </div>
+            <div class="grid items-center grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                <div>
+                    <p class="text-sm text-gray-500">Principal Amount</p>
+                    <p class="font-medium">{{ emi.principal_amount|default_if_none:"0.00" }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Interest Amount</p>
+                    <p class="font-medium">{{ emi.interest_amount|default_if_none:"0.00" }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Assigned Date</p>
+                    <p class="font-medium">{{ emi.assigned_date|default_if_none:"N/A" }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Status</p>
+                    <p class="font-medium">{% if emi.is_active %}Active{% else %}Inactive{% endif %}</p>
+                </div>
+                <div>
+                    <button
+                        class="btn-collect text-sm font-medium bg-green-600 hover:bg-green-800 text-white px-3 py-1 rounded"
+                        data-assignment-id="{{ emi.assignment_id }}"
+                        data-emi-id="{{ emi.emi_id }}"
+                        data-is-reschedule="{{ emi.is_reschedule|default_if_none:0 }}"
+                        data-installment-amount="{{ emi.installment_amount|default_if_none:"0.00" }}"
+                        data-principal-amount="{{ emi.principal_amount|default_if_none:"0.00" }}"
+                        data-interest-amount="{{ emi.interest_amount|default_if_none:"0.00" }}"
+                        data-loan-ref-no="{{ emi.loan_id }}"
+                    >Collect</button>
+                </div>
+            </div>
+        </div>
+    </td>
+</tr>
+{% endfor %}

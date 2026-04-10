@@ -1,0 +1,302 @@
+{% extends 'branch/base.html' %}
+
+{% block content %}
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+    <!-- Breadcrumb Start -->
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 class="text-title-md2 font-bold text-black dark:text-white">
+            Employees List
+        </h2>
+        <nav>
+            <ol class="flex items-center gap-2">
+                <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+                        href="{% url 'hq:dashboard' %}">Dashboard <svg class="stroke-current" width="17" height="16"
+                            viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2"
+                                stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg></a></li>
+                <li class="text-sm text-gray-800 dark:text-white/90">Employees List</li>
+            </ol>
+        </nav>
+    </div>
+    <!-- Breadcrumb End -->
+
+    <div
+        class="rounded-2xl border border-stroke bg-white px-6 pt-8 pb-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-8">
+        <!-- Add Role Button -->
+        <div class="mb-4 flex flex-col gap-2 px-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+            <a href="{% url 'branch:employee_create' %}"
+                class="inline-flex items-center gap-2 px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600">
+                <svg class="fill-current" width="20" height="20" viewBox="0 0 20 20" fill="none"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" clip-rule="evenodd"
+                        d="M9.77692 3.24224C9.91768 3.17186 10.0834 3.17186 10.2241 3.24224L15.3713 5.81573L10.3359 8.33331C10.1248 8.43888 9.87626 8.43888 9.66512 8.33331L4.6298 5.81573L9.77692 3.24224ZM3.70264 7.0292V13.4124C3.70264 13.6018 3.80964 13.775 3.97903 13.8597L9.25016 16.4952L9.25016 9.7837C9.16327 9.75296 9.07782 9.71671 8.99432 9.67496L3.70264 7.0292ZM10.7502 16.4955V9.78396C10.8373 9.75316 10.923 9.71683 11.0067 9.67496L16.2984 7.0292V13.4124C16.2984 13.6018 16.1914 13.775 16.022 13.8597L10.7502 16.4955ZM9.41463 17.4831L9.10612 18.1002C9.66916 18.3817 10.3319 18.3817 10.8949 18.1002L16.6928 15.2013C17.3704 14.8625 17.7984 14.17 17.7984 13.4124V6.58831C17.7984 5.83076 17.3704 5.13823 16.6928 4.79945L10.8949 1.90059C10.3319 1.61908 9.66916 1.61907 9.10612 1.90059L9.44152 2.57141L9.10612 1.90059L3.30823 4.79945C2.63065 5.13823 2.20264 5.83076 2.20264 6.58831V13.4124C2.20264 14.17 2.63065 14.8625 3.30823 15.2013L9.10612 18.1002L9.41463 17.4831Z"
+                        fill=""></path>
+                </svg>
+                Add New Employees
+            </a>
+
+            <div class="flex items-center justify-end">
+                <select id="employee-status-filter" class="px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200" onchange="applyEmployeeStatusFilter()">
+                    <option value="active" {% if status_filter|default:'active' == 'active' %}selected{% endif %}>Active</option>
+                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Deactive</option>
+                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="custom-scrollbar max-w-full overflow-x-auto overflow-y-visible px-5 sm:px-6">
+            <table class="min-w-full">
+                <thead class="border-y border-gray-100 py-3 dark:border-gray-800">
+                    <tr>
+                        <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6">
+                            <div class="flex items-center">
+                                <p class="font-bold text-gray-500 text-theme-sm dark:text-gray-400">
+                                    Name
+                                </p>
+                            </div>
+                        </th>
+                        <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6">
+                            <div class="flex items-center">
+                                <p class="font-bold text-gray-500 text-theme-sm dark:text-gray-400">
+                                    Email
+                                </p>
+                            </div>
+                        </th>
+                        <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6">
+                            <div class="flex items-center">
+                                <p class="font-bold text-gray-500 text-theme-sm dark:text-gray-400">
+                                    Role
+                                </p>
+                            </div>
+                        </th>
+                        <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6">
+                            <div class="flex items-center">
+                                <p class="font-bold text-gray-500 text-theme-sm dark:text-gray-400">
+                                    Status
+                                </p>
+                            </div>
+                        </th>
+                        <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6">
+                            <div class="flex items-center">
+                                <p class="font-bold text-gray-500 text-theme-sm dark:text-gray-400">
+                                    Actions
+                                </p>
+                            </div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in employees %}
+                    <tr class="border-b border-stroke dark:border-strokedark hover:bg-gray-50 dark:hover:bg-meta-4">
+                        <td class="py-3">
+                            <div class="flex items-center">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                                    {{ user.first_name }} {{ user.last_name }}
+                                </p>
+                            </div>
+                        </td>
+                        <td class="py-3">
+                            <div class="flex items-center">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                                    {{ user.email }}
+                                </p>
+                            </div>
+                        </td>
+                        <td class="py-3">
+                            <div class="flex items-center">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                                    {% if user.is_manager %}
+                                    Branch Manager
+                                    {% else %}
+                                    {{ user.role.name|default:"No Role" }}
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </td>
+                        <td class="py-3">
+                            <div class="flex items-center">
+                                <p
+                                    class="rounded-full px-2 py-0.5 text-theme-xs font-medium text-success-600 {% if user.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %} dark:text-success-500">
+                                    {{ user.is_active|yesno:"Active,Inactive" }}
+                                </p>
+                            </div>
+                        </td>
+                        <td class="py-3 text-center">
+                            <div class="flex items-center gap-3 mx-auto">
+                                <a href="{% url 'branch:employee_edit' user.id %}" class="hover:text-primary">
+                                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                </a>
+                                {% if user.is_active %}
+                                <button type="button" class="text-danger" onclick="openEmployeeDeactivateModal('{{ user.id }}')">
+                                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                      </svg>
+                                </button>
+                                {% else %}
+                                <button type="button" class="text-success" title="Activate" onclick="openEmployeeActivateModal('{{ user.id }}')">
+                                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v6h6" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 20v-6h-6" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 9a9 9 0 00-15.5-3.5L4 10" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 15a9 9 0 0015.5 3.5L20 14" />
+                                    </svg>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr class="border-b border-stroke dark:border-strokedark">
+                        <td colspan="4" class="py-3 text-center">
+                            <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                                No roles found
+                            </p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Employee Activate/Deactivate Modal -->
+<div id="employee-status-modal" class="fixed inset-0 z-[9999] hidden flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/50 z-10" onclick="closeEmployeeStatusModal()"></div>
+    <div class="relative z-20 w-[95%] max-w-2xl rounded-xl bg-white dark:bg-gray-900 shadow-2xl border border-gray-200 dark:border-gray-700 mx-auto">
+        <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
+            <h3 id="employee-status-modal-title" class="text-lg font-semibold text-gray-900 dark:text-white">Confirm</h3>
+            <button type="button" class="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800" onclick="closeEmployeeStatusModal()">
+                <svg class="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div class="p-4">
+            <div class="space-y-3">
+                <div class="rounded border border-gray-200 dark:border-gray-700 p-3">
+                    <div class="text-sm text-gray-600 dark:text-gray-400">Employee</div>
+                    <div id="employee-status-modal-emp" class="text-base font-semibold text-gray-900 dark:text-white">-</div>
+                    <div id="employee-status-modal-email" class="text-sm text-gray-600 dark:text-gray-400">-</div>
+                </div>
+
+                <div class="rounded border border-gray-200 dark:border-gray-700 p-3 overflow-x-auto">
+                    <div class="text-sm font-semibold text-gray-900 dark:text-white mb-2">Activities</div>
+                    <table class="min-w-full text-sm">
+                        <tbody id="employee-status-modal-activity" class="text-gray-700 dark:text-gray-300">
+                            <tr><td class="py-1">Loading...</td><td class="py-1 text-right"></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <form id="employee-status-form" method="post" action="">
+                    {% csrf_token %}
+                    <div class="flex items-center justify-end gap-3">
+                        <button type="button" class="px-4 py-2 text-sm rounded border border-gray-300 text-gray-700 hover:bg-gray-50" onclick="closeEmployeeStatusModal()">Cancel</button>
+                        <button id="employee-status-submit" type="submit" class="px-4 py-2 text-sm rounded bg-error-400 text-white hover:bg-red-700">Confirm</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function applyEmployeeStatusFilter() {
+        const sel = document.getElementById('employee-status-filter');
+        const status = sel ? sel.value : 'active';
+        const url = new URL(window.location.href);
+        url.searchParams.set('status', status);
+        window.location.href = url.toString();
+    }
+
+    function closeEmployeeStatusModal() {
+        const m = document.getElementById('employee-status-modal');
+        if (m) m.classList.add('hidden');
+    }
+
+    function openEmployeeStatusModal() {
+        const m = document.getElementById('employee-status-modal');
+        if (m) m.classList.remove('hidden');
+    }
+
+    function renderEmployeeActivity(activity) {
+        const body = document.getElementById('employee-status-modal-activity');
+        if (!body) return;
+
+        const items = [
+            ['Applications created', activity.applications_created],
+            ['EMI collections', activity.emi_collections],
+            ['EMI verified', activity.emi_verified],
+            ['Document requests', activity.document_requests],
+            ['Document reviews', activity.document_reviews],
+            ['EMI assignments', activity.emi_assignments],
+            ['Loan reschedules', activity.loan_reschedules],
+            ['Loan close requests', activity.loan_close_requests],
+        ];
+
+        body.innerHTML = items.map(([label, value]) => {
+            const v = (value === undefined || value === null) ? 0 : value;
+            return `<tr class="border-t border-gray-100 dark:border-gray-800"><td class="py-1">${label}</td><td class="py-1 text-right font-semibold">${v}</td></tr>`;
+        }).join('');
+    }
+
+    async function loadEmployeeDeactivateInfo(employeeId) {
+        const url = `{% url 'branch:employee_deactivate_info' '0' %}`.replace('0', employeeId);
+        const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+        if (!res.ok) throw new Error('Failed to fetch employee info');
+        return res.json();
+    }
+
+    async function openEmployeeDeactivateModal(employeeId) {
+        document.getElementById('employee-status-modal-title').textContent = 'Deactivate Employee';
+        document.getElementById('employee-status-submit').textContent = 'Deactivate';
+        document.getElementById('employee-status-submit').className = 'px-4 py-2 text-sm rounded bg-red-400 text-white hover:bg-red-700';
+
+        const form = document.getElementById('employee-status-form');
+        form.action = `{% url 'branch:employee_deactive' '0' %}`.replace('0', employeeId);
+
+        document.getElementById('employee-status-modal-emp').textContent = '-';
+        document.getElementById('employee-status-modal-email').textContent = '-';
+        document.getElementById('employee-status-modal-activity').innerHTML = '<tr><td class="py-1">Loading...</td><td class="py-1 text-right"></td></tr>';
+
+        openEmployeeStatusModal();
+
+        try {
+            const data = await loadEmployeeDeactivateInfo(employeeId);
+            document.getElementById('employee-status-modal-emp').textContent = data.employee.name;
+            document.getElementById('employee-status-modal-email').textContent = data.employee.email;
+            renderEmployeeActivity(data.activity);
+        } catch (e) {
+            document.getElementById('employee-status-modal-activity').innerHTML = '<tr><td class="py-1 text-red-600">Unable to load activities</td><td class="py-1"></td></tr>';
+        }
+    }
+
+    async function openEmployeeActivateModal(employeeId) {
+        document.getElementById('employee-status-modal-title').textContent = 'Activate Employee';
+        document.getElementById('employee-status-submit').textContent = 'Activate';
+        document.getElementById('employee-status-submit').className = 'px-4 py-2 text-sm rounded bg-green-500 text-white hover:bg-green-700';
+
+        const form = document.getElementById('employee-status-form');
+        form.action = `{% url 'branch:employee_active' '0' %}`.replace('0', employeeId);
+
+        document.getElementById('employee-status-modal-emp').textContent = '-';
+        document.getElementById('employee-status-modal-email').textContent = '-';
+        document.getElementById('employee-status-modal-activity').innerHTML = '<tr><td class="py-1">Loading...</td><td class="py-1 text-right"></td></tr>';
+
+        openEmployeeStatusModal();
+
+        try {
+            const data = await loadEmployeeDeactivateInfo(employeeId);
+            document.getElementById('employee-status-modal-emp').textContent = data.employee.name;
+            document.getElementById('employee-status-modal-email').textContent = data.employee.email;
+            renderEmployeeActivity(data.activity);
+        } catch (e) {
+            document.getElementById('employee-status-modal-activity').innerHTML = '<tr><td class="py-1 text-red-600">Unable to load activities</td><td class="py-1"></td></tr>';
+        }
+    }
+</script>
+{% endblock %}

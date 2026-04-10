@@ -1,0 +1,413 @@
+{% load static %}
+<form id="branchEditForm" method="post" action="{% url 'hq:edit_branch' branch.branch_id %}" class="space-y-4">
+    {% csrf_token %}
+    <div class="">
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-2">Branch Details</h3>
+        <hr class="my-6">
+        <div class="flex justify-between">
+            <div class="w-[48%]">
+                <!-- Branch Name -->
+                <div class="form-group">
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                        Branch Name <span class="text-meta-1 text-red-500">*</span>
+                    </label>
+                    {{ form.branch_name }}<div class="text-meta-1 text-sm mt-1">{{ form.branch_name.errors }}</div>
+                    {% if form.branch_name.errors %}
+                    <div class="text-meta-1 text-sm mt-1">
+                        {{ form.branch_name.errors|join:", " }}
+                    </div>
+                    {% endif %}
+                </div>
+                <!-- Email -->
+                <div class="form-group">
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                        Email <span class="text-meta-1 text-red-500">*</span>
+                    </label>
+                    {{ form.email }}<div class="text-meta-1 text-sm mt-1">{{ form.email.errors }}</div>
+                    {% if form.email.errors %}
+                    <div class="text-meta-1 text-sm mt-1">
+                        {{ form.email.errors|join:", " }}
+                    </div>
+                    {% endif %}
+                </div>
+                <!-- Contact Number -->
+                <div class="form-group">
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                        Contact Number
+                    </label>
+                    {{ form.contact_number }}<div class="text-meta-1 text-sm mt-1">{{ form.contact_number.errors }}</div>
+                    {% if form.contact_number.errors %}
+                    <div class="text-meta-1 text-sm mt-1">
+                        {{ form.contact_number.errors|join:", " }}
+                    </div>
+                    {% endif %}
+                </div>
+                <!-- Address Line 1 -->
+                <div class="form-group">
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                        Address Line 1 <span class="text-meta-1 text-red-500">*</span>
+                    </label>
+                    {{ form.address_line_1 }}<div class="text-meta-1 text-sm mt-1">{{ form.address_line_1.errors }}</div>
+                    {% if form.address_line_1.errors %}
+                    <div class="text-meta-1 text-sm mt-1">
+                        {{ form.address_line_1.errors|join:", " }}
+                    </div>
+                    {% endif %}
+                </div>
+                <!-- Address Line 2 -->
+                <div class="form-group">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 mt-2">
+                        Address Line 2
+                    </label>
+                    {{ form.address_line_2 }}<div class="text-meta-1 text-sm mt-1">{{ form.address_line_2.errors }}</div>
+                    {% if form.address_line_2.errors %}
+                    <div class="text-meta-1 text-sm mt-1">
+                        {{ form.address_line_2.errors|join:", " }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="w-[48%]">
+                <!-- Postal Code -->
+                <div class="form-group">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 mt-2">
+                        Postal Code <span class="text-meta-1 text-red-500">*</span>
+                    </label>
+                    {{ form.postal_code }}<div class="text-meta-1 text-sm mt-1">{{ form.postal_code.errors }}</div>
+                    {% if form.postal_code.errors %}
+                    <div class="text-meta-1 text-sm mt-1">
+                        {{ form.postal_code.errors|join:", " }}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- City -->
+                <div class="form-group">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 mt-2">
+                        City <span class="text-meta-1 text-red-500">*</span>
+                    </label>
+                    {{ form.city }}<div class="text-meta-1 text-sm mt-1">{{ form.city.errors }}</div>
+                    {% if form.city.errors %}
+                    <div class="text-meta-1 text-sm mt-1">
+                        {{ form.city.errors|join:", " }}
+                    </div>
+                    {% endif %}
+                </div>
+                <!-- State -->
+                <div class="form-group">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 mt-2">
+                        State <span class="text-meta-1 text-red-500">*</span>
+                    </label>
+                    {{ form.state }}<div class="text-meta-1 text-sm mt-1">{{ form.state.errors }}</div>
+                    {% if form.state.errors %}
+                    <div class="text-meta-1 text-sm mt-1">
+                        {{ form.state.errors|join:", " }}
+                    </div>
+                    {% endif %}
+                </div>
+                <!-- District -->
+                <div class="form-group">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 mt-2">
+                        District <span class="text-meta-1 text-red-500">*</span>
+                    </label>
+                    {{ form.district }}<div class="text-meta-1 text-sm mt-1">{{ form.district.errors }}</div>
+                    {% if form.district.errors %}
+                    <div class="text-meta-1 text-sm mt-1">
+                        {{ form.district.errors|join:", " }}
+                    </div>
+                    {% endif %}
+                </div>
+                <!-- Country -->
+                <div class="form-group">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 mt-2">
+                        Country <span class="text-meta-1 text-red-500">*</span>
+                    </label>
+                    {{ form.country }}<div class="text-meta-1 text-sm mt-1">{{ form.country.errors }}</div>
+                    {% if form.country.errors %}
+                    <div class="text-meta-1 text-sm mt-1">
+                        {{ form.country.errors|join:", " }}
+                    </div>
+                    {% endif %}
+                </div>
+                <!-- Status -->
+                <div class="form-group">
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                        <span class="mr-2 ">Status</span>
+                        {{ form.status }}<div class="text-meta-1 text-sm mt-1">{{ form.status.errors }}</div>
+                    </label>
+                    {% if form.status.errors %}
+                    <div class="text-meta-1 text-sm mt-1">
+                        {{ form.status.errors|join:", " }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div>
+        <div class="">
+            <!-- Branch Manager Details -->
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-2">Branch Manager Details</h3>
+            <hr class="my-6">
+            <div class="flex justify-between">
+                <div class="w-[48%]">
+                    <div class="form-group">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Manager ID <span class="text-meta-1 text-red-500">*</span></label>
+                        {{ manager_form.manager_id }}<div class="text-meta-1 text-sm mt-1">{{manager_form.manager_id.errors }}</div>
+                        {% if manager_form.manager_id.errors %}
+                        <div class="text-meta-1 text-sm mt-1">{{ manager_form.manager_id.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">First Name <span class="text-meta-1 text-red-500">*</span></label>
+                        {{ manager_form.first_name }}<div class="text-meta-1 text-sm mt-1">{{manager_form.first_name.errors }}</div>
+                        {% if manager_form.first_name.errors %}
+                        <div class="text-meta-1 text-sm mt-1">{{ manager_form.first_name.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Last Name <span class="text-meta-1 text-red-500">*</span></label>
+                        {{ manager_form.last_name }}<div class="text-meta-1 text-sm mt-1">{{manager_form.last_name.errors }}</div>
+                        {% if manager_form.last_name.errors %}
+                        <div class="text-meta-1 text-sm mt-1">{{ manager_form.last_name.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Email <span class="text-meta-1 text-red-500">*</span></label>
+                        {{ manager_form.email }}<div class="text-meta-1 text-sm mt-1">{{ manager_form.email.errors }}</div>
+                        {% if manager_form.email.errors %}
+                        <div class="text-meta-1 text-sm mt-1">{{ manager_form.email.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Phone Number</label>
+                        {{ manager_form.phone_number }}<div class="text-meta-1 text-sm mt-1">{{manager_form.phone_number.errors}}</div>
+                        {% if manager_form.phone_number.errors %}
+                        <div class="text-meta-1 text-sm mt-1">
+                            {{ manager_form.phone_number.errors|join:", " }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="w-[48%]">
+                    <div class="form-group">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Address</label>
+                        {{ manager_form.address }}<div class="text-meta-1 text-sm mt-1">{{ manager_form.address.errors}}</div>
+                        {% if manager_form.address.errors %}
+                        <div class="text-meta-1 text-sm mt-1">{{ manager_form.address.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Date of Birth</label>
+                        {{ manager_form.date_of_birth }}<div class="text-meta-1 text-sm mt-1">{{manager_form.date_of_birth.errors }}</div>
+                        {% if manager_form.date_of_birth.errors %}
+                        <div class="text-meta-1 text-sm mt-1">{{ manager_form.date_of_birth.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Gender <span class="text-meta-1 text-red-500">*</span></label>
+                        {{ manager_form.gender }}<div class="text-meta-1 text-sm mt-1">
+                            {{ manager_form.gender.errors }}
+                        </div>
+                        {% if manager_form.gender.errors %}
+                        <div class="text-meta-1 text-sm mt-1">{{ manager_form.gender.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Gov ID Type <span class="text-meta-1 text-red-500">*</span></label>
+                        {{ manager_form.gov_id_type }}<div class="text-meta-1 text-sm mt-1">{{manager_form.gov_id_type.errors}}</div>
+                        {% if manager_form.gov_id_type.errors %}
+                        <div class="text-meta-1 text-sm mt-1">{{ manager_form.gov_id_type.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Gov ID Number <span class="text-meta-1 text-red-500">*</span></label>
+                        {{ manager_form.gov_id_number }}<div class="text-meta-1 text-sm mt-1 text-error-500">{{manager_form.gov_id_number.errors }}</div>
+                        {% if manager_form.gov_id_number.errors %}
+                        <div class="text-meta-1 text-sm mt-1 text-error-500">{{ manager_form.gov_id_number.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"><span class="mr-2 ">Status</span>
+                        {{ manager_form.is_active }}<div class="text-meta-1 text-sm mt-1">{{manager_form.is_active.errors }}
+                        </div>
+                    </label>
+                        {% if manager_form.is_active.errors %}
+                        <div class="text-meta-1 text-sm mt-1">{{ manager_form.is_active.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div>
+        <div>
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-2">Login Credentials</h3>
+            <hr class="my-6">
+            <div class="w-full flex flex-col justify-center ">
+                <div class="form-group">
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Email <span class="text-meta-1 text-red-500">*</span></label>
+                    <input
+                        type="email"
+                        id="login-email-display"
+                        class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100 text-gray-700"
+                        readonly
+                        tabindex="-1"
+                        value="{{ manager_form.email.value|default_if_none:'' }}"
+                    />
+                </div>
+                <div class="form-group">
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Password <span class="text-meta-1 text-red-500">*</span></label>
+                    {{ manager_form.password }}<div class="text-meta-1 text-sm mt-1">{{ manager_form.password.errors}}
+                    </div>
+                    {% if manager_form.password.errors %}
+                    <div class="text-meta-1 text-sm mt-1">{{ manager_form.password.errors|join:", " }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Confirm Password <span class="text-meta-1 text-red-500">*</span></label>
+                    {{ manager_form.confirm_password }}<div class="text-meta-1 text-sm mt-1">{{ manager_form.confirm_password.errors }}</div>
+                    {% if manager_form.confirm_password.errors %}
+                    <div class="text-meta-1 text-sm mt-1">{{ manager_form.confirm_password.errors|join:", " }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Form Actions -->
+    <div class="flex items-center justify-end space-x-4 mt-8 gap-3">
+        <button type="button" id="cancelEditBtn" onclick="if(typeof window.closeEditBranchModal === 'function') { window.closeEditBranchModal(); } else { const modal = document.getElementById('editBranchModal'); if(modal) { modal.style.display = 'none'; const container = document.getElementById('editBranchFormContainer'); if(container) { container.innerHTML = ''; } } }"
+            class="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:bg-boxdark dark:text-white dark:border-form-strokedark">
+            Cancel
+        </button>
+        <button type="submit" id="editSubmitBtn" class="inline-flex justify-center rounded-md border border-transparent bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-focus focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:bg-accent dark:hover:bg-accent-focus dark:focus:ring-accent">
+            Update Branch
+        </button>
+    </div>
+</form>
+<script>
+// Execute immediately since this form is loaded dynamically
+(function() {
+    const form = document.getElementById('branchEditForm');
+    if (!form) return;
+    const submitBtn = document.getElementById('editSubmitBtn');
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Updating...';
+        const formData = new FormData(form);
+        let url = form.getAttribute('action');
+        let fetchOptions = {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+            },
+            body: formData
+        };
+        fetch(url, fetchOptions)
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => { throw new Error(data.message || 'Request failed'); });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    window.showToast(data.message, 'success');
+                    setTimeout(function() {
+                        if (typeof window.closeEditBranchModal === 'function') {
+                            window.closeEditBranchModal();
+                        } else {
+                            const modal = document.getElementById('editBranchModal');
+                            if (modal) {
+                                modal.style.display = 'none';
+                                const container = document.getElementById('editBranchFormContainer');
+                                if (container) {
+                                    container.innerHTML = '';
+                                }
+                            }
+                        }
+                    }, 1000);
+                } else if (data.errors) {
+                    const errorDivs = document.querySelectorAll('.text-meta-1');
+                    errorDivs.forEach(div => div.remove());
+                    const errors = typeof data.errors === 'string' ? JSON.parse(data.errors) : data.errors;
+                    let firstErrorShown = false;
+                    for (const field in errors) {
+                        const fieldErrors = errors[field];
+                        const fieldElement = form.querySelector(`[name="${field}"]`);
+                        if (fieldElement) {
+                            const errorDiv = document.createElement('div');
+                            errorDiv.className = 'text-meta-1 text-sm mt-1';
+                            errorDiv.textContent = Array.isArray(fieldErrors) ? fieldErrors.join(', ') : fieldErrors;
+                            fieldElement.parentElement.appendChild(errorDiv);
+                            if (!firstErrorShown) {
+                                const firstError = Array.isArray(fieldErrors) ? fieldErrors[0] : fieldErrors;
+                                window.showToast(firstError, 'error');
+                                firstErrorShown = true;
+                            }
+                        }
+                    }
+                } else if (data.message) {
+                    window.showToast(data.message, 'error');
+                } else {
+                    window.showToast('Failed to update branch. Please try again.', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                window.showToast(error.message || 'Error: Something went wrong. Please try again.', 'error');
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Update Branch';
+            });
+    });
+
+    // Try by id, then by name (all possible variants)
+    var managerEmailInput =
+        document.getElementById('id_manager-email') ||
+        document.getElementById('id_manager_email') ||
+        document.querySelector('[name="manager-email"]') ||
+        document.querySelector('[name="manager[email]"]') ||
+        document.querySelector('input[type="email"][name*="email"]');
+
+    var loginEmailDisplay = document.getElementById('login-email-display');
+    if (managerEmailInput && loginEmailDisplay) {
+        loginEmailDisplay.value = managerEmailInput.value;
+        managerEmailInput.addEventListener('input', function() {
+            loginEmailDisplay.value = managerEmailInput.value;
+        });
+        managerEmailInput.addEventListener('change', function() {
+            loginEmailDisplay.value = managerEmailInput.value;
+        });
+    } else {
+        // Debug: log if not found
+        console.log('Manager email input or login credential display not found', managerEmailInput, loginEmailDisplay);
+    }
+
+    // Add event listener as backup for cancel button
+    var cancelBtn = document.getElementById('cancelEditBtn');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            // console.log('Cancel button clicked via event listener'); // Debug log
+            if (typeof window.closeEditBranchModal === 'function') {
+                // console.log('Calling closeEditBranchModal function'); // Debug log
+                window.closeEditBranchModal();
+            } else {
+                // console.log('closeEditBranchModal function not found, using fallback'); // Debug log
+                const modal = document.getElementById('editBranchModal');
+                if (modal) {
+                    modal.style.display = 'none';
+                    const container = document.getElementById('editBranchFormContainer');
+                    if (container) {
+                        container.innerHTML = '';
+                    }
+                }
+            }
+        });
+    }
+})();
+</script> 

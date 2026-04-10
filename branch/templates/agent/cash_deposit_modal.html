@@ -1,0 +1,642 @@
+{% with title=title|default:"Receive From Credit Officer" fetch_url=fetch_url|default_if_none:"" %}
+<!-- Collect From Agent Modal (reusable) -->
+<div id="collect-from-agent-modal" class="fixed inset-0 z-[9999] hidden flex items-center justify-center" data-fetch-url="{{ fetch_url }}">
+  <div class="absolute inset-0 bg-black/50 z-10" onclick="closeCollectFromAgentModal()"></div>
+  <div class="relative z-20 w-[95%] max-w-7xl max-h-[90vh] overflow-auto text-gray-900 dark:text-gray-500 rounded-xl bg-white dark:bg-gray-900 shadow-2xl border border-gray-200 dark:border-gray-700 mx-auto">
+    <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ title }}</h3>
+      <button type="button" class="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800" onclick="closeCollectFromAgentModal()">
+        <svg class="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="p-4">
+      <div class="space-y-4">
+        <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4 overflow-x-auto">
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="text-sm font-semibold">Collected money deposit: <span class="text-lg font-bold text-orange-700">₹ {{ unverified_collected_amount|default:0|floatformat:2 }}</span></h4>
+            <button type="button" class="px-3 py-1.5 text-xs rounded border border-gray-300 text-gray-700 hover:bg-gray-50" onclick="addCustomDenominationRow()">+ Custom denomination</button>
+          </div>
+          <table class="min-w-full text-sm text-center">
+            <thead>
+              <tr class="bg-gray-50">
+                <th class="border border-gray-200 px-2 py-1">Value</th>
+                <th class="border border-gray-200 px-2 py-1">No</th>
+                <th class="border border-gray-200 px-2 py-1">Total</th>
+                <th class="border border-gray-200 px-2 py-1">Coin</th>
+                <th class="border border-gray-200 px-2 py-1">Cash</th>
+              </tr>
+            </thead>
+            <tbody id="deposit-rows">
+              <tr>
+                <td class="border px-2 py-1"><input type="number" value="500" readonly class="w-24 border-0 rounded px-2 py-1 text-right bg-gray-50" /></td>
+                <td class="border px-2 py-1"><input type="number" step="1" min="0" class="w-20 border rounded px-2 py-1 text-right" placeholder="0" oninput="recalcDepositTotals()"/></td>
+                <td class="border px-2 py-1 text-right"><span class="row-total">0.00</span></td>
+                <td class="border px-2 py-1"><input type="number" step="1" min="0" class="w-20 border rounded px-2 py-1 text-right" placeholder="0" oninput="recalcDepositTotals()"/></td>
+                <td class="border px-2 py-1"><input type="number" step="1" min="0" class="w-24 border-0 rounded focus:ring-0 px-2 py-1 text-right" placeholder="0" oninput="recalcDepositTotals()"/></td>
+              </tr>
+              <tr>
+                <td class="border px-2 py-1"><input type="number" value="200" readonly class="w-24 border-0 rounded px-2 py-1 text-right bg-gray-50" /></td>
+                <td class="border px-2 py-1"><input type="number" step="1" min="0" class="w-20 border rounded px-2 py-1 text-right" placeholder="0" oninput="recalcDepositTotals()"/></td>
+                <td class="border px-2 py-1 text-right"><span class="row-total">0.00</span></td>
+                <td class="border px-2 py-1"><input type="number" step="1" min="0" class="w-20 border rounded px-2 py-1 text-right" placeholder="0" oninput="recalcDepositTotals()"/></td>
+                <td class="border px-2 py-1"><input type="number" step="1" min="0" class="w-24 border-0 rounded focus:ring-0 px-2 py-1 text-right" placeholder="0" oninput="recalcDepositTotals()"/></td>
+              </tr>
+              <tr>
+                <td class="border px-2 py-1"><input type="number" value="100" readonly class="w-24 border-0 rounded px-2 py-1 text-right bg-gray-50" /></td>
+                <td class="border px-2 py-1"><input type="number" step="1" min="0" class="w-20 border rounded px-2 py-1 text-right" placeholder="0" oninput="recalcDepositTotals()"/></td>
+                <td class="border px-2 py-1 text-right"><span class="row-total">0.00</span></td>
+                <td class="border px-2 py-1"><input type="number" step="1" min="0" class="w-20 border rounded px-2 py-1 text-right" placeholder="0" oninput="recalcDepositTotals()"/></td>
+                <td class="border px-2 py-1"><input type="number" step="1" min="0" class="w-24 border-0 rounded focus:ring-0 px-2 py-1 text-right" placeholder="0" oninput="recalcDepositTotals()"/></td>
+              </tr>
+              <tr>
+                <td class="border px-2 py-1"><input type="number" value="50" readonly class="w-24 border-0 rounded px-2 py-1 text-right bg-gray-50" /></td>
+                <td class="border px-2 py-1"><input type="number" step="1" min="0" class="w-20 border rounded px-2 py-1 text-right" placeholder="0" oninput="recalcDepositTotals()"/></td>
+                <td class="border px-2 py-1 text-right"><span class="row-total">0.00</span></td>
+                <td class="border px-2 py-1"><input type="number" step="1" min="0" class="w-20 border rounded px-2 py-1 text-right" placeholder="0" oninput="recalcDepositTotals()"/></td>
+                <td class="border px-2 py-1"><input type="number" step="1" min="0" class="w-24 border-0 rounded focus:ring-0 px-2 py-1 text-right" placeholder="0" oninput="recalcDepositTotals()"/></td>
+              </tr>
+              <tr>
+                <td class="border px-2 py-1"><input type="number" value="20" readonly class="w-24 border-0 rounded px-2 py-1 text-right bg-gray-50" /></td>
+                <td class="border px-2 py-1"><input type="number" step="1" min="0" class="w-20 border rounded px-2 py-1 text-right" placeholder="0" oninput="recalcDepositTotals()"/></td>
+                <td class="border px-2 py-1 text-right"><span class="row-total">0.00</span></td>
+                <td class="border px-2 py-1"><input type="number" step="1" min="0" class="w-20 border rounded px-2 py-1 text-right" placeholder="0" oninput="recalcDepositTotals()"/></td>
+                <td class="border px-2 py-1"><input type="number" step="1" min="0" class="w-24 border-0 rounded focus:ring-0 px-2 py-1 text-right" placeholder="0" oninput="recalcDepositTotals()"/></td>
+              </tr>
+              <tr>
+                <td class="border px-2 py-1"><input type="number" value="10" readonly class="w-24 border-0 rounded px-2 py-1 text-right bg-gray-50" /></td>
+                <td class="border px-2 py-1"><input type="number" step="1" min="0" class="w-20 border rounded px-2 py-1 text-right" placeholder="0" oninput="recalcDepositTotals()"/></td>
+                <td class="border px-2 py-1 text-right"><span class="row-total">0.00</span></td>
+                <td class="border px-2 py-1"><input type="number" step="1" min="0" class="w-20 border rounded px-2 py-1 text-right" placeholder="0" oninput="recalcDepositTotals()"/></td>
+                <td class="border px-2 py-1"><input type="number" step="1" min="0" class="w-24 border-0 rounded focus:ring-0 px-2 py-1 text-right" placeholder="0" oninput="recalcDepositTotals()"/></td>
+              </tr>
+              <tr>
+                <td class="border px-2 py-1"><input type="number" value="5" readonly class="w-24 border-0 rounded px-2 py-1 text-right bg-gray-50" /></td>
+                <td class="border px-2 py-1"><input type="number" step="1" min="0" class="w-20 border rounded px-2 py-1 text-right" placeholder="0" oninput="recalcDepositTotals()"/></td>
+                <td class="border px-2 py-1 text-right"><span class="row-total">0.00</span></td>
+                <td class="border px-2 py-1"><input type="number" step="1" min="0" class="w-20 border rounded px-2 py-1 text-right" placeholder="0" oninput="recalcDepositTotals()"/></td>
+                <td class="border px-2 py-1"><input type="number" step="1" min="0" class="w-24 border-0 rounded focus:ring-0 px-2 py-1 text-right" placeholder="0" oninput="recalcDepositTotals()"/></td>
+              </tr>
+              <tr>
+                <td class="border px-2 py-1"><input type="number" value="2" readonly class="w-24 border-0 rounded px-2 py-1 text-right bg-gray-50" /></td>
+                <td class="border px-2 py-1"><input type="number" step="1" min="0" class="w-20 border rounded px-2 py-1 text-right" placeholder="0" oninput="recalcDepositTotals()"/></td>
+                <td class="border px-2 py-1 text-right"><span class="row-total">0.00</span></td>
+                <td class="border px-2 py-1"><input type="number" step="1" min="0" class="w-20 border rounded px-2 py-1 text-right" placeholder="0" oninput="recalcDepositTotals()"/></td>
+                <td class="border px-2 py-1"><input type="number" step="1" min="0" class="w-24 border-0 rounded focus:ring-0 px-2 py-1 text-right" placeholder="0" oninput="recalcDepositTotals()"/></td>
+              </tr>
+              <tr>
+                <td class="border px-2 py-1"><input type="number" value="1" readonly class="w-24 border-0 rounded px-2 py-1 text-right bg-gray-50" /></td>
+                <td class="border px-2 py-1"><input type="number" step="1" min="0" class="w-20 border rounded px-2 py-1 text-right" placeholder="0" oninput="recalcDepositTotals()"/></td>
+                <td class="border px-2 py-1 text-right"><span class="row-total">0.00</span></td>
+                <td class="border px-2 py-1"><input type="number" step="1" min="0" class="w-20 border rounded px-2 py-1 text-right" placeholder="0" oninput="recalcDepositTotals()"/></td>
+                <td class="border px-2 py-1"><input type="number" step="1" min="0" class="w-24 border-0 rounded focus:ring-0 px-2 py-1 text-right" placeholder="0" oninput="recalcDepositTotals()"/></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="mt-3 grid grid-cols-1 md:grid-cols-5 gap-3">
+            <div class="rounded border border-gray-200 p-2 text-sm">
+              <div class="text-gray-600">Subtotal</div>
+              <div class="text-lg font-semibold" id="subtotal-amount">0.00</div>
+            </div>
+            <div class="rounded border border-gray-200 p-2 text-sm">
+              <div class="text-gray-600">Total Coin</div>
+              <div class="text-lg font-semibold" id="coin-total">0.00</div>
+            </div>
+            <div class="rounded border border-gray-200 p-2 text-sm">
+              <div class="text-gray-600">Total Cash</div>
+              <div class="text-lg font-semibold" id="cash-total">0.00</div>
+            </div>
+            <div class="rounded border border-gray-200 p-2 text-sm">
+              <label class="block text-gray-600">Online deposited</label>
+              <input id="online-deposited" type="number" step="0.01" min="0" class="mt-1 w-full border rounded px-2 py-1 text-right" placeholder="0" oninput="recalcDepositTotals(); verifyDepositAgainstAgentTotal(); toggleOnlineAccountSelect();" />
+            </div>
+            <div class="rounded border border-gray-200 p-2 text-sm">
+              <div class="text-gray-600">Grand Total</div>
+              <div class="text-lg font-semibold" id="grand-total">0.00</div>
+            </div>
+          </div>
+          <div id="online-account-wrapper" class="flex items-center justify-end gap-2 pt-2 text-sm hidden">
+              <label for="online-branch-account" class="text-end block text-gray-600 dark:text-gray-400 w-[50%]">Select branch bank account for online amount: </label>
+              <select id="online-branch-account" class="mt-1 w-[50%] border rounded px-2 py-1">
+                <option value="">-- Select account --</option>
+                {% if branch_accounts %}
+                  {% for acc in branch_accounts %}
+                    <option value="{{ acc.id }}">{{ acc.bank_name }} - {{ acc.account_number }}</option>
+                  {% endfor %}
+                {% endif %}
+              </select>
+          </div>
+        </div>
+
+        <div class="mt-3 flex items-center justify-center gap-2">
+          <label for="verify-deposit-checkbox" class="text-sm text-gray-700">Check & confirm amounts match agent collected total</label>
+          <input id="verify-deposit-checkbox" type="checkbox" class="h-4 w-4" data-expected="0" onchange="fetchTodayCollectionsAndVerify()" disabled />
+          <span id="verify-deposit-status" class="text-xs text-red-600 hidden"></span>
+        </div>
+
+        <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4 overflow-x-auto">
+          <h4 class="text-sm font-semibold mb-2">Category totals</h4>
+          <table class="min-w-full text-sm">
+            <thead>
+              <tr class="bg-gray-50">
+                <th class="text-left border border-gray-200 px-2 py-1">Category</th>
+                <th class="text-right border border-gray-200 px-2 py-1">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="border px-2 py-1">Daily loan</td>
+                <td class="border px-2 py-1 text-right"><span id="amt-daily" data-value="{{ category_totals.daily|default:0 }}">{{ category_totals.daily|default:0|floatformat:2 }}</span></td>
+              </tr>
+              <tr>
+                <td class="border px-2 py-1">Weekly loan</td>
+                <td class="border px-2 py-1 text-right"><span id="amt-weekly" data-value="{{ category_totals.weekly|default:0 }}">{{ category_totals.weekly|default:0|floatformat:2 }}</span></td>
+              </tr>
+              <tr>
+                <td class="border px-2 py-1">Saving deposit</td>
+                <td class="border px-2 py-1 text-right"><span id="amt-saving" data-value="{{ category_totals.saving|default:0 }}">{{ category_totals.saving|default:0|floatformat:2 }}</span></td>
+              </tr>
+              <tr>
+                <td class="border px-2 py-1">Others (if any)</td>
+                <td class="border px-2 py-1 text-right"><span id="amt-others" data-value="{{ category_totals.others|default:0 }}">{{ category_totals.others|default:0|floatformat:2 }}</span></td>
+              </tr>
+              <tr class="bg-gray-50 font-semibold">
+                <td class="border px-2 py-1">Total</td>
+                <td class="border px-2 py-1 text-right"><span id="categories-total">0.00</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="flex items-center justify-end gap-3">
+          <button type="button" class="px-4 py-2 text-sm rounded border border-gray-300 text-gray-700 hover:bg-gray-50" onclick="closeCollectFromAgentModal()">Cancel</button>
+          <button id="confirm-receive-btn" type="button" class="px-4 py-2 text-sm rounded bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed" onclick="confirmCollectFromAgent()" disabled>Confirm & Receive</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function setIntegerStepForModal(){
+    const modal = document.getElementById('collect-from-agent-modal');
+    if (!modal) return;
+    const inputs = modal.querySelectorAll('input[type="number"]');
+    inputs.forEach(inp => {
+      if (inp && inp._integerRoundHandler) {
+        inp.removeEventListener('change', inp._integerRoundHandler);
+        inp._integerRoundHandler = null;
+      }
+      if (inp && inp.id === 'online-deposited') {
+        inp.step = '0.01';
+        inp.min = '0';
+        return;
+      }
+      if (!inp.hasAttribute('readonly')) {
+        inp.step = '1';
+        inp.min = '0';
+      }
+      const handler = () => {
+        const v = parseFloat(inp.value || '0');
+        const n = isNaN(v) ? 0 : Math.max(0, Math.round(v));
+        inp.value = String(n);
+      };
+      inp._integerRoundHandler = handler;
+      inp.addEventListener('change', handler);
+    });
+
+    const cashInputs = modal.querySelectorAll('#deposit-rows tr td:nth-child(5) input');
+    cashInputs.forEach(ci => {
+      ci.readOnly = true;
+      ci.classList.add('bg-gray-50');
+    });
+  }
+
+  async function fetchTodayCollectionsAndVerify(){
+    const cb = document.getElementById('verify-deposit-checkbox');
+    if (!cb) return;
+    setDepositInputsDisabled(!!cb.checked);
+    if (!cb.checked) {
+      ['amt-daily','amt-weekly','amt-saving','amt-others'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.dataset.penalty = '0';
+          el.textContent = '0.00';
+          const n = el.nextElementSibling;
+          if (n && n.classList && n.classList.contains('pen-badge') && n.parentNode) {
+            n.parentNode.removeChild(n);
+          }
+        }
+      });
+      verifyDepositAgainstAgentTotal();
+      if (typeof recalcDepositTotals === 'function') recalcDepositTotals();
+      return;
+    }
+
+    try {
+      const root = document.getElementById('collect-from-agent-modal');
+      const url = (root && root.dataset && root.dataset.fetchUrl) ? root.dataset.fetchUrl : `/branch/api/agent/{{ agent.agent_id }}/today-collections/`;
+      const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+      if (!res.ok) throw new Error('Failed to fetch');
+      const data = await res.json();
+      const penalty = Number(data.penalty_received || 0);
+      const total = Number(data.total_amount || 0);
+      const expectedWithPenalty = total + penalty;
+
+      const cats = data.categories || {};
+      const pCats = data.penalty_categories || {};
+
+      const ensurePenBadge = (id, create=false) => {
+        const el = document.getElementById(id);
+        if (!el || !el.parentNode) return null;
+        let badge = el.nextElementSibling;
+        if (badge && (!badge.classList || !badge.classList.contains('pen-badge'))) {
+          badge = null;
+        }
+        if (!badge && create) {
+          badge = document.createElement('span');
+          badge.className = 'pen-badge ml-2 text-xs text-gray-500';
+          el.parentNode.insertBefore(badge, el.nextSibling);
+        }
+        return badge;
+      };
+
+      const setCatVal = (id, v) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const val = Number(v || 0).toFixed(2);
+        el.dataset.value = val;
+        el.textContent = val; // show base visibly; setPenVal will adjust for daily/weekly
+      };
+      const setPenVal = (id, v) => {
+        const allow = (id === 'amt-daily' || id === 'amt-weekly');
+        const pen = Number(v || 0);
+        const baseEl = document.getElementById(id);
+        const base = baseEl ? Number(baseEl.dataset.value || baseEl.textContent || 0) : 0;
+        if (baseEl) baseEl.dataset.penalty = Number(allow ? pen : 0).toFixed(2);
+        if (allow && pen > 0) {
+          const badge = ensurePenBadge(id, true);
+          const total = (base + pen).toFixed(2);
+          if (badge) badge.textContent = ` + Penalty ${pen.toFixed(2)} = ${total}`;
+          if (baseEl) baseEl.textContent = total; // reflect base+penalty visibly
+        } else {
+          const badge = ensurePenBadge(id, false);
+          if (badge && badge.parentNode) badge.parentNode.removeChild(badge);
+          if (baseEl) baseEl.textContent = Number(base || 0).toFixed(2); // show base only
+        }
+      };
+
+      setCatVal('amt-daily', cats.daily);   setPenVal('amt-daily', pCats.daily);
+      setCatVal('amt-weekly', cats.weekly); setPenVal('amt-weekly', pCats.weekly);
+      setCatVal('amt-saving', cats.saving); setPenVal('amt-saving', pCats.saving);
+      setCatVal('amt-others', cats.others); setPenVal('amt-others', pCats.others);
+
+      cb.dataset.expected = String(expectedWithPenalty || 0);
+      verifyDepositAgainstAgentTotal();
+      if (typeof recalcDepositTotals === 'function') recalcDepositTotals();
+    } catch (e) {
+      cb.dataset.expected = '0';
+      ['amt-daily','amt-weekly','amt-saving','amt-others'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.dataset.value = '0'; el.dataset.penalty = '0'; el.textContent = '0.00'; }
+        // clear penalty badge if present
+        const n = el ? el.nextElementSibling : null;
+        if (n && n.classList && n.classList.contains('pen-badge')) n.textContent = '';
+      });
+      verifyDepositAgainstAgentTotal();
+      if (typeof recalcDepositTotals === 'function') recalcDepositTotals();
+    }
+  }
+
+  function openCollectFromAgentModal(){
+    const m = document.getElementById('collect-from-agent-modal');
+    if (m) {
+      m.classList.remove('hidden');
+      recalcDepositTotals();
+      setIntegerStepForModal();
+      const cb = document.getElementById('verify-deposit-checkbox');
+      if (cb) { cb.checked = false; }
+      setDepositInputsDisabled(false);
+      const confirmBtn = document.getElementById('confirm-receive-btn');
+      if (confirmBtn) confirmBtn.disabled = true;
+      verifyDepositAgainstAgentTotal(false);
+    }
+  }
+  function closeCollectFromAgentModal(){
+    const m = document.getElementById('collect-from-agent-modal');
+    if (m) m.classList.add('hidden');
+  }
+  function addCustomDenominationRow(){
+    const tbody = document.getElementById('deposit-rows');
+    if (!tbody) return;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="border px-2 py-1"><input type="number" step="1" min="0" class="w-24 border rounded px-2 py-1 text-right" placeholder="0" oninput="recalcDepositTotals()"/></td>
+      <td class="border px-2 py-1"><input type="number" step="1" min="0" class="w-20 border rounded px-2 py-1 text-right" placeholder="0" oninput="recalcDepositTotals()"/></td>
+      <td class="border px-2 py-1 text-right"><span class="row-total">0.00</span></td>
+      <td class="border px-2 py-1"><input type="number" step="1" min="0" class="w-20 border rounded px-2 py-1 text-right" placeholder="0" oninput="recalcDepositTotals()"/></td>
+      <td class="border px-2 py-1">
+        <div class="flex items-center gap-2">
+          <input type="number" step="1" min="0" class="w-24 border rounded px-2 py-1 text-right" placeholder="0" oninput="recalcDepositTotals()"/>
+          <button type="button" class="text-red-600 hover:text-red-700" title="Delete row" onclick="removeCustomDenominationRow(this)">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0h8a1 1 0 001-1V5a1 1 0 00-1-1h-3.5l-.707-.707A1 1 0 0010.586 3H9a1 1 0 00-1 1v2z"/></svg>
+          </button>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+    setIntegerStepForModal();
+    recalcDepositTotals();
+    const cb = document.getElementById('verify-deposit-checkbox');
+    if (cb && cb.checked) setDepositInputsDisabled(true);
+  }
+  function removeCustomDenominationRow(el){
+    const tr = el && el.closest('tr');
+    if (tr && tr.parentNode) {
+      tr.parentNode.removeChild(tr);
+      recalcDepositTotals();
+    }
+  }
+  function verifyDepositAgainstAgentTotal(){
+    const cb = document.getElementById('verify-deposit-checkbox');
+    const status = document.getElementById('verify-deposit-status');
+    const expected = parseFloat(cb?.dataset.expected || '0') || 0;
+
+    recalcDepositTotals();
+
+    const grandText = document.getElementById('grand-total')?.textContent || '0';
+    const grand = parseFloat(grandText.replace(/,/g, '')) || 0;
+
+    const setCatsTo = (val) => {
+      ['amt-daily','amt-weekly','amt-saving','amt-others'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (val === null) {
+          const base = parseFloat(el.dataset?.value || el.textContent || 0) || 0;
+          const pen = parseFloat(el.dataset?.penalty || '0') || 0;
+          if ((id === 'amt-daily' || id === 'amt-weekly') && pen > 0) {
+            el.textContent = (base + pen).toFixed(2);
+          } else {
+            el.textContent = base.toFixed(2);
+          }
+        } else {
+          el.textContent = Number(val).toFixed(2);
+          el.dataset.penalty = '0';
+        }
+      });
+      recalcDepositTotals();
+    };
+
+    const confirmBtn = document.getElementById('confirm-receive-btn');
+
+    let enable = false;
+    if (cb && cb.checked) {
+      const online = parseFloat((document.getElementById('online-deposited')?.value||'0')) || 0;
+      // Block when branch-entered Grand Total exceeds agent collected amount
+      if (grand > expected) {
+        if (status) { status.textContent = 'Grand Total amount is greater than collected amount'; status.classList.remove('hidden'); }
+        setCatsTo(null);
+        enable = false;
+      } else 
+
+      // New rule: if agent collected total is 0 but online > 0, it's a mismatch
+      if (Math.round(expected) === 0 && online > 0) {
+        if (status) { status.textContent = 'Amount mismatch'; status.classList.remove('hidden'); }
+        setCatsTo(0);
+        enable = false;
+      } else if (online > 0) {
+        const sel = document.getElementById('online-branch-account');
+        const hasAccount = !!(sel && sel.value);
+        if (!hasAccount) {
+          if (status) { status.textContent = 'Select branch account for online amount'; status.classList.remove('hidden'); }
+          setCatsTo(null);
+          enable = false;
+        } else if (Math.round(grand) !== Math.round(expected)) {
+          if (status) { status.textContent = 'Amount mismatch'; status.classList.remove('hidden'); }
+          setCatsTo(0);
+          enable = false;
+        } else {
+          if (status) { status.textContent = ''; status.classList.add('hidden'); }
+          setCatsTo(null);
+          enable = true;
+        }
+      } else if (Math.round(grand) === Math.round(expected)) {
+        if (status) { status.textContent = ''; status.classList.add('hidden'); }
+        setCatsTo(null);
+        enable = true;
+      } else {
+        if (status) { status.textContent = 'Amount mismatch'; status.classList.remove('hidden'); }
+        setCatsTo(0);
+        enable = false;
+      }
+    } else {
+      if (status) status.classList.add('hidden');
+      setCatsTo(0);
+      enable = false;
+    }
+    if (confirmBtn) confirmBtn.disabled = !enable;
+  }
+
+  function recalcDepositTotals(){
+    const rows = Array.from(document.querySelectorAll('#deposit-rows tr'));
+    let subtotal = 0;
+    let coinTotal = 0;
+    let cashTotal = 0;
+    rows.forEach(r => {
+      const val = parseFloat((r.querySelector('td:nth-child(1) input')?.value||'0')) || 0;
+      const qty = parseFloat((r.querySelector('td:nth-child(2) input')?.value||'0')) || 0;
+      const coinInput = r.querySelector('td:nth-child(4) input');
+      const cashInput = r.querySelector('td:nth-child(5) input');
+      const line = (val * qty);
+      const totalEl = r.querySelector('.row-total');
+      if (totalEl) totalEl.textContent = line.toFixed(2);
+      subtotal += line;
+      let coin = parseFloat((coinInput?.value||'0')) || 0;
+      coin = Math.round(Math.max(0, Math.min(line, coin)));
+      if (coinInput) coinInput.value = String(coin);
+      const cash = Math.max(0, Math.round(line - coin));
+      if (cashInput) cashInput.value = String(cash);
+      coinTotal += coin;
+      cashTotal += cash;
+    });
+    const online = parseFloat((document.getElementById('online-deposited')?.value||'0')) || 0;
+    const grand = subtotal + online;
+    const subtotalEl = document.getElementById('subtotal-amount');
+    const grandEl = document.getElementById('grand-total');
+    const coinEl = document.getElementById('coin-total');
+    const cashEl = document.getElementById('cash-total');
+    if (subtotalEl) subtotalEl.textContent = subtotal.toFixed(2);
+    if (grandEl) grandEl.textContent = grand.toFixed(2);
+    if (coinEl) coinEl.textContent = coinTotal.toFixed(2);
+    if (cashEl) cashEl.textContent = cashTotal.toFixed(2);
+
+    const readSpan = (id) => {
+      const el = document.getElementById(id);
+      if (!el) return 0;
+      const v = el.textContent;
+      const n = parseFloat((v || '').toString().replace(/,/g, ''));
+      return isNaN(n) ? 0 : n;
+    };
+    const cDaily = readSpan('amt-daily');
+    const cWeekly = readSpan('amt-weekly');
+    const cSaving = readSpan('amt-saving');
+    const cOthers = readSpan('amt-others');
+    const catTotal = cDaily + cWeekly + cSaving + cOthers;
+    const catEl = document.getElementById('categories-total');
+    if (catEl) catEl.textContent = catTotal.toFixed(2);
+    updateCheckboxAvailability();
+  }
+
+  function toggleOnlineAccountSelect(){
+    const online = parseFloat((document.getElementById('online-deposited')?.value||'0')) || 0;
+    const wrap = document.getElementById('online-account-wrapper');
+    if (!wrap) return;
+    if (online > 0) {
+      wrap.classList.remove('hidden');
+    } else {
+      wrap.classList.add('hidden');
+      const sel = document.getElementById('online-branch-account');
+      if (sel) sel.value = '';
+    }
+  }
+
+  function updateCheckboxAvailability(){
+    const cb = document.getElementById('verify-deposit-checkbox');
+    if (!cb) return;
+    const rows = Array.from(document.querySelectorAll('#deposit-rows tr'));
+    let hasQty = false, hasCoin = false;
+    for (const r of rows) {
+      const qty = parseFloat((r.querySelector('td:nth-child(2) input')?.value||'0')) || 0;
+      const coin = parseFloat((r.querySelector('td:nth-child(4) input')?.value||'0')) || 0;
+      if (qty > 0) hasQty = true;
+      if (coin > 0) hasCoin = true;
+      if (hasQty || hasCoin) break;
+    }
+    const online = parseFloat((document.getElementById('online-deposited')?.value||'0')) || 0;
+    const shouldEnable = hasQty || hasCoin || online > 0;
+    cb.disabled = !shouldEnable;
+    if (!shouldEnable) {
+      cb.checked = false;
+      setDepositInputsDisabled(false);
+      const status = document.getElementById('verify-deposit-status');
+      if (status) { status.textContent = ''; status.classList.add('hidden'); }
+      ['amt-daily','amt-weekly','amt-saving','amt-others'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.dataset.penalty = '0';
+          el.textContent = '0.00';
+          const n = el.nextElementSibling;
+          if (n && n.classList && n.classList.contains('pen-badge') && n.parentNode) {
+            n.parentNode.removeChild(n);
+          }
+        }
+      });
+      const catEl = document.getElementById('categories-total');
+      if (catEl) catEl.textContent = '0.00';
+      const confirmBtn = document.getElementById('confirm-receive-btn');
+      if (confirmBtn) confirmBtn.disabled = true;
+    }
+  }
+  function confirmCollectFromAgent(){
+    recalcDepositTotals();
+    const btn = document.getElementById('confirm-receive-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+
+    const agentId = "{{ agent.agent_id }}";
+    const rows = Array.from(document.querySelectorAll('#deposit-rows tr'));
+    const denominations = rows.map(r => {
+      const value = parseInt(r.querySelector('td:nth-child(1) input')?.value || '0', 10) || 0;
+      const qty = parseInt(r.querySelector('td:nth-child(2) input')?.value || '0', 10) || 0;
+      const line_total = parseFloat(r.querySelector('.row-total')?.textContent || '0') || 0;
+      const coin = parseInt(r.querySelector('td:nth-child(4) input')?.value || '0', 10) || 0;
+      const cash = parseInt(r.querySelector('td:nth-child(5) input')?.value || '0', 10) || 0;
+      return { value, qty, line_total, coin, cash };
+    });
+
+    const subtotal = parseFloat(document.getElementById('subtotal-amount')?.textContent || '0') || 0;
+    const online_amount = parseFloat(document.getElementById('online-deposited')?.value || '0') || 0;
+    const grand_total = parseFloat(document.getElementById('grand-total')?.textContent || '0') || 0;
+
+    const cats = {
+      daily: parseFloat(document.getElementById('amt-daily')?.dataset.value || '0') || 0,
+      weekly: parseFloat(document.getElementById('amt-weekly')?.dataset.value || '0') || 0,
+      saving: parseFloat(document.getElementById('amt-saving')?.dataset.value || '0') || 0,
+      others: parseFloat(document.getElementById('amt-others')?.dataset.value || '0') || 0,
+    };
+
+    const cb = document.getElementById('verify-deposit-checkbox');
+    const expected_total = parseFloat(cb?.dataset.expected || '0') || 0;
+
+    // Front-end guard: Grand Total must not exceed collected amount
+    if (grand_total > expected_total) {
+      window.showToast('Grand Total amount is greater than collected amount', 'error');
+      if (btn) { btn.disabled = false; btn.textContent = 'Confirm & Receive'; }
+      return;
+    }
+    // Also guard when Grand Total is less than collected amount (mismatch)
+    if (grand_total < expected_total) {
+      window.showToast('Amount mismatch', 'error');
+      if (btn) { btn.disabled = false; btn.textContent = 'Confirm & Receive'; }
+      return;
+    }
+
+    const payload = {
+      expected_total,
+      online_amount,
+      categories: cats,
+      denominations
+    };
+
+    const sel = document.getElementById('online-branch-account');
+    if (online_amount > 0 && sel && sel.value) {
+      payload.branch_account_id = sel.value;
+    }
+
+    // If backend cannot infer receiver from session, include it explicitly
+    const receivedBy = "{{ request.user.branchemployee.employee_id|default:'' }}";
+    if (receivedBy) {
+      payload.received_by = receivedBy;
+    }
+
+    const csrftoken = getCookie('csrftoken');
+    fetch(`/branch/api/agent/${agentId}/deposit/receive/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken || ''
+      },
+      body: JSON.stringify(payload)
+    }).then(async (res) => {
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: 'Failed to save deposit' }));
+        throw new Error(err.detail || 'Failed to save deposit');
+      }
+      return res.json();
+    }).then((data) => {
+      window.showToast(`Saved deposit: ${data.deposit_id}`, 'success');
+      closeCollectFromAgentModal();
+      setTimeout(() => {
+        window.location.reload()
+      }, 3000);
+    }).catch((e) => {
+      window.showToast(e.message || 'Unable to save deposit', 'error');
+    }).finally(() => {
+      if (btn) { btn.disabled = false; btn.textContent = 'Confirm & Receive'; }
+    });
+  }
+
+  function getCookie(name){
+    const v = `; ${document.cookie}`;
+    const parts = v.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+  }
+
+  function setDepositInputsDisabled(disabled){
+    const inputs = document.querySelectorAll('#deposit-rows input');
+    inputs.forEach(inp => { inp.disabled = !!disabled; });
+    const onlineInp = document.getElementById('online-deposited');
+    if (onlineInp) onlineInp.disabled = !!disabled;
+  }
+</script>
+{% endwith %}

@@ -1,0 +1,475 @@
+{% extends "branch/base.html" %} {% load static %} {% block title %}Branch
+Dashboard{% endblock %} {% block extra_head %}
+<!-- ApexCharts CSS (if needed) -->
+<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/apexcharts@3.35.0/dist/apexcharts.min.css"> -->
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
+/>
+
+{% endblock %} {% block content %}
+<div class="p-4 md:p-6" x-data="dashboardData()" x-init="init()">
+  {% include 'partials/chart/branch-head-chart.html' %}
+
+  <!-- Charts Section -->
+  <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
+    <!-- loan Trend Chart -->
+    {% include 'partials/chart/branch-loan-trend.html' %}
+    <!-- Distribution Chart -->
+    {% include 'partials/chart/branch-distribution-chart.html' %}
+  </div>
+  <div class="w-full mb-3">
+    <!-- New Stats Chart Card -->
+    {% include 'partials/chart/branch-line-wave.html' %}
+  </div>
+
+  {% include 'partials/table/branch-recent-activity.html' %}
+</div>
+{% endblock %} {% block extra_js %}
+<!-- ApexCharts JS -->
+ 
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+  // Expose branch id for API scoping (may be empty if not set server-side)
+  window.BRANCH_ID = "{{ branch_id|default:'' }}";
+</script>
+
+<script>
+  function dashboardData() {
+    return {
+      loaded: false,
+      timeRange: "month",
+      selectedYear: String(new Date().getFullYear()),
+      selectedMonth: String(new Date().getMonth() + 1),
+      selectedDay: String(new Date().getDate()),
+      years: Array.from({ length: 5 }, (_, i) => String(new Date().getFullYear() - i)),
+      months: [
+        { value: "1", name: "January" },
+        { value: "2", name: "February" },
+        { value: "3", name: "March" },
+        { value: "4", name: "April" },
+        { value: "5", name: "May" },
+        { value: "6", name: "June" },
+        { value: "7", name: "July" },
+        { value: "8", name: "August" },
+        { value: "9", name: "September" },
+        { value: "10", name: "October" },
+        { value: "11", name: "November" },
+        { value: "12", name: "December" },
+      ],
+      days: Array.from({ length: 31 }, (_, i) => String(i + 1)),
+      loanStats: {
+        applied: 0,
+        pending: 0,
+        approved: 0,
+        disbursed: 0,
+        rejected: 0,
+      },
+      savingsStats: {
+        applied: 0,
+        pending: 0,
+        approved: 0,
+        disbursed: 0,
+        rejected: 0,
+      },
+      recentLoans: [],
+      recentAgents: [],
+      // Percentage deltas vs previous equal-length window
+      loanStatsDelta: { applied: 0, pending: 0, approved: 0, disbursed: 0, rejected: 0 },
+      savingsStatsDelta: { applied: 0, pending: 0, approved: 0, disbursed: 0, rejected: 0 },
+      monthlyTrends: [],
+      statusDistribution: [],
+      emiStats: { categories: [], scheduled: [], collected: [] },
+      trendChart: null,
+      distChart: null,
+      statsChart: null,
+      statsView: "overview", // 'overview', 'sales', or 'revenue'
+
+      async init() {
+        // Ensure we have a branch id before first fetch
+        await this.ensureBranchId();
+        this.fetchData();
+      },
+
+      async ensureBranchId() {
+        if (window.BRANCH_ID && String(window.BRANCH_ID).trim() !== '') return;
+        try {
+          const res = await fetch('/branch/api/manager-info/', { credentials: 'same-origin' });
+          if (!res.ok) return; // fall back silently
+          const info = await res.json();
+          // Primary: nested under manager.branch
+          const fromManager = info && info.manager && info.manager.branch && (info.manager.branch.branch_id || info.manager.branch.id);
+          // Secondary shapes (older variants)
+          const fromRoot = info.branch_id || (info.branch && (info.branch.branch_id || info.branch.id));
+          window.BRANCH_ID = fromManager || fromRoot || '';
+        } catch (e) {
+          console.warn('Could not resolve branch_id from manager-info:', e);
+        }
+      },
+
+      buildQuery() {
+        const params = new URLSearchParams();
+        params.set('range', this.timeRange);
+        params.set('year', this.selectedYear);
+        if (this.timeRange === 'month' || this.timeRange === 'day') {
+          params.set('month', this.selectedMonth);
+        }
+        if (this.timeRange === 'day') {
+          params.set('day', this.selectedDay);
+        }
+        if (window.BRANCH_ID && String(window.BRANCH_ID).trim() !== '') {
+          params.set('branch_id', window.BRANCH_ID);
+        }
+        // cache-bust to ensure fresh data per filter change
+        params.set('_', Date.now().toString());
+        return params.toString();
+      },
+
+      // Ensure the selected day is valid for the selected month/year
+      getDaysInMonth(y, m) {
+        const year = Number(y);
+        const month = Number(m);
+        if (!year || !month) return 31;
+        return new Date(year, month, 0).getDate();
+      },
+
+      normalizeDaySelection() {
+        const dim = this.getDaysInMonth(this.selectedYear, this.selectedMonth);
+        // Update available days for the month
+        this.days = Array.from({ length: dim }, (_, i) => String(i + 1));
+        // Clamp the selected day if it's beyond month length
+        if (Number(this.selectedDay) > dim) {
+          this.selectedDay = String(dim);
+        }
+      },
+
+      async fetchData() {
+        try {
+          this.loaded = false;
+          // Clear current data to avoid showing stale (e.g., last 6 months) while loading
+          this.monthlyTrends = [];
+          this.statusDistribution = [];
+          this.loanStats = { applied: 0, pending: 0, approved: 0, disbursed: 0, rejected: 0 };
+          this.loanStatsDelta = { applied: 0, pending: 0, approved: 0, disbursed: 0, rejected: 0 };
+          this.emiStats = { categories: [], scheduled: [], collected: [] };
+          // Ensure branch id before fetching
+          await this.ensureBranchId();
+          // Ensure day is valid for the selected month/year when in daily range
+          if (this.timeRange === 'day') {
+            this.normalizeDaySelection();
+          }
+          const qs = this.buildQuery();
+          const res = await fetch(`/branch/api/dashboard-stats/?${qs}`, { credentials: 'same-origin' });
+          if (!res.ok) throw new Error('Failed to load dashboard stats');
+          const data = await res.json();
+
+          // Map payload
+          this.loanStats = data.stats || this.loanStats;
+          this.loanStatsDelta = data.stats_delta || this.loanStatsDelta;
+          this.savingsStats = data.savings_stats || this.savingsStats;
+          this.savingsStatsDelta = data.savings_stats_delta || this.savingsStatsDelta;
+          this.monthlyTrends = (data.trends || []).map(t => ({ month: t.label, count: t.count }));
+          this.emiStats = data.emi_stats || this.emiStats;
+          // Recent activity
+          this.recentLoans = data.recent_loans || [];
+          this.recentAgents = data.recent_agents || [];
+          // Build distribution with 'Applied' as a real slice (first position)
+          // Order: Applied, Pending, Approved, Disbursed, Rejected
+          const applied = (data.stats && data.stats.applied) || 0;
+          const pending = (data.stats && data.stats.pending) || 0;
+          const approved = (data.stats && data.stats.approved) || 0;
+          const disbursed = (data.stats && data.stats.disbursed) || 0;
+          const rejected = (data.stats && data.stats.rejected) || 0;
+          this.statusDistribution = [applied, pending, approved, disbursed, rejected];
+
+          this.initCharts();
+          this.loaded = true;
+        } catch (err) {
+          console.error('Dashboard fetch error:', err);
+          this.loaded = true;
+        }
+      },
+
+      showOverview() {
+        this.statsView = "overview";
+        this.updateStatsChart();
+      },
+
+      showSales() {
+        this.statsView = "sales";
+        this.updateStatsChart();
+      },
+
+      showRevenue() {
+        this.statsView = "revenue";
+        this.updateStatsChart();
+      },
+
+      updateStatsChart() {
+        if (!this.statsChart) return;
+
+        // Build series based on the current view
+        let series = [];
+        let colors = [];
+        if (this.statsView === 'sales') {
+          // EMI Schedule only
+          series = [
+            { name: 'EMI Schedule', data: (this.emiStats.scheduled || []) },
+          ];
+          colors = ['#3b82f6'];
+        } else if (this.statsView === 'revenue') {
+          // EMI Collected only
+          series = [
+            { name: 'EMI Collected', data: (this.emiStats.collected || []) },
+          ];
+          colors = ['#10b981'];
+        } else {
+          // Overview: both series
+          series = [
+            { name: 'EMI Schedule', data: (this.emiStats.scheduled || []) },
+            { name: 'EMI Collected', data: (this.emiStats.collected || []) },
+          ];
+          colors = ['#3b82f6', '#10b981'];
+        }
+
+        this.statsChart.updateOptions({
+          series: series,
+          colors: colors,
+          xaxis: {
+            categories: (this.emiStats.categories || []),
+          },
+        });
+      },
+
+      initCharts() {
+        // Destroy existing charts if they exist
+        if (this.trendChart) this.trendChart.destroy();
+        if (this.distChart) this.distChart.destroy();
+        if (this.statsChart) this.statsChart.destroy();
+
+        // Loan Trends (Column Chart)
+        const trendOptions = {
+          series: [
+            {
+              name: "Loan Applications",
+              data: this.monthlyTrends.map((item) => item.count),
+            },
+          ],
+          chart: {
+            height: "100%",
+            type: "bar",
+            toolbar: { show: true },
+            animations: {
+              enabled: true,
+              easing: "easeinout",
+              speed: 800,
+            },
+          },
+          colors: ["#3b82f6"],
+          plotOptions: {
+            bar: {
+              horizontal: false,
+              columnWidth: "50%",
+              borderRadius: 6,
+            },
+          },
+          dataLabels: { enabled: false },
+          xaxis: {
+            categories: this.monthlyTrends.map((item) => item.month),
+            labels: {
+              style: {
+                colors: document.documentElement.classList.contains("dark")
+                  ? "#e5e7eb"
+                  : "#6b7280",
+              },
+            },
+          },
+          yaxis: {
+            labels: {
+              style: {
+                colors: document.documentElement.classList.contains("dark")
+                  ? "#e5e7eb"
+                  : "#6b7280",
+              },
+            },
+          },
+          tooltip: {
+            theme: document.documentElement.classList.contains("dark")
+              ? "dark"
+              : "light",
+          },
+          grid: {
+            borderColor: document.documentElement.classList.contains("dark")
+              ? "#374151"
+              : "#e5e7eb",
+            strokeDashArray: 4,
+          },
+        };
+        this.trendChart = new ApexCharts(
+          document.querySelector("#trendChart"),
+          trendOptions
+        );
+        this.trendChart.render();
+
+        // Loan Status Distribution (Donut)
+        const distOptions = {
+          series: this.statusDistribution,
+          chart: {
+            type: "donut",
+            height: "100%",
+          },
+          // Include 'Applied' as first slice
+          labels: ["Applied", "Pending", "Approved", "Disbursed", "Rejected"],
+          colors: ["#3b82f6", "#f59e0b", "#10b981", "#8b5cf6", "#ef4444"],
+          legend: {
+            position: "right",
+            labels: {
+              colors: document.documentElement.classList.contains("dark")
+                ? "#e5e7eb"
+                : "#6b7280",
+            },
+          },
+          responsive: [
+            {
+              breakpoint: 480,
+              options: {
+                chart: { width: 200 },
+                legend: { position: "bottom" },
+              },
+            },
+          ],
+          plotOptions: {
+            pie: {
+              donut: {
+                labels: {
+                  show: true,
+                  total: {
+                    show: true,
+                    label: "Total Loans",
+                    color: document.documentElement.classList.contains("dark")
+                      ? "#e5e7eb"
+                      : "#6b7280",
+                    formatter: () => {
+                      // Show applied count as the total to avoid double-counting perception
+                      return String(this.loanStats?.applied || 0);
+                    }
+                  },
+                },
+              },
+            },
+          },
+          // Hide percent labels to avoid confusion when 'Applied' plus sub-statuses are both shown
+          dataLabels: { enabled: false },
+          tooltip: {
+            theme: document.documentElement.classList.contains("dark") ? "dark" : "light",
+            y: {
+              formatter: (val, opts) => {
+                // Show raw counts
+                return String(val);
+              }
+            }
+          },
+        };
+        this.distChart = new ApexCharts(
+          document.querySelector("#distributionChart"),
+          distOptions
+        );
+        this.distChart.render();
+
+        // Statistics Chart (EMIs over time)
+        const statsOptions = {
+          series: [
+            { name: "EMI Schedule", data: (this.emiStats.scheduled || []) },
+            { name: "EMI Collected", data: (this.emiStats.collected || []) },
+          ],
+          chart: {
+            type: "area",
+            height: 350,
+            toolbar: { show: false },
+          },
+          colors: ["#3b82f6", "#10b981"],
+          dataLabels: { enabled: false },
+          stroke: {
+            curve: "smooth",
+            width: 2,
+          },
+          fill: {
+            type: "gradient",
+            gradient: {
+              shadeIntensity: 1,
+              opacityFrom: 0.5,
+              opacityTo: 0.1,
+              stops: [0, 90, 100],
+            },
+          },
+          xaxis: {
+            categories: (this.emiStats.categories || []),
+            labels: {
+              style: {
+                colors: document.documentElement.classList.contains("dark")
+                  ? "#e5e7eb"
+                  : "#6b7280",
+              },
+            },
+          },
+          yaxis: {
+            labels: {
+              formatter: (val) => {
+                try {
+                  return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val || 0);
+                } catch (e) {
+                  return `₹${Math.round(val || 0).toLocaleString('en-IN')}`;
+                }
+              },
+              style: {
+                colors: document.documentElement.classList.contains("dark")
+                  ? "#e5e7eb"
+                  : "#6b7280",
+              },
+            },
+          },
+          tooltip: {
+            shared: true,
+            intersect: false,
+            theme: document.documentElement.classList.contains("dark")
+              ? "dark"
+              : "light",
+            y: {
+              formatter: (val) => {
+                try {
+                  return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(val || 0);
+                } catch (e) {
+                  return `₹${(val || 0).toLocaleString('en-IN')}`;
+                }
+              }
+            }
+          },
+          legend: {
+            position: "top",
+            horizontalAlign: "right",
+            labels: {
+              colors: document.documentElement.classList.contains("dark")
+                ? "#e5e7eb"
+                : "#6b7280",
+            },
+          },
+        };
+        this.statsChart = new ApexCharts(
+          document.querySelector("#statsChart"),
+          statsOptions
+        );
+        this.statsChart.render();
+      },
+    };
+  }
+</script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    flatpickr(".datepicker-input", {
+      dateFormat: "Y-m-d",
+      allowInput: true,
+    });
+  });
+</script>
+
+{% endblock %}

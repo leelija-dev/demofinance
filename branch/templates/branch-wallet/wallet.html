@@ -1,0 +1,2101 @@
+{% extends "branch/base.html" %}
+{% load static %}
+{% block title %}Funds{% endblock %}
+
+{% block page_id %}Funds{% endblock %}
+
+<style>
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
+
+{% block content %}
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+    <!-- Breadcrumb Start -->
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Funds Dashboard</h1>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Manage your funds transactions and view history</p>
+        </div>
+        <div class="flex items-center gap-2">
+            {% if can_transect %}
+            <button id="openRecordTransactionBtn" type="button" onclick="openRecordTransactionModal()" class="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                </svg>
+                Record Transaction
+            </button>
+            <button id="openTransferBtn" type="button" onclick="openTransferModal()" class="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                </svg>
+                Transfer to Headquater
+            </button>
+            <div class="relative">
+                <button id="menuButton" type="button" onclick="toggleMenu()"
+                  class="p-2 rounded-lg bg-gray-200 hover:bg-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 transition flex items-center justify-center">
+                  <!-- Larger Vertical Ellipsis Icon -->
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700 dark:text-gray-300" viewBox="0 0 24 24"
+                    fill="currentColor">
+                    <path
+                      d="M12 5a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm0 9a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm0 9a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" />
+                  </svg>
+                </button>
+            
+                <!-- Dropdown Menu -->
+                <div id="menuDropdown"
+                  class="hidden w-max p-2 absolute right-0 mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-100 dark:border-gray-700 z-50">
+                  <ul class="py-1 text-sm text-gray-700 dark:text-gray-200">
+                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700" onclick="openAddAccountModal()">Add Account</a></li>
+                  </ul>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]"> -->
+    <!-- <div class="p-5 space-y-6 border-t border-gray-100 dark:border-gray-800 sm:p-6"> -->
+        <!-- Stats Cards -->
+        <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Total Balance -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Funds</p>
+                        <p class="mt-1 text-2xl font-semibold text-blue-600 dark:text-blue-400">
+                            ₹{{ total_balance|default:"0.00"|floatformat:2 }}
+                        </p>
+                    </div>
+                    <div class="p-3 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </div>
+                </div>
+                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    Updated: {{ wallet.wallet_updated|date:"M d, Y H:i" }}
+                </p>
+            </div>
+
+            <!-- Total Cash -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Funds in Cash</p>
+                        <p class="mt-1 text-2xl font-semibold text-green-600 dark:text-green-400">
+                            ₹{{ total_cash|default:"0.00"|floatformat:2 }}
+                        </p>
+                    </div>
+                    <div class="p-3 rounded-full bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 8h6m-5 0a3 3 0 110 6H9l3 3m-3-6h6m6 1a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                </div>
+                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    Cash transactions only
+                </p>
+            </div>
+
+            <!-- Total Bank Balance -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Funds in Bank</p>
+                        <p class="mt-1 text-2xl font-semibold text-purple-600 dark:text-purple-400">
+                            ₹{{ total_bank|default:"0.00"|floatformat:2 }}
+                        </p>
+                    </div>
+                    <div class="p-3 rounded-full bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                        Across all bank accounts
+                    </p>
+                    <button type="button" onclick="AllAccountModal()" title="All Account" class="flex items-center justify-center gap-8 px-2 pt-2 text-purple-600 dark:text-purple-400 text-sm font-medium rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor" class="w-5">
+                            <path d="M528 320C528 434.9 434.9 528 320 528C205.1 528 112 434.9 112 320C112 205.1 205.1 112 320 112C434.9 112 528 205.1 528 320zM64 320C64 461.4 178.6 576 320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320zM451.3 331.3C457.5 325.1 457.5 314.9 451.3 308.7L347.3 204.7C342.7 200.1 335.8 198.8 329.9 201.2C324 203.6 320 209.5 320 216L320 288L216 288C202.7 288 192 298.7 192 312L192 328C192 341.3 202.7 352 216 352L320 352L320 424C320 430.5 323.9 436.3 329.9 438.8C335.9 441.3 342.8 439.9 347.3 435.3z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div id="allAccountsModal" class="hidden w-full fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center backdrop-blur-[32px] transition-opacity z-99999 overflow-y-auto">
+                <div class="absolute inset-0 bg-black/50" onclick="closeAllAccountModal()"></div>
+                <div class="relative z-10 mx-auto mt-24 w-[90%] max-w-3xl bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700">
+                        <h3 class="text-base font-semibold text-gray-900 dark:text-white">Branch Bank Accounts</h3>
+                        <button type="button" class="p-2 rounded-md text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white" onclick="closeAllAccountModal()" aria-label="Close">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                                <path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 11-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="px-5 py-4 overflow-x-auto">
+                        {% if accounts %}
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-800">
+                                <tr>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Bank</th>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Account No.</th>
+                                    <th class="px-3 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Funds</th>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Updated</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                                {% for acc in accounts %}
+                                <tr>
+                                    <td class="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{{ acc.name|default:"-" }}</td>
+                                    <td class="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{{ acc.bank_name|default:"-" }}</td>
+                                    <td class="px-3 py-2 text-sm text-blue-600 dark:text-blue-400 font-mono">{{ acc.account_number|default:"-" }}</td>
+                                    <td class="px-3 py-2 text-sm text-right font-semibold text-purple-600 dark:text-purple-400">₹{{ acc.current_balance|default:"0.00"|floatformat:2 }}</td>
+                                    <td class="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">{{ acc.updated_at|date:"M d, Y H:i" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% else %}
+                        <div class="py-8 text-center text-sm text-gray-500 dark:text-gray-400">No bank accounts found.</div>
+                        {% endif %}
+                    </div>
+                    <div class="flex justify-end px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+                        <!-- <button type="button" onclick="closeAllAccountModal()" class="px-4 py-2 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-100">Close</button> -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Transactions</p>
+                        <p class="mt-1 text-2xl font-semibold text-orange-600 dark:text-orange-400">
+                            {% with t1=transactions|length t2=fund_transfers_in|length %}
+                                {{ t1|add:t2 }}
+                            {% endwith %}
+                        </p>
+                    </div>
+                    <div
+                        class="p-3 rounded-full bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                    </div>
+                </div>
+                <!-- <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    {{ pending_transactions|default:0 }} pending
+                </p> -->
+            </div>
+        </div>
+        <div id="no-applications-message" class="mt-3 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] {% if all_combined_transactions %}hidden{% endif %}">
+            <div class="text-center text-gray-500 py-8">Fund Transactions Not Found!</div>
+        </div>
+        <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] mt-8">
+            <!-- Transactions Table -->
+            {% if transactions or fund_transfers_in %}
+            <div class="">
+                <div class="flex items-center justify-between px-6 py-2 border-b border-gray-200 dark:border-gray-700">
+                    <h2 class=" py-2 text-lg font-semibold text-gray-900 dark:text-white">Transactions History</h2>
+                    <!-- Export Options -->
+                    <div class="flex items-center justify-between gap-4">
+                        <button onclick="exportPDF()" id="pdfBtn" class="w-full text-left text-sm text-purple-600 dark:text-purple-300 hover:underline" title="Export PDF">
+                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="35" height="30" viewBox="0 0 256 256" xml:space="preserve">
+                                <g style="stroke: none; stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: none; fill-rule: nonzero; opacity: 1;" transform="translate(1.4065934065934016 1.4065934065934016) scale(2.81 2.81)">
+                                	<path d="M 78.806 62.716 V 20.496 c 0 -1.214 -0.473 -2.356 -1.332 -3.216 L 61.526 1.332 C 60.667 0.473 59.525 0 58.31 0 H 15.742 c -2.508 0 -4.548 2.04 -4.548 4.548 V 43.16 v 19.556 C 34.114 65.376 56.665 65.47 78.806 62.716 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(220,223,225); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round"/>
+                                	<path d="M 11.194 62.716 v 11.23 v 11.506 c 0 2.508 2.04 4.548 4.548 4.548 h 58.517 c 2.508 0 4.548 -2.04 4.548 -4.548 V 62.716 H 11.194 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(234,84,64); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round"/>
+                                	<polygon points="60.27,18.41 78.81,36.88 78.73,19.73 " style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(196,203,210); fill-rule: nonzero; opacity: 1;" transform="  matrix(1 0 0 1 0 0) "/>
+                                	<path d="M 77.474 17.28 L 61.526 1.332 c -0.675 -0.676 -1.529 -1.102 -2.453 -1.258 v 15.382 c 0 2.358 1.919 4.277 4.277 4.277 h 15.382 C 78.576 18.81 78.15 17.956 77.474 17.28 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(171,178,184); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round"/>
+                                	<path d="M 33.092 68.321 h -4.374 c -0.69 0 -1.25 0.56 -1.25 1.25 v 8.091 v 5.541 c 0 0.69 0.56 1.25 1.25 1.25 s 1.25 -0.56 1.25 -1.25 v -4.291 h 3.124 c 2.254 0 4.088 -1.834 4.088 -4.088 v -2.415 C 37.18 70.155 35.346 68.321 33.092 68.321 z M 34.68 74.824 c 0 0.876 -0.712 1.588 -1.588 1.588 h -3.124 v -5.591 h 3.124 c 0.876 0 1.588 0.712 1.588 1.588 V 74.824 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round"/>
+                                	<path d="M 45.351 84.453 H 41.27 c -0.69 0 -1.25 -0.56 -1.25 -1.25 V 69.571 c 0 -0.69 0.56 -1.25 1.25 -1.25 h 4.082 c 2.416 0 4.38 1.965 4.38 4.38 v 7.371 C 49.731 82.488 47.767 84.453 45.351 84.453 z M 42.52 81.953 h 2.832 c 1.037 0 1.88 -0.844 1.88 -1.881 v -7.371 c 0 -1.036 -0.844 -1.88 -1.88 -1.88 H 42.52 V 81.953 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round"/>
+                                	<path d="M 61.282 68.321 H 54.07 c -0.69 0 -1.25 0.56 -1.25 1.25 v 13.632 c 0 0.69 0.56 1.25 1.25 1.25 s 1.25 -0.56 1.25 -1.25 v -5.566 h 3.473 c 0.69 0 1.25 -0.56 1.25 -1.25 s -0.56 -1.25 -1.25 -1.25 H 55.32 v -4.315 h 5.962 c 0.69 0 1.25 -0.56 1.25 -1.25 S 61.973 68.321 61.282 68.321 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round"/>
+                                	<path d="M 60.137 40.012 c -0.154 -0.374 -0.52 -0.617 -0.924 -0.617 h -4.805 V 27.616 c 0 -0.552 -0.447 -1 -1 -1 H 40.592 c -0.552 0 -1 0.448 -1 1 v 11.778 h -4.805 c -0.404 0 -0.769 0.244 -0.924 0.617 c -0.155 0.374 -0.069 0.804 0.217 1.09 l 12.213 12.213 c 0.195 0.195 0.451 0.293 0.707 0.293 s 0.512 -0.098 0.707 -0.293 L 59.92 41.102 C 60.206 40.815 60.292 40.386 60.137 40.012 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(196,203,210); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round"/>
+                                	<path d="M 58.137 38.012 c -0.154 -0.374 -0.52 -0.617 -0.924 -0.617 h -4.805 V 25.616 c 0 -0.552 -0.447 -1 -1 -1 H 38.592 c -0.552 0 -1 0.448 -1 1 v 11.778 h -4.805 c -0.404 0 -0.769 0.244 -0.924 0.617 c -0.155 0.374 -0.069 0.804 0.217 1.09 l 12.213 12.213 c 0.195 0.195 0.451 0.293 0.707 0.293 s 0.512 -0.098 0.707 -0.293 L 57.92 39.102 C 58.206 38.815 58.292 38.386 58.137 38.012 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(234,84,64); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round"/>
+                                </g>
+                            </svg>
+                        </button>
+                        <button onclick="exportExcel()" id="excelBtn" class="w-full text-left text-sm text-purple-600 dark:text-purple-300 hover:underline" title="Export Excel">
+                           <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="40" height="40" viewBox="0 0 48 48">
+                           <path fill="#4CAF50" d="M41,10H25v28h16c0.553,0,1-0.447,1-1V11C42,10.447,41.553,10,41,10z"></path><path fill="#FFF" d="M32 15H39V18H32zM32 25H39V28H32zM32 30H39V33H32zM32 20H39V23H32zM25 15H30V18H25zM25 25H30V28H25zM25 30H30V33H25zM25 20H30V23H25z"></path><path fill="#2E7D32" d="M27 42L6 38 6 10 27 6z"></path><path fill="#FFF" d="M19.129,31l-2.411-4.561c-0.092-0.171-0.186-0.483-0.284-0.938h-0.037c-0.046,0.215-0.154,0.541-0.324,0.979L13.652,31H9.895l4.462-7.001L10.274,17h3.837l2.001,4.196c0.156,0.331,0.296,0.725,0.42,1.179h0.04c0.078-0.271,0.224-0.68,0.439-1.22L19.237,17h3.515l-4.199,6.939l4.316,7.059h-3.74V31z"></path>
+                           </svg>
+                        </button>
+
+                        <!-- Loading Overlay -->
+                        <div id="exportLoading" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center; flex-direction:column; color:white; font-family:Arial;">
+                            <div style="border:6px solid #f3f3f3; border-top:6px solid #3498db; border-radius:50%; width:50px; height:50px; animation:spin 1s linear infinite;"></div>
+                            <p style="margin-top:15px; font-size:16px;">Exporting <span id="loadingType">PDF</span>...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-6 py-2 border-b border-gray-200 dark:border-gray-700">
+                    <div class="flex flex-col gap-3 lg:flex-wrap lg:flex-row lg:gap-4 xl:flex-nowrap xl:gap-3 items-start lg:items-center justify-between">
+                        
+                        <!-- Search -->
+                        <div class="w-full lg:flex-1 xl:w-auto">
+                            <input id="txSearch" type="text" placeholder="Search..."
+                                class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white" />
+                        </div>
+                
+                        <!-- Type Filter -->
+                        <div class="w-full lg:w-36">
+                            <select id="txType"
+                                class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                <option value="">Type</option>
+                                <option value="CREDIT" {% if filter_type == 'CREDIT' or filter_type == 'credit' %}selected{% endif %}>Credit</option>
+                                <option value="DEBIT" {% if filter_type == 'DEBIT' or filter_type == 'debit' %}selected{% endif %}>Debit</option>
+                            </select>
+                        </div>
+                
+                        <!-- Mode Filter -->
+                        <div class="w-full lg:w-36">
+                            <select id="txMode"
+                                class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                <option value="">Mode</option>
+                                <option value="bank" {% if filter_mode == 'bank' or filter_mode == 'BANK' %}selected{% endif %}>Bank</option>
+                                <option value="cash" {% if filter_mode == 'cash' or filter_mode == 'CASH' %}selected{% endif %}>Cash</option>
+                            </select>
+                        </div>
+                
+                        <!-- Purpose Filter -->
+                        <div class="w-full lg:w-40">
+                            <select id="txPurpose"
+                                class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                <option value="">Head Of Account</option>
+                                {% for tx in transactions %}
+                                    {% if tx.purpose %}
+                                        <option value="{{ tx.purpose }}" {% if filter_purpose == tx.purpose %}selected{% endif %}>{{ tx.purpose }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                                {% for ft in fund_transfers_in %}
+                                    {% if ft.purpose %}
+                                        <option value="{{ ft.purpose }}" {% if filter_purpose == ft.purpose %}selected{% endif %}>{{ ft.purpose }}</option>
+                                    {% else %}
+                                        <option value="Fund Transfer from HQ" {% if filter_purpose == 'Fund Transfer from HQ' %}selected{% endif %}>Fund Transfer from HQ</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                
+                        <!-- Code Filter -->
+                        <div class="w-full lg:w-40">
+                            <select id="txCode"
+                                class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                <option value="">Code</option>
+                                {% for tx in transactions %}
+                                    {% if tx.code %}
+                                        <option value="{{ tx.code }}" {% if filter_code == tx.code %}selected{% endif %}>{{ tx.code }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                                {% for ft in fund_transfers_in %}
+                                    {% if ft.hq_transaction and ft.hq_transaction.code %}
+                                        <option value="{{ ft.hq_transaction.code }}" {% if filter_code == ft.hq_transaction.code %}selected{% endif %}>{{ ft.hq_transaction.code }}</option>
+                                    {% elif ft.branch_transaction and ft.branch_transaction.code %}
+                                        <option value="{{ ft.branch_transaction.code }}" {% if filter_code == ft.branch_transaction.code %}selected{% endif %}>{{ ft.branch_transaction.code }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                
+                        <!-- Date Filter -->
+                        <div class="w-full lg:w-64 flex items-center relative">
+                            <input id="txDateFrom" type="text"
+                                class="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                                placeholder="Select date range" value="{{ date_from|default:'' }}" readonly />
+                            <div class="absolute inset-y-0 left-0 flex items-center pointer-events-none pl-3">
+                                <svg class="fill-gray-700 dark:fill-gray-400" width="20" height="20" viewBox="0 0 20 20"
+                                    fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd" clip-rule="evenodd"
+                                        d="M6.66683 1.54199C7.08104 1.54199 7.41683 1.87778 7.41683 2.29199V3.00033H12.5835V2.29199C12.5835 1.87778 12.9193 1.54199 13.3335 1.54199C13.7477 1.54199 14.0835 1.87778 14.0835 2.29199V3.00033L15.4168 3.00033C16.5214 3.00033 17.4168 3.89576 17.4168 5.00033V7.50033V15.8337C17.4168 16.9382 16.5214 17.8337 15.4168 17.8337H4.5835C3.47893 17.8337 2.5835 16.9382 2.5835 15.8337V7.50033V5.00033C2.5835 3.89576 3.47893 3.00033 4.5835 3.00033L5.91683 3.00033V2.29199C5.91683 1.87778 6.25262 1.54199 6.66683 1.54199ZM6.66683 4.50033H4.5835C4.30735 4.50033 4.0835 4.72418 4.0835 5.00033V6.75033H15.9168V5.00033C15.9168 4.72418 15.693 4.50033 15.4168 4.50033H13.3335H6.66683ZM15.9168 8.25033H4.0835V15.8337C4.0835 16.1098 4.30735 16.3337 4.5835 16.3337H15.4168C15.693 16.3337 15.9168 16.1098 15.9168 15.8337V8.25033Z">
+                                    </path>
+                                </svg>
+                            </div>
+                            <input id="txDateTo" type="hidden" value="{{ date_to|default:'' }}" />
+                        </div>
+                
+                        <!-- Reset Button -->
+                        <div class="w-full lg:w-auto">
+                            <button id="txReset" type="button"
+                                class="w-full md:w-auto group inline-flex items-center justify-center gap-2 px-3.5 py-2 text-sm font-medium rounded-md border border-gray-300 bg-white text-gray-700 shadow-sm hover:bg-blue-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:bg-gray-800 dark:border-gray-600 dark:hover:bg-blue-900/40">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="#000000" width="16px" height="16px" viewBox="0 0 512 512"
+                                    class="h-4 w-4 transition-transform duration-500 group-hover:rotate-[360deg]">
+                                    <path
+                                        d="M64,256H34A222,222,0,0,1,430,118.15V85h30V190H355V160h67.27A192.21,192.21,0,0,0,256,64C150.13,64,64,150.13,64,256Zm384,0c0,105.87-86.13,192-192,192A192.21,192.21,0,0,1,89.73,352H157V322H52V427H82V393.85A222,222,0,0,0,478,256Z" />
+                                </svg>
+                                Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Inline empty state for filtered results -->
+                <div id="txEmptyFiltered" class="hidden text-center text-red-500 dark:text-gray-400 py-6">
+                    Fund Transactions Not Found!
+                </div>
+                <div class="p-5 space-y-6">
+                <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700" id="txTableWrapper">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead class="bg-gray-50 dark:bg-gray-800">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Type</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Code</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Account</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Head Of Account</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Amount</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider w-64">Description</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        {% for item in page_obj %}
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700" 
+                            data-type="{{ item.transaction_type }}"
+                            data-code="{{ item.code|default:'' }}"
+                            data-purpose="{{ item.purpose|default:'' }}"
+                            data-date="{{ item.date|date:'Y-m-d' }}"
+                            data-mode="{{ item.payment_mode|default:'' }}">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{{ item.date|date:"M d, Y H:i" }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    {% if item.transaction_type == 'CREDIT' or item.transaction_type == 'credit' %}
+                                        bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
+                                    {% else %}
+                                        bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200
+                                    {% endif %}">
+                                    {% if item.transaction_type == 'CREDIT' or item.transaction_type == 'credit' %}Credit{% else %}Debit{% endif %}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                                {% if item.code %}
+                                    <span class="font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs">
+                                        {{ item.code }}
+                                    </span>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                              {% if item.bank_name or item.account_name or item.account_number %}
+                                {{ item.bank_name|default:"-" }} -
+                                <span class="text-xs">
+                                  {% if item.account_name %}
+                                    ({{ item.account_name }})
+                                  {% elif item.payment_mode == 'cash' %}
+                                  {% else %}-{% endif %}
+                                </span>
+                                <br>
+                                <span class="text-xs text-blue-400">
+                                  {% if item.account_number %}
+                                    {{ item.account_number }}
+                                  {% elif item.payment_mode == 'cash' %}
+                                   
+                                  {% else %}
+                                    
+                                  {% endif %}
+                                </span>
+                              {% elif item.payment_mode == 'cash' %}
+                                Cash
+                              {% else %}
+                                <span class="text-xs text-gray-500"></span>
+                              {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{{ item.purpose }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold {% if item.transaction_type == 'CREDIT' or item.transaction_type == 'credit' %} text-green-700 dark:text-green-200 {% else %} text-red-600 dark:text-red-200 {% endif %}">
+                                {% if item.transaction_type == 'CREDIT' or item.transaction_type == 'credit' %}
+                                    + ₹  {{ item.amount|floatformat:2 }}
+                                {% else %}
+                                    - ₹  {{ item.amount|floatformat:2 }}
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300 whitespace-normal break-words max-w-[24rem]">{{ item.description|default:'-' }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                {% if item.type == 'branch_transaction' %}
+                                    <button data-transaction-id="{{ item.object.transaction_id }}" class="view-transaction p-2 rounded text-blue-600 hover:text-white bg-blue-50 hover:bg-blue-600 border border-blue-500 dark:text-white dark:bg-blue-600 dark:hover:text-blue-300">View</button>
+                                {% else %}
+                                    <button data-transfer-id="{{ item.object.transfer_id }}" class="view-fund-transfer p-2 rounded text-blue-600 hover:text-white bg-blue-50 hover:bg-blue-600 border border-blue-500 dark:text-white dark:bg-blue-600 dark:hover:text-blue-300">View</button>
+                                {% endif %}
+                            </td>
+                            
+                            <!-- Hidden details sections -->
+                            {% if item.type == 'branch_transaction' %}
+                            <div id="transaction-{{ item.object.transaction_id }}" class="hidden">
+                                <div class="space-y-4">
+                                    <!-- Header Section -->
+                                    <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mb-4">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <h4 class="text-lg font-semibold text-blue-800 dark:text-blue-200">Transaction #{{ item.object.transaction_id }}</h4>
+                                                <h4 class="text-lg font-semibold text-blue-800 dark:text-blue-200">Loan Application #{% if item.object.loan_application_id %}{{ item.object.loan_application_id }}{% else %}{{ item.object.disbursement_log.loan_id.loan_ref_no }}{% endif %}</h4>
+                                                <p class="text-sm text-blue-600 dark:text-blue-300">{{ item.object.transaction_date|date:"M d, Y H:i" }}</p>
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <h4 class="text-sm font-semibold text-blue-800 dark:text-blue-200">Type :</h4>
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                    {% if item.object.transaction_type == 'CREDIT' or item.object.transaction_type == 'credit' %}
+                                                        bg-green-100 text-green-800 border border-green-800 dark:bg-green-900 dark:text-green-200
+                                                    {% else %}
+                                                        bg-red-100 text-red-800 border border-red-800 dark:bg-red-900 dark:text-red-200
+                                                    {% endif %}">
+                                                    {{ item.object.get_transaction_type_display }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                    
+                                    <!-- Amount Section -->
+                                    <div class="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg">
+                                        <div class="flex items-center justify-between gap-6 mb-4">
+                                            <div>
+                                                <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Amount:</p>
+                                                <p class="text-lg font-bold text-gray-900 dark:text-white">₹ {{ item.object.amount|floatformat:2 }}</p>
+                                                {% if item.object.disbursement_log %}
+                                                <p class="text-xs text-gray-600 dark:text-white">
+                                                    Net Amount: <span class="text-red-600 font-semibold">-₹ {{ item.object.disbursement_log.net_amount_cust }}</span>
+                                                    <br>
+                                                    Charges: <span class="text-green-600 font-semibold">+₹ {{ item.object.disbursement_log.tax_charges }}</span>
+                                                </p>
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Purpose:</p>
+                                                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ item.object.purpose }}</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Mode:</p>
+                                                <p class="text-sm text-gray-900 dark:text-gray-100">
+                                                    <span class="px-3 text-sm font-semibold rounded-full bg-gray-200 text-gray-900 dark:bg-blue-900/50 ">
+                                                {% if item.object.mode %}
+                                                    {{ item.object.mode }}
+                                                {% elif item.object.disbursement_log %}
+                                                    {{ item.object.disbursement_log.get_disb_mode_display }}
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                                    </span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center justify-between gap-6">
+                                            <div>
+                                                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 border-b border-gray-200">Transfer To/From:</p>
+                                                <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ item.object.transfer_to_from }}</p>
+                                            </div>
+                                            {% if item.object.bank_payment_method %}
+                                            <div>
+                                                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 border-b border-gray-200">Payment Method:</p>
+                                                <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ item.object.bank_payment_method.upper }}</p>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Optional Disbursement Info -->
+                                    {% if item.object.disbursement_log %}
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                                            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Disbursement ID</span>
+                                            <span class="text-sm font-medium text-gray-900 dark:text-white">{{ item.object.disbursement_log.dis_id }}</span>
+                                        </div>
+                                        <div class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                                            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Loan Ref</span>
+                                            <span class="text-sm font-medium text-gray-900 dark:text-white">{{ item.object.disbursement_log.loan_id.loan_ref_no|default:'N/A' }}</span>
+                                        </div>
+                                        <div class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                                            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Customer</span>
+                                            <span class="text-sm font-medium text-gray-900 dark:text-white">{{ item.object.disbursement_log.loan_id.customer.full_name|default:'N/A' }}</span>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                    
+                                    {% if item.object.description %}
+                                    <div class="pt-2">
+                                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Description</p>
+                                        <p class="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800/50 p-3 rounded">{{ item.object.description }}</p>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% else %}
+                            <div id="fundtransfer-{{ item.object.transfer_id }}" class="hidden">
+                                <div class="space-y-4">
+                                    <!-- Header Section -->
+                                    <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mb-4">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <h4 class="text-lg font-semibold text-blue-800 dark:text-blue-200">Fund Transfer #{{ item.object.transfer_id }}</h4>
+                                                <p class="text-sm text-blue-600 dark:text-blue-300">{{ item.object.transfer_date|date:"M d, Y H:i" }}</p>
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <h4 class="text-sm font-semibold text-blue-800 dark:text-blue-200">Type:</h4>
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 border border-green-800 dark:bg-green-900 dark:text-green-200">
+                                                    Credit
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                            
+                                    <!-- Amount Section -->
+                                    <div class="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg">
+                                        <div class="flex items-center justify-between gap-6">
+                                            <div>
+                                                <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Amount:</p>
+                                                <p class="text-lg font-bold text-gray-900 dark:text-white">₹ {{ item.object.amount|floatformat:2 }}</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Purpose:</p>
+                                                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ item.object.purpose|default:'Fund Transfer' }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                            
+                                    <!-- Transaction Info -->
+                                    <div class="space-y-2">
+                                        {% if item.object.hq_transaction and item.object.hq_transaction.description %}
+                                        <div class="pt-2">
+                                            <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Description</p>
+                                            <p class="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800/50 p-3 rounded">{{ item.object.hq_transaction.description }}</p>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            </div>
+            {% if is_paginated %}
+            <div class="flex items-center justify-between p-4">
+                <div class="text-sm text-gray-600 dark:text-gray-300">
+                    Page {{ page_obj.number }} of {{ paginator.num_pages }}
+                </div>
+                <nav class="inline-flex items-center gap-2" aria-label="Pagination">
+                    {% if page_obj.has_previous %}
+                        <a class="px-3 py-2 text-sm rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600"
+                           href="?page={{ page_obj.previous_page_number }}{% if querystring %}&{{ querystring }}{% endif %}">Previous</a>
+                    {% else %}
+                        <span class="px-3 py-2 text-sm rounded-md border border-gray-200 bg-gray-100 text-gray-400 dark:bg-gray-900/40 dark:border-gray-700">Previous</span>
+                    {% endif %}
+
+                    {% for i in pagination_links %}
+                        {% if i %}
+                            {% if i == page_obj.number %}
+                                <span class="px-3 py-2 text-sm rounded-md border border-blue-600 bg-blue-600 text-white dark:border-blue-500 dark:bg-blue-600">
+                                    {{ i }}
+                                </span>
+                            {% else %}
+                                <a class="px-3 py-2 text-sm rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600"
+                                   href="?page={{ i }}{% if querystring %}&{{ querystring }}{% endif %}">
+                                    {{ i }}
+                                </a>
+                            {% endif %}
+                        {% else %}
+                            <span class="px-3 py-2 text-sm rounded-md border border-gray-200 bg-gray-50 text-gray-500 dark:bg-gray-900/20 dark:border-gray-700">...</span>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <a class="px-3 py-2 text-sm rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600"
+                           href="?page={{ page_obj.next_page_number }}{% if querystring %}&{{ querystring }}{% endif %}">Next</a>
+                    {% else %}
+                        <span class="px-3 py-2 text-sm rounded-md border border-gray-200 bg-gray-100 text-gray-400 dark:bg-gray-900/40 dark:border-gray-700">Next</span>
+                    {% endif %}
+                </nav>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Transaction Details Modal -->
+    <div id="transactionModal"
+        class="fixed inset-0 bg-gray-400/50 backdrop-blur-[32px] transition-opacity z-99999 hidden overflow-y-auto">
+        <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+            <div
+                class="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 text-left shadow-xl transition-all sm:my-8 w-full max-w-2xl">
+                <!-- Header -->
+                <div class="bg-white dark:bg-gray-800 px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xl font-semibold leading-6 text-gray-900 dark:text-white" id="modal-title">
+                            Transaction Details
+                        </h3>
+                        <button type="button" onclick="closeModal()"
+                            class="rounded-md bg-white dark:bg-gray-800 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
+                            <span class="sr-only">Close</span>
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Modal Content -->
+                <div class="px-6 py-4 max-h-[70vh] overflow-y-auto">
+                    <div id="transactionDetails" class="space-y-6">
+                        <!-- Transaction details will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div
+                    class="bg-gray-50 dark:bg-gray-800/50 px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end">
+                    <button type="button" onclick="closeModal()"
+                        class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Add this modal right after your existing transaction modal -->
+    <div id="fundTransferModal" class="fixed inset-0 bg-gray-400/50 backdrop-blur-[32px] transition-opacity z-99999 hidden overflow-y-auto">
+        <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+            <div class="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 text-left shadow-xl transition-all sm:my-8 w-full max-w-2xl">
+                <!-- Header -->
+                <div class="bg-white dark:bg-gray-800 px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xl font-semibold leading-6 text-gray-900 dark:text-white" id="fundTransferModalTitle">
+                            Fund Transfer Details
+                        </h3>
+                        <button type="button" onclick="closeFundTransferModal()" 
+                                class="rounded-md bg-white dark:bg-gray-800 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
+                            <span class="sr-only">Close</span>
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Modal Content -->
+                <div class="px-6 py-4 max-h-[70vh] overflow-y-auto">
+                    <div id="fundTransferDetails" class="space-y-6">
+                        <!-- Content will be loaded here by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="bg-gray-50 dark:bg-gray-800/50 px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end">
+                    <button type="button" onclick="closeFundTransferModal()"
+                            class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transfer To Headquarter Modal -->
+    <div id="transferModal"
+        class="fixed inset-0 bg-gray-400/50 backdrop-blur-[32px] transition-opacity z-99999 hidden overflow-y-auto">
+        <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+            <div class="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 text-left shadow-xl transition-all sm:my-8 w-full max-w-lg">
+                <!-- Header -->
+                <div class="bg-white dark:bg-gray-800 px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xl font-semibold leading-6 text-gray-900 dark:text-white">
+                            Transfer to Headquarter
+                        </h3>
+                        <button type="button" onclick="closeTransferModal()"
+                            class="rounded-md bg-white dark:bg-gray-800 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
+                            <span class="sr-only">Close</span>
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Modal Content -->
+                <div class="px-6 py-4 max-h-[70vh] overflow-y-auto">
+                    <form id="transferForm" method="post" action="#" data-balance="{{ wallet.wallet_balance|default:'0.00'|floatformat:2 }}">
+                         {% csrf_token %}
+                         <div id="transferFormError" class="mb-3 text-sm text-red-600 dark:text-red-400 hidden"></div>
+                         <div class="space-y-4">
+                             <div>
+                                 <label for="transferAmount" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Amount (₹)*</label>
+                                 <input type="number" min="0" step="0.01" id="transferAmount" name="amount" required
+                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white" />
+                             </div>
+                             <div>
+                                <label for="transferPaymentMode" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Payment Mode (From)*</label>
+                                <select id="transferPaymentMode" name="payment_mode" required
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                    <option value="">Select payment mode</option>
+                                    <option value="cash">Cash</option>
+                                    <option value="bank">Bank</option>
+                                </select>
+                                <div id="transferPaymentModeError" class="mt-2 text-sm text-red-600 dark:text-red-400 hidden"></div>
+                            </div>
+                            <div id="transferPaymentModeBank" class="flex items-center gap-2 hidden">
+                                <label for="transfer_bank_payment_method" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Payment Method : </label>
+                                <input type="radio" name="transfer_bank_payment_method" id="bank_cheque" value="cheque">
+                                <label for="bank_cheque">Cheque</label>
+                            
+                                <input type="radio" name="transfer_bank_payment_method" id="bank_neft" value="neft">
+                                <label for="bank_neft">NEFT / RTGS</label>
+                            
+                                <input type="radio" name="transfer_bank_payment_method" id="bank_upi" value="upi">
+                                <label for="bank_upi">UPI</label>
+                            
+                                <!-- <input type="radio" name="transfer_bank_payment_method" id="bank_transfer" value="bank transfer">
+                                <label for="bank_transfer">Bank Transfer</label> -->
+                            </div>
+                            <div id="transferAccountNumberContainer" class="hidden">
+                                <label for="transferAccountNumber" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Account Number</label>
+                                <select id="transferAccountNumber" name="account_number"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                    <option value="">Select account</option>
+                                    {% for account in accounts %}
+                                        <option value="{{ account.account_number }}" data-account-id="{{ account.id }}">
+                                            {{ account.account_number }} - {{ account.bank_name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <input type="hidden" name="account_id" id="transfer_account_id" value="">
+                            </div>
+                            <div>
+                                <label for="hq_wallet_id" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Headquarters Account (To)*</label>
+                                <select name="hq_wallet_id" id="hq_wallet_id" class="form-select mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white" required>
+                                  <option value="">Select HQ Account</option>
+                                  {% for w in hq_wallets %}
+                                    <option value="{{ w.wallet_id }}">
+                                      {% if w.type == 'BANK' %}
+                                        {{ w.bank_name|default:"-" }} ({{ w.name|default:"-" }}) - {{ w.account_number|default:"-" }}
+                                      {% else %}
+                                        Cash - {{ w.name|default:"Cash" }}
+                                      {% endif %}
+                                    </option>
+                                  {% endfor %}
+                                </select>
+                              </div>
+                              <div>
+                                  <label for="transferPurpose" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Purpose *</label>
+                                  <select id="transferPurpose" name="purpose" required
+                                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                      <option value="">Select purpose</option>
+                                      {% for account in chart_of_accounts %}
+                                          <option value="{{ account.id }}" data-code="{{ account.code }}">
+                                              {{ account.head_of_account }} ({{ account.code }})
+                                          </option>
+                                      {% endfor %}
+                                  </select>
+                              </div>
+                             <div>
+                                 <label for="transferNote" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Note(optional)</label>
+                                 <textarea id="transferNote" name="note" rows="3"
+                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"></textarea>
+                             </div>
+                         </div>
+                     </form>
+                 </div>
+
+                 <!-- Footer -->
+                 <div class="bg-gray-50 dark:bg-gray-800/50 px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-2">
+                     <button type="button" onclick="closeTransferModal()"
+                         class="rounded-md px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600">Cancel</button>
+                     <button type="submit" form="transferForm" onclick="moneyTransferToHQ(event)"
+                         class="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">Submit</button>
+                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Record Transaction Modal -->
+     <div id="recordTransactionModal" class="fixed inset-0 bg-gray-400/50 backdrop-blur-[32px] transition-opacity z-99999 hidden overflow-y-auto">
+        <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+            <div class="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 text-left shadow-xl transition-all sm:my-8 w-full max-w-lg">
+                <div class="bg-white dark:bg-gray-800 px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Record Transaction</h3>
+                        <button type="button" onclick="closeRecordTransactionModal()"
+                            class="rounded-md bg-white dark:bg-gray-800 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
+                            <span class="sr-only">Close</span>
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="px-6 py-4 max-h-[70vh] overflow-y-auto">
+                    <form id="recordTransactionForm" method="post" action="#" data-balance="{{ wallet.wallet_balance|default:'0.00'|floatformat:2 }}">
+                        {% csrf_token %}
+                        <div id="recordTransactionFormError" class="mb-3 text-sm text-red-600 dark:text-red-400 hidden"></div>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="transactionType" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Transaction Type *</label>
+                                <select id="transactionType" name="transaction_type" required
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                    <option value="">Select transaction type</option>
+                                    <option value="debit">Debit</option>
+                                    <option value="credit">Credit</option>
+                                </select>
+                                <div id="transactionTypeError" class="mt-2 text-sm text-red-600 dark:text-red-400 hidden"></div>
+                            </div>
+                            <div>
+                                <label for="transactionAmount" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Amount (₹)*</label>
+                                <input type="number" min="0" step="1" id="transactionAmount" name="amount" required
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white" />
+                                <div id="transactionAmountError" class="mt-2 text-sm text-red-600 dark:text-red-400 hidden"></div>
+                            </div>
+                            <div>
+                                <label for="paymentMode" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Payment Mode *</label>
+                                <select id="paymentMode" name="payment_mode" required
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                    <option value="">Select payment mode</option>
+                                    <option value="cash">Cash</option>
+                                    <option value="bank">Bank</option>
+                                </select>
+                                <div id="paymentModeError" class="mt-2 text-sm text-red-600 dark:text-red-400 hidden"></div>
+                            </div>
+                            <div id="paymentModeBank" class="flex items-center gap-2 hidden">
+                                <input type="radio" name="bank_payment_method" id="bank_cheque" value="cheque">
+                                <label for="bank_cheque">Cheque</label>
+                            
+                                <input type="radio" name="bank_payment_method" id="bank_neft" value="neft">
+                                <label for="bank_neft">NEFT / RTGS</label>
+                            
+                                <input type="radio" name="bank_payment_method" id="bank_upi" value="upi">
+                                <label for="bank_upi">UPI</label>
+                            
+                                <!-- <input type="radio" name="bank_payment_method" id="bank_transfer" value="transfer">
+                                <label for="bank_transfer">Bank Transfer</label> -->
+                            </div>
+                            <div id="accountNumberContainer" class="hidden">
+                                <label for="accountNumber" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Account Number</label>
+                                <select id="accountNumber" name="account_number"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                    <option value="">Select account</option>
+                                    {% for account in accounts %}
+                                        <option value="{{ account.account_number }}" data-account-id="{{ account.id }}">
+                                            {{ account.account_number }} - {{ account.bank_name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <input type="hidden" name="account_id" id="account_id" value="">
+                            </div>
+                            <div>
+                                <label for="transactionPurpose" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Purpose *</label>
+                                <select id="transactionPurpose" name="purpose" required
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                    <option value="">Select purpose</option>
+                                    {% for account in chart_of_accounts %}
+                                        <option value="{{ account.id }}" data-code="{{ account.code }}">
+                                            {{ account.head_of_account }} ({{ account.code }})
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <div id="transactionPurposeError" class="mt-2 text-sm text-red-600 dark:text-red-400 hidden"></div>
+                            </div>
+                            <div>
+                                <label for="transferToFrom" class="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                                    Transfer To / From (if applicable)
+                                </label>
+                                <input list="transferToFromList" id="transferToFrom" name="transfer_to_from" required
+                                    placeholder="Select or type name"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white" />
+                            
+                                <datalist id="transferToFromList">
+                                    {% for employee in branch_employees %}
+                                        <option value="{{ employee.first_name }} {{ employee.last_name }}">
+                                            {{ employee.first_name }} {{ employee.last_name }} - {{ employee.employee_id }}
+                                        </option>
+                                    {% endfor %}
+                                </datalist>
+                            </div>
+                            <div>
+                                <label for="transactionNote" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Remarks(optional)</label>
+                                <textarea id="transactionNote" name="note" rows="3"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"></textarea>
+                                <div id="transactionNoteError" class="mt-2 text-sm text-red-600 dark:text-red-400 hidden"></div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <!-- Footer -->
+                <div class="bg-gray-50 dark:bg-gray-800/50 px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-2">
+                    <button type="button" onclick="closeRecordTransactionModal()"
+                        class="rounded-md px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600">Cancel</button>
+                    <button type="submit" form="recordTransactionForm" onclick="recordTransaction(event)"
+                        class="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">Submit</button>
+                </div>
+            </div>
+        </div>
+     </div>
+
+
+     <!-- Add Account Modal -->
+      <div id="addAccountModal" class="hidden">
+          <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center backdrop-blur-[32px] transition-opacity z-99999 overflow-y-auto"> 
+              <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md">
+                  <div class="flex items-center justify-between py-4 border-b border-gray-200 dark:border-gray-700">
+                      <h3 class="text-lg font-medium text-gray-900 dark:text-white">Add Account</h3>
+                      <button type="button" onclick="closeAddAccountModal()"
+                          class="rounded-md bg-white dark:bg-gray-800 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
+                          <span class="sr-only">Close</span>
+                          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                      </button>
+                  </div>
+                  
+                  <form id="addAccountForm" method="post" action="/branch/api/add-account/">
+                      {% csrf_token %}
+                      <div class="py-4 max-h-[70vh] overflow-y-auto">
+                          <div class="space-y-4">
+                              <!-- Account Name Dropdown -->
+                              <div>
+                                  <label for="accountName" class="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                                      Account Name *
+                                  </label>
+                                  <select id="accountName" name="account_name" required
+                                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                      <option value="">Select account type</option>
+                                      <option value="Savings Account">Savings Account</option>
+                                      <option value="Current Account">Current Account</option>
+                                      <option value="Fixed Deposit Account">Fixed Deposit Account</option>
+                                      <option value="Recurring Deposit Account">Recurring Deposit Account</option>
+                                      <option value="Salary Account">Salary Account</option>
+                                      <option value="Student Account">Student Account</option>
+                                      <option value="Joint Account">Joint Account</option>
+                                      <option value="NRI Account">NRI Account</option>
+                                      <option value="Business Account">Business Account</option>
+                                      <option value="Merchant Account">Merchant Account</option>
+                                      <option value="Corporate Account">Corporate Account</option>
+                                      <option value="Money Market Account">Money Market Account</option>
+                                      <option value="Pension Account">Pension Account</option>
+                                      <option value="Trust Account">Trust Account</option>
+                                      <option value="Escrow Account">Escrow Account</option>
+                                      <option value="Foreign Currency Account">Foreign Currency Account</option>
+                                      <option value="Offshore Account">Offshore Account</option>
+                                  </select>
+                                  <div id="accountNameError" class="mt-2 text-sm text-red-600 dark:text-red-400 hidden"></div>
+                              </div>
+                              
+                              <!-- Bank Name -->
+                              <div>
+                                  <label for="bankName" class="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                                      Bank Name *
+                                  </label>
+                                  <input type="text" id="bankName" name="bank_name" required
+                                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                                      placeholder="Enter bank name"
+                                      value="">
+                                  <div id="bankNameError" class="mt-2 text-sm text-red-600 dark:text-red-400 hidden"></div>
+                              </div>
+
+                              <!-- Account Number -->
+                              <div>
+                                  <label for="accountNumber" class="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                                      Account Number *
+                                  </label>
+                                  <input type="text" id="accountNumber" name="account_number" required
+                                      placeholder="Enter account number"
+                                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white" />
+                                  <div id="accountNumberError" class="mt-2 text-sm text-red-600 dark:text-red-400 hidden"></div>
+                              </div>
+                              
+                              <!-- Amount -->
+                              <div>
+                                  <label for="accountAmount" class="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                                      Amount *
+                                  </label>
+                                  <input type="number" id="accountAmount" name="amount" required min="0" step="0.01"
+                                      placeholder="Enter initial amount"
+                                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white" />
+                                  <div id="accountAmountError" class="mt-2 text-sm text-red-600 dark:text-red-400 hidden"></div>
+                              </div>
+
+                          </div>
+                      </div>
+                      
+                      <div class="flex justify-end gap-2 pt-4">
+                          <button type="button" onclick="closeAddAccountModal()"
+                              class="rounded-md px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600">
+                              Cancel
+                          </button>
+                          <button type="submit" id="submitBtn"
+                              class="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                              Submit
+                          </button>
+                      </div>
+                  </form>
+              </div>
+          </div>
+      </div>
+
+
+    <script>
+        // Show transaction details in modal
+        function showTransactionDetails(transactionId) {
+            const transactionDetails = document.getElementById(`transaction-${transactionId}`).innerHTML;
+            document.getElementById('transactionDetails').innerHTML = transactionDetails;
+            document.getElementById('transactionModal').classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('transactionModal').classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        // Open/Close Transfer modal
+        function openTransferModal() {
+            document.getElementById('transferModal').classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+            // Clear previous values and errors when opening
+            try {
+                document.getElementById('transferForm').reset();
+                document.getElementById('transfer_account_id').value = '';
+                clearTransferError();
+                // updateRefVisibility();
+            } catch (e) {}
+        }
+        function closeTransferModal() {
+            document.getElementById('transferModal').classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        //  Show / hide extra fields when Payment Mode changes
+        // --------------------------------------------------------------
+         document.getElementById('transferPaymentMode')?.addEventListener('change', function () {
+            const mode = this.value;
+        
+            // Reset all containers
+            document.getElementById('transferAccountNumberContainer').classList.add('hidden');
+            document.getElementById('transferPaymentModeBank').classList.add('hidden');
+        
+            // Clear previous values
+            document.getElementById('transferAccountNumber').value = '';
+            
+            // Clear bank payment method selections
+            document.querySelectorAll('input[name="transfer_bank_payment_method"]').forEach(radio => {
+                radio.checked = false;
+            });
+        
+            // Show fields based on selection
+            if (mode === 'bank') {
+                document.getElementById('transferAccountNumberContainer').classList.remove('hidden');
+                document.getElementById('transferPaymentModeBank').classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('paymentMode')?.addEventListener('change', function () {
+            const mode = this.value;
+        
+            // Reset all containers
+            document.getElementById('accountNumberContainer').classList.add('hidden');
+            document.getElementById('paymentModeBank').classList.add('hidden');
+        
+            // Clear previous values
+            document.getElementById('accountNumber').value = '';
+            
+            // Clear bank payment method selections
+            document.querySelectorAll('input[name="bank_payment_method"]').forEach(radio => {
+                radio.checked = false;
+            });
+        
+            // Show fields based on selection
+            if (mode === 'bank') {
+                document.getElementById('accountNumberContainer').classList.remove('hidden');
+                document.getElementById('paymentModeBank').classList.remove('hidden');
+            }
+
+            // For cash, no additional fields needed
+        });
+
+        // Update account ID when account number selection changes
+        document.getElementById('transferAccountNumber')?.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const accountId = selectedOption.getAttribute('data-account-id');
+            if (accountId) {
+                document.getElementById('transfer_account_id').value = accountId;
+            }
+        });
+        
+        document.getElementById('accountNumber')?.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const accountId = selectedOption.getAttribute('data-account-id');
+            if (accountId) {
+                document.getElementById('account_id').value = accountId;
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const input = document.getElementById('transferToFrom');
+            input.addEventListener('focus', function() {
+                // Force dropdown to open on focus
+                if (this.value === '') {
+                    this.value = ' ';
+                    this.dispatchEvent(new Event('input', { bubbles: true }));
+                    this.value = '';
+                }
+            });
+        });
+
+        function openRecordTransactionModal() {
+            document.getElementById('recordTransactionModal').classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+            // Clear previous values and errors when opening
+            try {
+                document.getElementById('recordTransactionForm').reset();
+                document.getElementById('account_id').value = '';
+                document.getElementById('paymentMode').dispatchEvent(new Event('change'));
+                clearRecordTransactionError();
+                // updateRefVisibility();
+            } catch (e) {}
+        }
+        function closeRecordTransactionModal() {
+            document.getElementById('recordTransactionModal').classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        // Validation helpers for transfer form
+        function setTransferError(msg) {
+            const el = document.getElementById('transferFormError');
+            if (!el) return;
+            el.textContent = msg || '';
+            if (msg) el.classList.remove('hidden');
+            else el.classList.add('hidden');
+        }
+        function clearTransferError() { setTransferError(''); }
+
+        // Validation helpers for record transaction form
+        function setRecordTransactionError(msg) {
+            const el = document.getElementById('recordTransactionFormError');
+            if (!el) return;
+            el.textContent = msg || '';
+            if (msg) el.classList.remove('hidden');
+            else el.classList.add('hidden');
+        }
+        function clearRecordTransactionError() { setRecordTransactionError(''); }
+
+        function moneyTransferToHQ(event) {
+            if (event) event.preventDefault();
+            clearTransferError();
+            const form = document.getElementById('transferForm');
+            if (!form) return;
+        
+            // Native HTML5 validation first
+            if (!form.reportValidity()) {
+                return;
+            }
+        
+            const amount = parseFloat((document.getElementById('transferAmount').value || '0').trim());
+            const paymentMode = document.getElementById('transferPaymentMode').value;
+            const hqWalletId = (document.getElementById('hq_wallet_id')?.value || '').trim();
+            const accountNumber = document.getElementById('transferAccountNumber').value;
+            const bankPaymentMethod = document.querySelector('input[name="transfer_bank_payment_method"]:checked')?.value;
+            const purpose = (document.getElementById('transferPurpose').value || '').trim();
+            const note = (document.getElementById('transferNote').value || '').trim();
+            const balance = parseFloat(form.dataset.balance || '0');
+            const accountID = document.getElementById('transfer_account_id').value;
+        
+            if (isNaN(amount) || amount <= 0) {
+                setTransferError('Enter a valid amount greater than 0.');
+                return;
+            }
+            // if (!isNaN(balance) && amount > balance) {
+            //     const msg = `Amount exceeds wallet balance (₹${balance.toFixed(2)}).`;
+            //     setTransferError(msg);
+            //     if (typeof window.showToast === 'function') {
+            //         window.showToast(msg, 'error');
+            //     }
+            //     return;
+            // }
+            if (!purpose) {
+                setTransferError('Please select a purpose.');
+                return;
+            }
+            if (!hqWalletId) {
+                setTransferError('Please select a Headquarters account.');
+                return;
+            }
+         
+            const finalBankPaymentMethod = paymentMode === 'cash' ? 'cash' : bankPaymentMethod;
+            // console.log('finalBankPaymentMethod',finalBankPaymentMethod);
+
+            const submitBtn = document.querySelector('button[form="transferForm"][type="submit"]');
+            const prevText = submitBtn ? submitBtn.textContent : '';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Submitting...';
+            }
+        
+            const csrfInput = form.querySelector('input[name="csrfmiddlewaretoken"]');
+            const csrfToken = csrfInput ? csrfInput.value : '';
+        
+            fetch('/branch/api/money-transfer-to-hq/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: JSON.stringify({
+                    amount: amount,
+                    payment_mode: paymentMode,
+                    bank_payment_method: finalBankPaymentMethod,
+                    account_number: accountNumber,
+                    account_id: accountID,
+                    purpose: purpose,  
+                    note: note,
+                    hq_wallet_id: hqWalletId,
+                }),
+            })
+            .then(async (res) => {
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    throw new Error(data.detail || data.message || 'Transfer failed');
+                }
+                return data;
+            })
+            .then((data) => {
+                if (typeof window.showToast === 'function') {
+                    window.showToast('Transfer to Headquarter submitted successfully.', 'success');
+                }
+                closeTransferModal();
+                setTimeout(() => window.location.reload(), 900);
+            })
+            .catch((err) => {
+                const msg = err.message || 'Something went wrong.';
+                setTransferError(msg);
+                if (typeof window.showToast === 'function') {
+                    window.showToast(msg, 'error');
+                }
+            })
+            .finally(() => {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = prevText || 'Submit';
+                }
+            });
+        }
+
+
+        function recordTransaction(event) {
+            if (event) event.preventDefault();
+            clearRecordTransactionError();
+            
+            const form = document.getElementById('recordTransactionForm');
+            if (!form) return;
+        
+            // Native HTML5 validation first
+            if (!form.reportValidity()) {
+                return;
+            }
+        
+            const transactionType = (document.getElementById('transactionType').value || '').trim();
+            const amount = parseFloat((document.getElementById('transactionAmount').value || '0').trim());
+            const accountNumber = (document.getElementById('accountNumber').value || '').trim();
+            const purpose = (document.getElementById('transactionPurpose').value || '').trim();
+            const transferToFrom = (document.getElementById('transferToFrom').value || '').trim();
+            const note = (document.getElementById('transactionNote').value || '').trim();
+            const paymentMode = (document.getElementById('paymentMode').value || '').trim();
+            const bankPaymentMethod = (document.querySelector('input[name="bank_payment_method"]:checked') || {}).value;
+            const balance = parseFloat(form.dataset.balance || '0');
+            const accountId = form.querySelector('input[name="account_id"]').value;
+        
+            if (!transactionType) {
+                setRecordTransactionError('transactionTypeError', 'Please select a transaction type.');
+                return;
+            }
+        
+            if (isNaN(amount) || amount <= 0) {
+                setRecordTransactionError('transactionAmountError', 'Enter a valid amount greater than 0.');
+                return;
+            }
+        
+            if (transactionType === 'debit' && !isNaN(balance) && balance > 0 && amount > balance) {
+                const msg = `Debit amount exceeds wallet balance (₹${balance.toFixed(2)}).`;
+                setRecordTransactionError('transactionAmountError', msg);
+                if (typeof window.showToast === 'function') {
+                    window.showToast(msg, 'error');
+                }
+                return;
+            }
+        
+            if (!purpose) {
+                setRecordTransactionError('transactionPurposeError', 'Please select a purpose.');
+                return;
+            }
+
+             const finalBankPaymentMethod = paymentMode === 'cash' ? 'cash' : bankPaymentMethod;
+        
+            const submitBtn = document.querySelector('button[form="recordTransactionForm"][type="submit"]');
+            const prevText = submitBtn ? submitBtn.textContent : '';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Submitting...';
+            }
+        
+            const csrfInput = form.querySelector('input[name="csrfmiddlewaretoken"]');
+            const csrfToken = csrfInput ? csrfInput.value : '';
+    
+        
+            fetch('/branch/api/money-transfer/', { 
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: JSON.stringify({
+                    transaction_type: transactionType,
+                    amount: amount,
+                    account_id: accountId,
+                    paymentMode: paymentMode,
+                    bankPaymentMethod: finalBankPaymentMethod,
+                    purpose: purpose,
+                    transfer_to_from: transferToFrom,
+                    note: note,
+                }),
+            })
+            .then(async (res) => {
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    throw new Error(data.detail || data.message || 'Transaction failed');
+                }
+                return data;
+            })
+            .then((data) => {
+                if (typeof window.showToast === 'function') {
+                    window.showToast('Transaction recorded successfully.', 'success');
+                }
+                closeRecordTransactionModal();
+                setTimeout(() => window.location.reload(), 900);
+            })
+            .catch((err) => {
+                const msg = err.message || 'Something went wrong.';
+                setRecordTransactionError(msg);
+                if (typeof window.showToast === 'function') {
+                    window.showToast(msg, 'error');
+                }
+            })
+            .finally(() => {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = prevText || 'Submit';
+                }
+            });
+        }
+
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const paymentModeSelect = document.getElementById('paymentMode');
+            const accountNumberContainer = document.getElementById('accountNumberContainer');
+            const accountNumberSelect = document.getElementById('accountNumber');
+            const bankModeOptions = document.getElementById('paymentModeBank');
+        
+            paymentModeSelect.addEventListener('change', function () {
+                const mode = this.value.toLowerCase();
+        
+                if (mode === 'bank') {
+                    bankModeOptions.classList.remove('hidden');
+                    accountNumberContainer.classList.remove('hidden');
+                    accountNumberSelect.setAttribute('required', 'true');
+                } else {
+                    bankModeOptions.classList.add('hidden');
+                    accountNumberContainer.classList.add('hidden');
+                    accountNumberSelect.removeAttribute('required');
+                    accountNumberSelect.value = '';
+                    document.querySelectorAll('input[name="bank_payment_method"]').forEach(r => r.checked = false);
+                }
+            });
+        });
+
+        // Close modal when clicking outside of it
+        window.onclick = function (event) {
+            const transactionModal = document.getElementById('transactionModal');
+            const transferModal = document.getElementById('transferModal');
+            if (event.target === transactionModal) {
+                closeModal();
+            }
+            if (event.target === transferModal) {
+                closeTransferModal();
+            }
+        }
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                closeModal();
+                closeTransferModal();
+            }
+        });
+
+        // --- Filtering logic ---
+        (function () {
+            const $ = (sel) => document.querySelector(sel);
+            const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+            const search = $('#txSearch');
+            const type = $('#txType');
+            const mode = $('#txMode');
+            const purpose = $('#txPurpose');
+            const code = $('#txCode'); // Add code variable
+            const dateFrom = $('#txDateFrom');
+            const dateTo = $('#txDateTo');
+            const resetBtn = $('#txReset');
+            const rows = () => $$('#wallet tbody tr, table tbody tr').filter(r => r.hasAttribute('data-type')) || [];
+            const emptyFiltered = document.getElementById('txEmptyFiltered');
+            const tableWrapper = document.getElementById('txTableWrapper');
+        
+            // Deduplicate select options on initialization
+            function deduplicateSelectOptions() {
+                // Deduplicate purpose options
+                const purposeSelect = document.getElementById('txPurpose');
+                if (purposeSelect) {
+                    const seenPurposes = new Set();
+                    const purposeOptions = Array.from(purposeSelect.querySelectorAll('option'));
+                    
+                    purposeOptions.forEach((option, index) => {
+                        if (index === 0) return;
+                        const value = option.value.trim();
+                        if (seenPurposes.has(value)) {
+                            option.remove();
+                        } else {
+                            seenPurposes.add(value);
+                        }
+                    });
+                }
+                
+                // Deduplicate code options
+                const codeSelect = document.getElementById('txCode');
+                if (codeSelect) {
+                    const seenCodes = new Set();
+                    const codeOptions = Array.from(codeSelect.querySelectorAll('option'));
+                    
+                    codeOptions.forEach((option, index) => {
+                        if (index === 0) return;
+                        const value = option.value.trim();
+                        if (seenCodes.has(value)) {
+                            option.remove();
+                        } else {
+                            seenCodes.add(value);
+                        }
+                    });
+                }
+            }
+        
+            // Call deduplication on load
+            deduplicateSelectOptions();
+        
+            // ... rest of your filter logic remains the same
+            function normalize(str) {
+                return (str || '').toString().toLowerCase();
+            }
+        
+            function inDateRange(dateStr, fromStr, toStr) {
+                if (!dateStr) return true;
+                const d = new Date(dateStr);
+                if (fromStr) {
+                    const f = new Date(fromStr);
+                    if (d < f) return false;
+                }
+                if (toStr) {
+                    const t = new Date(toStr);
+                    t.setHours(23, 59, 59, 999);
+                    if (d > t) return false;
+                }
+                return true;
+            }
+        
+            function filterRows() {
+                const q = normalize(search?.value);
+                const t = (type?.value || '').trim();
+                const m = (mode?.value || '').trim().toLowerCase();
+                const c = (code?.value || '').trim(); // Code filter
+                const p = (purpose?.value || '').trim();
+                const df = dateFrom?.value || '';
+                const dt = dateTo?.value || '';
+            
+                let visibleCount = 0;
+                rows().forEach(tr => {
+                    const rowText = normalize(tr.textContent);
+                    const rType = (tr.dataset.type || '').trim();
+                    const rCode = (tr.dataset.code || '').trim(); // Get code from data attribute
+                    const rPurpose = (tr.dataset.purpose || '').trim();
+                    const rDate = (tr.dataset.date || '').trim();
+                    const rMode = (tr.dataset.mode || '').trim().toLowerCase();
+            
+                    const matchSearch = !q || rowText.includes(q);
+                    // const matchType = !t || rType === t;
+                    const matchType = !t || rType.toUpperCase() === t.toUpperCase();
+                    const matchCode = !c || rCode === c; // Code filter condition
+                    const matchPurpose = !p || rPurpose === p;
+                    const matchDate = inDateRange(rDate, df, dt);
+                    const matchMode = !m || rMode === m;
+            
+                    const show = matchSearch && matchType && matchCode && matchPurpose && matchDate && matchMode;
+                    tr.style.display = show ? '' : 'none';
+                    if (show) visibleCount++;
+                });
+            
+                // Toggle inline empty message and table visibility
+                if (emptyFiltered && tableWrapper) {
+                    if (visibleCount === 0) {
+                        emptyFiltered.classList.remove('hidden');
+                        tableWrapper.classList.add('hidden');
+                    } else {
+                        emptyFiltered.classList.add('hidden');
+                        tableWrapper.classList.remove('hidden');
+                    }
+                }
+            }
+        
+            ['input', 'change'].forEach(evt => {
+                search?.addEventListener(evt, filterRows);
+                type?.addEventListener(evt, filterRows);
+                mode?.addEventListener(evt, filterRows);
+                code?.addEventListener(evt, filterRows); // Add code filter
+                purpose?.addEventListener(evt, filterRows);
+            });
+        
+            // Unified reset
+            function resetFilters() {
+                if (search) search.value = '';
+                if (type) type.value = '';
+                if (mode) mode.value = '';
+                if (purpose) purpose.value = '';
+                if (code) code.value = ''; // Reset code filter
+                if (fpFrom) {
+                    fpFrom.clear();
+                    if (dateTo) dateTo.value = '';
+                } else {
+                    if (dateFrom) dateFrom.value = '';
+                    if (dateTo) dateTo.value = '';
+                }
+                try {
+                    const params = new URLSearchParams(window.location.search);
+                    params.delete('date_from');
+                    params.delete('date_to');
+                    params.delete('type');
+                    params.delete('mode');
+                    params.delete('code');
+                    params.delete('purpose');
+                    params.delete('page');
+                    window.location.search = params.toString();
+                    return;
+                } catch (e) {}
+                filterRows();
+            }
+        
+            // Bind reset button and call on load
+            resetBtn?.addEventListener('click', resetFilters);
+            // document.addEventListener('DOMContentLoaded', resetFilters);
+
+            // Flatpickr single range picker for date filtering
+            let fpFrom = null;
+            if (window.flatpickr && dateFrom) {
+                const initialFrom = (dateFrom.value || '').trim();
+                const initialTo = (dateTo?.value || '').trim();
+
+                const initialDefaultDate = (initialFrom && initialTo)
+                    ? [initialFrom, initialTo]
+                    : (initialFrom ? [initialFrom] : null);
+
+                fpFrom = flatpickr(dateFrom, {
+                    mode: 'range',
+                    // defaultDate: [today, today],
+                    defaultDate: initialDefaultDate || undefined,
+                    dateFormat: 'Y-m-d',
+                    maxDate: 'today',
+                    allowInput: false,
+                    clickOpens: true,
+                    altInput: true,
+                    altFormat: 'M j, Y',
+                    locale: { rangeSeparator: ' - ' },
+                     onReady: function(selectedDates, dateStr, instance) {
+                        // const todayAlt = flatpickr.formatDate(today, 'M j, Y');
+                        // instance.altInput.value = `${todayAlt} - ${todayAlt}`;
+                         // Copy styling/classes so alignment with icon stays correct
+                         if (instance.input && instance.altInput) {
+                             instance.altInput.className = instance.input.className;
+                             instance.altInput.setAttribute('readonly', 'readonly');
+                             if (instance.input.placeholder) {
+                                 instance.altInput.setAttribute('placeholder', instance.input.placeholder);
+                             }
+                         }
+                     },
+                    //  onOpen: function(_, __, instance) {
+                    //      instance.jumpToDate(today);
+                    //  },
+                     onChange: function(selectedDates, dateStr, instance) {
+                         const [start, end] = selectedDates;
+                         if (start && end) {
+                             const startStr = flatpickr.formatDate(start, 'Y-m-d');
+                             const endStr = flatpickr.formatDate(end, 'Y-m-d');
+                             dateFrom.value = startStr;
+                             const startAlt = flatpickr.formatDate(start, 'M j, Y');
+                             const endAlt = flatpickr.formatDate(end, 'M j, Y');
+                             instance.altInput.value = `${startAlt} - ${endAlt}`;
+                             if (dateTo) {
+                                 dateTo.value = endStr;
+                             }
+                             try {
+                                 const params = new URLSearchParams(window.location.search);
+                                 params.set('date_from', startStr);
+                                 params.set('date_to', endStr);
+                                 params.delete('page');
+                                 window.location.search = params.toString();
+                                 return;
+                             } catch (e) {}
+                             filterRows();
+                         } else if (selectedDates.length === 1) {
+                             const only = selectedDates[0];
+                             const s = flatpickr.formatDate(only, 'Y-m-d');
+                             const sAlt = flatpickr.formatDate(only, 'M j, Y');
+                             dateFrom.value = s;
+                             instance.altInput.value = `${sAlt}`;
+                             if (dateTo) {
+                                 dateTo.value = '';
+                             }
+                             // Do not filter yet
+                         } else {
+                             // When no dates selected, clear everything
+                             dateFrom.value = '';
+                             instance.altInput.value = '';
+                             if (dateTo) {
+                                 dateTo.value = '';
+                             }
+                             try {
+                                 const params = new URLSearchParams(window.location.search);
+                                 params.delete('date_from');
+                                 params.delete('date_to');
+                                 params.delete('page');
+                                 window.location.search = params.toString();
+                                 return;
+                             } catch (e) {}
+                             filterRows();
+                         }
+                    },
+
+                    onClose: function(selectedDates, dateStr, instance) {
+                        // If only one date selected, clear it (require proper range)
+                        if (selectedDates.length === 1) {
+                            instance.clear();
+                            filterRows();
+                        }
+                    }
+                 });
+            }
+
+        })();
+        // Initialize ref visibility on load in case modal is already open
+        // updateRefVisibility();
+        
+        function deduplicateSelectOptions() {
+            // Deduplicate purpose options
+            const purposeSelect = document.getElementById('txPurpose');
+            if (purposeSelect) {
+                const seenPurposes = new Set();
+                const purposeOptions = Array.from(purposeSelect.querySelectorAll('option'));
+                
+                purposeOptions.forEach((option, index) => {
+                    if (index === 0) return; // Skip the first option
+                    
+                    const value = option.value.trim();
+                    if (seenPurposes.has(value)) {
+                        option.remove();
+                    } else {
+                        seenPurposes.add(value);
+                    }
+                });
+            }
+            
+            // Deduplicate code options
+            const codeSelect = document.getElementById('txCode');
+            if (codeSelect) {
+                const seenCodes = new Set();
+                const codeOptions = Array.from(codeSelect.querySelectorAll('option'));
+                
+                codeOptions.forEach((option, index) => {
+                    if (index === 0) return; // Skip the first option
+                    
+                    const value = option.value.trim();
+                    if (seenCodes.has(value)) {
+                        option.remove();
+                    } else {
+                        seenCodes.add(value);
+                    }
+                });
+            }
+        }
+        // Add event listener for all view buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            deduplicateSelectOptions();
+
+            document.querySelectorAll('.view-transaction').forEach(button => {
+                button.addEventListener('click', function() {
+                    const transactionId = this.getAttribute('data-transaction-id');
+                    showTransactionDetails(transactionId);
+                });
+            });
+            document.querySelectorAll('.view-fund-transfer').forEach(button => {
+                button.addEventListener('click', function() {
+                    const transferId = this.getAttribute('data-transfer-id');
+                    showFundTransferDetails(transferId);
+                });
+            });
+        });
+
+        // Show fund transfer details in modal
+        function showFundTransferDetails(transferId) {
+            try {
+                const fundTransferDetails = document.getElementById(`fundtransfer-${transferId}`).innerHTML;
+                const detailsDiv = document.getElementById('fundTransferDetails');
+                if (!detailsDiv || !fundTransferDetails) {
+                    console.error('Fund transfer details or container not found for transferId:', transferId);
+                    return;
+                }
+                detailsDiv.innerHTML = fundTransferDetails;
+                const modal = document.getElementById('fundTransferModal');
+                if (!modal) {
+                    console.error('Fund Transfer Modal not found');
+                    return;
+                }
+                modal.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+            } catch (err) {
+                console.error('Error in showFundTransferDetails:', err);
+            }
+        }
+
+        // Close fund transfer modal
+        function closeFundTransferModal() {
+            try {
+                const modal = document.getElementById('fundTransferModal');
+                if (!modal) {
+                    console.error('Fund Transfer Modal not found');
+                    return;
+                }
+                modal.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            } catch (err) {
+                console.error('Error in closeFundTransferModal:', err);
+            }
+        }
+
+        // Close fund transfer details when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.view-fund-transfer') && !event.target.closest('[id^="fundtransfer-"]')) {
+                document.getElementById('fundTransferModal').classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }
+        });
+
+        // Also close when pressing Escape
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                document.querySelectorAll('[id^="fundtransfer-"]').forEach(el => {
+                    el.classList.add('hidden');
+                });
+            }
+        });
+    //----------------------------------------------------------------------//
+        // For Export transactions data as PDF and Excel
+
+       function showLoading(type) {
+            document.getElementById('loadingType').textContent = type;
+            document.getElementById('exportLoading').style.display = 'flex';
+            document.getElementById('pdfBtn').disabled = true;
+            document.getElementById('excelBtn').disabled = true;
+        }
+        
+        function hideLoading() {
+            document.getElementById('exportLoading').style.display = 'none';
+            document.getElementById('pdfBtn').disabled = false;
+            document.getElementById('excelBtn').disabled = false;
+        }
+        
+        function cleanAmountCell(td) {
+            let html = td.innerHTML;
+            html = html.replace(/<[^>]*>/g, '');
+            html = html
+                .replace(/&nbsp;/g, ' ')
+                .replace(/&minus;/g, '-')
+                .replace(/&plus;/g, '+')
+                .replace(/&amp;/g, '&')
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>');
+        
+            const cleaned = html.replace(/[^\d+-\s]/g, '').trim();
+        
+            const num = parseFloat(cleaned.replace(/\s/g, '')); 
+        
+            if (isNaN(num)) return cleaned;         
+            return num >= 0 ? `+${num}` : `${num}`;  
+        }
+        
+        async function exportPDF() {
+            showLoading('PDF');
+        
+            // Add a small delay to ensure loading indicator is visible
+            await new Promise(resolve => setTimeout(resolve, 100));
+        
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ orientation: 'landscape' });
+        
+                // === LOGO ===
+                const logoUrl = 'https://yoursite.com/logo.png'; // CHANGE TO YOUR LOGO
+                const logoWidth = 40, logoHeight = 20, logoX = 15, logoY = 10;
+                const titleY = logoY + logoHeight + 8;
+        
+                try {
+                    doc.addImage(logoUrl, 'PNG', logoX, logoY, logoWidth, logoHeight);
+                } catch (e) {
+                    console.warn("Logo failed:", e);
+                }
+        
+                doc.setFontSize(14).setFont('helvetica', 'bold');
+                doc.text("Fund Transaction History", logoX, titleY);
+                doc.setFontSize(10).setFont('helvetica', 'normal');
+                doc.text(`Exported on: ${new Date().toLocaleDateString()}`, logoX, titleY + 7);
+        
+                // === TABLE DATA ===
+                const table = document.querySelector('#txTableWrapper table');
+                if (!table) throw new Error('No table found.');
+        
+                const visibleRows = Array.from(table.querySelectorAll('tbody tr'))
+                    .filter(tr => tr.style.display !== 'none');
+                if (!visibleRows.length) throw new Error('No transactions to export.');
+        
+                const headers = Array.from(table.querySelectorAll('thead th'))
+                    .map(th => th.textContent.trim()).slice(0, -1);
+        
+                const amountColIdx = headers.findIndex(h => h.toLowerCase().includes('amount'));
+        
+                const body = visibleRows.map(tr => {
+                    const cells = Array.from(tr.querySelectorAll('td')).slice(0, -1);
+                    return cells.map((td, i) => i === amountColIdx ? cleanAmountCell(td) : td.textContent.trim());
+                });
+        
+                // === RENDER TABLE ===
+                doc.autoTable({
+                    head: [headers],
+                    body: body,
+                    theme: 'grid',
+                    styles: { fontSize: 8, cellPadding: 2 },
+                    columnStyles: { 0: { cellWidth: 30 }, 4: { cellWidth: 25 } },
+                    startY: titleY + 15,
+                    margin: { left: 15, right: 15 },
+                    didParseCell: data => {
+                        if (data.column.index === amountColIdx && data.cell.text) {
+                            const val = parseFloat(data.cell.text[0].replace('+', ''));
+                            if (!isNaN(val)) {
+                                data.cell.styles.textColor = val >= 0 ? [0, 128, 0] : [220, 20, 60];
+                                data.cell.styles.fontStyle = 'bold';
+                            }
+                        }
+                    }
+                });
+        
+                // === SAVE (this triggers download) ===
+                // Use setTimeout to ensure the PDF is fully generated before hiding loader
+                setTimeout(() => {
+                    doc.save('wallet_transactions.pdf');
+                    
+                    // Hide loading after a brief delay to ensure download has started
+                    setTimeout(hideLoading, 500);
+                }, 100);
+        
+            } catch (err) {
+                alert('Export failed: ' + err.message);
+                hideLoading();
+            }
+        }
+        
+        async function exportExcel() {
+            showLoading('Excel');
+        
+            // Add a small delay to ensure loading indicator is visible
+            await new Promise(resolve => setTimeout(resolve, 100));
+        
+            try {
+                const table = document.querySelector('#txTableWrapper table');
+                if (!table) throw new Error('No table found.');
+        
+                const visibleRows = Array.from(table.querySelectorAll('tbody tr'))
+                    .filter(tr => tr.style.display !== 'none');
+                if (!visibleRows.length) throw new Error('No transactions to export.');
+        
+                const wb = XLSX.utils.book_new();
+        
+                const headers = Array.from(table.querySelectorAll('thead th'))
+                    .map(th => th.textContent.trim()).slice(0, -1);
+        
+                const amountColIdx = headers.findIndex(h => h.toLowerCase().includes('amount'));
+        
+                const ws_data = [headers];
+        
+                visibleRows.forEach(tr => {
+                    const cells = Array.from(tr.querySelectorAll('td')).slice(0, -1);
+                    const row = cells.map((td, i) => {
+                        if (i === amountColIdx) {
+                            const html = td.innerHTML.replace(/<[^>]*>/g, '')
+                                .replace(/&nbsp;/g, ' ').replace(/&minus;/g, '-');
+                            const num = parseFloat(html.replace(/[^\d+-\s]/g, '').trim());
+                            return isNaN(num) ? html.trim() : num;
+                        }
+                        return td.textContent.trim();
+                    });
+                    ws_data.push(row);
+                });
+        
+                const ws = XLSX.utils.aoa_to_sheet(ws_data);
+                XLSX.utils.book_append_sheet(wb, ws, "Transactions");
+                
+                // Generate and download Excel file
+                XLSX.writeFile(wb, 'wallet_transactions.xlsx');
+                
+                // Hide loading after a brief delay to ensure download has started
+                setTimeout(hideLoading, 500);
+        
+            } catch (err) {
+                alert('Export failed: ' + err.message);
+                hideLoading();
+            }
+        }
+
+
+
+       // -------------------Three dot button toggle-------------------///
+        function toggleMenu() {
+          const menu = document.getElementById('menuDropdown');
+          menu.classList.toggle('hidden');
+        }
+      
+        window.addEventListener('click', function (e) {
+          const menu = document.getElementById('menuDropdown');
+          const button = document.getElementById('menuButton');
+          if (!button.contains(e.target) && !menu.contains(e.target)) {
+            menu.classList.add('hidden');
+          }
+        });
+
+        function AllAccountModal() {
+            const modal = document.getElementById('allAccountsModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+            }
+        }
+        function closeAllAccountModal() {
+            const modal = document.getElementById('allAccountsModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }
+        }
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                closeAllAccountModal();
+            }
+        });
+
+        // -------------------Add Account-------------------///
+        // Open/Close Add Account modal
+        function openAddAccountModal() {
+            document.getElementById('addAccountModal').classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+            // Clear previous values and errors when opening
+            try {
+                document.getElementById('addAccountForm').reset();
+                clearAddAccountError();
+            } catch (e) {}
+        }
+        function closeAddAccountModal() {
+            document.getElementById('addAccountModal').classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const addAccountForm = document.getElementById('addAccountForm');
+            if (!addAccountForm) return;
+        
+            addAccountForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+        
+                // Always get fresh elements at submit time
+                const accountNameEl = document.querySelector('#addAccountModal #accountName');
+                const accountNumberEl = document.querySelector('#addAccountModal #accountNumber');
+                const bankNameEl = document.querySelector('#addAccountModal #bankName');
+        
+                const accountName = accountNameEl ? accountNameEl.value.trim() : '';
+                const accountNumber = accountNumberEl ? accountNumberEl.value.trim() : '';
+                const bankName = bankNameEl ? bankNameEl.value.trim() : '';
+        
+                // console.log('Final form values:', { accountName, accountNumber, bankName });
+        
+                let isValid = true;
+        
+                // Validation
+                const accountNameError = document.getElementById('accountNameError');
+                const accountNumberError = document.getElementById('accountNumberError');
+                const bankNameError = document.getElementById('bankNameError');
+        
+                if (!accountName) {
+                    accountNameError.classList.remove('hidden');
+                    accountNameError.textContent = 'Please select an account type';
+                    isValid = false;
+                } else accountNameError.classList.add('hidden');
+        
+                if (!accountNumber) {
+                    accountNumberError.classList.remove('hidden');
+                    accountNumberError.textContent = 'Account number is required';
+                    isValid = false;
+                } else accountNumberError.classList.add('hidden');
+        
+                if (!bankName) {
+                    bankNameError.classList.remove('hidden');
+                    bankNameError.textContent = 'Bank name is required';
+                    isValid = false;
+                } else bankNameError.classList.add('hidden');
+        
+                if (!isValid) {
+                    alert('Please fill all required fields correctly.');
+                    return;
+                }
+        
+                console.log('Form validation passed, submitting...');
+        
+                const submitBtn = document.getElementById('submitBtn');
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Submitting...';
+        
+                // Now safely submit the form (normal submission)
+                addAccountForm.submit();
+            });
+        });
+
+        // -------------------End Add Account-------------------///
+    </script>
+
+    <!-- Flatpickr script -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+    <!-- jsPDF (with autotable for tables) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <!-- SheetJS (XLSX) for Excel export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+{% endblock %}

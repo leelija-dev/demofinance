@@ -1,0 +1,89 @@
+
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>No Objection Certificate</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      @page { size: A4; margin: 18mm 20mm; }
+      /* body { font-family: 'Times New Roman', Times, serif; color: #000; font-size: 12pt; line-height: 1.5; } */
+      .header { margin-bottom: 0px; display: flex; justify-content: space-between; align-items: center; }
+      /* .logo { float: left; height: 120px; margin-right: 10px; } */
+      .header-right-block { float: left; width: 115px; margin-right: 10px; }
+      .brand { font-size: 18pt; font-weight: bold; text-align: center; }
+      /* .phone { font-size: 12pt; text-align: right; margin-bottom: 10px; color: #0000FF; } */
+      .subtitle { font-size: 12pt; text-align: center; margin-top: 5px; }
+      .address { font-size: 10pt; text-align: center; margin-top: 5px; }
+      /* .divider { height: 2px; background: #000; margin: 20px 0; } */
+      .divider { height: 4px; border-top: 1px solid #204ed8; border-bottom: 1px solid #204ed8; margin: 20px 0;}
+      .ref-date { display: flex; justify-content: space-between; margin-bottom: 20px; }
+      .concern { width: fit-content; text-align: center; font-weight: bold; text-transform: uppercase; margin-bottom: 20px; font-style: italic; border-bottom: 1px solid #204ed8;}
+      .para { text-align: justify; margin-bottom: 10px; font-size: 12pt; line-height: 1.5;}
+      /* .blank { border-bottom: 1px dotted #000; display: inline-block; min-width: 100px; text-align: left; } */
+      .sign { margin-top: 50px; display: flex; justify-content: space-between; }
+      .sign .left { width: 50%; }
+      .sign .right { width: 50%; text-align: right; }
+      .sign .line { margin-top: 20px; }
+    </style>
+  </head>
+  <body>
+    <div style="color:#204ed8;">
+    <div class="header">
+      <div class="logo">
+        {% if logo_base64 %}
+        <img class="header-right-block" src="{{ logo_base64 }}" alt="Company Logo">
+        {% else %}
+        <img class="header-right-block" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==" alt="Company Logo">
+        {% endif %}
+      </div>
+      <div>
+        <div class="brand">SUNDARAM (K.S.S.F)</div>
+        <div class="subtitle">Human Development is our Aim.</div>
+        <div class="address">Regd. Office : Badu (Hathkhola), P.O.-Badu, P.S.-Barasat.,</div>
+        <div class="address">Dist.-North 24 Pgs, Kolkata-700 128, West Bengal</div>
+      </div>
+      <div style="margin-bottom: 50px;">
+        <div class="phone">Phone : +91 33 2526 1030</div>
+      </div>
+    </div>
+    <div class="divider"></div>
+
+    <div class="ref-date">
+      <div>Ref: <span class="blank">{{ loan_ref_no|default:"___________" }}</span></div>
+      <div>Date: <span class="blank">{{ approved_at|date:"d-m-Y"|default:"___________" }}</span></div>
+    </div>
+    <div style="display: flex; justify-content: center;">
+    <div class="concern">TO WHOM IT MAY CONCERN</div>
+    </div>
+    
+    <p class="para">
+      I am glad to Certify that <span class="blank">{{ customer_name|default:"___________" }}</span>
+      C.O / S/O <span class="blank">{{ father_name|default:"___________" }}</span> residing at <span class="blank">{{ address|default:"___________" }}</span>
+      P.O. <span class="blank">{{ po|default:"___________" }}</span> P.S. <span class="blank">{{ ps|default:"___________" }}</span> Dist: <span class="blank">{{ district|default:"___________" }}</span>,
+      Pin- <span class="blank">{{ pin|default:"___________" }}</span> <span class="blank">{{ state|default:"W.B." }}</span> was the beneficiaries of our company.
+    </p>
+    <p class="para">
+      He/She has taken a loan sum of Rs. <span class="blank">{{ loan_amount|default:"___________" }}</span> on <span class="blank">{{ loan_date|default:"___________" }}</span>.
+    </p>
+    <p class="para">
+      He/she was paid the entire loan amount on <span class="blank">{{ approved_at|date:"d-m-Y"|default:"___________" }}</span>. He/she intends
+      to take loan from any concerned Authority, then we have NO OBJECTION at all.
+    </p>
+
+    <div class="sign">
+      <div class="left">
+        Check and verified<br>
+        Manager
+      </div>
+      <div class="right">
+        Signature of the authority<br>
+        Name : <span class="blank">{{ auth_name|default:"___________" }}</span><br>
+        Designation : <span class="blank">{{ designation|default:"___________" }}</span><br>
+        Branch Name : <span class="blank">{{ branch_name|default:"___________" }}</span>
+      </div>
+    </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,508 @@
+{% load static %}
+<aside
+  x-data="{
+    selected: '',
+    getPage() {
+      try {
+        const bodyComponent = Alpine.$data(document.body);
+        return bodyComponent.page || 'dashboard';
+      } catch (e) {
+        console.error('Error getting page:', e);
+        return 'dashboard';
+      }
+    },
+    menuMap: {
+      'dashboard': 'Dashboard',
+      'agent': 'RecoveryAgentManagement',
+      'viewAgentCollectionList': 'RecoveryAgentManagement',
+      'agentPerformance': 'RecoveryAgentManagement',
+      'customer': 'CustomerManagement',
+      'customer_list': 'CustomerManagement',
+      'customer_detail': 'CustomerManagement',
+      'shop': 'ShopManagement',
+      'loanNewApplications': 'LoanApplications',
+      'loanPendingApplications': 'LoanApplications',
+      'loanDocumentRequests': 'LoanApplications',
+      'loanHQApprovedApplications': 'LoanApplications',
+      'loanRejectedApplications': 'LoanApplications',
+      'savingsNewApplications': 'SavingApplication',
+      'savingsPendingApplications': 'SavingApplication',
+      'savingsDocumentRequests': 'SavingApplication',
+      'savingsCollectionsAccounts': 'SavingManagement',
+      'savingsCollectionsList': 'SavingManagement',
+      'savingsAllAccounts': 'SavingManagement',
+      'savingsWithdrawClose': 'SavingManagement',
+      'savingsSurrenderRequests': 'SavingManagement',
+      'disbursedByHQ': 'DisbursementManagement',
+      'confirmReleaseFunds': 'DisbursementManagement',
+      'onHoldDisbursements': 'DisbursementManagement',
+      'viewRepayments': 'RepaymentManagement',
+      'upcomingEMIPayments': 'RepaymentManagement',
+      'dueEMIView': 'RepaymentManagement',
+      'OverdueEmiView': 'RepaymentManagement',
+      'lateFeeApplications': 'RepaymentManagement',
+      'lateFeeWaiverRequests': 'ExceptionHandling',
+      'approvedExceptions': 'ExceptionHandling',
+      'rejectedExceptions': 'ExceptionHandling',
+      'dailyTransactionsReport': 'ReportsLogs',
+      'sentToAgents': 'Notifications',
+      'sentToCustomers': 'Notifications',
+      'manualMessageCenter': 'Notifications',
+      'loanCompletedClosed': 'LoanApplications',
+    },
+    init() {
+      let persisted = localStorage.getItem('branchSidebarSelected');
+      const page = this.getPage();
+      if (persisted) {
+        this.selected = persisted;
+      } else if (this.menuMap[page]) {
+        this.selected = this.menuMap[page];
+      } else {
+        this.selected = 'Dashboard';
+      }
+    },
+    selectMenu(item) {
+      this.selected = this.selected === item ? '' : item;
+      localStorage.setItem('branchSidebarSelected', this.selected);
+    }
+  }"
+  x-init="init()"
+  :class="sidebarToggle ? 'translate-x-0 lg:w-[90px]' : '-translate-x-full'"
+  class="sidebar transition-all duration-200 ease-in-out fixed left-0 top-0 z-9999 flex h-screen w-[290px] flex-col overflow-y-hidden border-r border-gray-200 bg-white px-5 dark:border-gray-800 dark:bg-black lg:static lg:translate-x-0"
+>
+  <!-- SIDEBAR HEADER -->
+  <div
+    :class="sidebarToggle ? 'justify-center' : 'justify-between'"
+    class="flex items-center gap-2 pt-[16px] sidebar-header pb-7"
+  >
+    <a href="{% url 'branch:dashboard' %}">
+      <span class="logo" :class="sidebarToggle ? 'hidden' : ''">
+        <!-- <img class="dark:hidden" src="{% static 'branch/images/logo/logo.svg' %}" alt="Logo" />
+        <img
+          class="hidden dark:block"
+          src="{% static 'branch/images/logo/logo-dark.svg' %}"
+          alt="Logo"
+        /> -->
+       <h2 class="dark:hidden fs-4xl h-12 flex items-center font-bold"><img class=" w-12 h-12 mr-2" src="{% static 'main/images/company-logo.png' %}" alt=""> SUNDARAM </h2>
+        <h2  class="hidden dark:flex h-12  items-center fs-4xl font-bold text-white"><img class=" w-12 h-12 mr-2" src="{% static 'main/images/company-logo.png' %}" alt=""> SUNDARAM</h2>
+      </span>
+
+     <img
+        class="logo-icon w-12 h-12"
+        :class="sidebarToggle ? 'lg:block' : 'hidden'"
+        src="{% static 'main/images/company-logo.png' %}"
+        alt="Logo"
+      />
+    </a>
+  </div>
+  <!-- SIDEBAR HEADER -->
+
+  <div
+    class="flex-1 min-h-0 overflow-y-auto duration-300 ease-linear" style="margin-right: -20px; padding-right: 20px;"
+  >
+    <!-- Sidebar Menu -->
+    <!-- Navigation with Alpine.js Persist -->
+<nav>
+      <!-- DEBUG: Show current selected menu and current page for troubleshooting -->
+      <!-- <span style="color: red; font-size: 12px;">DEBUG: selected = <span x-text="selected"></span>, page = <span x-text="getPage()"></span></span> -->
+      <!-- Menu Group -->
+      <div class="">
+       <li>
+            <a
+              href="{% url 'branch:dashboard' %}"
+              @click="selectMenu('Dashboard')"
+              class="menu-item group"
+              :class=" (selected === 'Dashboard') ? 'menu-item-active' : 'menu-item-inactive'"
+            >
+              <svg
+                :class="(selected === 'Dashboard') ? 'menu-item-icon-active'  :'menu-item-icon-inactive'"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M5.5 3.25C4.25736 3.25 3.25 4.25736 3.25 5.5V8.99998C3.25 10.2426 4.25736 11.25 5.5 11.25H9C10.2426 11.25 11.25 10.2426 11.25 8.99998V5.5C11.25 4.25736 10.2426 3.25 9 3.25H5.5ZM4.75 5.5C4.75 5.08579 5.08579 4.75 5.5 4.75H9C9.41421 4.75 9.75 5.08579 9.75 5.5V8.99998C9.75 9.41419 9.41421 9.74998 9 9.74998H5.5C5.08579 9.74998 4.75 9.41419 4.75 8.99998V5.5ZM5.5 12.75C4.25736 12.75 3.25 13.7574 3.25 15V18.5C3.25 19.7426 4.25736 20.75 5.5 20.75H9C10.2426 20.75 11.25 19.7427 11.25 18.5V15C11.25 13.7574 10.2426 12.75 9 12.75H5.5ZM4.75 15C4.75 14.5858 5.08579 14.25 5.5 14.25H9C9.41421 14.25 9.75 14.5858 9.75 15V18.5C9.75 18.9142 9.41421 19.25 9 19.25H5.5C5.08579 19.25 4.75 18.9142 4.75 18.5V15ZM12.75 5.5C12.75 4.25736 13.7574 3.25 15 3.25H18.5C19.7426 3.25 20.75 4.25736 20.75 5.5V8.99998C20.75 10.2426 19.7426 11.25 18.5 11.25H15C13.7574 11.25 12.75 10.2426 12.75 8.99998V5.5ZM15 4.75C14.5858 4.75 14.25 5.08579 14.25 5.5V8.99998C14.25 9.41419 14.5858 9.74998 15 9.74998H18.5C18.9142 9.74998 19.25 9.41419 19.25 8.99998V5.5C19.25 5.08579 18.9142 4.75 18.5 4.75H15ZM15 12.75C13.7574 12.75 12.75 13.7574 12.75 15V18.5C12.75 19.7426 13.7574 20.75 15 20.75H18.5C19.7426 20.75 20.75 19.7427 20.75 18.5V15C20.75 13.7574 19.7426 12.75 18.5 12.75H15ZM14.25 15C14.25 14.5858 14.5858 14.25 15 14.25H18.5C18.9142 14.25 19.25 14.5858 19.25 15V18.5C19.25 18.9142 18.9142 19.25 18.5 19.25H15C14.5858 19.25 14.25 18.9142 14.25 18.5V15Z"
+                  fill=""
+                />
+              </svg>
+
+              <span
+                class="menu-item-text"
+                :class="sidebarToggle ? 'lg:hidden' : ''"
+              >
+                Dashboard
+              </span>
+            </a>
+          </li>
+      </div>
+      <div>
+        <h3 class="mb-4 text-xs uppercase leading-[20px] text-gray-400">
+          <span
+            class="menu-group-title"
+            :class="sidebarToggle ? 'lg:hidden' : ''"
+          >
+            MASTER
+          </span>
+
+          <svg
+            :class="sidebarToggle ? 'lg:block hidden' : 'hidden'"
+            class="mx-auto fill-current menu-group-icon"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              fill-rule="evenodd"
+              clip-rule="evenodd"
+              d="M5.99915 10.2451C6.96564 10.2451 7.74915 11.0286 7.74915 11.9951V12.0051C7.74915 12.9716 6.96564 13.7551 5.99915 13.7551C5.03265 13.7551 4.24915 12.9716 4.24915 12.0051V11.9951C4.24915 11.0286 5.03265 10.2451 5.99915 10.2451ZM17.9991 10.2451C18.9656 10.2451 19.7491 11.0286 19.7491 11.9951V12.0051C19.7491 12.9716 18.9656 13.7551 17.9991 13.7551C17.0326 13.7551 16.2491 12.9716 16.2491 12.0051V11.9951C16.2491 11.0286 17.0326 10.2451 17.9991 10.2451ZM13.7491 11.9951C13.7491 11.0286 12.9656 10.2451 11.9991 10.2451C11.0326 10.2451 10.2491 11.0286 10.2491 11.9951V12.0051C10.2491 12.9716 11.0326 13.7551 11.9991 13.7551C12.9656 13.7551 13.7491 12.9716 13.7491 12.0051V11.9951Z"
+              fill=""
+            />
+          </svg>
+        </h3>
+
+        <ul class="flex flex-col gap-4 mb-6">
+          <!-- Menu Item Dashboard -->
+          <!-- <li>
+            <a
+              href="{% url 'branch:dashboard' %}"
+              @click="selectMenu('Dashboard')"
+              class="menu-item group"
+              :class=" (selected === 'Dashboard') ? 'menu-item-active' : 'menu-item-inactive'"
+            >
+              <svg
+                :class="(selected === 'Dashboard') ? 'menu-item-icon-active'  :'menu-item-icon-inactive'"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M5.5 3.25C4.25736 3.25 3.25 4.25736 3.25 5.5V8.99998C3.25 10.2426 4.25736 11.25 5.5 11.25H9C10.2426 11.25 11.25 10.2426 11.25 8.99998V5.5C11.25 4.25736 10.2426 3.25 9 3.25H5.5ZM4.75 5.5C4.75 5.08579 5.08579 4.75 5.5 4.75H9C9.41421 4.75 9.75 5.08579 9.75 5.5V8.99998C9.75 9.41419 9.41421 9.74998 9 9.74998H5.5C5.08579 9.74998 4.75 9.41419 4.75 8.99998V5.5ZM5.5 12.75C4.25736 12.75 3.25 13.7574 3.25 15V18.5C3.25 19.7426 4.25736 20.75 5.5 20.75H9C10.2426 20.75 11.25 19.7427 11.25 18.5V15C11.25 13.7574 10.2426 12.75 9 12.75H5.5ZM4.75 15C4.75 14.5858 5.08579 14.25 5.5 14.25H9C9.41421 14.25 9.75 14.5858 9.75 15V18.5C9.75 18.9142 9.41421 19.25 9 19.25H5.5C5.08579 19.25 4.75 18.9142 4.75 18.5V15ZM12.75 5.5C12.75 4.25736 13.7574 3.25 15 3.25H18.5C19.7426 3.25 20.75 4.25736 20.75 5.5V8.99998C20.75 10.2426 19.7426 11.25 18.5 11.25H15C13.7574 11.25 12.75 10.2426 12.75 8.99998V5.5ZM15 4.75C14.5858 4.75 14.25 5.08579 14.25 5.5V8.99998C14.25 9.41419 14.5858 9.74998 15 9.74998H18.5C18.9142 9.74998 19.25 9.41419 19.25 8.99998V5.5C19.25 5.08579 18.9142 4.75 18.5 4.75H15ZM15 12.75C13.7574 12.75 12.75 13.7574 12.75 15V18.5C12.75 19.7426 13.7574 20.75 15 20.75H18.5C19.7426 20.75 20.75 19.7427 20.75 18.5V15C20.75 13.7574 19.7426 12.75 18.5 12.75H15ZM14.25 15C14.25 14.5858 14.5858 14.25 15 14.25H18.5C18.9142 14.25 19.25 14.5858 19.25 15V18.5C19.25 18.9142 18.9142 19.25 18.5 19.25H15C14.5858 19.25 14.25 18.9142 14.25 18.5V15Z"
+                  fill=""
+                />
+              </svg>
+
+              <span
+                class="menu-item-text"
+                :class="sidebarToggle ? 'lg:hidden' : ''"
+              >
+                Dashboard
+              </span>
+            </a>
+          </li> -->
+          <!-- Menu Item Dashboard -->
+          <li>
+            <a href="#" @click="selectMenu('RecoveryAgentManagement')" class="menu-item group" :class="(selected === 'RecoveryAgentManagement') ? 'menu-item-active' : 'menu-item-inactive'">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" :class="(selected === 'RecoveryAgentManagement') ? 'menu-item-icon-active' : 'menu-item-icon-inactive'">
+                <!-- Recovery Agent: User/Shield -->
+                <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                <path d="M4 20C4 16.6863 7.58172 14 12 14C16.4183 14 20 16.6863 20 20" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+              <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Agent</span>
+              <svg class="menu-item-arrow top-[24%]" :class="[(selected === 'RecoveryAgentManagement') ? 'menu-item-arrow-active' : 'menu-item-arrow-inactive', sidebarToggle ? 'lg:hidden' : '' ]" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4.79175 7.39584L10.0001 12.6042L15.2084 7.39585" stroke="" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+            <div class="overflow-hidden transform translate" :class="(selected === 'RecoveryAgentManagement') ? 'block' :'hidden'">
+              <ul :class="sidebarToggle ? 'lg:hidden' : 'flex'" class="flex flex-col gap-1 mt-2 menu-dropdown pl-9">
+                <li><a href="{% url 'branch:agent' %}" class="menu-dropdown-item group" :class="['agent','agent_create','agent_overview'].includes(getPage()) ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">Agents</a></li>
+                <!-- <li><a href="#" class="menu-dropdown-item group" :class="getPage() === 'viewAgentCollectionList' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">View Agent Collection List</a></li> -->
+                <li class="disabled opacity-50 cursor-not-allowed"><a href="#" class="menu-dropdown-item group disabled opacity-50 cursor-not-allowed" :class="getPage() === 'agentPerformance' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">Agent Performance</a></li>
+              </ul>
+            </div>
+          </li>
+          <li>
+            <a href="#" @click="selectMenu('CustomerManagement')" class="menu-item group" :class="(selected === 'CustomerManagement') ? 'menu-item-active' : 'menu-item-inactive'">
+              <svg xmlns="http://www.w3.org/2000/svg" :class="(selected === 'CustomerManagement') ? 'menu-item-icon-active' : 'menu-item-icon-inactive'" width="24" height="24" viewBox="0 0 640 640" fill="none" stroke="currentColor">
+                <path stroke="currentColor" d="M320 80C377.4 80 424 126.6 424 184C424 241.4 377.4 288 320 288C262.6 288 216 241.4 216 184C216 126.6 262.6 80 320 80zM96 152C135.8 152 168 184.2 168 224C168 263.8 135.8 296 96 296C56.2 296 24 263.8 24 224C24 184.2 56.2 152 96 152zM0 480C0 409.3 57.3 352 128 352C140.8 352 153.2 353.9 164.9 357.4C132 394.2 112 442.8 112 496L112 512C112 523.4 114.4 534.2 118.7 544L32 544C14.3 544 0 529.7 0 512L0 480zM521.3 544C525.6 534.2 528 523.4 528 512L528 496C528 442.8 508 394.2 475.1 357.4C486.8 353.9 499.2 352 512 352C582.7 352 640 409.3 640 480L640 512C640 529.7 625.7 544 608 544L521.3 544zM472 224C472 184.2 504.2 152 544 152C583.8 152 616 184.2 616 224C616 263.8 583.8 296 544 296C504.2 296 472 263.8 472 224zM160 496C160 407.6 231.6 336 320 336C408.4 336 480 407.6 480 496L480 512C480 529.7 465.7 544 448 544L192 544C174.3 544 160 529.7 160 512L160 496z"/>
+              </svg>
+              <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Customer</span>
+              <svg class="menu-item-arrow top-[24%]" :class="[(selected === 'CustomerManagement') ? 'menu-item-arrow-active' : 'menu-item-arrow-inactive', sidebarToggle ? 'lg:hidden' : '' ]" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4.79175 7.39584L10.0001 12.6042L15.2084 7.39585" stroke="" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+            <div class="overflow-hidden transform translate" :class="(selected === 'CustomerManagement') ? 'block' :'hidden'">
+              <ul :class="sidebarToggle ? 'lg:hidden' : 'flex'" class="flex flex-col gap-1 mt-2 menu-dropdown pl-9">
+                <li>
+                  <a href="{% url 'branch:customer_list' %}" class="menu-dropdown-item group" :class="getPage() === 'customer_list' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">Customers</a>
+                </li>
+              </ul>
+            </div>
+          </li>
+          <li>
+            <a
+              href="{% url 'branch:shop' %}"
+              @click="selectMenu('ShopManagement')"
+              class="menu-item group"
+              :class="(selected === 'ShopManagement') ? 'menu-item-active' : 'menu-item-inactive'"
+            >
+              <!-- <svg xmlns="http://www.w3.org/2000/svg" :class="(selected === 'ShopManagement') ? 'menu-item-icon-active' : 'menu-item-icon-inactive'" width="24" height="24" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
+                <path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"/>
+              </svg> -->
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width="24" height="24" fill="currentColor">
+                <path fill="currentColor" d="M53.5 245.1L110.3 131.4C121.2 109.7 143.3 96 167.6 96L472.5 96C496.7 96 518.9 109.7 529.7 131.4L586.5 245.1C590.1 252.3 592 260.2 592 268.3C592 295.6 570.8 318 544 319.9L544 512C544 529.7 529.7 544 512 544C494.3 544 480 529.7 480 512L480 320L384 320L384 496C384 522.5 362.5 544 336 544L144 544C117.5 544 96 522.5 96 496L96 319.9C69.2 318 48 295.6 48 268.3C48 260.3 49.9 252.3 53.5 245.1zM160 320L160 432C160 440.8 167.2 448 176 448L304 448C312.8 448 320 440.8 320 432L320 320L160 320z"/>
+              </svg>
+              <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Shop</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 class="mb-4 text-xs uppercase leading-[20px] text-gray-400">
+          <span
+            class="menu-group-title"
+            :class="sidebarToggle ? 'lg:hidden' : ''"
+          >
+            LOAN
+          </span>
+
+          <svg
+            :class="sidebarToggle ? 'lg:block hidden' : 'hidden'"
+            class="mx-auto fill-current menu-group-icon"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              fill-rule="evenodd"
+              clip-rule="evenodd"
+              d="M5.99915 10.2451C6.96564 10.2451 7.74915 11.0286 7.74915 11.9951V12.0051C7.74915 12.9716 6.96564 13.7551 5.99915 13.7551C5.03265 13.7551 4.24915 12.9716 4.24915 12.0051V11.9951C4.24915 11.0286 5.03265 10.2451 5.99915 10.2451ZM17.9991 10.2451C18.9656 10.2451 19.7491 11.0286 19.7491 11.9951V12.0051C19.7491 12.9716 18.9656 13.7551 17.9991 13.7551C17.0326 13.7551 16.2491 12.9716 16.2491 12.0051V11.9951C16.2491 11.0286 17.0326 10.2451 17.9991 10.2451ZM13.7491 11.9951C13.7491 11.0286 12.9656 10.2451 11.9991 10.2451C11.0326 10.2451 10.2491 11.0286 10.2491 11.9951V12.0051C10.2491 12.9716 11.0326 13.7551 11.9991 13.7551C12.9656 13.7551 13.7491 12.9716 13.7491 12.0051V11.9951Z"
+              fill=""
+            />
+          </svg>
+        </h3>
+
+        <ul class="flex flex-col gap-4 mb-6">
+          <li>
+            <a href="#" @click="selectMenu('LoanApplications')" class="menu-item group" :class="(selected === 'LoanApplications') ? 'menu-item-active' : 'menu-item-inactive'">
+              <svg xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" fill="currentColor" width="24" height="24"  clip-rule="evenodd" viewBox="0 0 415 512.165"><path d="M25.027 47.34h60.009l-2.603 24.38H42.071c-11.299 0-21.126 9.832-21.126 21.121v354.364c0 11.23 9.521 21.132 21.126 21.132h182.751a112.502 112.502 0 0011.364 21.384H25.027C11.36 489.721 0 478.474 0 464.695V72.366C0 58.599 11.26 47.34 25.027 47.34zm304.391 293.663c47.28 0 85.582 38.325 85.582 85.581 0 47.281-38.325 85.581-85.582 85.581-47.282 0-85.582-38.325-85.582-85.581 0-47.283 38.325-85.581 85.582-85.581zm-26.561 71.98l15.169 14.326 35.85-36.337c2.971-3.016 4.834-5.433 8.495-1.663l11.887 12.176c3.904 3.86 3.705 6.123.023 9.714l-49.467 48.669c-7.762 7.608-6.411 8.074-14.283.267l-27.679-27.524c-1.642-1.775-1.463-3.57.332-5.345l13.797-14.305c2.09-2.203 3.757-2.011 5.876.022zM113.227 198.48H74.322v-60.784h19.453v45.225h19.452v15.559zm5.351-30.343c0-11.088 2.074-19.177 6.221-24.269 4.152-5.086 11.64-7.635 22.47-7.635 10.825 0 18.314 2.549 22.466 7.635 4.147 5.092 6.221 13.181 6.221 24.269 0 5.509-.435 10.144-1.311 13.908-.875 3.76-2.384 7.037-4.522 9.82-2.137 2.79-5.092 4.834-8.851 6.126-3.759 1.299-8.428 1.95-14.003 1.95-5.578 0-10.248-.651-14.007-1.95-3.76-1.292-6.713-3.336-8.852-6.126-2.137-2.783-3.647-6.06-4.522-9.82-.875-3.764-1.31-8.399-1.31-13.908zm20.91-10.114v25.285h8.069c2.661 0 4.587-.312 5.786-.928 1.204-.611 1.803-2.027 1.803-4.229v-25.285h-8.17c-2.595 0-4.493.312-5.691.923-1.198.617-1.797 2.026-1.797 4.234zm60.689 40.457h-20.521l15.752-60.784h30.054l15.758 60.784h-20.522l-2.237-9.627h-16.046l-2.238 9.627zm7.641-43.418l-3.207 19.629h11.554l-3.107-19.629h-5.24zm75.708 43.418l-14.883-21.592c-.517-.71-.84-2.266-.969-4.669h-.388v26.261h-19.453v-60.784h18.285l14.883 21.59c.516.71.839 2.267.969 4.669h.388v-26.259h19.453v60.784h-18.285zm71.596 118.476V92.841c0-11.594-9.832-21.121-21.132-21.121h-42.899V47.34h60.008c13.767 0 25.027 11.376 25.027 25.026v251.785a112.225 112.225 0 00-21.004-7.195zM74.986 420.357c-4.851 0-8.792-3.94-8.792-8.793 0-4.851 3.941-8.791 8.792-8.791h144.362a111.872 111.872 0 00-2.356 17.584H74.986zm0-53.16c-4.851 0-8.792-3.941-8.792-8.792 0-4.852 3.941-8.793 8.792-8.793h172.26a113.15 113.15 0 00-13.497 17.585H74.986zm0-53.153c-4.851 0-8.792-3.942-8.792-8.793 0-4.851 3.941-8.792 8.792-8.792h179.143c4.853 0 8.793 3.941 8.793 8.792s-3.94 8.793-8.793 8.793H74.986zm0-53.161c-4.851 0-8.792-3.94-8.792-8.791 0-4.853 3.941-8.793 8.792-8.793h226.16c4.852 0 8.793 3.94 8.793 8.793 0 4.851-3.941 8.791-8.793 8.791H74.986zm44.715-225.93h28.355C150.447 15.241 166.364 0 185.652 0c19.159 0 34.994 15.036 37.555 34.542l33.19.411a4.165 4.165 0 014.182 4.169v44.82a4.166 4.166 0 01-4.182 4.17H119.729c-2.261 0-4.169-1.862-4.169-4.17v-44.82c-.042-2.308 1.82-4.169 4.141-4.169zm50.416 17.139c2.561 3.511 6.232 6.982 10.126 8.763 3.177.951 6.649 1.038 9.861.158 5.052-2.309 9.674-7.883 11.823-12.552.241-1.321.423-2.685.423-4.175 0-9.874-7.565-17.884-16.909-17.884-9.333 0-16.898 8.01-16.898 17.884.053 2.971.581 5.614 1.574 7.806z"/></svg>
+              <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Loan Applications</span>
+              <svg class="menu-item-arrow top-[24%]" :class="[(selected === 'LoanApplications') ? 'menu-item-arrow-active' : 'menu-item-arrow-inactive', sidebarToggle ? 'lg:hidden' : '' ]" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4.79175 7.39584L10.0001 12.6042L15.2084 7.39585" stroke="" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+            <div class="overflow-hidden transform translate" :class="(selected === 'LoanApplications' || ['loanNewApplications','loanPendingApplications','loanDocumentRequests','loanHQApprovedApplications','loanRejectedApplications'].includes(getPage())) ? 'block' :'hidden'">
+              <ul :class="sidebarToggle ? 'lg:hidden' : 'flex'" class="flex flex-col gap-1 mt-2 menu-dropdown pl-9">
+                <li><a href="{% url 'branch:new_loan_application' %}" class="menu-dropdown-item group" :class="getPage() === 'loanNewApplications' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">New Applications</a></li>
+                <li><a href="{% url 'branch:new_loan_application_cards' %}" class="menu-dropdown-item group" :class="page === 'loanNewApplicationsv2' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">New Applications v2</a></li>
+                <li><a href="{% url 'branch:loan_pending_application' %}" class="menu-dropdown-item group" :class="getPage() === 'loanPendingApplications' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">Loan Applications</a></li>
+                <li><a href="{% url 'branch:document_request_Hq' %}" class="menu-dropdown-item group" :class="getPage() === 'loanDocumentRequests' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">Document Requests</a></li>
+                <li><a href="{% url 'branch:branch_application_approve_view' %}" class="menu-dropdown-item group" :class="getPage() === 'loanHQApprovedApplications' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">Approved Applications</a></li>
+                <li><a href="{% url 'branch:branch_application_reject_view' %}" class="menu-dropdown-item group" :class="getPage() === 'loanRejectedApplications' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">Rejected Applications</a></li>
+                <li>
+                  <a href="{% url 'branch:completed_closed_loans' %}"
+                     class="menu-dropdown-item group"
+                     :class="getPage() === 'loanCompletedClosed' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">
+                     Completed/Closed Loans
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </li>
+          <li>
+            <a href="#" @click="selectMenu('DisbursementManagement')" class="menu-item group" :class="(selected === 'DisbursementManagement') ? 'menu-item-active' : 'menu-item-inactive'">
+             <svg xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" fill="currentColor" width="24" height="24" clip-rule="evenodd" viewBox="0 0 512 367.79"><path d="m0 147.04 119.81-84.96 120.43 84.96H0zm398.51-21.34h63.23v-12.24c-3.62-13.39-9.37-22.46-16.83-27.98-7.44-5.51-17.09-7.87-28.4-7.79l-1.18.06H228.66c-6.38 0-11.56-5.18-11.56-11.56 0-6.38 5.18-11.56 11.56-11.56l187.55.04c16.28-.14 30.62 3.57 42.41 12.31 1.07.79 2.1 1.61 3.12 2.47v-6.94c0-10.79-4.45-20.65-11.61-27.81-7.14-7.14-16.98-11.59-27.79-11.59H170.76c-10.85 0-20.71 4.42-27.82 11.54l-.05.04c-2.5 2.5-4.66 5.34-6.42 8.45l-2.23-1.58c-6.06-4.25-13.73-5.62-20.87-3.72A63.05 63.05 0 0 1 126.6 18.4l.05-.05C138.02 7.02 153.63 0 170.76 0h251.58c17.19 0 32.82 7.05 44.13 18.37 11.34 11.33 18.38 26.98 18.38 44.14v63.85c6.6 1.34 12.54 4.63 17.17 9.24l.12.12c6.08 6.13 9.86 14.54 9.86 23.73v75.99c0 9.7-3.96 18.51-10.32 24.87-.56.56-1.14 1.08-1.74 1.55a35.292 35.292 0 0 1-15.09 7.83v35.58c0 17.13-7.07 32.77-18.41 44.11l-.73.66c-11.3 10.96-26.64 17.75-43.37 17.75H170.76c-17.09 0-32.73-7.05-44.09-18.39l-.05-.05c-11.33-11.36-18.37-26.96-18.37-44.08v-2.82h23.11v2.82c0 10.83 4.44 20.68 11.55 27.79l.05.04c7.14 7.14 17 11.58 27.8 11.58h251.58c10.51 0 20.14-4.24 27.23-11.08l.53-.56c7.17-7.17 11.64-17.02 11.64-27.77v-34.63h-63.23c-19.47 0-37.19-7.98-50.04-20.82l-.08-.08c-12.84-12.85-20.82-30.57-20.82-50.05v-3.05c0-19.48 7.98-37.19 20.82-50.04v-.08c12.85-12.84 30.6-20.82 50.12-20.82zm5.86 44.8c7.6 0 14.51 3.1 19.53 8.1l.03.04c5.02 5.03 8.11 11.94 8.11 19.53 0 7.63-3.1 14.56-8.11 19.57l-.62.56c-4.97 4.68-11.63 7.54-18.94 7.54-7.63 0-14.56-3.09-19.57-8.1s-8.11-11.94-8.11-19.57c0-7.61 3.11-14.53 8.13-19.55a27.496 27.496 0 0 1 19.55-8.12zM4.22 261.7h11.32v-6.17h7.87v-74.02H7.33v-17.73h224.94v17.73h-16.05v74.02h7.86v6.17h12.98v15.61H4.22V261.7zm65.73 0v-6.17h7.86v-74.02h-24.8v74.02h7.87v6.17h9.07zm54.42 0v-6.17h7.84v-74.02h-24.8v74.02h7.87v6.1..."/></svg>
+              <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Disbursement</span>
+              <svg class="menu-item-arrow top-[24%]" :class="[(selected === 'DisbursementManagement') ? 'menu-item-arrow-active' : 'menu-item-arrow-inactive', sidebarToggle ? 'lg:hidden' : '' ]" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4.79175 7.39584L10.0001 12.6042L15.2084 7.39585" stroke="" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+            <div class="overflow-hidden transform translate" :class="(selected === 'DisbursementManagement') ? 'block' :'hidden'">
+              <ul :class="sidebarToggle ? 'lg:hidden' : 'flex'" class="flex flex-col gap-1 mt-2 menu-dropdown pl-9">
+                <li><a href="{% url 'branch:disbursement_list' %}" class="menu-dropdown-item group" :class="getPage() === 'disbursedByHQ' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">Disbursed by HQ</a></li>
+                <li><a href="{% url 'branch:disbursed_fund_relese' %}" class="menu-dropdown-item group" :class="getPage() === 'confirmReleaseFunds' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">Confirm/Release Funds</a></li>
+                <!-- <li><a href="#" class="menu-dropdown-item group" :class="getPage() === 'onHoldDisbursements' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">On-Hold Disbursements</a></li> -->
+              </ul>
+            </div>
+          </li>
+          <li>
+            <a href="#" @click="selectMenu('RepaymentManagement')" class="menu-item group" :class="(selected === 'RepaymentManagement') ? 'menu-item-active' : 'menu-item-inactive'">
+              <svg xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" fill="currentColor" width="24" height="24" clip-rule="evenodd" viewBox="0 0 500 512.08"><path fill-rule="nonzero" d="M36.12 176.81c12.3-47.78 39.23-89.89 75.89-120.98 38.73-32.85 88.36-53.5 143.1-55.65 64.98-2.54 124.88 21.51 169.18 62.47 44.29 40.94 72.97 98.77 75.52 163.75.96 24.39-1.8 47.99-7.74 70.24a233.969 233.969 0 0 1-20.7 51.64 56.688 56.688 0 0 0-35.75-24.76c6.15-11.98 11.1-24.73 14.67-38.04 4.89-18.32 7.16-37.61 6.39-57.4-2.08-53.13-25.5-100.39-61.65-133.8-36.15-33.42-85.1-53.05-138.23-50.97-44.67 1.76-85.21 18.63-116.87 45.5-28.94 24.55-50.46 57.45-60.93 94.75l19 3.01c6.16.95 10.39 6.73 9.43 12.88-.41 2.7-1.76 5.02-3.65 6.7l-50.64 45.1c-4.67 4.15-11.83 3.74-15.98-.93-.7-.78-1.26-1.62-1.7-2.51L1.55 190.03c-3.15-5.38-1.34-12.3 4.03-15.46 2.37-1.39 5.04-1.81 7.56-1.39l22.98 3.63zm73.62 287.72V327.57c67.58 0 79.05-3.05 139.96 35.28h47.86c21.66 1.29 33.01 23.26 11.95 37.69-16.77 12.31-38.92 11.61-61.62 9.57-15.66-.78-16.32 20.26 0 20.33 5.68.44 11.83-.89 17.2-.89 28.31-.04 51.65-5.46 65.93-27.83l7.16-16.72 71.19-35.28c35.61-11.72 60.95 25.52 34.69 51.45-51.57 37.51-104.44 68.37-158.52 93.3-39.28 23.89-78.57 23.07-117.82 0l-57.98-29.94zM4.24 314.4h86.95v163.89H4.24V314.4zm252.94 23.2c-14.88-13.47-16.55-36.42-3.54-51.92 13.32-15.88 36.98-17.94 52.86-4.62 15.87 13.32 17.94 36.99 4.62 52.86a38.793 38.793 0 0 1-4.95 4.9c-15.82-3.15-33.39-1.25-48.99-1.22zm-100.22-34.96 40.32-189.65 160.99 36.2-4.55 21.39-115.02-25.86-1.5-.38c-11.16-2.39-22.16 4.74-24.54 15.92l-2.2 10.33-.34-.07L200 219.76l-18.08 85.08c-7.77-1.26-15.85-1.89-24.96-2.2zm40.73 5.78 31.77-149.43 160.98 36.2-32.26 151.79-20.92 10.37c-1.8-2.4-3.86-4.64-6.15-6.69l22.42-109.23c-13.13-2.94-21.41-16.04-18.46-29.11l-63.67-14.26c-2.94 13.13-16.03 21.4-29.1 18.46l-20.8 101.27c-8.55-4.12-16.26-7.14-23.81-9.37z"/></svg>
+              <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">EMI Management</span>
+              <svg class="menu-item-arrow top-[24%]" :class="[(selected === 'RepaymentManagement') ? 'menu-item-arrow-active' : 'menu-item-arrow-inactive', sidebarToggle ? 'lg:hidden' : '' ]" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4.79175 7.39584L10.0001 12.6042L15.2084 7.39585" stroke="" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+            <div class="overflow-hidden transform translate" :class="(selected === 'RepaymentManagement') ? 'block' :'hidden'">
+              <ul :class="sidebarToggle ? 'lg:hidden' : 'flex'" class="flex flex-col gap-1 mt-2 menu-dropdown pl-9">
+                <li><a href="{% url 'branch:emi_payment' %}" class="menu-dropdown-item group" :class="getPage() === 'viewRepayments' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">EMI Payments</a></li>
+                <li><a href="{% url 'branch:upcoming_emi_payment' %}" class="menu-dropdown-item group" :class="getPage() === 'upcomingEMIPayments' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">Upcoming EMI</a></li>
+                <li><a href="{% url 'branch:due_emi_view' %}" class="menu-dropdown-item group" :class="getPage() === 'dueEMIView' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">Due EMI</a></li>
+                <li><a href="{% url 'branch:over_due_emi_view' %}" class="menu-dropdown-item group" :class="getPage() === 'OverdueEmiView' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">Overdue EMI</a></li>
+                <!-- <li><a href="#" class="menu-dropdown-item group" :class="getPage() === 'lateFeeApplications' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">Late Fee Applications</a></li> -->
+              </ul>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 class="mb-4 text-xs uppercase leading-[20px] text-gray-400">
+          <span
+            class="menu-group-title"
+            :class="sidebarToggle ? 'lg:hidden' : ''"
+          >
+            SAVING
+          </span>
+
+          <svg
+            :class="sidebarToggle ? 'lg:block hidden' : 'hidden'"
+            class="mx-auto fill-current menu-group-icon"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              fill-rule="evenodd"
+              clip-rule="evenodd"
+              d="M5.99915 10.2451C6.96564 10.2451 7.74915 11.0286 7.74915 11.9951V12.0051C7.74915 12.9716 6.96564 13.7551 5.99915 13.7551C5.03265 13.7551 4.24915 12.9716 4.24915 12.0051V11.9951C4.24915 11.0286 5.03265 10.2451 5.99915 10.2451ZM17.9991 10.2451C18.9656 10.2451 19.7491 11.0286 19.7491 11.9951V12.0051C19.7491 12.9716 18.9656 13.7551 17.9991 13.7551C17.0326 13.7551 16.2491 12.9716 16.2491 12.0051V11.9951C16.2491 11.0286 17.0326 10.2451 17.9991 10.2451ZM13.7491 11.9951C13.7491 11.0286 12.9656 10.2451 11.9991 10.2451C11.0326 10.2451 10.2491 11.0286 10.2491 11.9951V12.0051C10.2491 12.9716 11.0326 13.7551 11.9991 13.7551C12.9656 13.7551 13.7491 12.9716 13.7491 12.0051V11.9951Z"
+              fill=""
+            />
+          </svg>
+        </h3>
+
+        <ul class="flex flex-col gap-4 mb-6">
+          <li>
+            <a href="#" @click="selectMenu('SavingApplication')" class="menu-item group" :class="(selected === 'SavingApplication') ? 'menu-item-active' : 'menu-item-inactive'">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" width="24" height="24" viewBox="0 0 640 640"><path d="M320 32C373 32 416 75 416 128C416 181 373 224 320 224C267 224 224 181 224 128C224 75 267 32 320 32zM80 368C80 297.9 127 236.6 197.1 203.1C222.4 244.4 268 272 320 272C375.7 272 424.1 240.3 448 194C463.8 182.7 483.1 176 504 176L523.5 176C533.9 176 541.5 185.8 539 195.9L521.9 264.2C531.8 276.6 540.1 289.9 546.3 304L568 304C581.3 304 592 314.7 592 328L592 440C592 453.3 581.3 464 568 464L528 464C511.5 486 489.5 503.6 464 514.7L464 544C464 561.7 449.7 576 432 576L399 576C384.7 576 372.2 566.5 368.2 552.8L361.1 528L278.8 528L271.7 552.8C267.8 566.5 255.3 576 241 576L208 576C190.3 576 176 561.7 176 544L176 514.7C119.5 490 80 433.6 80 368zM456 384C469.3 384 480 373.3 480 360C480 346.7 469.3 336 456 336C442.7 336 432 346.7 432 360C432 373.3 442.7 384 456 384z"/></svg>
+              <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Saving Application</span>
+              <svg class="menu-item-arrow top-[24%]" :class="[(selected === 'SavingApplication') ? 'menu-item-arrow-active' : 'menu-item-arrow-inactive', sidebarToggle ? 'lg:hidden' : '' ]" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4.79175 7.39584L10.0001 12.6042L15.2084 7.39585" stroke="" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+            <div class="overflow-hidden transform translate" :class="(selected === 'SavingApplication' || ['savingsNewApplications','savingsPendingApplications','savingsDocumentRequests'].includes(getPage())) ? 'block' :'hidden'">
+              <ul :class="sidebarToggle ? 'lg:hidden' : 'flex'" class="flex flex-col gap-1 mt-2 menu-dropdown pl-9">
+                <li>
+                  <a href="{% url 'branch:new_savings_application' %}" class="menu-dropdown-item group" :class="getPage() === 'savingsNewApplications' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">New Applications</a>
+                </li>
+                <li>
+                  <a href="{% url 'branch:pending_savings_applications' %}" class="menu-dropdown-item group" :class="getPage() === 'savingsPendingApplications' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">Pending Applications</a>
+                </li>
+                <li>
+                  <a href="{% url 'branch:savings_document_requests' %}" class="menu-dropdown-item group" :class="getPage() === 'savingsDocumentRequests' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">Document Requests</a>
+                </li>
+              </ul>
+            </div>
+          </li>
+
+          <li>
+            <a href="#" @click="selectMenu('SavingManagement')" class="menu-item group" :class="(selected === 'SavingManagement') ? 'menu-item-active' : 'menu-item-inactive'">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" width="24" height="24" viewBox="0 0 640 640"><path d="M192 160L192 144C192 99.8 278 64 384 64C490 64 576 99.8 576 144L576 160C576 190.6 534.7 217.2 474 230.7C471.6 227.9 469.1 225.2 466.6 222.7C451.1 207.4 431.1 195.8 410.2 187.2C368.3 169.7 313.7 160.1 256 160.1C234.1 160.1 212.7 161.5 192.2 164.2C192 162.9 192 161.5 192 160.1zM496 417L496 370.8C511.1 366.9 525.3 362.3 538.2 356.9C551.4 351.4 564.3 344.7 576 336.6L576 352C576 378.8 544.5 402.5 496 417zM496 321L496 288C496 283.5 495.6 279.2 495 275C510.5 271.1 525 266.4 538.2 260.8C551.4 255.2 564.3 248.6 576 240.5L576 255.9C576 282.7 544.5 306.4 496 320.9zM64 304L64 288C64 243.8 150 208 256 208C362 208 448 243.8 448 288L448 304C448 348.2 362 384 256 384C150 384 64 348.2 64 304zM448 400C448 444.2 362 480 256 480C150 480 64 444.2 64 400L64 384.6C75.6 392.7 88.5 399.3 101.8 404.9C143.7 422.4 198.3 432 256 432C313.7 432 368.3 422.3 410.2 404.9C423.4 399.4 436.3 392.7 448 384.6L448 400zM448 480.6L448 496C448 540.2 362 576 256 576C150 576 64 540.2 64 496L64 480.6C75.6 488.7 88.5 495.3 101.8 500.9C143.7 518.4 198.3 528 256 528C313.7 528 368.3 518.3 410.2 500.9C423.4 495.4 436.3 488.7 448 480.6z"/></svg>
+              <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Saving Management</span>
+              <svg class="menu-item-arrow top-[24%]" :class="[(selected === 'SavingManagement') ? 'menu-item-arrow-active' : 'menu-item-arrow-inactive', sidebarToggle ? 'lg:hidden' : '' ]" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4.79175 7.39584L10.0001 12.6042L15.2084 7.39585" stroke="" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+            <div class="overflow-hidden transform translate" :class="(selected === 'SavingManagement' || ['savingsCollectionsAccounts','savingsCollectionsList','savingsAllAccounts','savingsWithdrawClose','savingsSurrenderRequests'].includes(getPage())) ? 'block' :'hidden'">
+              <ul :class="sidebarToggle ? 'lg:hidden' : 'flex'" class="flex flex-col gap-1 mt-2 menu-dropdown pl-9">
+                <li>
+                  <a href="{% url 'branch:savings_collections_accounts' %}" class="menu-dropdown-item group" :class="getPage() === 'savingsCollectionsAccounts' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">RD Collections</a>
+                </li>
+                <li>
+                  <a href="{% url 'branch:savings_all_accounts' %}" class="menu-dropdown-item group" :class="getPage() === 'savingsAllAccounts' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">Accounts</a>
+                </li>
+                <li>
+                  <a href="{% url 'branch:savings_surrender_requests' %}" class="menu-dropdown-item group" :class="getPage() === 'savingsSurrenderRequests' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">Surrender Request</a>
+                </li>
+                <li>
+                  <a href="{% url 'branch:savings_withdraw_close' %}" class="menu-dropdown-item group" :class="getPage() === 'savingsWithdrawClose' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">Withdraw/close</a>
+                </li>
+              </ul>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 class="mb-4 text-xs uppercase leading-[20px] text-gray-400">
+          <span
+            class="menu-group-title"
+            :class="sidebarToggle ? 'lg:hidden' : ''"
+          >
+            REPORT
+          </span>
+
+          <svg
+            :class="sidebarToggle ? 'lg:block hidden' : 'hidden'"
+            class="mx-auto fill-current menu-group-icon"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              fill-rule="evenodd"
+              clip-rule="evenodd"
+              d="M5.99915 10.2451C6.96564 10.2451 7.74915 11.0286 7.74915 11.9951V12.0051C7.74915 12.9716 6.96564 13.7551 5.99915 13.7551C5.03265 13.7551 4.24915 12.9716 4.24915 12.0051V11.9951C4.24915 11.0286 5.03265 10.2451 5.99915 10.2451ZM17.9991 10.2451C18.9656 10.2451 19.7491 11.0286 19.7491 11.9951V12.0051C19.7491 12.9716 18.9656 13.7551 17.9991 13.7551C17.0326 13.7551 16.2491 12.9716 16.2491 12.0051V11.9951C16.2491 11.0286 17.0326 10.2451 17.9991 10.2451ZM13.7491 11.9951C13.7491 11.0286 12.9656 10.2451 11.9991 10.2451C11.0326 10.2451 10.2491 11.0286 10.2491 11.9951V12.0051C10.2491 12.9716 11.0326 13.7551 11.9991 13.7551C12.9656 13.7551 13.7491 12.9716 13.7491 12.0051V11.9951Z"
+              fill=""
+            />
+          </svg>
+        </h3>
+
+        <ul class="flex flex-col gap-4 mb-6">
+          <li>
+            <a
+              href="#"
+              @click="selectMenu('ReportsLogs')"
+              class="menu-item group"
+              :class="(selected === 'ReportsLogs') ? 'menu-item-active' : 'menu-item-inactive'"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                class="menu-item-icon-active"
+              >
+                <rect x="3" y="4" width="18" height="16" rx="2" ry="2" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                <path d="M7 15V11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M12 15V9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M17 15V12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+              <span class="menu-item-text" :class="sidebarToggle ? 'lg:hidden' : ''">Reports</span>
+              <svg
+                class="menu-item-arrow top-[24%]"
+                :class="[(selected === 'ReportsLogs') ? 'menu-item-arrow-active' : 'menu-item-arrow-inactive', sidebarToggle ? 'lg:hidden' : '' ]"
+                width="20"
+                height="20"
+                viewBox="0 0 20 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M4.79175 7.39584L10.0001 12.6042L15.2084 7.39585"
+                  stroke=""
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </a>
+            <div
+              class="overflow-hidden transform translate"
+              :class="(selected === 'ReportsLogs') ? 'block' :'hidden'"
+            >
+              <ul
+                :class="sidebarToggle ? 'lg:hidden' : 'flex'"
+                class="flex flex-col gap-1 mt-2 menu-dropdown pl-9"
+              >
+                <li>
+                  <a
+                    href="{% url 'branch:daily_receipts_payments' %}"
+                    class="menu-dropdown-item group"
+                    :class="getPage() === 'dailyTransactionsReport' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
+                  >
+                    Daily Transactions Report
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+</aside>

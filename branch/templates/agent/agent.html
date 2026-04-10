@@ -1,0 +1,420 @@
+{% extends "branch/base.html" %}
+{% load static %}
+
+{% block title %}Agents{% endblock %}
+
+{% block page_id %}agent{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+
+  <!-- Breadcrumb Start -->
+  <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <h2 class="text-title-md2 font-bold text-black dark:text-white">
+      Agent Management
+    </h2>
+    <nav>
+      <ol class="flex items-center gap-2">
+        <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+            href="{% url 'branch:dashboard' %}">Dashboard <svg class="stroke-current" width="17" height="16"
+              viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2"
+                stroke-linecap="round" stroke-linejoin="round">
+              </path>
+            </svg></a></li>
+        <li class="text-sm text-gray-800 dark:text-white/90">Agent Management</li>
+      </ol>
+    </nav>
+  </div>
+
+  <!-- Table -->
+  <div
+    class="rounded-2xl border border-stroke bg-white px-6 pt-8 pb-6 shadow-default dark:border-gray-700 dark:bg-boxdark sm:px-8">
+    <div class="">
+
+      <div class="mb-4 flex flex-col gap-2 px-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <button type="button" class="inline-flex items-center gap-2 px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600" onclick="window.location.href='/branch/agent/create/'">
+          <svg class="fill-current" width="20" height="20" viewBox="0 0 20 20" fill="none"
+            xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" clip-rule="evenodd"
+              d="M10 1.25C10.4142 1.25 10.75 1.58579 10.75 2V9.25H18C18.4142 9.25 18.75 9.58579 18.75 10C18.75 10.4142 18.4142 10.75 18 10.75H10.75V18C10.75 18.4142 10.4142 18.75 10 18.75C9.58579 18.75 9.25 18.4142 9.25 18V10.75H2C1.58579 10.75 1.25 10.4142 1.25 10C1.25 9.58579 1.58579 9.25 2 9.25H9.25V2C9.25 1.58579 9.58579 1.25 10 1.25Z"
+              fill=""></path>
+          </svg>
+          Add New Agent
+        </button>
+
+        <div class="flex items-center gap-2">
+          <label for="agent-status-filter" class="text-sm font-medium text-gray-600 dark:text-gray-300">Filter:</label>
+          <select
+            id="agent-status-filter"
+            class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 shadow-theme-xs focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-boxdark dark:text-gray-200"
+          >
+            <option value="active" selected>Active</option>
+            <option value="deactive">Deactive</option>
+            <option value="all">All</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="custom-scrollbar max-w-full overflow-x-auto overflow-y-visible px-5 sm:px-6">
+        <table class="min-w-full">
+          <thead class="border-y border-gray-100 py-3 dark:border-gray-800">
+            <tr>
+              <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6"><div class="flex items-center"><p class="text-gray-500 text-theme-sm dark:text-gray-400">Agent Name</p></div></th>
+              <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6"><div class="flex items-center"><p class="text-gray-500 text-theme-sm dark:text-gray-400">Email</p></div></th>
+              <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6"><div class="flex items-center"><p class="text-gray-500 text-theme-sm dark:text-gray-400">Phone</p></div></th>
+              <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6"><div class="flex items-center"><p class="text-gray-500 text-theme-sm dark:text-gray-400">Area</p></div></th>
+              <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6"><div class="flex items-center"><p class="text-gray-500 text-theme-sm dark:text-gray-400">Status</p></div></th>
+              <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6"><div class="flex items-center"><p class="text-gray-500 text-theme-sm dark:text-gray-400">Pending Deposits</p></div></th>
+              <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6"><div class="flex items-center"><p class="text-gray-500 text-theme-sm dark:text-gray-400">Actions</p></div></th>
+            </tr>
+          </thead>
+          <tbody id="agent-table-body">
+            <!-- Agent rows will be rendered here by JS -->
+          </tbody>
+        </table>
+      </div>
+      <div id="no-agent-message" class="mt-8 text-center text-red-600 py-8 hidden">No agent found.</div>
+    </div>
+  </div>
+
+  <!-- Delete Agent Confirmation Modal -->
+  <div
+    id="delete-agent-modal"
+    class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 px-4 hidden"
+  >
+    <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-lg dark:bg-boxdark">
+      <h3 class="mb-2 text-lg font-semibold text-gray-900 dark:text-white/90">
+        Confirm Deactivation
+      </h3>
+      <p class="mb-4 text-sm text-gray-600 dark:text-gray-300">
+        Are you sure you want to deactivate
+        <span id="delete-agent-name" class="font-semibold text-gray-900 dark:text-white/90"></span>?
+      </p>
+      <div id="delete-agent-summary" class="mb-4 text-sm text-gray-700 dark:text-gray-200"></div>
+      <ul id="delete-agent-emi-list" class="mb-4 list-disc list-inside text-xs text-gray-600 dark:text-gray-300"></ul>
+      <div class="flex justify-end gap-3">
+        <button
+          type="button"
+          id="cancel-delete-agent"
+          class="inline-flex items-center justify-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          id="confirm-delete-agent"
+          class="inline-flex items-center justify-center rounded-lg bg-error-500 px-4 py-2 text-sm font-medium text-white hover:bg-error-600"
+        >
+          Deactivate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let allAgents = [];
+
+function renderAgentRow(agent) {
+  // If agent.photo is set, ensure it starts with '/' for static serving
+  let photoUrl = '';
+  if (agent.photo) {
+    photoUrl = agent.photo.startsWith('/') ? agent.photo : '/' + agent.photo;
+    // console.log(photoUrl);
+    
+  }
+  return `
+    <tr class="border-b border-stroke dark:border-strokedark hover:bg-gray-50 dark:hover:bg-meta-4">
+      <td class="py-3">
+        <div class="flex items-center">
+          ${agent.photo ? `<div class=\"h-12 w-12 rounded-full overflow-hidden mr-4\"><img src=\"${photoUrl}\" alt=\"${agent.full_name}\" class=\"h-full w-full object-cover\"></div>` : `<div class=\"h-12 w-12 rounded-full bg-gray-200 mr-4 flex items-center justify-center\"><span class=\"text-gray-500 text-xl\">${agent.full_name.charAt(0).toUpperCase()}</span></div>`}
+          <p class="text-gray-500 text-theme-sm dark:text-gray-400">${agent.full_name}</p>
+        </div>
+      </td>
+      <td class="py-3"><div class="flex items-center"><p class="text-gray-500 text-theme-sm dark:text-gray-400">${agent.email}</p></div></td>
+      <td class="py-3"><div class="flex items-center"><p class="text-gray-500 text-theme-sm dark:text-gray-400">${agent.phone}</p></div></td>
+      <td class="py-3"><div class="flex items-center"><p class="text-gray-500 text-theme-sm dark:text-gray-400">${agent.area}</p></div></td>
+      <td class="py-3"><p class="inline-flex rounded-full bg-${agent.status === 'active' ? 'success-50' : 'error-50'} py-1 px-3 text-sm font-medium text-${agent.status === 'active' ? 'success-500' : 'error-500'}">${agent.status.charAt(0).toUpperCase() + agent.status.slice(1)}</p></td>
+      <td class="py-3"><div class="flex items-center text-theme-sm text-gray-500">₹ <p class="text-orange-700 text-theme-sm font-bold dark:text-orange-400"> &nbsp;${agent.unverified_collected_amount}</p></div></td>
+      <td class="py-3">
+        <div class="flex items-center gap-2">
+          <a href="/branch/agent/overview/${agent.agent_id}/" class="text-gray-500 hover:text-brand-500 dark:text-gray-400" title="View" aria-label="View">
+            <svg class="fill-current" width="18" height="18" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 3C5.5 3 1.73 5.61.46 9.5c1.27 3.89 5.04 6.5 9.54 6.5s8.27-2.61 9.54-6.5C18.27 5.61 14.5 3 10 3zm0 11a4.5 4.5 0 110-9 4.5 4.5 0 010 9z"/>
+                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+            </svg>
+          </a>
+          <button type="button" class="text-gray-500 hover:text-brand-500 dark:text-gray-400" title="Edit" onclick="editAgent('${agent.agent_id}')">
+            <svg class="fill-current" width="18" height="18" viewBox="0 0 18 18" fill="none"
+                xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" clip-rule="evenodd"
+                    d="M15.0911 2.78206C14.2125 1.90338 12.7878 1.90338 11.9092 2.78206L4.57524 10.116C4.26682 10.4244 4.0547 10.8158 3.96468 11.2426L3.31231 14.3352C3.25997 14.5833 3.33653 14.841 3.51583 15.0203C3.69512 15.1996 3.95286 15.2761 4.20096 15.2238L7.29355 14.5714C7.72031 14.4814 8.11172 14.2693 8.42013 13.9609L15.7541 6.62695C16.6327 5.74827 16.6327 4.32365 15.7541 3.44497L15.0911 2.78206ZM12.9698 3.84272C13.2627 3.54982 13.7376 3.54982 14.0305 3.84272L14.6934 4.50563C14.9863 4.79852 14.9863 5.2734 14.6934 5.56629L14.044 6.21573L12.3204 4.49215L12.9698 3.84272ZM11.2597 5.55281L5.6359 11.1766C5.53309 11.2794 5.46238 11.4099 5.43238 11.5522L5.01758 13.5185L6.98394 13.1037C7.1262 13.0737 7.25666 13.003 7.35947 12.9002L12.9833 7.27639L11.2597 5.55281Z"
+                    fill=""></path>
+            </svg>
+          </button>
+          ${agent.status === 'active'
+            ? `<button
+                class="text-gray-500 hover:text-brand-500 dark:text-gray-400 delete-agent-btn"
+                data-agent-id="${agent.agent_id}" title="Deactivate" aria-label="Deactivate" data-agent-name="${agent.full_name}">
+                <svg class=\"fill-current\" width=\"21\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"currentColor\" xmlns=\"http://www.w3.org/2000/svg\">\n                  <path d=\"M9 3h6a1 1 0 0 1 1 1v1h4a1 1 0 1 1 0 2h-1v12a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V7H4a1 1 0 1 1 0-2h4V4a1 1 0 0 1 1-1Zm6 2V4H9v1h6ZM7 7v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V7H7Zm3 3a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0v-6a1 1 0 0 1 1-1Zm4 0a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0v-6a1 1 0 0 1 1-1Z\" />\n                </svg>\n              </button>`
+            : `<button
+                class="inline-flex items-center justify-center rounded-full bg-success-500 px-3 py-1 text-xs font-medium text-white activate-agent-btn"
+                data-agent-id="${agent.agent_id}" title="Activate" aria-label="Activate">
+                Activate
+              </button>`}
+        </div>
+      </td>
+    </tr>
+  `;
+}
+
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+function attachDeleteHandlers() {
+  const tbody = document.getElementById('agent-table-body');
+  if (!tbody) {
+    return;
+  }
+
+  const buttons = tbody.querySelectorAll('.delete-agent-btn');
+  buttons.forEach((button) => {
+    button.addEventListener('click', function () {
+      const agentId = this.getAttribute('data-agent-id');
+      const agentName = this.getAttribute('data-agent-name') || 'this agent';
+
+      if (!agentId) {
+        return;
+      }
+
+      // Store current agent info on the modal element for later use
+      const modal = document.getElementById('delete-agent-modal');
+      const nameSpan = document.getElementById('delete-agent-name');
+      const summaryDiv = document.getElementById('delete-agent-summary');
+      const emiList = document.getElementById('delete-agent-emi-list');
+      if (!modal || !nameSpan || !summaryDiv || !emiList) {
+        return;
+      }
+
+      modal.dataset.agentId = agentId;
+      nameSpan.textContent = agentName;
+      summaryDiv.textContent = 'Loading current loans and EMI assignments...';
+      emiList.innerHTML = '';
+
+      modal.classList.remove('hidden');
+
+      // Fetch current loan/EMI summary for this agent
+      fetch('/branch/api/agent/deactivate-info/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({ agent_id: agentId }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (!data || !data.success) {
+            const message = (data && data.message) ? data.message : 'Unable to load agent summary. Please try again.';
+            summaryDiv.textContent = message;
+            return;
+          }
+
+          const loanCount = data.loan_app_count || 0;
+          const emiAssignments = Array.isArray(data.emi_assignments) ? data.emi_assignments : [];
+
+          if (loanCount === 0 && emiAssignments.length === 0) {
+            summaryDiv.textContent = 'This agent currently has no running loans with unpaid EMIs.';
+            return;
+          }
+
+          summaryDiv.textContent = `This agent currently has ${loanCount} running loan(s) with unpaid EMI(s).`;
+
+          emiList.innerHTML = '';
+          emiAssignments.forEach((item) => {
+            const li = document.createElement('li');
+            li.textContent = `Loan ${item.loan_ref_no}: ${item.emi_count} unpaid EMI installment(s) assigned to this agent.`;
+
+            emiList.appendChild(li);
+          });
+        })
+        .catch(() => {
+          summaryDiv.textContent = 'Failed to load agent summary. Please try again.';
+        });
+    });
+  });
+}
+
+function attachActivateHandlers() {
+  const tbody = document.getElementById('agent-table-body');
+  if (!tbody) {
+    return;
+  }
+
+  const buttons = tbody.querySelectorAll('.activate-agent-btn');
+  buttons.forEach((button) => {
+    button.addEventListener('click', function () {
+      const agentId = this.getAttribute('data-agent-id');
+      if (!agentId) {
+        return;
+      }
+
+      fetch('/branch/api/agent/activate/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({ agent_id: agentId }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data && data.success) {
+            if (window.showToast) {
+              window.showToast(data.message || 'Agent activated successfully.', 'success');
+            }
+            // Refresh the page so the list and filters reflect updated status
+            window.location.reload();
+          } else {
+            const message = (data && data.message) ? data.message : 'Unable to activate agent. Please try again.';
+            window.alert(message);
+          }
+        })
+        .catch(() => {
+          window.alert('Failed to activate agent. Please try again.');
+        });
+    });
+  });
+}
+
+function editAgent(agentId) {
+  window.location.href = `/branch/agent/edit/${agentId}/`;
+}
+
+function renderAgentTable(filterStatus) {
+  const tbody = document.getElementById('agent-table-body');
+  const noAgentMsg = document.getElementById('no-agent-message');
+  if (!tbody) {
+    return;
+  }
+
+  let filteredAgents = allAgents;
+  if (filterStatus === 'active') {
+    filteredAgents = allAgents.filter((a) => a.status === 'active');
+  } else if (filterStatus === 'deactive') {
+    filteredAgents = allAgents.filter((a) => a.status !== 'active');
+  }
+
+  if (filteredAgents.length === 0) {
+    tbody.innerHTML = '';
+    if (noAgentMsg) {
+      noAgentMsg.classList.remove('hidden');
+    }
+  } else {
+    tbody.innerHTML = filteredAgents.map(renderAgentRow).join('');
+    if (noAgentMsg) {
+      noAgentMsg.classList.add('hidden');
+    }
+    attachDeleteHandlers();
+    attachActivateHandlers();
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const modal = document.getElementById('delete-agent-modal');
+  const cancelBtn = document.getElementById('cancel-delete-agent');
+  const confirmBtn = document.getElementById('confirm-delete-agent');
+
+  if (cancelBtn && modal) {
+    cancelBtn.addEventListener('click', function () {
+      modal.classList.add('hidden');
+      delete modal.dataset.agentId;
+    });
+  }
+
+  if (confirmBtn && modal) {
+    confirmBtn.addEventListener('click', function () {
+      const agentId = modal.dataset.agentId;
+      if (!agentId) {
+        modal.classList.add('hidden');
+        return;
+      }
+
+      fetch('/branch/api/agent/delete/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({ agent_id: agentId }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data && data.success) {
+            // Remove the corresponding row from the table
+            const tbody = document.getElementById('agent-table-body');
+            if (tbody) {
+              const row = tbody.querySelector(`button.delete-agent-btn[data-agent-id="${agentId}"]`);
+              const tr = row ? row.closest('tr') : null;
+              if (tr && tr.parentNode) {
+                tr.parentNode.removeChild(tr);
+              }
+
+              const noAgentMsg = document.getElementById('no-agent-message');
+              if (tbody.children.length === 0 && noAgentMsg) {
+                noAgentMsg.classList.remove('hidden');
+              }
+            }
+            if (window.showToast) {
+              window.showToast('Agent deactivated successfully.', 'success');
+            }
+            modal.classList.add('hidden');
+            delete modal.dataset.agentId;
+          } else {
+            const message = (data && data.message) ? data.message : 'Unable to deactivate agent. Please check active loans or pending collections.';
+            window.alert(message);
+          }
+        })
+        .catch(() => {
+          window.alert('Failed to deactivate agent. Please try again.');
+        });
+    });
+  }
+
+  fetch('/branch/api/agent/list/')
+    .then(response => response.json())
+    .then(data => {
+      allAgents = Array.isArray(data) ? data : [];
+
+      const statusFilter = document.getElementById('agent-status-filter');
+      const initialFilter = statusFilter ? statusFilter.value : 'active';
+      renderAgentTable(initialFilter);
+
+      if (statusFilter) {
+        statusFilter.addEventListener('change', function () {
+          renderAgentTable(this.value);
+        });
+      }
+    })
+    .catch(error => {
+      const tbody = document.getElementById('agent-table-body');
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">Failed to load agents.</td></tr>`;
+    });
+});
+</script>
+{% endblock %}

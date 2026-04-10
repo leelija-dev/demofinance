@@ -1,0 +1,372 @@
+{% extends 'hq/base.html' %}
+{% load static %}
+
+{% block title %}Chart Of Account Management - Headquarters{% endblock %}
+{% block page_id %}chartsOfAccount{% endblock %}
+
+
+{% block content %}
+<div class="mx-auto max-w-(--breakpoint-2xl) p-4 md:p-6">
+  <h2 class="text-title-md2 font-bold text-black dark:text-white mb-6">Chart Of Account Management</h2>
+
+  <!-- Chart Of Accounts Section -->
+  <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] mb-10">
+    <div class="px-5 py-4 sm:px-6 sm:py-5 flex justify-between">
+      <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Chart Of Accounts</h3>
+      <a href="?add=1" class="bg-brand-500 text-white px-4 py-2 rounded">Create Account</a>
+    </div>
+    <div class="border-t border-gray-100 p-5 sm:p-6 dark:border-gray-800">
+      <div class="mb-4 relative w-full sm:w-1/2">
+        <!-- <label for="accountFilter" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Search or pick Head Of Account</label> -->
+        <input id="accountFilter" role="combobox" aria-controls="headDropdown" aria-autocomplete="list" aria-expanded="false" title="Search by Code, Head Of Account, or Main Type" type="text" placeholder="Type to search or click to pick a Category" autocomplete="off" class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent pl-4 pr-10 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30" />
+        <button id="clearFilterBtn" type="button" aria-label="Clear filter" class="hidden absolute right-2 top-2 h-7 w-7 rounded-full bg-red-200 text-red-700 hover:bg-red-300 dark:bg-red-700 dark:text-red-200 dark:hover:bg-red-600 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+        </button>
+        <div id="headDropdown" role="listbox" aria-label="Head Of Account options" class="hidden absolute left-0 right-0 top-full mt-1 max-h-60 overflow-auto rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900 z-50"></div>
+      </div>
+      <div class="overflow-hidden bg-white dark:border-gray-800 dark:bg-white[0.03] ">
+        <div class="max-w-full overflow-x-auto custom-scrollbar">
+          <table class="w-full min-w-[1102px]">
+            <thead>
+              <tr class="border-b border-gray-100 dark:border-gray-800">
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">SL No</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Category</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Head Of Account</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Code</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Description</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Actions</p>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for account in accounts %}
+              <tr class="border-b border-gray-100 dark:border-gray-800" data-row="1" data-main="{{ account.get_main_type_display|default:''|lower }}" data-head="{{ account.head_of_account|default:''|lower }}" data-code="{{ account.code|default:''|lower }}">
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ account.sl_no }}</p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ account.get_main_type_display }}</p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ account.head_of_account }}</p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ account.code }}</p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ account.description|default:"-" }}</p>
+                </td>
+                <td class="px-5 py-4 sm:px-6 text-brand-500 dark:text-brand-400">
+                  <div class="flex items-center gap-3">
+                    <a href="?edit={{ account.id }}" class="text-brand-500">Edit</a>
+                    {% if account.is_editable %}
+                    <button type="button" class="text-red-600 hover:text-red-700 delete-btn" data-delete-id="{{ account.id }}" data-code="{{ account.code }}" data-head="{{ account.head_of_account }}">Delete</button>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td class="px-5 py-4 sm:px-6 text-center text-red-600" colspan="6">No accounts found.</td>
+              </tr>
+              {% endfor %}
+              <tr id="noResultsRow" class="hidden">
+                <td class="px-5 py-4 sm:px-6 text-center text-red-600" colspan="6">No matching results.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+
+{% if show_modal %}
+<div id="categoryModal"
+  class="fixed inset-0 z-99999 flex items-center justify-center bg-black bg-opacity-40 bg-gray-400/50 backdrop-blur-[2px]">
+  <div class="bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-md p-6 relative">
+    <a href="{% url 'hq:chartOf_accountmanagement' %}"
+      class="absolute top-2 right-4 text-gray-400 hover:text-gray-700 text-2xl">&times;</a>
+    <h3 class="text-lg font-semibold mb-4 dark:text-gray-400">{{ modal_title }}</h3>
+    <form method="post" action="{% url 'hq:chartOf_accountmanagement' %}">
+      {% csrf_token %}
+      {% if edit_account_id %}
+      <input type="hidden" name="account_id" value="{{ edit_account_id }}">
+      {% endif %}
+
+{% if edit_account_id %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var mainTypeEl = document.getElementById('id_main_type');
+    var codeEl = document.getElementById('id_code');
+    if (mainTypeEl) {
+      mainTypeEl.disabled = true;
+      mainTypeEl.classList.add('bg-gray-100', 'opacity-50', 'cursor-not-allowed');
+    }
+    if (codeEl) {
+      codeEl.readOnly = true;
+      codeEl.classList.add('bg-gray-100', 'opacity-50', 'cursor-not-allowed');
+    }
+  });
+  </script>
+{% endif %}
+      <div class="mb-4">
+        <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Main Category</label>
+        {{ form.main_type }}
+        {% if edit_account_id %}
+        <input type="hidden" name="main_type" value="{{ form.main_type.value|default_if_none:'' }}">
+        {% endif %}
+        {% for error in form.main_type.errors %}
+        <div class="text-red-600 text-xs">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="mb-4">
+        <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Head Of Account</label>
+        {{ form.head_of_account }}
+        {% for error in form.head_of_account.errors %}
+        <div class="text-red-600 text-xs">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="mb-4">
+        <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Code</label>
+        {{ form.code }}
+        {% for error in form.code.errors %}
+        <div class="text-red-600 text-xs">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="mb-4">
+        <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Description</label>
+        {{ form.description }}
+        {% for error in form.description.errors %}
+        <div class="text-red-600 text-xs">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="flex gap-2 justify-between">
+        <a href="{% url 'hq:chartOf_accountmanagement' %}" class="bg-gray-300 text-gray-800 px-4 py-2 rounded">Cancel</a>
+        <button type="submit" class="bg-brand-500 text-white px-4 py-2 rounded">{{ modal_action }}</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<form id="deleteForm" method="post" action="{% url 'hq:chartOf_accountmanagement' %}" class="hidden">
+  {% csrf_token %}
+  <input type="hidden" name="delete_id" id="deleteIdInput" />
+  <button type="submit"></button>
+ </form>
+
+<div id="deleteModal" class="fixed inset-0 z-99999 hidden items-center justify-center bg-black bg-opacity-40 bg-gray-400/50 backdrop-blur-[2px]">
+  <div class="bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-md p-6 relative">
+    <div class="text-lg font-semibold mb-3 dark:text-gray-200">Confirm Deletion</div>
+    <div class="text-sm text-gray-700 dark:text-gray-300 mb-6">
+      Are you sure you want to delete account <span class="font-semibold" id="deleteCodeText"></span> (<span id="deleteHeadText"></span>)?
+    </div>
+    <div class="flex gap-2 justify-end">
+      <button type="button" id="cancelDeleteBtn" class="bg-gray-300 text-gray-800 px-4 py-2 rounded">Cancel</button>
+      <button type="button" id="confirmDeleteBtn" class="bg-red-600 text-white px-4 py-2 rounded">Delete</button>
+    </div>
+  </div>
+ </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function(){
+    const deleteBtns = document.querySelectorAll('.delete-btn');
+    const deleteModal = document.getElementById('deleteModal');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+    const deleteIdInput = document.getElementById('deleteIdInput');
+    const deleteCodeText = document.getElementById('deleteCodeText');
+    const deleteHeadText = document.getElementById('deleteHeadText');
+    const deleteForm = document.getElementById('deleteForm');
+    let pendingDeleteId = null;
+
+    function openDeleteModal(id, code, head){
+      pendingDeleteId = id;
+      if (deleteCodeText) deleteCodeText.textContent = code || '';
+      if (deleteHeadText) deleteHeadText.textContent = head || '';
+      if (deleteModal){ deleteModal.classList.remove('hidden'); deleteModal.classList.add('flex'); }
+    }
+    function closeDeleteModal(){
+      pendingDeleteId = null;
+      if (deleteModal){ deleteModal.classList.add('hidden'); deleteModal.classList.remove('flex'); }
+    }
+
+    // Direct bindings (in case buttons exist now)
+    if (deleteBtns && deleteBtns.length){
+      deleteBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          openDeleteModal(btn.dataset.deleteId, btn.dataset.code, btn.dataset.head);
+        });
+      });
+    }
+    // Delegated binding (fallback)
+    document.addEventListener('click', function(e){
+      const t = e.target;
+      if (t && t.classList && t.classList.contains('delete-btn')){
+        openDeleteModal(t.dataset.deleteId, t.dataset.code, t.dataset.head);
+      }
+    });
+    if (cancelDeleteBtn){ cancelDeleteBtn.addEventListener('click', closeDeleteModal); }
+    if (confirmDeleteBtn){
+      confirmDeleteBtn.addEventListener('click', () => {
+        if (!pendingDeleteId || !deleteForm || !deleteIdInput) { closeDeleteModal(); return; }
+        deleteIdInput.value = pendingDeleteId;
+        deleteForm.submit();
+      });
+    }
+  });
+</script>
+
+<script>
+  // One input with dropdown: pick Category (Main Type) or type to search by Code, Head, or Main Type
+  document.addEventListener('DOMContentLoaded', function () {
+    const queryInput = document.getElementById('accountFilter');
+    const dropdown = document.getElementById('headDropdown');
+    const clearBtn = document.getElementById('clearFilterBtn');
+    const table = document.querySelector('table');
+    if (!table || !queryInput || !dropdown) return;
+    const tbody = table.querySelector('tbody');
+    const noResultsRow = document.getElementById('noResultsRow');
+    let exactMain = null; // exact Category filter
+
+    function getRows() {
+      return tbody ? Array.from(tbody.querySelectorAll('tr[data-row="1"]')) : [];
+    }
+    function getUniqueMains() {
+      // Build a map from lower(main) -> display text
+      const map = new Map();
+      getRows().forEach(row => {
+        const cells = row.querySelectorAll('td');
+        const display = (cells[1]?.textContent || '').trim(); // Main Type display text
+        const lower = (row.dataset.main || '').toLowerCase();
+        if (display && lower && !map.has(lower)) map.set(lower, display);
+      });
+      // Return array of display texts sorted by display
+      return Array.from(map.entries()).sort((a,b)=>a[1].localeCompare(b[1]));
+    }
+    function renderDropdown(filterQ = '') {
+      const q = (filterQ || '').toLowerCase();
+      const mains = getUniqueMains().filter(([lower, display]) => display.toLowerCase().includes(q));
+      dropdown.innerHTML = mains.length
+        ? mains.map(([lower, display]) => `
+        <button type="button" role="option" data-lower="${lower.replace(/"/g,'&quot;')}" data-display="${display.replace(/"/g,'&quot;')}" class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-800 dark:text-gray-100">${display}</button>
+        `).join('')
+        : '<div class="px-3 py-2 text-sm text-gray-500 dark:text-gray-300">No matches</div>';
+      dropdown.querySelectorAll('button[role="option"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const lower = btn.getAttribute('data-lower') || '';
+          const display = btn.getAttribute('data-display') || '';
+          queryInput.value = display;
+          exactMain = lower;
+          applyExactMainFilter();
+          closeDropdown();
+        });
+      });
+    }
+    function openDropdown() {
+      renderDropdown(queryInput.value);
+      dropdown.classList.remove('hidden');
+      dropdown.classList.add('block');
+      // force reflow to ensure visibility
+      void dropdown.offsetHeight;
+      queryInput.setAttribute('aria-expanded', 'true');
+    }
+    function closeDropdown() {
+      dropdown.classList.remove('block');
+      dropdown.classList.add('hidden');
+      queryInput.setAttribute('aria-expanded', 'false');
+    }
+
+    function applyExactMainFilter() {
+      const rows = getRows();
+      let matchCount = 0;
+      rows.forEach(row => {
+        const main = (row.dataset.main || '').toLowerCase();
+        const show = main === exactMain;
+        row.style.display = show ? '' : 'none';
+        if (show) matchCount++;
+      });
+      if (noResultsRow) noResultsRow.classList.toggle('hidden', matchCount !== 0);
+      updateClearBtnVisibility();
+    }
+    function applyQueryFilter() {
+      const q = (queryInput.value || '').toLowerCase().trim();
+      const rows = getRows();
+      let matchCount = 0;
+      rows.forEach(row => {
+        const main = (row.dataset.main || '').toLowerCase();
+        const head = (row.dataset.head || '').toLowerCase();
+        const code = (row.dataset.code || '').toLowerCase();
+        const matches = !q || main.includes(q) || head.includes(q) || code.includes(q);
+        row.style.display = matches ? '' : 'none';
+        if (matches) matchCount++;
+      });
+      if (noResultsRow) noResultsRow.classList.toggle('hidden', matchCount !== 0);
+      updateClearBtnVisibility();
+    }
+
+    function showAllRows() {
+      const rows = getRows();
+      rows.forEach(row => { row.style.display = ''; });
+      if (noResultsRow) noResultsRow.classList.add('hidden');
+    }
+
+    function updateClearBtnVisibility() {
+      const hasValue = (queryInput.value || '').trim().length > 0 || !!exactMain;
+      if (!clearBtn) return;
+      clearBtn.classList.toggle('hidden', !hasValue);
+    }
+
+    // Events
+    queryInput.addEventListener('focus', () => { openDropdown(); });
+    queryInput.addEventListener('click', () => { openDropdown(); });
+    queryInput.addEventListener('input', () => {
+      // User started typing, switch to query mode
+      exactMain = null;
+      renderDropdown(queryInput.value);
+      applyQueryFilter();
+    });
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        queryInput.value = '';
+        exactMain = null;
+        closeDropdown();
+        showAllRows();
+        updateClearBtnVisibility();
+        queryInput.focus();
+      });
+    }
+
+    updateClearBtnVisibility();
+    // Close on blur after a tiny delay to allow option click
+    queryInput.addEventListener('blur', () => {
+      setTimeout(() => {
+        if (!dropdown.matches(':hover')) closeDropdown();
+      }, 150);
+    });
+  });
+</script>
+
+
+{% if messages %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var toasts = JSON.parse('[{% for message in messages %}{"msg": "{{ message|escapejs }}", "type": "{{ message.tags|default:"success" }}"}{% if not forloop.last %},{% endif %}{% endfor %}]');
+    toasts.forEach(function (t) { showToast(t.msg, t.type); });
+  });
+</script>
+{% endif %}
+{% endblock %}

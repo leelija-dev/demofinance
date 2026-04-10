@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Loan Close Approved</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      /* Inline-friendly minimal styles */
+      body { background: #f6f7fb; margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; color: #222; }
+      .container { max-width: 640px; margin: 0 auto; padding: 24px 16px; }
+      .card { background: #ffffff; border-radius: 8px; padding: 24px; border: 1px solid #e5e7eb; }
+      .title { font-size: 20px; font-weight: 700; margin: 0 0 12px; color: #111827; }
+      .muted { color: #6b7280; font-size: 14px; line-height: 1.6; }
+      .row { margin: 10px 0; }
+      .pill { display: inline-block; background: #e6ffed; color: #065f46; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; }
+      .footer { margin-top: 16px; color: #9ca3af; font-size: 12px; }
+      .btn { display: inline-block; background: #2563eb; color: #ffffff !important; text-decoration: none; padding: 10px 16px; border-radius: 6px; font-weight: 600; margin-top: 12px; }
+      .table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+      .table td { padding: 6px 0; font-size: 14px; }
+      .label { color: #6b7280; width: 40%; }
+      .value { color: #111827; width: 60%; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <p class="pill">Approved</p>
+        <h1 class="title">Your Loan Close Request Is Approved</h1>
+        <p class="muted">
+          Dear {{ customer_name|default:"Customer" }},<br/>
+          We are pleased to inform you that your loan close (NOC) request has been approved.
+        </p>
+
+        <table class="table" role="presentation" aria-hidden="true">
+          <tr>
+            <td class="label">Loan Reference</td>
+            <td class="value">{{ loan_ref_no }}</td>
+          </tr>
+          <tr>
+            <td class="label">Request ID</td>
+            <td class="value">{{ request_id }}</td>
+          </tr>
+          <tr>
+            <td class="label">Approved At</td>
+            <td class="value">{{ approved_at|date:"Y-m-d H:i" }}</td>
+          </tr>
+          <tr>
+            <td class="label">Branch</td>
+            <td class="value">{{ branch_name|default:"-" }}</td>
+          </tr>
+        </table>
+
+        <p class="muted row">
+          If you need any clarification, please reply to this email or contact your branch for assistance.
+        </p>
+
+        <!-- Optional link to portal (replace href with your actual portal URL) -->
+        <!-- <a class="btn" href="https://your-portal.example.com">View details</a> -->
+
+        <p class="footer">This is an automated message. Please do not reply if not required.</p>
+      </div>
+    </div>
+  </body>
+</html>

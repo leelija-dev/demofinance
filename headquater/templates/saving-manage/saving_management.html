@@ -1,0 +1,412 @@
+{% extends 'hq/base.html' %}
+{% load static %}
+
+{% block title %}Saving Management - Headquarters{% endblock %}
+{% block page_id %}SavingManagement{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-(--breakpoint-2xl) p-4 md:p-6">
+  <h2 class="text-title-md2 font-bold text-black dark:text-white mb-6">Saving Management</h2>
+
+  <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] mb-10">
+    <div class="px-5 py-4 sm:px-6 sm:py-5 flex justify-between">
+      <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Saving Types</h3>
+      <a href="?add_type=1" class="bg-brand-500 text-white px-4 py-2 rounded">Add Saving Type</a>
+    </div>
+    <div class="border-t border-gray-100 p-5 sm:p-6 dark:border-gray-800">
+      <div class="overflow-hidden bg-white dark:border-gray-800 dark:bg-white[0.03] ">
+        <div class="max-w-full overflow-x-auto custom-scrollbar">
+          <table class="w-full min-w-[1102px]">
+            <thead>
+              <tr class="border-b border-gray-100 dark:border-gray-800">
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">ID</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Name</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Status</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Actions</p>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for t in saving_types %}
+              <tr class="border-b border-gray-100 dark:border-gray-800">
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ t.type_id }}</p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ t.name }}</p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                    {% if t.is_active %}
+                    <span class="text-success-700 bg-success-50 dark:bg-success-500/15 dark:text-success-500 inline-block rounded-full px-2 py-0.5 font-medium">Active</span>
+                    {% else %}
+                    <span class="bg-error-50 text-theme-xs text-error-700 dark:bg-error-500/15 dark:text-error-500 inline-block rounded-full px-2 py-0.5 font-medium">Inactive</span>
+                    {% endif %}
+                  </p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <a href="?edit_type={{ t.type_id }}" class="text-brand-500">Edit</a>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td class="px-5 py-4 sm:px-6 text-center text-red-600" colspan="4">No saving types found.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] mb-10">
+    <div class="px-5 py-4 sm:px-6 sm:py-5 flex justify-between">
+      <h3 class="text-base font-medium text-gray-800 dark:text-white/90">One Time Deposits</h3>
+      <a href="?add_one_time=1" class="bg-brand-500 text-white px-4 py-2 rounded">Add One Time Deposit</a>
+    </div>
+    <div class="border-t border-gray-100 p-5 sm:p-6 dark:border-gray-800">
+      <div class="overflow-hidden bg-white dark:border-gray-800 dark:bg-white[0.03] ">
+        <div class="max-w-full overflow-x-auto custom-scrollbar">
+          <table class="w-full min-w-[1102px]">
+            <thead>
+              <tr class="border-b border-gray-100 dark:border-gray-800">
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">ID</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Deposit Amount</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Payable Amount</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Tenure</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Status</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Actions</p>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for i in one_time_deposits %}
+              <tr class="border-b border-gray-100 dark:border-gray-800">
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ i.one_time_deposit_id }}</p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ i.deposit_amount }}</p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ i.payable_amount }}</p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ i.tenure }} {{ i.tenure_unit }}</p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                    {% if i.is_active %}
+                    <span class="text-success-700 bg-success-50 dark:bg-success-500/15 dark:text-success-500 inline-block rounded-full px-2 py-0.5 font-medium">Active</span>
+                    {% else %}
+                    <span class="bg-error-50 text-theme-xs text-error-700 dark:bg-error-500/15 dark:text-error-500 inline-block rounded-full px-2 py-0.5 font-medium">Inactive</span>
+                    {% endif %}
+                  </p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <a href="?edit_one_time={{ i.one_time_deposit_id }}" class="text-brand-500">Edit</a>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td class="px-5 py-4 sm:px-6 text-center text-red-600" colspan="6">No one time deposits found.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] mb-10">
+    <div class="px-5 py-4 sm:px-6 sm:py-5 flex justify-between">
+      <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Daily Products</h3>
+      <a href="?add_daily=1" class="bg-brand-500 text-white px-4 py-2 rounded">Add Daily Product</a>
+    </div>
+    <div class="border-t border-gray-100 p-5 sm:p-6 dark:border-gray-800">
+      <div class="overflow-hidden bg-white dark:border-gray-800 dark:bg-white[0.03] ">
+        <div class="max-w-full overflow-x-auto custom-scrollbar">
+          <table class="w-full min-w-[1102px]">
+            <thead>
+              <tr class="border-b border-gray-100 dark:border-gray-800">
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">ID</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Deposit Amount</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Interest Rate (%)</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Tenure</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Status</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Actions</p>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for t in daily_products %}
+              <tr class="border-b border-gray-100 dark:border-gray-800">
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ t.daily_product_id }}</p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ t.deposit_amount }}</p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ t.interest_rate }}%</p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ t.tenure }} {{ t.tenure_unit }}</p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                    {% if t.is_active %}
+                    <span class="text-success-700 bg-success-50 dark:bg-success-500/15 dark:text-success-500 inline-block rounded-full px-2 py-0.5 font-medium">Active</span>
+                    {% else %}
+                    <span class="bg-error-50 text-theme-xs text-error-700 dark:bg-error-500/15 dark:text-error-500 inline-block rounded-full px-2 py-0.5 font-medium">Inactive</span>
+                    {% endif %}
+                  </p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <a href="?edit_daily={{ t.daily_product_id }}" class="text-brand-500">Edit</a>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td class="px-5 py-4 sm:px-6 text-center text-red-600" colspan="6">No daily products found.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if show_type_modal %}
+<div id="typeModal" class="fixed inset-0 z-99999 flex items-center justify-center bg-black bg-opacity-40 bg-gray-400/50 backdrop-blur-[32px]">
+  <div class="bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-md p-6 relative">
+    <a href="{% url 'hq:saving_management' %}" class="absolute top-2 right-4 text-gray-400 hover:text-gray-700 text-2xl">&times;</a>
+    <h3 class="text-lg font-semibold mb-4 dark:text-gray-400">{{ type_modal_title }}</h3>
+    <form method="post" action="{% url 'hq:saving_management' %}">
+      {% csrf_token %}
+      <input type="hidden" name="form_kind" value="type">
+      {% if edit_type_id %}
+      <input type="hidden" name="type_id" value="{{ edit_type_id }}">
+      {% endif %}
+      <div class="mb-4">
+        <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Type Name</label>
+        {{ type_form.name }}
+        {% for error in type_form.name.errors %}
+        <div class="text-red-600 text-xs">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="mb-4 flex items-center">
+        {{ type_form.is_active }}
+        <label for="id_is_active" class="ml-2 text-sm font-medium px-2 py-0.5 rounded-full {% if type_form.is_active.value or not edit_type_id %}text-success-700 bg-success-50 dark:bg-success-500/15 dark:text-success-500{% else %}text-error-700 bg-error-50 dark:bg-error-500/15 dark:text-error-500{% endif %}" id="id_is_active_label">{% if type_form.is_active.value or not edit_type_id %}Active{% else %}Inactive{% endif %}</label>
+        {% for error in type_form.is_active.errors %}
+        <div class="text-red-600 text-xs">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="flex gap-2 justify-between">
+        <a href="{% url 'hq:saving_management' %}" class="bg-gray-300 text-gray-800 px-4 py-2 rounded">Cancel</a>
+        <button type="submit" class="bg-brand-500 text-white px-4 py-2 rounded">{{ type_modal_action }}</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const checkbox = document.querySelector('#id_is_active');
+    const label = document.querySelector('#id_is_active_label');
+    if (checkbox && label) {
+      checkbox.addEventListener('change', function () {
+        if (this.checked) {
+          label.textContent = 'Active';
+          label.classList.remove('text-error-700', 'bg-error-50', 'dark:bg-error-500/15', 'dark:text-error-500');
+          label.classList.add('text-success-700', 'bg-success-50', 'dark:bg-success-500/15', 'dark:text-success-500');
+        } else {
+          label.textContent = 'Inactive';
+          label.classList.remove('text-success-700', 'bg-success-50', 'dark:bg-success-500/15', 'dark:text-success-500');
+          label.classList.add('text-error-700', 'bg-error-50', 'dark:bg-error-500/15', 'dark:text-error-500');
+        }
+      });
+    }
+  });
+</script>
+{% endif %}
+
+{% if show_one_time_modal %}
+<div id="oneTimeModal" class="fixed inset-0 z-99999 flex items-center justify-center bg-black bg-opacity-40 bg-gray-400/50 backdrop-blur-[32px]">
+  <div class="bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-md p-6 relative">
+    <a href="{% url 'hq:saving_management' %}" class="absolute top-2 right-4 text-gray-400 hover:text-gray-700 text-2xl">&times;</a>
+    <h3 class="text-lg font-semibold mb-4 dark:text-gray-400">{{ one_time_modal_title }}</h3>
+    <form method="post" action="{% url 'hq:saving_management' %}">
+      {% csrf_token %}
+      <input type="hidden" name="form_kind" value="one_time">
+      {% if edit_one_time_id %}
+      <input type="hidden" name="one_time_deposit_id" value="{{ edit_one_time_id }}">
+      {% endif %}
+      <div class="mb-4">
+        <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Deposit Amount</label>
+        {{ one_time_form.deposit_amount }}
+        {% for error in one_time_form.deposit_amount.errors %}
+        <div class="text-red-600 text-xs">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="mb-4">
+        <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Tenure</label>
+        <div class="flex gap-2">
+          <div class="flex-1">{{ one_time_form.tenure }}</div>
+          <div class="w-36">{{ one_time_form.tenure_unit }}</div>
+        </div>
+        {% for error in one_time_form.tenure.errors %}
+        <div class="text-red-600 text-xs">{{ error }}</div>
+        {% endfor %}
+        {% for error in one_time_form.tenure_unit.errors %}
+        <div class="text-red-600 text-xs">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="mb-4">
+        <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Payable Amount</label>
+        {{ one_time_form.payable_amount }}
+        {% for error in one_time_form.payable_amount.errors %}
+        <div class="text-red-600 text-xs">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="mb-4 flex items-center">
+        {{ one_time_form.is_active }}
+        <label for="id_is_active" class="ml-2 text-sm font-medium px-2 py-0.5 rounded-full {% if one_time_form.is_active.value or not edit_one_time_id %}text-success-700 bg-success-50 dark:bg-success-500/15 dark:text-success-500{% else %}text-error-700 bg-error-50 dark:bg-error-500/15 dark:text-error-500{% endif %}" id="id_is_active_label">{% if one_time_form.is_active.value or not edit_one_time_id %}Active{% else %}Inactive{% endif %}</label>
+        {% for error in one_time_form.is_active.errors %}
+        <div class="text-red-600 text-xs">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="flex gap-2 justify-between">
+        <a href="{% url 'hq:saving_management' %}" class="bg-gray-300 text-gray-800 px-4 py-2 rounded">Cancel</a>
+        <button type="submit" class="bg-brand-500 text-white px-4 py-2 rounded">{{ one_time_modal_action }}</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const checkbox = document.querySelector('#id_is_active');
+    const label = document.querySelector('#id_is_active_label');
+    if (checkbox && label) {
+      checkbox.addEventListener('change', function () {
+        if (this.checked) {
+          label.textContent = 'Active';
+          label.classList.remove('text-error-700', 'bg-error-50', 'dark:bg-error-500/15', 'dark:text-error-500');
+          label.classList.add('text-success-700', 'bg-success-50', 'dark:bg-success-500/15', 'dark:text-success-500');
+        } else {
+          label.textContent = 'Inactive';
+          label.classList.remove('text-success-700', 'bg-success-50', 'dark:bg-success-500/15', 'dark:text-success-500');
+          label.classList.add('text-error-700', 'bg-error-50', 'dark:bg-error-500/15', 'dark:text-error-500');
+        }
+      });
+    }
+  });
+</script>
+{% endif %}
+
+{% if show_daily_modal %}
+<div id="dailyModal" class="fixed inset-0 z-99999 flex items-center justify-center bg-black bg-opacity-40 bg-gray-400/50 backdrop-blur-[32px]">
+  <div class="bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-md p-6 relative">
+    <a href="{% url 'hq:saving_management' %}" class="absolute top-2 right-4 text-gray-400 hover:text-gray-700 text-2xl">&times;</a>
+    <h3 class="text-lg font-semibold mb-4 dark:text-gray-400">{{ daily_modal_title }}</h3>
+    <form method="post" action="{% url 'hq:saving_management' %}">
+      {% csrf_token %}
+      <input type="hidden" name="form_kind" value="daily">
+      {% if edit_daily_id %}
+      <input type="hidden" name="daily_product_id" value="{{ edit_daily_id }}">
+      {% endif %}
+      <div class="mb-4">
+        <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Deposit Amount</label>
+        {{ daily_form.deposit_amount }}
+        {% for error in daily_form.deposit_amount.errors %}
+        <div class="text-red-600 text-xs">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="mb-4">
+        <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Interest Rate (%)</label>
+        {{ daily_form.interest_rate }}
+        {% for error in daily_form.interest_rate.errors %}
+        <div class="text-red-600 text-xs">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="mb-4">
+        <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Tenure</label>
+        <div class="flex gap-2">
+          <div class="flex-1">{{ daily_form.tenure }}</div>
+          <div class="w-36">{{ daily_form.tenure_unit }}</div>
+        </div>
+        {% for error in daily_form.tenure.errors %}
+        <div class="text-red-600 text-xs">{{ error }}</div>
+        {% endfor %}
+        {% for error in daily_form.tenure_unit.errors %}
+        <div class="text-red-600 text-xs">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="mb-4 flex items-center">
+        {{ daily_form.is_active }}
+        <label for="id_is_active" class="ml-2 text-sm font-medium px-2 py-0.5 rounded-full {% if daily_form.is_active.value or not edit_daily_id %}text-success-700 bg-success-50 dark:bg-success-500/15 dark:text-success-500{% else %}text-error-700 bg-error-50 dark:bg-error-500/15 dark:text-error-500{% endif %}" id="id_is_active_label">{% if daily_form.is_active.value or not edit_daily_id %}Active{% else %}Inactive{% endif %}</label>
+        {% for error in daily_form.is_active.errors %}
+        <div class="text-red-600 text-xs">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="flex gap-2 justify-between">
+        <a href="{% url 'hq:saving_management' %}" class="bg-gray-300 text-gray-800 px-4 py-2 rounded">Cancel</a>
+        <button type="submit" class="bg-brand-500 text-white px-4 py-2 rounded">{{ daily_modal_action }}</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const checkbox = document.querySelector('#id_is_active');
+    const label = document.querySelector('#id_is_active_label');
+    if (checkbox && label) {
+      checkbox.addEventListener('change', function () {
+        if (this.checked) {
+          label.textContent = 'Active';
+          label.classList.remove('text-error-700', 'bg-error-50', 'dark:bg-error-500/15', 'dark:text-error-500');
+          label.classList.add('text-success-700', 'bg-success-50', 'dark:bg-success-500/15', 'dark:text-success-500');
+        } else {
+          label.textContent = 'Inactive';
+          label.classList.remove('text-success-700', 'bg-success-50', 'dark:bg-success-500/15', 'dark:text-success-500');
+          label.classList.add('text-error-700', 'bg-error-50', 'dark:bg-error-500/15', 'dark:text-error-500');
+        }
+      });
+    }
+  });
+</script>
+{% endif %}
+
+{% endblock %}

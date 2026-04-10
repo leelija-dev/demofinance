@@ -1,0 +1,1716 @@
+{% extends "branch/base.html" %}
+{% load static %}
+{% block title %}Application Detail{% endblock %}
+
+{% block page_id %}applicationDetail{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+    <!-- Breadcrumb Start -->
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 class="text-title-md2 font-bold text-black dark:text-white">
+            Application Detail
+        </h2>
+        <nav id="breadcrumb">
+            <ol class="flex items-center gap-2">
+                <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+                        href="{% url 'branch:dashboard' %}">Dashboard <svg class="stroke-current" width="17" height="16"
+                            viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                            </path>
+                        </svg></a></li>
+                <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+                        href="{% url 'branch:loan_pending_application' %}">Pending Applications <svg class="stroke-current" width="17" height="16"
+                            viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                            </path>
+                        </svg></a></li>
+                <li class="text-sm text-gray-800 dark:text-white/90">Application Detail</li>
+            </ol>
+        </nav>
+        <button id="previousPage" type="button" class="hidden inline-flex items-center gap-2 px-4 py-2 rounded-md border border-gray-300 bg-brand-500 text-white hover:bg-blue-600 hover:border-gray-400 transition dark:border-gray-700 dark:bg-blue-800 dark:text-gray-200 dark:hover:bg-gray-700" aria-label="Go back">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M12.707 15.707a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 111.414 1.414L8.414 9H17a1 1 0 110 2H8.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+          </svg>
+          <span>Back</span>
+        </button>    
+    </div>
+
+    <div id="application-detail-content"></div>
+    <div id="application-detail-error" class="text-center text-red-600 py-8 hidden">Application not found.</div>
+</div>
+
+<!-- Tracking Button and Modal (Non-intrusive addition) -->
+<div id="trackingSection">
+<div id="customTrackingBtn" class="flex items-center justify-between gap-2 mb-6 cursor-pointer">
+    <div class="flex w-auto flex-col items-center flex-1">
+        <div class="w-6 h-6 flex items-center justify-center rounded-full bg-brand-500 text-white font-bold">1</div>
+        <span class="mt-2 text-sm font-medium text-gray-500">Agent</span>
+    </div>
+    <div class="flex-1 h-1 bg-brand-500"></div>
+    <div class="flex flex-col items-center flex-1">
+        <div class="w-6 h-6 flex items-center justify-center rounded-full bg-gray-300 text-gray-700 font-bold">2</div>
+        <span class="mt-2 text-sm font-medium text-gray-500">Branch</span>
+    </div>
+    <div class="flex-1 h-1 bg-gray-300"></div>
+    <div class="flex flex-col items-center flex-1">
+        <div class="w-6 h-6 flex items-center justify-center rounded-full bg-gray-300 text-gray-700 font-bold">3</div>
+        <span class="mt-2 text-sm font-medium text-gray-500">Headquater</span>
+    </div>
+</div>
+</div>
+<div id="customTrackingModal" class="fixed inset-0 z-9999 bg-gray-400/50 backdrop-blur-[32px] hidden">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="relative bg-white rounded-lg shadow-lg max-w-md w-full">
+            <button id="closeCustomTrackingModal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            <div id="customTrackingModalContent">
+                {% include "application_tracking.html" %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Document Request Modal -->
+<div id="documentRequestModal" class="fixed inset-0 z-9999 bg-gray-400/50 backdrop-blur-[32px] hidden">
+    <div class="absolute inset-0 bg-black bg-opacity-50"></div>
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">Request Document</h3>
+                    <button onclick="closeDocumentRequestModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <form id="documentRequestForm">
+                    {% csrf_token %}
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Document Type</label>
+                            <input type="text" id="documentType" readonly 
+                                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Reason for Request</label>
+                            <select id="requestReason" name="requestReason" required 
+                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+                                <option value="">Select a reason</option>
+                                <option value="missing">Document Missing</option>
+                                <option value="blurred">Document Blurred/Unclear</option>
+                                <option value="wrong_file">Wrong Document Uploaded</option>
+                                <option value="expired">Document Expired</option>
+                                <option value="incomplete">Document Incomplete</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Additional Comments (Optional)</label>
+                            <textarea id="requestComment" name="requestComment" rows="3" 
+                                      class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                                      placeholder="Please provide any additional details..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-3 mt-6">
+                        <button type="button" onclick="closeDocumentRequestModal()" 
+                                class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition">
+                            Cancel
+                        </button>
+                        <button type="submit" 
+                                class="flex-1 px-4 py-2 text-sm font-medium text-white bg-error-500 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition">
+                            Send Request
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Document Review Modal -->
+<div id="documentReviewModal" class="fixed inset-0 z-9999 bg-gray-400/50 backdrop-blur-[32px] hidden">
+    <div class="absolute inset-0 bg-black bg-opacity-50"></div>
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="relative bg-white dark:bg-gray-800 rounded">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">Review Document</h3>
+                    <button onclick="closeDocumentReviewModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <form id="documentReviewForm">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Document Type</label>
+                            <input type="text" id="reviewDocumentType" readonly 
+                                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Review Decision</label>
+                            <select id="reviewDecision" required 
+                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+                                <option value="">Select a decision</option>
+                                <option value="approved">✅ Approve Document</option>
+                                <!-- <option value="rejected">❌ Reject Document</option> -->
+                                <option value="request_again">🔄 Request Again</option>
+                                <!-- <option value="reject_application">🚫 Reject Application (Document Tampering Suspected)</option> -->
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Review Comments (Optional)</label>
+                            <textarea id="reviewComment" rows="3" 
+                                      class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                                      placeholder="Please provide your review comments..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-3 mt-6">
+                        <button type="button" onclick="closeDocumentReviewModal()" 
+                                class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition">
+                            Cancel
+                        </button>
+                        <button type="submit" 
+                                class="flex-1 px-4 py-2 text-sm font-medium text-white bg-brand-500 border border-transparent rounded-md hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 transition">
+                            Submit Review
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Application Rejection Modal -->
+<div id="rejectApplicationModal" class="fixed inset-0 z-99999 bg-gray-400/50 backdrop-blur-[32px] hidden">
+    <div class="absolute inset-0 bg-black bg-opacity-50"></div>
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+            <div class="p-6">
+                <!-- Reason Form View -->
+                <div id="rejectionReasonView">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Reject Application</h3>
+                        <button onclick="closeRejectModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <form id="rejectApplicationForm">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Reason for Rejection</label>
+                                <textarea id="rejectionReason" rows="3" 
+                                          class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                                          placeholder="Please provide the reason for rejection..."></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="flex gap-3 mt-6">
+                            <button type="button" onclick="closeRejectModal()" 
+                                    class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition">
+                                Cancel
+                            </button>
+                            <button type="submit" 
+                                    class="flex-1 px-4 py-2 text-sm font-medium text-white bg-error-500 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition">
+                                Continue
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Confirmation View -->
+                <div id="rejectionConfirmView" class="hidden">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Confirm Rejection</h3>
+                        <button onclick="closeRejectModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <p class="text-gray-700 dark:text-gray-300">Are you sure you want to reject this application?</p>
+                        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">This action cannot be undone.</p>
+                        
+                        <div class="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Rejection Reason:</h4>
+                            <p id="confirmationReason" class="text-sm text-gray-600 dark:text-gray-400"></p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-3">
+                        <button onclick="showReasonView()" 
+                                class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition">
+                            Back
+                        </button>
+                        <button onclick="submitRejection()" 
+                                class="flex-1 px-4 py-2 text-sm font-medium text-white bg-error-500 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition">
+                            Reject Application
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Approve Application Confirmation Modal -->
+<div id="approveApplicationModal" class="fixed inset-0 z-99999 bg-gray-400/50 backdrop-blur-[32px] hidden">
+    <div class="absolute inset-0 bg-black bg-opacity-50"></div>
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">Approve Application</h3>
+                    <button onclick="closeApproveModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="mb-6">
+                    <p class="text-gray-700 dark:text-gray-300">Are you sure you want to approve this application?</p>
+                    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">This action cannot be undone.</p>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="closeApproveModal()" 
+                            class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition">
+                        Cancel
+                    </button>
+                    <button onclick="submitApproveApplication()" 
+                            class="flex-1 px-4 py-2 text-sm font-medium text-white bg-success-500 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition">
+                        Approve Application
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Include application_tracking.js -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="{% static 'application_tracking.js' %}"></script>
+<script src="/static/loan/js/loan-application.js"></script>
+
+<script>
+
+// Make docRequestBtn globally available
+function docRequestBtn(type, label, customerId, isDisabled = false, requestInfo = null) {
+    if (isDisabled) {
+        let statusText = 'Requested';
+        if (requestInfo) {
+            if (requestInfo.type === 'resubmitted') {
+                statusText = `Resubmitted (${requestInfo.reason})`;
+            } else {
+                statusText = `Requested (${requestInfo.reason})`;
+            }
+        }
+        if(window.dflag != 'details' && window.from_agent != '1'){
+            return `<button disabled class="inline-flex items-center justify-center w-auto px-3 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md cursor-not-allowed opacity-60" title="${statusText}">Request Document</button>`;
+        }else{
+            return ''
+        }
+    }
+    if(window.dflag != 'details' && window.from_agent != '1'){
+        return `<button onclick="openDocumentRequestModal('${type}','${label}','${customerId}')" class="inline-flex items-center justify-center w-auto px-3 py-2 text-sm font-medium text-white dark:text-white bg-brand-500 dark:bg-brand-500 border border-red-200 dark:border-gray-800 rounded-md hover:bg-red-100 dark:hover:bg-red-900/30 transition">Request Document</button>`;
+    }else{
+        return ''
+    }
+}
+
+// Ensure this function is defined before any code that uses it
+function getCustomerIdFromUrl() {
+    const parts = window.location.pathname.split('/');
+     // /branch/application-detail/<customer_id>/<loan_ref_no>/
+        return parts[3] || '';
+}
+
+function getLoanRefNoFromUrl() {
+    const parts = window.location.pathname.split('/');
+    // /branch/application-detail/<customer_id>/<loan_ref_no>/
+    return parts[4] || '';
+}
+
+let currentDocumentType = '';
+let currentDocumentName = '';
+let currentCustomerId = null;
+let rejectionReason = '';
+
+// Set currentCustomerId from URL on page load
+(function setCurrentCustomerIdFromUrl() {
+    const parts = window.location.pathname.split('/');
+    // /branch/application-detail/<customer_id>/
+    currentCustomerId = parts[parts.length - 2] || '';
+})();
+
+function openDocumentRequestModal(documentType, documentName, customerId) {
+    currentDocumentType = documentType;
+    currentDocumentName = documentName;
+    currentCustomerId = customerId;
+    var docTypeInput = document.getElementById('documentType');
+    if (docTypeInput) {
+        docTypeInput.value = documentName;
+    }
+    document.getElementById('documentRequestModal').classList.remove('hidden');
+}
+
+function closeDocumentRequestModal() {
+    document.getElementById('documentRequestModal').classList.add('hidden');
+    document.getElementById('documentRequestForm').reset();
+}
+
+// Expose modal functions globally for HTML onclick handlers
+window.openRejectModal = function() {
+    document.getElementById('rejectApplicationModal').classList.remove('hidden');
+    window.showReasonView();
+};
+window.closeRejectModal = function() {
+    document.getElementById('rejectApplicationModal').classList.add('hidden');
+    document.getElementById('rejectApplicationForm').reset();
+    window.showReasonView(); // Reset to reason view for next time
+};
+window.showReasonView = function() {
+    document.getElementById('rejectionReasonView').classList.remove('hidden');
+    document.getElementById('rejectionConfirmView').classList.add('hidden');
+};
+window.showConfirmView = function() {
+    document.getElementById('rejectionReasonView').classList.add('hidden');
+    document.getElementById('rejectionConfirmView').classList.remove('hidden');
+};
+window.submitRejection = function() {
+    // Defensive: ensure currentCustomerId is set
+    if (!currentCustomerId) {
+        showToast('Error: Customer ID is missing. Cannot reject application.', 'error');
+        console.error('Reject error: currentCustomerId is missing');
+        return;
+    }
+    fetch('{% url "branch:api_reject_application" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            customer_id: currentCustomerId,
+            reason: rejectionReason
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            // Try to parse error message
+            return response.json().then(data => { throw data; });
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            window.closeRejectModal();
+            showToast('Application rejected successfully', 'success');
+            // Redirect to pending applications page
+            window.location.href = '{% url "branch:loan_pending_application" %}';
+        } else {
+            showToast(data.detail || 'Failed to reject application', 'error');
+        }
+    })
+    .catch(error => {
+        let msg = (error && error.detail) ? error.detail : 'An error occurred while rejecting the application';
+        showToast(msg, 'error');
+        console.error('Reject application error:', error);
+    });
+};
+
+// Add a global error handler for debugging
+window.onerror = function(message, source, lineno, colno, error) {
+    console.error('Global error:', message, source, lineno, colno, error);
+};
+
+document.addEventListener('DOMContentLoaded', function () {
+    const params = new URLSearchParams(window.location.search);
+    window.dflag= params.get('dflag');
+    window.from_agent = params.get('from_agent');
+    // console.log('from_agent==', from_agent);
+    // console.log('dflag==', dflag);
+    if(window.dflag == 'details'){
+        document.getElementById('previousPage').classList.remove('hidden');
+        document.getElementById('breadcrumb').classList.add('hidden');    
+    }
+    if(window.from_agent == '1'){
+        document.getElementById('previousPage').classList.remove('hidden');
+        document.getElementById('breadcrumb').classList.add('hidden');    
+    }
+    // console.log('DOMContentLoaded: JS is running');
+    // Document Request Form
+    var documentRequestForm = document.getElementById('documentRequestForm');
+    if (documentRequestForm) {
+        // console.log('Found documentRequestForm');
+        documentRequestForm.addEventListener('submit', function(e) {
+            try {
+                e.preventDefault();
+                const form = e.target;
+                const reasonEl = form.elements['requestReason'];
+                const commentEl = form.elements['requestComment'];
+                // Defensive: also check documentType field for display, but use currentDocumentType for value
+                const docTypeEl = form.querySelector('#documentType') || document.getElementById('documentType');
+                const csrfTokenEl = form.querySelector('[name=csrfmiddlewaretoken]');
+                
+                // console.log('documentRequestForm submit:');
+                // console.log('reasonEl:', reasonEl);
+                // console.log('commentEl:', commentEl);
+                // console.log('docTypeEl:', docTypeEl);
+                // console.log('csrfTokenEl:', csrfTokenEl);
+
+                if (!reasonEl) {
+                    showToast('Reason field not found!', 'error');
+                    return false;
+                }
+                if (!commentEl) {
+                    showToast('Comment field not found!', 'error');
+                    return false;
+                }
+                if (!currentDocumentType) {
+                    showToast('Document type is missing.', 'error');
+                    return false;
+                }
+                if (!csrfTokenEl) {
+                    showToast('CSRF token field not found!', 'error');
+                    return false;
+                }
+
+                const reason = reasonEl.value;
+                const comment = commentEl.value;
+                const csrfToken = csrfTokenEl.value;
+
+                if (!reason) {
+                    showToast('Please select a reason for the document request.', 'error');
+                    return false;
+                }
+
+                // console.log('Submitting document request:', reason, comment, currentDocumentType);
+
+                fetch('{% url "branch:api_document_request" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({
+                        customer_id: currentCustomerId,
+                        document_type: currentDocumentType,
+                        reason: reason,
+                        comment: comment
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // console.log('Document request response:', data);
+                    if (data.success) {
+                        showToast('Document request sent successfully!', 'success');
+                        closeDocumentRequestModal();
+                        window.location.reload();
+                        return false;
+                    } else {
+                        showToast('Error: ' + data.detail, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('An error occurred while sending the request.', 'error');
+                });
+            } catch (err) {
+                console.error('Error in documentRequestForm submit handler:', err);
+                alert('A JS error occurred: ' + err.message);
+            }
+            return false;
+        });
+    } else {
+        console.log('documentRequestForm not found');
+    }
+
+    // Document Review Form
+    var documentReviewForm = document.getElementById('documentReviewForm');
+    if (documentReviewForm) {
+        // console.log('Found documentReviewForm');
+        documentReviewForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            var decisionEl = document.getElementById('reviewDecision');
+            var commentEl = document.getElementById('reviewComment');
+            if (!decisionEl) {
+                showToast('Review decision field not found!', 'error');
+                return;
+            }
+            const decision = decisionEl.value;
+            const comment = commentEl ? commentEl.value : '';
+            if (!decision) {
+                showToast('Please select a review decision.', 'error');
+                return;
+            }
+            if (decision === 'reject_application') {
+                if (!confirm('Are you sure you want to reject the entire application? This action cannot be undone.')) {
+                    return;
+                }
+            }
+            // console.log('Submitting document review:', decision, comment);
+            fetch('{% url "branch:api_document_review" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({
+                    reupload_id: currentReuploadId,
+                    decision: decision,
+                    review_comment: comment
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // console.log('Document review response:', data);
+                if (data.success) {
+                    showToast('Document review submitted successfully!', 'success');
+                    closeDocumentReviewModal();
+                    window.location.reload();
+                } else {
+                    showToast('Error: ' + data.detail, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('An error occurred while submitting the review.', 'error');
+            });
+        });
+    } else {
+        console.log('documentReviewForm not found');
+    }
+
+    // Reject Application Form
+    var rejectApplicationForm = document.getElementById('rejectApplicationForm');
+    if (rejectApplicationForm) {
+        // console.log('Found rejectApplicationForm');
+        rejectApplicationForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            var reasonEl = document.getElementById('rejectionReason');
+            if (!reasonEl) {
+                showToast('Rejection reason field not found!', 'error');
+                return;
+            }
+            rejectionReason = reasonEl.value;
+            document.getElementById('confirmationReason').textContent = rejectionReason || '(No reason provided)';
+            showConfirmView();
+        });
+    } else {
+        console.log('rejectApplicationForm not found');
+    }
+
+    // Close modal when clicking outside
+    var documentRequestModal = document.getElementById('documentRequestModal');
+    if (documentRequestModal) {
+        documentRequestModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDocumentRequestModal();
+            }
+        });
+    }
+    var documentReviewModal = document.getElementById('documentReviewModal');
+    if (documentReviewModal) {
+        documentReviewModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDocumentReviewModal();
+            }
+        });
+    }
+
+    // Debug: Before fetching application detail
+    // console.log('Fetching application detail...');
+    const customerId = getCustomerIdFromUrl();
+    const loan_ref_no = getLoanRefNoFromUrl();
+    fetch(`/branch/api/application-detail/${customerId}/${loan_ref_no}`)
+        .then(response => {
+            // console.log('API response status:', response.status);
+            return response.ok ? response.json() : Promise.reject(response);
+        })
+        .then(data => {
+            // console.log('Fetched application detail:', data);
+            const content = document.getElementById('application-detail-content');
+            const errorDiv = document.getElementById('application-detail-error');
+            if (!data || !data.customer_id) {
+                content.innerHTML = '';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+            errorDiv.classList.add('hidden');
+            let html = `<div class="grid grid-cols-1 gap-6 ${data.agent ? 'lg:grid-cols-2' :'lg:grid-cols-1'}">
+            <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+                <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+                    <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Customer Information</h3>
+                </div>
+                <div class="p-5 space-y-4 sm:p-6">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Customer ID</label><p class="text-sm text-gray-800 dark:text-white">${data.customer_id}</p></div>
+                        <div><label class="flex text-sm font-medium text-gray-500 dark:text-gray-400">Full Name
+                            ${data.status == 'pending' ? `<span class="ml-2 cursor-pointer" id="editFullNameIcon" title="Edit Full Name">
+                              <svg class="w-5 h-5 text-brand-500 hover:text-white border border-blue-300 hover:bg-blue-500 rounded-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.536-6.536a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13z"></path>
+                              </svg>
+                            </span>` : ''}
+                            </label>
+                            <span id="fullNameValue">
+                            <p class="text-sm text-gray-800 dark:text-white">${data.full_name}</p>
+                            </span>
+                            </div>
+
+                        <div><label class="flex text-sm font-medium text-gray-500 dark:text-gray-400">Father Name
+                            ${data.status == 'pending' ? `<span class="ml-2 cursor-pointer" id="editFatherNameIcon" title="Edit Father Name">
+                              <svg class="w-5 h-5 text-brand-500 hover:text-white border border-blue-300 hover:bg-blue-500 rounded-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.536-6.536a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13z"></path>
+                              </svg>
+                            </span>` : ''}
+                            </label>
+                            <span id="fatherNameValue">
+                            <p class="text-sm text-gray-800 dark:text-white">${data.father_name || '-'}</p>
+                            </span>
+                        </div>
+
+                        <div><label class="flex text-sm font-medium text-gray-500 dark:text-gray-400">Date of Birth
+                            ${data.status == 'pending' ? `<span class="ml-2 cursor-pointer" id  
+                            ="editDateOfBirthIcon" title="Edit Date of Birth">
+                                <svg class="w-5 h-5 text-brand-500 hover:text-white border border-blue-300 hover:bg-blue-500 rounded-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.536-6.536a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13z"></path>
+                                </svg>
+                            </span>` : ''}
+                            </label>
+                            <span id="dateOfBirthValue">
+                            <p class="text-sm text-gray-800 dark:text-white">${data.date_of_birth}</p></span></div>
+
+                        <div><label class="flex text-sm font-medium text-gray-500 dark:text-gray-400">Gender
+                            ${data.status == 'pending' ? `<span class="ml-2 cursor-pointer" id="editGenderIcon" title="Edit Gender">
+                              <svg class="w-5 h-5 text-brand-500 hover:text-white border border-blue-300 hover:bg-blue-500 rounded-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.536-6.536a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13z"></path>
+                              </svg>
+                            </span>` : ''}
+                            </label>
+                            <span id="genderValue">
+                            <p class="text-sm text-gray-800 dark:text-white">${data.gender}</p>
+                            </span>
+                            </div>
+                        <div><label class="flex text-sm font-medium text-gray-500 dark:text-gray-400">Contact
+                            ${data.status == 'pending' ? `<span class="ml-2 cursor-pointer" id
+                            ="editContactIcon" title="Edit Contact">
+                              <svg class="w-5 h-5 text-brand-500 hover:text-white border border-blue-300 hover:bg-blue-500 rounded-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.536-6.536a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13z"></path>
+                              </svg>
+                            </span>` : ''}
+                            </label>
+                            <span id="contactValue">
+                            <p class="text-sm text-gray-800 dark:text-white">${data.contact}</p></span></div>
+                        <div><label class="flex text-sm font-medium text-gray-500 dark:text-gray-400">Email
+                            ${data.status == 'pending' ? `<span class="ml-2 cursor-pointer" id
+                            ="editEmailIcon" title="Edit Email">
+                              <svg class="w-5 h-5 text-brand-500 hover:text-white border border-blue-300 hover:bg-blue-500 rounded-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.536-6.536a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13z"></path>
+                              </svg>
+                            </span>` : ''}
+                            </label>
+                            <span id="emailValue">
+                            <p class="text-sm text-gray-800 dark:text-white">${data.email || '-'}</p></span></div>
+                        <div><label class="flex text-sm font-medium text-gray-500 dark:text-gray-400">Aadhar Number
+                            ${data.status == 'pending' ? `<span class="ml-2 cursor-pointer" id
+                            ="editAadharIcon" title="Edit Aadhar Number">
+                              <svg class="w-5 h-5 text-brand-500 hover:text-white border border-blue-300 hover:bg-blue-500 rounded-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.536-6.536a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13z"></path>
+                              </svg>
+                            </span>` : ''}
+                            </label>
+                            <span id="aadharValue">
+                            <p class="text-sm text-gray-800 dark:text-white">${data.adhar_number}</p></span></div>
+                        <div><label class="flex text-sm font-medium text-gray-500 dark:text-gray-400">PAN Number
+                            ${data.status == 'pending' ? `<span class="ml-2 cursor-pointer" id
+                            ="editPanIcon" title="Edit PAN Number">
+                              <svg class="w-5 h-5 text-brand-500 hover:text-white border border-blue-300 hover:bg-blue-500 rounded-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.536-6.536a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13z"></path>
+                              </svg>
+                            </span>` : ''}
+                            </label>
+                            <span id="panValue">
+                            <p class="text-sm text-gray-800 dark:text-white">${data.pan_number}</p></span></div>
+                        <div><label class="flex text-sm font-medium text-gray-500 dark:text-gray-400">Voter ID
+                            ${data.status == 'pending' ? `<span class="ml-2 mb-2 cursor-pointer" id="editVoterIcon" title="Edit Voter ID">
+                              <svg class="w-5 h-5 text-brand-500 hover:text-white border border-blue-300 hover:bg-blue-500 rounded-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.536-6.536a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13z"></path>
+                              </svg>
+                            </span>` : ''}
+                            </label>
+                            <span id="voterValue">
+                            <p class="text-sm text-gray-800 dark:text-white">${data.voter_number}</p></span></div>
+                        <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Status</label><p class="text-sm text-gray-800 dark:text-white">${data.status}</p></div>
+                        <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Submitted At</label><p class="text-sm text-gray-800 dark:text-white">${data.submitted_at ? formatDateTimeIST(data.submitted_at) : '-'}</p></div>
+                    </div>
+                </div>
+            </div>`;
+            // Agent Information
+            if (data.agent) {
+                html += `<div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+                <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+                    <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Agent Information</h3>
+                </div>
+                <div class="p-5 space-y-4 sm:p-6">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Agent Name</label><p class="text-sm text-gray-800 dark:text-white">${data.agent.full_name || '-'}</p></div>
+                        <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Agent ID</label><p class="text-sm text-gray-800 dark:text-white">${data.agent.agent_id || '-'}</p></div>
+                        <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Contact</label><p class="text-sm text-gray-800 dark:text-white">${data.agent.phone || '-'}</p></div>
+                        <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Email</label><p class="text-sm text-gray-800 dark:text-white">${data.agent.email || '-'}</p></div>
+                    </div>
+                </div>
+            </div>`;
+            }
+            html += `</div>`;
+
+            // Address Information
+            if (data.address) {
+                html += `<div class="mt-6 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+                <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+                    <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Address Information</h3>
+                </div>
+                <div class="p-5 space-y-4 sm:p-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Permanent Address</h4>
+                            <hr class="w-[30%] pb-3 border-gray-300 dark:border-gray-700">
+                            <div class="space-y-1">
+                                <p class="text-sm text-gray-800 dark:text-white">${data.address.address_line_1 || ''},</p>
+                                ${data.address.address_line_2 ? `<p class="text-sm text-gray-800 dark:text-white">${data.address.address_line_2},</p>` : ''}
+                                <p class="text-sm text-gray-800 dark:text-white">${data.address.landmark || ''},</p>
+                                <p class="text-sm text-gray-800 dark:text-white">${data.address.post_office || ''} - ${data.address.post_code || ''},</p>
+                                <p class="text-sm text-gray-800 dark:text-white">${data.address.city_or_town || '-'}, ${data.address.district || '-'}, ${data.address.state || '-'}, ${data.address.country || '-'}</p>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Current Address</h4>
+                            <hr class="w-[30%] pb-3 border-gray-300 dark:border-gray-700">
+                            <div class="space-y-1">
+                                <p class="text-sm text-gray-800 dark:text-white">${data.address.current_address_line_1 || ''},</p>
+                                ${data.address.current_address_line_2 ? `<p class="text-sm text-gray-800 dark:text-white">${data.address.current_address_line_2},</p>` : ''}
+                                <p class="text-sm text-gray-800 dark:text-white">${data.address.current_landmark || ''},</p>
+                                <p class="text-sm text-gray-800 dark:text-white">${data.address.current_post_office || ''} - ${data.address.current_post_code || ''},</p>
+                                <p class="text-sm text-gray-800 dark:text-white">${data.address.current_city_or_town || '-'}, ${data.address.current_district || '-'}, ${data.address.current_state || '-'}, ${data.address.current_country || '-'}</p>
+                            </div>
+                            ${data.documents.residential_proof_file ? `
+                            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mt-4">Residential Proof</h4>
+                                <hr class="w-[30%] pb-3 border-gray-300 dark:border-gray-700">
+                                <div class="space-y-1">
+                                    <div class="grid grid-cols-2 gap-2">
+                                    <div class="grid grid-cols-2">
+                                        <img src="${data.documents.residential_proof_file}" alt="Customer residential proof" class="w-16 h-16 object-cover rounded-lg border border-gray-200 dark:border-gray-700">
+                                        <a href="${data.documents.residential_proof_file}" target="_blank" class="inline-flex items-center justify-center flex-1 my-4 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition"><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>View</a>
+                                    </div>
+                                    <div class="my-4">
+                                        <!-- ${data.agent ? docRequestBtn('residential_proof_file','Residential Proof', data.customer_id, hasPendingRequest('residential_proof', data.document_requests, data.document_reuploads), getRequestInfo('residential_proof', data.document_requests, data.document_reuploads)) : ''} -->
+                                        ${data.agent ? docRequestBtn('residential_proof','Residential Proof', data.customer_id, hasPendingRequest('residential_proof', data.document_requests, data.document_reuploads), getRequestInfo('residential_proof', data.document_requests, data.document_reuploads)) : ''}
+                                    </div>    
+                                    </div>
+                                    <p class="text-sm text-gray-800 dark:text-white">${data.address.residential_proof_type || ''}</p>
+                                </div>` : ''}
+
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+            }
+
+            // Customer Account Information
+            if (data.customer_account) {
+                const account = data.customer_account;
+                html += `<div class="mt-6 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+                    <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+                        <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Account Details</h3>
+                    </div>
+                    <div class="p-5 space-y-4 sm:p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Account Number</label><p class="text-sm text-gray-800 dark:text-white">${account.account_number || '-'}</p></div>
+                            <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Bank Name</label><p class="text-sm text-gray-800 dark:text-white">${account.bank_name || '-'}</p></div>
+                            <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Account Type</label><p class="text-sm text-gray-800 dark:text-white">${account.account_type || '-'}</p></div>
+                            <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">IFSC Code</label><p class="text-sm text-gray-800 dark:text-white">${account.ifsc_code || '-'}</p></div>
+                            <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Created At</label><p class="text-sm text-gray-800 dark:text-white">${formatDateTimeIST(account.submitted_at)}</p></div>
+                            <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Last Updated</label><p class="text-sm text-gray-800 dark:text-white">${formatDateTimeIST(account.last_update)}</p></div>
+                            <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Agent</label><p class="text-sm text-gray-800 dark:text-white">${account.agent_name || '-'}</p></div>
+                            <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Branch</label><p class="text-sm text-gray-800 dark:text-white">${account.branch_name || '-'}</p></div>
+                        </div>
+                    </div>
+                </div>`;
+            }
+
+            // Loan Information
+            if (data.loans && data.loans.length > 0) {
+                html += `<div class="mt-6 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+                <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+                    <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Loan Information</h3>
+                </div>
+                <div class="p-5 space-y-4 sm:p-6">
+                    ${data.loans.map(loan => `
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Loan Category</label><p class="text-sm text-gray-800 dark:text-white">${loan.loan_category.name}</p></div>
+                        <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Loan Amount</label><p class="text-sm text-gray-800 dark:text-white">₹${loan.loan_amount}</p></div>
+                        <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Tenure</label><p class="text-sm text-gray-800 dark:text-white">${loan.tenure_display}</p></div>
+                        <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Interest Rate (%)</label><p class="text-sm text-gray-800 dark:text-white">${loan.interest_rate}</p></div>
+                        <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">EMI Amount</label><p class="text-sm text-gray-800 dark:text-white">₹${loan.emi_amount}</p></div>
+                        <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Loan Purpose</label><p class="text-sm text-gray-800 dark:text-white">${loan.loan_purpose}</p></div>
+                        <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Submitted At</label><p class="text-sm text-gray-800 dark:text-white">${loan.submitted_at ? formatDateTimeIST(loan.submitted_at) : '-'}</p></div>
+                         ${data.shop ? `<div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Shop</label><p class="text-sm text-gray-800 dark:text-white">${data.shop.name}</p></div>` : ''}
+                    </div>`).join('')}
+                </div>
+            </div>`;
+            }
+            // Documents Information
+            if (data.documents) {
+                html += `<div class="mt-6 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+                <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+                    <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Documents</h3>
+                </div>
+                <div class="p-5 space-y-6 sm:p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- ID Proof -->
+                        <div class="space-y-3">
+                          <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">ID Proof</h4>
+                        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs text-gray-500 dark:text-gray-400">Aadhar/PAN Card (Front)</span>
+                                <span class="text-xs ${data.documents.id_proof ? 'text-success-500 dark:text-success-500' : 'text-error-500 dark:text-error-500'}">${data.documents.id_proof ? '✓ Uploaded' : '✗ Missing'}</span>
+                            </div>
+                            <div class="flex gap-2">
+                                ${data.documents.id_proof ? `<a href="${data.documents.id_proof}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-800 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-900 transition">View Front</a>` : ''}
+                                ${data.agent ? docRequestBtn('id_proof','ID Proof (Aadhar/PAN)', data.customer_id, hasPendingRequest('id_proof', data.document_requests, data.document_reuploads), getRequestInfo('id_proof', data.document_requests, data.document_reuploads)) : ''}
+                            </div>
+                        </div>
+                        </div>
+                        <!-- ID Proof Back -->
+                        ${data.documents.id_proof_back ?
+                        `<div class="space-y-3">
+                         <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">ID Proof Back</h4>
+                        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs text-gray-500 dark:text-gray-400">Aadhar/PAN Card (Back)</span>
+                                <span class="text-xs ${data.documents.id_proof_back ? 'text-success-500 dark:text-success-500' : 'text-error-500 dark:text-error-500'}">${data.documents.id_proof_back ? '✓ Uploaded' : '✗ Missing'}</span>
+                            </div>
+                            <div class="flex gap-2">
+                                ${data.documents.id_proof_back ? `<a href="${data.documents.id_proof_back}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-800 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-900 transition">View Back</a>` : ''}
+                                ${data.agent ? docRequestBtn('id_proof_back','ID Proof Back', data.customer_id, hasPendingRequest('id_proof_back', data.document_requests, data.document_reuploads), getRequestInfo('id_proof_back', data.document_requests, data.document_reuploads)) : ''}
+                            </div>
+                        </div>
+                        </div>` : ''}
+                        <!-- Income Proof -->
+                        ${data.documents.income_proof ?
+                        `<div class="space-y-3">
+                         <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">Income Proof</h4>
+                        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs text-gray-500 dark:text-gray-400">Salary Slip/Bank Statement</span>
+                                <span class="text-xs ${data.documents.income_proof ? 'text-success-500 dark:text-sucess-500' : 'text-error-500 dark:text-error-500'}\">${data.documents.income_proof ? '✓ Uploaded' : '✗ Missing'}</span>
+                            </div>
+                            <div class="flex gap-2">
+                                ${data.documents.income_proof ? `<a href="${data.documents.income_proof}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-800 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-900 transition">View Document</a>` : ''}
+                                ${data.agent ? docRequestBtn('income_proof','Income Proof', data.customer_id, hasPendingRequest('income_proof', data.document_requests, data.document_reuploads), getRequestInfo('income_proof', data.document_requests, data.document_reuploads)) : ''}
+                            </div>
+                        </div>
+                        </div>` : ''}
+                        <!-- PAN Card -->
+                        ${data.documents.pan_card_document ?
+                        `<div class="space-y-3">
+                         <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">PAN Card</h4>
+                        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs text-gray-500 dark:text-gray-400">PAN Card Document</span>
+                                <span class="text-xs ${data.documents.pan_card_document ? 'text-success-500 dark:text-success-500' : 'text-error-500 dark:text-error-500'}">${data.documents.pan_card_document ? '✓ Uploaded' : '✗ Missing'}</span>
+                            </div>
+                            <div class="flex gap-2">
+                                ${data.documents.pan_card_document ? `<a href="${data.documents.pan_card_document}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-800 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-900 transition">View Document</a>` : ''}
+                                ${data.agent ? docRequestBtn('pan_card_document','PAN Card', data.customer_id, hasPendingRequest('pan_card_document', data.document_requests, data.document_reuploads), getRequestInfo('pan_card_document', data.document_requests, data.document_reuploads)) : ''}
+                            </div>
+                        </div>
+                        </div>` : ''}
+                        <!-- Photo -->
+                        <div class="space-y-3">
+                         <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">Photo</h4>
+                        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs text-gray-500 dark:text-gray-400">Passport Size Photo</span>
+                                <span class="text-xs ${data.documents.photo ? 'text-success-500 dark:text-success-500' : 'text-error-500 dark:text-error-500'}\">${data.documents.photo ? '✓ Uploaded' : '✗ Missing'}</span>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                ${data.documents.photo ? `<img src="${data.documents.photo}" alt="Customer Photo" class="w-16 h-16 object-cover rounded-lg border border-gray-200 dark:border-gray-700">` : ''}
+                                ${data.documents.photo ? `<a href="${data.documents.photo}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-800 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-900 transition">View</a>` : ''}
+                                ${data.agent ? docRequestBtn('photo','Passport Photo', data.customer_id, hasPendingRequest('photo', data.document_requests, data.document_reuploads), getRequestInfo('photo', data.document_requests, data.document_reuploads)) : ''}
+                            </div>
+                        </div>
+                        </div>
+                        <div class="space-y-3">
+                         <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">Signature</h4>
+                        <!-- Signature -->
+                        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs text-gray-500 dark:text-gray-400">Digital Signature</span>
+                                <span class="text-xs ${data.documents.signature ? 'text-success-500 dark:text-success-400' : 'text-500-500 dark:text-error-500'}\">${data.documents.signature ? '✓ Uploaded' : '✗ Missing'}</span>
+                            </div>
+                            <div class="flex gap-2">
+                                ${data.documents.signature ? `<a href="${data.documents.signature}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-800 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-900 transition">View Document</a>` : ''}
+                                ${data.agent ? docRequestBtn('signature','Digital Signature', data.customer_id, hasPendingRequest('signature', data.document_requests, data.document_reuploads), getRequestInfo('signature', data.document_requests, data.document_reuploads)) : ''}
+                            </div>
+                        </div>
+                        </div>
+                        <!-- Collateral -->
+                        ${data.documents.collateral ?
+                        `<div class="space-y-3">
+                         <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">Collateral</h4>
+                        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs text-gray-500 dark:text-gray-400">Property Documents</span>
+                                <span class="text-xs ${data.documents.collateral ? 'text-success-500 dark:text-success-500' : 'text-gray-500 dark:text-gray-500'}\">${data.documents.collateral ? '✓ Uploaded' : 'Optional'}</span>
+                            </div>
+                            <div class="flex gap-2">
+                                ${data.documents.collateral ? `<a href="${data.documents.collateral}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-800 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-900 transition">View Document</a>` : ''}
+                                ${data.agent ? docRequestBtn('collateral','Collateral Documents', data.customer_id, hasPendingRequest('collateral', data.document_requests, data.document_reuploads), getRequestInfo('collateral', data.document_requests, data.document_reuploads)) : ''}
+                            </div>
+                        </div>
+                        </div>` : ''}
+                    </div>
+                </div>
+            </div>`;
+            }
+
+            // Pending Document Requests Section
+            const pendingRequests = (data.document_requests || []).filter(req => !req.is_resolved);
+            if (pendingRequests.length > 0) {
+                html += `<div class="mt-6 rounded-2xl border border-yellow-400 bg-yellow-50 dark:border-yellow-700 dark:bg-yellow-900/20">
+                    <div class="p-5 border-b border-yellow-200 dark:border-yellow-800 sm:p-6">
+                        <h3 class="text-base font-medium text-yellow-800 dark:text-yellow-200">Pending Document Requests</h3>
+                    </div>
+                    <div class="p-5 space-y-4 sm:p-6">
+                        ${pendingRequests.map(request => `
+                            <div class="border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 bg-yellow-100 dark:bg-yellow-900/30">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex-1">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-yellow-200 text-yellow-800 dark:bg-yellow-800/50 dark:text-yellow-200">
+                                                Pending Request
+                                            </span>
+                                            <span class="text-sm text-yellow-700 dark:text-yellow-300">${request.requested_at ? new Date(request.requested_at).toLocaleString() : ''}</span>
+                                        </div>
+                                        <h4 class="text-sm font-medium text-yellow-900 dark:text-yellow-100 mb-1">
+                                            ${request.document_type.replace('_', ' ').toUpperCase()}
+                                        </h4>
+                                        <p class="text-sm text-yellow-700 dark:text-yellow-300 mb-2">
+                                            <strong>Requested by:</strong> ${request.requested_by || 'Unknown'}
+                                        </p>
+                                        <p class="text-sm text-yellow-700 dark:text-yellow-300 mb-2">
+                                            <strong>Reason:</strong> ${request.reason.replace('_', ' ').toUpperCase()}
+                                        </p>
+                                        ${request.comment ? `<p class="text-sm text-yellow-700 dark:text-yellow-300 mb-2"><strong>Comment:</strong> ${request.comment}</p>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>`;
+            }
+
+            // Re-uploaded Documents Section
+            // const agentReuploads = (data.document_reuploads || []).filter(r => r.uploaded_by);
+            // if (agentReuploads.length > 0) {
+            //     let reuploadHtml = `
+            //     <div class=\"mt-6 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]\">\n        <div class=\"p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6\">\n            <h3 class=\"text-base font-medium text-gray-800 dark:text-white/90\">Re-uploaded Documents - Pending Review</h3>\n        </div>\n        <div class=\"p-5 space-y-4 sm:p-6\">`;
+            //     agentReuploads.forEach(reupload => {
+            //         if (!reupload.reviews || reupload.reviews.length === 0) {
+            //             let loanInfo = '';
+            //             if (data.loans && data.loans.length > 0) {
+            //                 loanInfo = data.loans.map(loan =>
+            //                     `<div class='text-xs text-gray-500 dark:text-gray-400'>Loan: <b>${loan.loan_category}</b> - ₹${loan.loan_amount}</div>`
+            //                 ).join('');
+            //             }
+            //             reuploadHtml += `\n <div class=\"border border-blue-200 dark:border-blue-800 rounded-lg p-4 bg-blue-50 dark:bg-blue-900/20\">\n <div class=\"flex items-start justify-between\">\n <div class=\"flex-1\">\n  <div class=\"flex items-center gap-2 mb-2\">\n                            <span class=\"inline-block px-2 py-1 text-xs font-semibold rounded bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300\">\n                                Pending Review\n                            </span>\n                            <span class=\"text-sm text-gray-600 dark:text-gray-400\">${reupload.uploaded_at ? new Date(reupload.uploaded_at).toLocaleString() : ''}</span>\n                        </div>\n                        <h4 class=\"text-sm font-medium text-gray-900 dark:text-white mb-1\">\n                            ${reupload.document_type.replace('_', ' ').toUpperCase()}\n                        </h4>\n                        <div class=\"mb-1\">${loanInfo}</div>\n                        <p class=\"text-sm text-gray-600 dark:text-gray-400 mb-2\">\n                            <strong>Uploaded by:</strong> Agent: ${reupload.uploaded_by}\n                        </p>\n                        ${reupload.agent_note ? `<p class=\"text-sm text-gray-600 dark:text-gray-400 mb-3\"><strong>Agent Note:</strong> ${reupload.agent_note}</p>` : ''}\n                        <div class=\"flex gap-2\">\n                            ${reupload.uploaded_file ? `<a href=\"${reupload.uploaded_file}\" target=\"_blank\" class=\"inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-brand-500 bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 rounded-md hover:bg-brand-100 dark:hover:bg-brand-900/30 transition\">View Document</a>` : ''}\n                            <button onclick=\"openDocumentReviewModal('${reupload.id}', '${reupload.document_type.replace('_', ' ').toUpperCase()}')\" class=\"inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-brand-500 border border-transparent rounded-md hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 transition\">Review Document</button>\n                        </div>\n                    </div>\n                </div>\n            </div>`;
+            //         }
+            //     });
+            //     reuploadHtml += `</div></div>`;
+            //     html += reuploadHtml;
+            // }
+
+            // Re-uploaded Documents Section
+            const agentReUploads = (data.document_reuploads || []).filter(r => r.uploaded_by);
+            // Filter re-uploads that have no reviews or empty reviews array
+            const pendingReUploads = agentReUploads.filter(r => !r.reviews || r.reviews.length === 0);
+            
+            if (pendingReUploads.length > 0) {
+                let reuploadHtml = `
+                    <div class="mt-6 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+                        <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+                            <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Re-uploaded Documents - Pending Review</h3>
+                        </div>
+                        <div class="p-5 space-y-4 sm:p-6">
+                `;
+                
+                pendingReUploads.forEach(reupload => {
+                    let loanInfo = '';
+                    if (data.loans && data.loans.length > 0) {
+                        loanInfo = data.loans.map(loan => 
+                            `<div class="text-xs text-gray-500 dark:text-gray-400">Loan: <b>${loan.loan_category.name || 'N/A'}</b> - ₹${loan.loan_amount || '0'}</div>`
+                        ).join('');
+                    }
+                    
+                    reuploadHtml += `
+                        <div class="border border-blue-200 dark:border-blue-800 rounded-lg p-4 bg-blue-50 dark:bg-blue-900/20">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                                            Pending Review
+                                        </span>
+                                        <span class="text-sm text-gray-600 dark:text-gray-400">
+                                            ${reupload.uploaded_at ? new Date(reupload.uploaded_at).toLocaleString() : 'N/A'}
+                                        </span>
+                                    </div>
+                                    <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-1">
+                                        ${reupload.document_type ? reupload.document_type.replace('_', ' ').toUpperCase() : 'Unknown Document'}
+                                    </h4>
+                                    <div class="mb-1">${loanInfo}</div>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                                        <strong>Uploaded by:</strong> Agent: ${reupload.uploaded_by || 'Unknown'}
+                                    </p>
+                                    ${reupload.agent_note ? `<p class="text-sm text-gray-600 dark:text-gray-400 mb-3"><strong>Agent Note:</strong> ${reupload.agent_note}</p>` : ''}
+                                    <div class="flex gap-2">
+                                        ${reupload.uploaded_file ? `<a href="${reupload.uploaded_file}" target="_blank" class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-brand-500 bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 rounded-md hover:bg-brand-100 dark:hover:bg-brand-900/30 transition">View Document</a>` : ''}
+                                        <button onclick="openDocumentReviewModal('${reupload.id || ''}', '${reupload.document_type ? reupload.document_type.replace('_', ' ').toUpperCase() : 'Unknown Document'}')" class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-brand-500 border border-transparent rounded-md hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 transition">Review Document</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                reuploadHtml += `
+                        </div>
+                    </div>
+                `;
+                html += reuploadHtml;
+            }
+
+            // Document Review History
+            if (data.document_reviews && data.document_reviews.length > 0) {
+                // Only agent reviews: reviewed_by is not null/empty
+                const agentReviews = data.document_reviews.filter(review => review.reviewed_by);
+                if (agentReviews.length > 0) {
+                    let reviewHtml = `<div class="mt-6 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+                        <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+                            <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Document Review History</h3>
+                        </div>
+                        <div class="p-5 space-y-4 sm:p-6">`;
+                    agentReviews.forEach(review => {
+                        let bgClass = 'bg-gray-50 dark:bg-gray-900/20';
+                        if (review.decision === 'approved') bgClass = 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800';
+                        else if (review.decision === 'rejected' || review.decision === 'request_again') bgClass = 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800';
+                        else if (review.decision === 'reject_application') bgClass = 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800';
+                        reviewHtml += `
+                        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 ${bgClass}">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded ${bgClass}">
+                                            ${review.decision.replace('_', ' ').toUpperCase()}
+                                        </span>
+                                        <span class="text-sm text-gray-600 dark:text-gray-400">${review.reviewed_at ? new Date(review.reviewed_at).toLocaleString() : ''}</span>
+                                    </div>
+                                    <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-1">
+                                        ${review.document_type ? review.document_type.replace('_', ' ').toUpperCase() : ''}
+                                    </h4>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                                        <strong>Reviewed by:</strong> ${review.reviewed_by || '-'}
+                                    </p>
+                                    ${review.review_comment ? `<p class="text-sm text-gray-600 dark:text-gray-400"><strong>Review Comment:</strong> ${review.review_comment}</p>` : ''}
+                                </div>
+                            </div>
+                        </div>`;
+                    });
+                    reviewHtml += `</div></div>`;
+                    html += reviewHtml;
+                }
+            }
+
+            // Show rejection reason if rejected_by_branch
+            if (data.status === 'rejected_by_branch' && data.branch_rejection_reason) {
+                html += `<div class="mt-6 rounded-2xl border border-red-400 bg-red-50 dark:border-red-700 dark:bg-red-900/20 p-6">
+                    <h3 class="text-base font-semibold text-red-700 dark:text-red-300 mb-2">Rejection Reason</h3>
+                    <p class="text-sm text-red-800 dark:text-red-200">${data.branch_rejection_reason}</p>
+                </div>`;
+            }
+
+            // Approve/Reject Application Buttons (only if not already approved/rejected)
+            html += `<div class="mt-6 flex justify-end gap-4">`;
+            
+            // Check if there are any pending document requests or resubmitted documents without reviews
+            let hasPendingDocuments = false;
+            
+            // Check for unresolved document requests
+            if (!hasPendingDocuments && data.document_requests && Array.isArray(data.document_requests)) {
+                hasPendingDocuments = data.document_requests.some(req => !req.is_resolved);
+            }
+            
+            // Check for document reuploads that haven't been reviewed yet by branch
+            if (data.document_reuploads && Array.isArray(data.document_reuploads)) {
+                hasPendingDocuments = data.document_reuploads.some(reupload => 
+                    reupload.document_type && (!reupload.reviews || reupload.reviews.length === 0)
+                );
+            }
+            
+            // Also check if any existing reviews are not approved
+            if (!hasPendingDocuments && data.document_reuploads && Array.isArray(data.document_reuploads)) {
+                hasPendingDocuments = data.document_reuploads.some(reupload => {
+                    if (reupload.reviews && reupload.reviews.length > 0) {
+                        // Check if the latest review is not approved
+                        const latestReview = reupload.reviews[reupload.reviews.length - 1];
+                        return latestReview.decision !== 'approved';
+                    }
+                    return false;
+                });
+            }
+            if(window.dflag != 'details' && window.from_agent != '1'){
+            if (!["rejected_by_branch", "reject", "branch_approved", "hq_resubmitted", "document_requested", "document_requested_by_hq", "hq_approved", "hq_document_accepted", "success", "active", "disbursed"].includes(data.status) && !hasPendingDocuments) {
+                html += `
+                    <button id="approveApplicationBtn" class="inline-flex items-center justify-center rounded-md bg-success-500 px-6 py-2 text-sm font-medium text-white hover:bg-green-700 transition">Approve Application</button>
+                    <button id="rejectApplicationBtn" class="inline-flex items-center justify-center rounded-md bg-error-500 px-6 py-2 text-sm font-medium text-white hover:bg-red-700 transition">Reject Application</button>`;
+            }
+            html +=`<a href="{% url 'branch:loan_pending_application' %}" class="inline-flex items-center justify-center rounded-md bg-gray-500 px-6 py-2 text-sm font-medium text-white hover:bg-gray-700 transition">Back to Pending Applications</a>
+            </div>`;
+            }
+
+            content.innerHTML = html;
+
+            // Attach event listeners for approve/reject buttons
+            const approveBtn = document.getElementById('approveApplicationBtn');
+            if (approveBtn) {
+                approveBtn.addEventListener('click', function() {
+                    openApproveModal(data.customer_id);
+                });
+            }
+            const rejectBtn = document.getElementById('rejectApplicationBtn');
+            if (rejectBtn) {
+                rejectBtn.addEventListener('click', function() {
+                    openRejectModal();
+                });
+            }
+
+
+            // Helper function to check if document has pending request or resubmitted document
+            function hasPendingRequest(documentType, documentRequests, documentReuploads) {
+                if (!documentRequests || !Array.isArray(documentRequests)) return false;
+                
+                // Check for pending document requests
+                const hasPendingRequest = documentRequests.some(request => 
+                    request.document_type === documentType && 
+                    !request.is_resolved
+                );
+                
+                if (hasPendingRequest) return true;
+                
+                // Check for resubmitted documents that haven't been reviewed
+                if (documentReuploads && Array.isArray(documentReuploads)) {
+                    const resubmittedDoc = documentReuploads.find(reupload => 
+                        reupload.document_type === documentType
+                    );
+                    
+                    if (resubmittedDoc) {
+                        // Check if this resubmitted document has any reviews
+                        const hasReviews = resubmittedDoc.reviews && resubmittedDoc.reviews.length > 0;
+                        // If no reviews, it's still pending review
+                        return !hasReviews;
+                    }
+                }
+                
+                return false;
+            }
+
+            function getRequestInfo(documentType, documentRequests, documentReuploads) {
+                if (!documentRequests || !Array.isArray(documentRequests)) return null;
+                
+                // First check for pending document requests
+                const request = documentRequests.find(req => 
+                    req.document_type === documentType && 
+                    !req.is_resolved
+                );
+                
+                if (request) {
+                    return {
+                        reason: request.reason,
+                        comment: request.comment,
+                        requested_at: request.requested_at,
+                        requested_by: request.requested_by,
+                        type: 'request'
+                    };
+                }
+                
+                // Check for resubmitted documents
+                if (documentReuploads && Array.isArray(documentReuploads)) {
+                    const resubmittedDoc = documentReuploads.find(reupload => 
+                        reupload.document_type === documentType
+                    );
+                    
+                    if (resubmittedDoc && (!resubmittedDoc.reviews || resubmittedDoc.reviews.length === 0)) {
+                        return {
+                            reason: 'resubmitted',
+                            comment: resubmittedDoc.agent_note || 'Document resubmitted',
+                            requested_at: resubmittedDoc.uploaded_at,
+                            requested_by: resubmittedDoc.uploaded_by,
+                            type: 'resubmitted'
+                        };
+                    }
+                }
+                
+                return null;
+            }
+
+            // Initialize dynamic tracking with complete application data
+            updateDynamicTrackingStatus(data.status, data.submitted_at, data);
+                
+                // Modal logic for tracking
+            var btn = document.getElementById('customTrackingBtn');
+            var modal = document.getElementById('customTrackingModal');
+            var closeBtn = document.getElementById('closeCustomTrackingModal');
+            if (btn && modal && closeBtn) {
+                btn.addEventListener('click', function () {
+                    modal.classList.remove('hidden');
+                    updateDynamicTrackingStatus(data.status, data.submitted_at, data);
+                });
+                closeBtn.addEventListener('click', function () {
+                    modal.classList.add('hidden');
+                });
+                modal.addEventListener('click', function (e) {
+                    if (e.target === modal) {
+                        modal.classList.add('hidden');
+                    }
+                });
+            }
+
+            if (window.dflag === 'details' && trackingSection || window.from_agent == '1' && trackingSection) {
+                trackingSection.classList.add('hidden');
+            }
+
+            //--------- for edit vlues when status is pending ----------//
+            // attachInlineEditHandlers(data, showToast);
+
+            document.addEventListener('click', function(e) {
+                    // Full Name edit icon
+                    if (e.target.closest('#editFullNameIcon')) {
+                        const fullNameValue = document.getElementById('fullNameValue');
+                        fullNameValue.innerHTML = `
+                            <input type="text" id="editFullNameInput" class="w-full px-2 py-1 border rounded" value="${data.full_name || ''}" name="full_name">
+                            <div id="nameErrorMsg" class="text-xs text-red-500 mt-1"></div>
+                            <button class="inlineEditSaveBtn ml-2 px-2 py-1 text-xs bg-brand-500 text-white rounded"
+                                data-field="full_name" data-input="editFullNameInput" data-display="fullNameValue">Save</button>
+                            <button id="cancelFullNameBtn" class="ml-2 px-2 py-1 text-xs bg-red-500 text-white rounded">Cancel</button>
+                        `;
+                        setTimeout(() => {
+                            const input = document.getElementById('editFullNameInput');
+                            const errorMsg = document.getElementById('nameErrorMsg');
+                            function toTitleCase(str) {
+                                return str.replace(/\w\S*/g, function(txt) {
+                                    return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+                                });
+                            }
+                            input.addEventListener('input', function() {
+                                input.value = toTitleCase(input.value);
+                                if (!input.value.trim()) {
+                                    errorMsg.textContent = 'Name cannot be empty.';
+                                } else {
+                                    errorMsg.textContent = '';
+                                }
+                            });
+                            input.addEventListener('blur', function() {
+                                input.value = toTitleCase(input.value);
+                            });
+                        }, 10);
+                    }
+
+                    if (e.target.closest('#editFatherNameIcon')) {
+                        const fatherNameValue = document.getElementById('fatherNameValue');
+                        fatherNameValue.innerHTML = `
+                            <input type="text" id="editFatherNameInput" class="w-full px-2 py-1 border rounded" value="${data.father_name || ''}" name="father_name">
+                            <div id="fatherNameErrorMsg" class="text-xs text-red-500 mt-1"></div>
+                            <button class="inlineEditSaveBtn ml-2 px-2 py-1 text-xs bg-brand-500 text-white rounded"
+                                data-field="father_name" data-input="editFatherNameInput" data-display="fatherNameValue">Save</button>
+                            <button id="cancelFatherNameBtn" class="ml-2 px-2 py-1 text-xs bg-red-500 text-white rounded">Cancel</button>
+                        `;
+                        setTimeout(() => {
+                            const input = document.getElementById('editFatherNameInput');
+                            const errorMsg = document.getElementById('fatherNameErrorMsg');
+                            function toTitleCase(str) {
+                                return str.replace(/\w\S*/g, function(txt) {
+                                    return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+                                });
+                            }
+                            input.addEventListener('input', function() {
+                                input.value = toTitleCase(input.value);
+                                if (!input.value.trim()) {
+                                    errorMsg.textContent = 'Name cannot be empty.';
+                                } else {
+                                    errorMsg.textContent = '';
+                                }
+                            });
+                            input.addEventListener('blur', function() {
+                                input.value = toTitleCase(input.value);
+                            });
+                        }, 10);
+                    }
+                    if (e.target.closest('#editDateOfBirthIcon')) {
+                        const dateOfBirthValue = document.getElementById('dateOfBirthValue');
+                        let dobValue = data.date_of_birth ? new Date(data.date_of_birth).toISOString().slice(0, 10) : '';
+                        dateOfBirthValue.innerHTML = `
+                            <input type="text" id="editDobInput" class="w-full px-2 py-1 border rounded" value="${dobValue}">
+                            <button class="inlineEditSaveBtn ml-2 px-2 py-1 text-xs bg-brand-500 text-white rounded"
+                                data-field="date_of_birth" data-input="editDobInput" data-display="dateOfBirthValue">Save</button>
+                            <button id="cancelDobBtn" class="ml-2 px-2 py-1 text-xs bg-red-500 text-white rounded">Cancel</button>
+                        `;
+                        // Initialize flatpickr
+                        if (window.flatpickr) {
+                            const today = new Date();
+                            const maxDate = new Date(today.getFullYear() - 21, today.getMonth(), today.getDate());
+                            flatpickr("#editDobInput", {
+                                mode: 'single',
+                                dateFormat: 'Y-m-d',
+                                maxDate: maxDate,
+                                allowInput: true
+                            });
+                        }
+                    }
+                    if (e.target.closest('#editGenderIcon')) {
+                        const genderValue = document.getElementById('genderValue');
+                        genderValue.innerHTML = `
+                            <select id="editGenderSelect" class="w-full px-2 py-1 border rounded">
+                                <option value="male" ${data.gender.toLowerCase() === 'male' ? 'selected' : ''}>Male</option>
+                                <option value="female" ${data.gender.toLowerCase() === 'female' ? 'selected' : ''}>Female</option>
+                                <option value="other" ${data.gender.toLowerCase() === 'other' ? 'selected' : ''}>Other</option>
+                            </select>
+                            <button class="inlineEditSaveBtn ml-2 px-2 py-1 text-xs bg-brand-500 text-white rounded"
+                                data-field="gender" data-input="editGenderSelect" data-display="genderValue">Save</button>
+                            <button id="cancelGenderBtn" class="ml-2 px-2 py-1 text-xs bg-red-500 text-white rounded">Cancel</button>
+                        `;
+                    }
+                    if (e.target.closest('#editContactIcon')) {
+                        const contactValue = document.getElementById('contactValue');
+                        contactValue.innerHTML = `
+                            <input type="text" id="editContactInput" class="w-full px-2 py-1 border rounded" maxlength="10" value="${data.contact || ''}">
+                            <div id="contactErrorMsg" class="text-xs text-red-500 mt-1"></div>
+                            <button class="inlineEditSaveBtn ml-2 px-2 py-1 text-xs bg-brand-500 text-white rounded"
+                                data-field="contact" data-input="editContactInput" data-display="contactValue">Save</button>
+                            <button id="cancelContactBtn" class="ml-2 px-2 py-1 text-xs bg-red-500 text-white rounded">Cancel</button>
+                        `;
+                        setTimeout(() => {
+                            const input = document.getElementById('editContactInput');
+                            const errorMsg = document.getElementById('contactErrorMsg');
+                            input.addEventListener('input', function() {
+                                let val = input.value.replace(/\D/g, '');
+                                input.value = val;
+                                if (val.length !== 10) {
+                                    errorMsg.textContent = 'Contact number must be exactly 10 digits.';
+                                } else {
+                                    errorMsg.textContent = '';
+                                }
+                            });
+                        }, 10);
+                    }
+                    if (e.target.closest('#editEmailIcon')) {
+                        const emailValue = document.getElementById('emailValue');
+                        emailValue.innerHTML = `
+                            <input type="email" id="editEmailInput" class="w-full px-2 py-1 border rounded" value="${data.email || ''}">
+                            <div id="emailErrorMsg" class="text-xs text-red-500 mt-1"></div>
+                            <button class="inlineEditSaveBtn ml-2 px-2 py-1 text-xs bg-brand-500 text-white rounded"
+                                data-field="email" data-input="editEmailInput" data-display="emailValue">Save</button>
+                            <button id="cancelEmailBtn" class="ml-2 px-2 py-1 text-xs bg-red-500 text-white rounded">Cancel</button>
+                        `;
+                        setTimeout(() => {
+                            const input = document.getElementById('editEmailInput');
+                            const errorMsg = document.getElementById('emailErrorMsg');
+                            input.addEventListener('input', function() {
+                                const val = input.value;
+                                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                                if (val && !emailRegex.test(val)) {
+                                    errorMsg.textContent = 'Please enter a valid email address.';
+                                } else {
+                                    errorMsg.textContent = '';
+                                }
+                            });
+                        }, 10);
+                    }
+                    if (e.target.closest('#editAadharIcon')) {
+                        const aadharValue = document.getElementById('aadharValue');
+                        aadharValue.innerHTML = `
+                            <input type="text" id="editAadharInput" class="w-full px-2 py-1 border rounded" maxlength="12" value="${data.adhar_number || ''}">
+                            <div id="aadharErrorMsg" class="text-xs text-red-500 mt-1"></div>
+                            <button class="inlineEditSaveBtn ml-2 px-2 py-1 text-xs bg-brand-500 text-white rounded"
+                                data-field="adhar_number" data-input="editAadharInput" data-display="aadharValue">Save</button>
+                            <button id="cancelAadharNumberBtn" class="ml-2 px-2 py-1 text-xs bg-red-500 text-white rounded">Cancel</button>
+                        `;
+                        setTimeout(() => {
+                            const input = document.getElementById('editAadharInput');
+                            const errorMsg = document.getElementById('aadharErrorMsg');
+                            input.addEventListener('input', function() {
+                                let val = input.value.replace(/\D/g, '');
+                                input.value = val;
+                                if (val.length !== 12) {
+                                    errorMsg.textContent = 'Aadhaar number must be exactly 12 digits.';
+                                } else {
+                                    errorMsg.textContent = '';
+                                }
+                            });
+                        }, 10);
+                    }
+                    if (e.target.closest('#editPanIcon')) {
+                        const panValue = document.getElementById('panValue');
+                        panValue.innerHTML = `
+                            <input type="text" id="editPanInput" class="w-full px-2 py-1 border rounded uppercase" maxlength="10" value="${data.pan_number || ''}">
+                            <div id="panErrorMsg" class="text-xs text-red-500 mt-1"></div>
+                            <button class="inlineEditSaveBtn ml-2 px-2 py-1 text-xs bg-brand-500 text-white rounded"
+                                data-field="pan_number" data-input="editPanInput" data-display="panValue">Save</button>
+                            <button id="cancelPanNumberBtn" class="ml-2 px-2 py-1 text-xs bg-red-500 text-white rounded">Cancel</button>
+                        `;
+                        setTimeout(() => {
+                            const input = document.getElementById('editPanInput');
+                            const errorMsg = document.getElementById('panErrorMsg');
+                            input.addEventListener('input', function() {
+                                input.value = input.value.toUpperCase();
+                                const val = input.value;
+                                const panRegex = /^[A-Z]{5}\d{4}[A-Z]$/;
+                                if (val.length !== 10) {
+                                    errorMsg.textContent = 'PAN must be exactly 10 characters.';
+                                } else if (!panRegex.test(val)) {
+                                    errorMsg.textContent = 'Invalid PAN format. Format: 5 letters, 4 digits, 1 letter.';
+                                } else {
+                                    errorMsg.textContent = '';
+                                }
+                            });
+                        }, 10);
+                    }
+                    if (e.target.closest('#editVoterIcon')) {
+                        const voterValue = document.getElementById('voterValue');
+                        voterValue.innerHTML = `
+                            <input type="text" id="editVoterInput" class="w-full px-2 py-1 border rounded uppercase" maxlength="10" value="${data.voter_number || ''}">
+                            <div id="voterErrorMsg" class="text-xs text-red-500 mt-1"></div>
+                            <button class="inlineEditSaveBtn ml-2 px-2 py-1 text-xs bg-brand-500 text-white rounded"
+                                data-field="voter_number" data-input="editVoterInput" data-display="voterValue">Save</button>
+                            <button id="cancelVoterNumberBtn" class="ml-2 px-2 py-1 text-xs bg-red-500 text-white rounded">Cancel</button>
+                        `;
+                        setTimeout(() => {
+                            const input = document.getElementById('editVoterInput');
+                            const errorMsg = document.getElementById('voterErrorMsg');
+                            input.addEventListener('input', function() {
+                                input.value = input.value.toUpperCase();
+                                const val = input.value;
+                                const voterRegex = /^[A-Z]{3}\d{7}$/;
+                                if (val.length !== 10) {
+                                    errorMsg.textContent = 'Voter ID must be exactly 10 characters.';
+                                } else if (!voterRegex.test(val)) {
+                                    errorMsg.textContent = 'Invalid Voter ID format. Format: 3 letters, 7 digits.';
+                                } else {
+                                    errorMsg.textContent = '';
+                                }
+                            });
+                        }, 10);
+                    }
+                    // Generic save handler for inline edits
+                    if (e.target && e.target.classList.contains('inlineEditSaveBtn')) {
+                      const field = e.target.getAttribute('data-field');
+                      const inputId = e.target.getAttribute('data-input');
+                      const value = document.getElementById(inputId).value;
+                      const displayId = e.target.getAttribute('data-display');
+                      const payload = {};
+                      payload[field] = value;
+                      
+                          fetch(`/branch/api/edit-customer/${data.customer_id}/`, {
+                          method: 'POST',
+                          headers: {
+                              'Content-Type': 'application/json',
+                              'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                          },
+                          body: JSON.stringify(payload)
+                      })
+                      .then(async (resp) => {
+                          const contentType = resp.headers.get('content-type') || '';
+                          if (!resp.ok) {
+                              const text = await resp.text();
+                              throw new Error(`Request failed (${resp.status}). ${text}`);
+                          }
+                          if (contentType.includes('application/json')) {
+                              return resp.json();
+                          }
+                          const text = await resp.text();
+                          throw new Error(`Expected JSON but got: ${contentType}. ${text}`);
+                      })
+                      .then(respData => {
+                          if (respData.success) {
+                              // After save, restore to non-editable view and re-enable edit icon
+                              if (field === 'full_name') {
+                                  document.getElementById(displayId).innerHTML = `
+                                      <p class="text-sm text-gray-800 dark:text-white">${value}</p>
+                                  `;
+                              } else if (field === 'father_name') {
+                                  document.getElementById(displayId).innerHTML = `
+                                      <p class="text-sm text-gray-800 dark:text-white">${value || '-'}</p>
+                                  `;
+                              } else if (field === 'date_of_birth') {
+                                  document.getElementById(displayId).innerHTML = `
+                                      <p class="text-sm text-gray-800 dark:text-white">${value ? value : ''}</p>
+                                  `;
+                              } else if (field === 'gender') {
+                                  document.getElementById(displayId).innerHTML = `
+                                      <p class="text-sm text-gray-800 dark:text-white">${value.charAt(0).toUpperCase() + value.slice(1)}</p>
+                                  `;
+                              } else if (field === 'contact') {
+                                  document.getElementById(displayId).innerHTML = `
+                                      <p class="text-sm text-gray-800 dark:text-white">${value}</p>
+                                  `;
+                              } else if (field === 'email') {
+                                  document.getElementById(displayId).innerHTML = `
+                                      <p class="text-sm text-gray-800 dark:text-white">${value}</p>
+                                  `;
+                              } else if (field === 'adhar_number') {
+                                  document.getElementById(displayId).innerHTML = `
+                                      <p class="text-sm text-gray-800 dark:text-white">${value}</p>
+                                  `;
+                              } else if (field === 'pan_number') {
+                                  document.getElementById(displayId).innerHTML = `
+                                      <p class="text-sm text-gray-800 dark:text-white">${value}</p>
+                                  `;
+                              } else if (field === 'voter_number') {
+                                  document.getElementById(displayId).innerHTML = `
+                                      <p class="text-sm text-gray-800 dark:text-white">${value}</p>
+                                  `;
+                              }
+                             // Show success toast
+                              showToast(field.charAt(0).toUpperCase() + field.slice(1) + ' updated!', 'success');
+                              data[field] = value; // update local data for cancel
+                            } else {
+                                showToast(respData.detail || 'Failed to update', 'error');
+                            }
+                        })
+                        .catch((err) => {
+                            console.error('Inline edit save error:', err);
+                            showToast('Failed to update. Please login again or refresh the page.', 'error');
+                        });
+                    }
+                    
+                    
+                    // Cancel handlers
+                    if (e.target && e.target.id === 'cancelFullNameBtn') {
+                        document.getElementById('fullNameValue').innerHTML = `<p class="text-sm text-gray-800 dark:text-white">${data.full_name}</p>`;
+                    }
+                    if (e.target && e.target.id === 'cancelFatherNameBtn') {
+                        document.getElementById('fatherNameValue').innerHTML = `<p class="text-sm text-gray-800 dark:text-white">${data.father_name || '-'}</p>`;
+                    }
+                    if (e.target && e.target.id === 'cancelDobBtn') {
+                        document.getElementById('dateOfBirthValue').innerHTML = `<p class="text-sm text-gray-800 dark:text-white">${data.date_of_birth ? data.date_of_birth : ''}</p>`;
+                    }
+                    if (e.target && e.target.id === 'cancelGenderBtn') {
+                        document.getElementById('genderValue').innerHTML = `<p class="text-sm text-gray-800 dark:text-white">${data.gender.charAt(0).toUpperCase() + data.gender.slice(1)}</p>`;
+                    }
+                    if (e.target && e.target.id === 'cancelContactBtn') {
+                        document.getElementById('contactValue').innerHTML = `<p class="text-sm text-gray-800 dark:text-white">${data.contact}</p>`;
+                    }
+                    if (e.target && e.target.id === 'cancelEmailBtn') {
+                        document.getElementById('emailValue').innerHTML = `<p class="text-sm text-gray-800 dark:text-white">${data.email}</p>`;
+                    }
+                    if (e.target && e.target.id === 'cancelAadharNumberBtn') {
+                        document.getElementById('aadharValue').innerHTML = `<p class="text-sm text-gray-800 dark:text-white">${data.adhar_number}</p>`;
+                    }
+                    if (e.target && e.target.id === 'cancelPanNumberBtn') {
+                        document.getElementById('panValue').innerHTML = `<p class="text-sm text-gray-800 dark:text-white">${data.pan_number}</p>`;
+                    }
+                    if (e.target && e.target.id === 'cancelVoterNumberBtn') {
+                        document.getElementById('voterValue').innerHTML = `<p class="text-sm text-gray-800 dark:text-white">${data.voter_number}</p>`;
+                    }
+                }); //--------- for edit vlues when status is pending ----------//
+            
+        })
+        .catch((err) => {
+            console.error('Error fetching application detail:', err);
+            document.getElementById('application-detail-content').innerHTML = '';
+            document.getElementById('application-detail-error').classList.remove('hidden');
+        });
+
+        document.getElementById('previousPage').addEventListener('click', () => {
+            window.history.back();
+        });
+});
+
+// Add the missing modal open/close functions for document review
+function openDocumentReviewModal(reuploadId, documentType) {
+    // Set the document type in the modal
+    var docTypeInput = document.getElementById('reviewDocumentType');
+    if (docTypeInput) {
+        docTypeInput.value = documentType;
+    }
+    // Store the reuploadId globally for use in the review form submission
+    window.currentReuploadId = reuploadId;
+    // Show the modal
+    document.getElementById('documentReviewModal').classList.remove('hidden');
+}
+
+function closeDocumentReviewModal() {
+    document.getElementById('documentReviewModal').classList.add('hidden');
+    document.getElementById('documentReviewForm').reset();
+}
+
+// Add approve modal JS
+let approveCustomerId = null;
+function openApproveModal(customerId) {
+    approveCustomerId = customerId;
+    document.getElementById('approveApplicationModal').classList.remove('hidden');
+}
+function closeApproveModal() {
+    document.getElementById('approveApplicationModal').classList.add('hidden');
+    approveCustomerId = null;
+}
+function submitApproveApplication() {
+    if (!approveCustomerId) {
+        window.showToast('Error: Customer ID is missing. Cannot approve application.', 'error');
+        return;
+    }
+    fetch('{% url "branch:api_approve_application" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            customer_id: approveCustomerId
+        })
+    })
+    .then(response => response.json())
+    .then(resp => {
+        if (resp.success) {
+            closeApproveModal();
+            window.showToast('Application approved!', 'success');
+            setTimeout(() => window.location.reload(), 1200);
+        } else {
+            window.showToast('Error: ' + resp.detail, 'error');
+        }
+    })
+    .catch(error => {
+        window.showToast('An error occurred while approving the application.', 'error');
+    });
+}
+</script>
+{% endblock %}

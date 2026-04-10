@@ -1,0 +1,71 @@
+
+    /* Loading state for address fields */
+    .loading {
+        background-color: #f3f4f6 !important;
+        color: #6b7280 !important;
+        font-style: italic;
+    }
+    
+    /* Auto-filled state for address fields */
+    .auto-filled {
+        background-color: #f0f9ff !important;
+        border-color: #0ea5e9 !important;
+    }
+    
+    /* Success state for auto-filled fields */
+    .auto-filled:focus {
+        border-color: #10b981 !important;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important;
+    }
+    
+    /* Dark mode support */
+    .dark .loading {
+        background-color: #374151 !important;
+        color: #9ca3af !important;
+    }
+    
+    .dark .auto-filled {
+        background-color: #1e3a8a !important;
+        border-color: #3b82f6 !important;
+    }
+    
+    /* Full page loader overlay */
+    .full-page-loader {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(255, 255, 255, 0.12);
+        z-index: 99999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        backdrop-filter: blur(3px);
+        display: none;
+    }
+    
+    .loader {
+        width: 100px;
+        height: 100px;
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #3b82f6;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    /* Dark mode support */
+    .dark .full-page-loader {
+        background-color: rgba(17, 24, 39, 0.8);
+    }
+    
+    .dark .loader {
+        border-color: #374151;
+        border-top-color: #3b82f6;
+    }

@@ -1,0 +1,1101 @@
+{% extends "hq/base.html" %}
+{% load static %}
+
+{% block title %}{{ title|default:"Branch Overview" }}{% endblock %}
+{% block page_id %}BranchManagement{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+  <!-- Breadcrumb -->
+  <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <h2 class="text-title-md2 font-bold text-black dark:text-white">Branch Overview</h2>
+    <nav aria-label="Breadcrumb">
+      <ol class="flex items-center gap-2">
+        <li>
+          <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" href="{% url 'hq:dashboard' %}">
+            Dashboard
+            <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+              <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </a>
+        </li>
+        <li>
+          <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" href="{% url 'hq:branch_management' %}">
+            Branches
+            <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+              <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </a>
+        </li>
+        <li class="text-sm font-medium text-gray-800 dark:text-white/90" aria-current="page">{{ branch.branch_name }}</li>
+      </ol>
+    </nav>
+  </div>
+
+  <!-- Alerts (conditional) -->
+  {% if overdue_count > 0 or kpis.overdue_count > 0 or par_ratio_rounded > 0 %}
+  <div class="mb-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-amber-900 dark:border-amber-700 dark:bg-amber-500/10 dark:text-amber-200">
+    <div class="flex flex-wrap items-center gap-3">
+      <span class="font-medium">Attention:</span>
+      {% if overdue_count > 0 %}
+        <span>{{ overdue_count }} overdue installments in the selected window.</span>
+      {% endif %}
+      {% if par_ratio_rounded > 0 %}
+        <span>PAR: {{ par_ratio_rounded }}%</span>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Report Filter Bar -->
+  <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <a href="{% url 'hq:branch_management' %}" class="inline-flex items-center px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-md hover:bg-gray-700 transition-colors duration-200 ml-2" aria-label="Back to Branches">
+      <!-- icon: arrow-left -->
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true"><path d="M12 19l-7-7 7-7"/><path d="M19 12H5"/></svg>
+      Back
+    </a>
+    <form method="get" action="{{ request.path }}" class="flex flex-wrap items-center gap-2" id="reportFilterForm">
+      <label for="reportMode" class="text-sm text-gray-600 dark:text-gray-300">Mode</label>
+      <select id="reportMode" name="report_mode" class="w-auto min-w-[160px] rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm text-gray-700 dark:border-gray-700 dark:text-gray-200">
+        <option value="monthly" {% if report_mode != 'custom' %}selected{% endif %}>Monthly (default)</option>
+        <option value="custom" {% if report_mode == 'custom' %}selected{% endif %}>Custom Range</option>
+      </select>
+      <div class="items-center gap-2 {% if report_mode == 'custom' %}flex{% else %}hidden{% endif %}" id="customDateInputs">
+        <label for="from" class="text-sm text-gray-600 dark:text-gray-300">From</label>
+        <input type="text" id="from" name="from" value="{{ date_from|date:'Y-m-d' }}" class="rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm text-gray-700 dark:border-gray-700 dark:text-gray-200" placeholder="YYYY-MM-DD" />
+        <label for="to" class="text-sm text-gray-600 dark:text-gray-300">To</label>
+        <input type="text" id="to" name="to" value="{{ date_to|date:'Y-m-d' }}" class="rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm text-gray-700 dark:border-gray-700 dark:text-gray-200" placeholder="YYYY-MM-DD" />
+      </div>
+      <button type="submit" class="rounded-lg border border-stroke px-3 py-2 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">Report</button>
+    </form>
+  </div>
+
+  <!-- Branch Header -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="rounded-2xl border border-stroke bg-white px-6 py-6 shadow-default dark:border-gray-700 dark:bg-boxdark">
+      <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div>
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white">{{ branch.branch_name }}</h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            <span class="sr-only">Branch ID</span> ID: {{ branch.branch_id }} • {{ branch.city }}, {{ branch.state }} {{ branch.postal_code }}
+          </p>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Email: {{ branch.email }} • Contact: {{ branch.contact_number }}</p>
+          <p></p>
+        </div>
+        <div class="flex items-center flex-col gap-10">
+          {% if branch.status %}
+            <span class="rounded-full bg-success-50 px-3 py-1 text-theme-xs font-medium text-success-600 dark:bg-success-500/15 dark:text-success-500">Active</span>
+          {% else %}
+            <span class="rounded-full bg-error-50 px-3 py-1 text-theme-xs font-medium text-error-600 dark:bg-error-500/15 dark:text-error-500">Inactive</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="rounded-2xl border border-stroke bg-white p-5 shadow-default dark:border-gray-700 dark:bg-boxdark transition-transform duration-200 hover:-translate-y-0.5">
+      <div class="flex items-start justify-between">
+        <div>
+          <p class="text-gray-500 text-sm">Funds Provided to Branch</p>
+          <p class="mt-2 text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">₹ {{ kpis.provided_to_branch|floatformat:2 }}</p>
+        </div>
+        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400">
+          <!-- banknote icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M6 4h12"/><path d="M6 8h12"/><path d="M9 12h3a4 4 0 0 1 0 8H6l9-8"/></svg>
+        </span>
+      </div>
+      <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center gap-1">
+          <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Across all bank accounts</p>
+          <button type="button" onclick="BranchAllAccountModal(1)" class="flex items-center justify-center gap-8 px-2 pt-2 text-blue-600 dark:text-blue-400 text-sm font-medium rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor" class="w-5">
+              <path d="M528 320C528 434.9 434.9 528 320 528C205.1 528 112 434.9 112 320C112 205.1 205.1 112 320 112C434.9 112 528 205.1 528 320zM64 320C64 461.4 178.6 576 320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320zM451.3 331.3C457.5 325.1 457.5 314.9 451.3 308.7L347.3 204.7C342.7 200.1 335.8 198.8 329.9 201.2C324 203.6 320 209.5 320 216L320 288L216 288C202.7 288 192 298.7 192 312L192 328C192 341.3 202.7 352 216 352L320 352L320 424C320 430.5 323.9 436.3 329.9 438.8C335.9 441.3 342.8 439.9 347.3 435.3z"></path>
+            </svg>
+          </button>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 text-orange-500">
+          <span class="text-sm font-semibold">Due:</span>
+          <p class="text-lg font-bold">₹ {{ kpis.due_amount|floatformat:2 }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="rounded-2xl border border-stroke bg-white p-5 shadow-default dark:border-gray-700 dark:bg-boxdark transition-transform duration-200 hover:-translate-y-0.5">
+      <div class="flex items-start justify-between">
+        <div>
+          <p class="text-gray-500 text-sm">Funds Collected from Branch</p>
+          <p class="mt-2 text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">₹ {{ kpis.collected_from_branch|floatformat:2 }}</p>
+        </div>
+        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400">
+          <!-- arrow-down-circle icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12l4 4 4-4"/><path d="M12 8v8"/></svg>
+        </span>
+      </div>
+      <div class="flex items-center">
+        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Across all bank accounts</p>
+        <button type="button" onclick="BranchAllAccountModal()" class="flex items-center justify-center gap-8 px-2 pt-2 text-emerald-600 dark:text-emerald-400 text-sm font-medium rounded-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor" class="w-5">
+            <path d="M528 320C528 434.9 434.9 528 320 528C205.1 528 112 434.9 112 320C112 205.1 205.1 112 320 112C434.9 112 528 205.1 528 320zM64 320C64 461.4 178.6 576 320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320zM451.3 331.3C457.5 325.1 457.5 314.9 451.3 308.7L347.3 204.7C342.7 200.1 335.8 198.8 329.9 201.2C324 203.6 320 209.5 320 216L320 288L216 288C202.7 288 192 298.7 192 312L192 328C192 341.3 202.7 352 216 352L320 352L320 424C320 430.5 323.9 436.3 329.9 438.8C335.9 441.3 342.8 439.9 347.3 435.3z"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="rounded-2xl border border-stroke bg-white p-5 shadow-default dark:border-gray-700 dark:bg-boxdark transition-transform duration-200 hover:-translate-y-0.5">
+      <div class="flex items-start justify-between">
+        <div>
+          <p class="text-gray-500 text-sm">Branch Account</p>
+          <p class="mt-2 text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">₹ {{ kpis.branch_account_balance|floatformat:2 }}</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Total current balance across branch accounts</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Credit: ₹ {{ kpis.window_account_credit|floatformat:2 }} • Debit: ₹ {{ kpis.window_account_debit|floatformat:2 }}</p>
+        </div>
+        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-purple-50 text-purple-600 dark:bg-purple-500/15 dark:text-purple-400">
+          <!-- wallet icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2"/>
+            <path d="M21 9H7a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h14"/>
+            <path d="M17 13h.01"/>
+          </svg>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI Cards: Amounts -->
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+    <div class="rounded-2xl border border-stroke bg-white p-5 shadow-default dark:border-gray-700 dark:bg-boxdark transition-transform duration-200 hover:-translate-y-0.5">
+      <div class="flex items-start justify-between">
+        <div>
+          <p class="text-gray-500 text-sm">Total Loan Amount (All Apps)</p>
+          <p class="mt-2 text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">₹ {{ kpis.total_loan_amount|floatformat:2 }}</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Sum of loan amounts across all applications</p>
+        </div>
+        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-sky-600 dark:bg-sky-500/15 dark:text-sky-400">
+          <!-- loan document + rupee icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M7 3h7l5 5v13H7z"/>
+            <path d="M14 3v5h5"/>
+            <path d="M9 12h4a2 2 0 0 0 0-4h-3"/>
+            <path d="M10 8c0 1.333.667 2 2 2"/>
+            <path d="M9 16h3"/>
+          </svg>
+        </span>
+      </div>
+    </div>
+    <div class="rounded-2xl border border-stroke bg-white p-5 shadow-default dark:border-gray-700 dark:bg-boxdark transition-transform duration-200 hover:-translate-y-0.5">
+      <div class="flex items-start justify-between">
+        <div>
+          <p class="text-gray-500 text-sm">EMI Collections</p>
+          <p class="mt-2 text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">₹ {{ kpis.collected_amount|floatformat:2 }}</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Sum of paid installments</p>
+        </div>
+        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400">
+          <!-- calendar + rupee icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="5" width="18" height="16" rx="2" ry="2"/>
+            <path d="M3 9h18"/>
+            <path d="M9 3v4"/>
+            <path d="M15 3v4"/>
+            <path d="M10 14h4a2 2 0 0 0 0-4h-3"/>
+            <path d="M11 10c0 1.333.667 2 2 2"/>
+            <path d="M10 18h3"/>
+          </svg>
+        </span>
+      </div>
+    </div>
+    <div class="rounded-2xl border border-stroke bg-white p-5 shadow-default dark:border-gray-700 dark:bg-boxdark transition-transform duration-200 hover:-translate-y-0.5">
+      <div class="flex items-start justify-between">
+        <div>
+          <p class="text-gray-500 text-sm">EMI Outstanding</p>
+          <p class="mt-2 text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">₹ {{ kpis.outstanding_amount|floatformat:2 }}</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Sum of unpaid installments</p>
+        </div>
+        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400">
+          <!-- clock icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        </span>
+      </div>
+    </div>
+    <div class="rounded-2xl border border-stroke bg-white p-5 shadow-default dark:border-gray-700 dark:bg-boxdark transition-transform duration-200 hover:-translate-y-0.5">
+      <div class="flex items-start justify-between">
+        <div>
+          <div class="flex items-center gap-2">
+            <p class="text-gray-500 text-sm">Profit</p>
+            <button type="button"
+                    onclick="toggleProfitMode()"
+                    class="inline-flex items-center justify-center p-1.5 text-emerald-600 dark:text-emerald-400"
+                    aria-label="Toggle profit metric">
+              <!-- Hidden text label used by JS to track mode -->
+              <span id="profitModeLabel" class="sr-only">Funds Movement</span>
+              <!-- switch arrows icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20px" height="20px" viewBox="0 0 57 49" version="1.1" fill="currentColor">
+                <polygon id="Shape" points="56.4 18 1.5 18 15 0.3 17.4 2.2 7.6 15 56.4 15"/>
+                <polygon id="Shape" points="41.7 48.6 39.3 46.8 49.2 34 0.4 34 0.4 31 55.2 31"/>
+              </svg>
+            </button>
+          </div>
+          <p id="profitValue"
+             class="mt-2 text-2xl font-semibold tracking-tight text-gray-900 dark:text-white"
+             data-funds="{{ kpis.profit_amount|floatformat:2 }}"
+             data-emi="{{ kpis.alt_profit_amount|floatformat:2 }}">
+            ₹ {{ kpis.profit_amount|floatformat:2 }}
+          </p>
+          <p id="profitDesc"
+             class="text-xs text-gray-500 dark:text-gray-400 mt-1"
+             data-funds="Collected from branch − Provided to branch"
+             data-emi="Total Loan Amount − Total EMI Collections">
+            Collected from branch − Provided to branch
+          </p>
+        </div>
+        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400">
+          <!-- trending-up icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 7-7"/><path d="M14 7h7v7"/></svg>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="rounded-2xl border border-stroke bg-gray-50/60 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800/20 mb-6">
+    <div class="mb-2 flex items-start justify-between gap-3">
+      <div>
+        <div class="flex items-center gap-2">
+          <h3 class="text-base font-semibold text-gray-900 dark:text-white">Daily Summary</h3>
+          <span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-500/15 dark:text-blue-300">Today</span>
+        </div>
+        <div class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">Daily basis figures for {{ date_to|date:'Y-m-d' }}</div>
+      </div>
+      <div class="text-xs text-gray-500 dark:text-gray-400">{{ date_to|date:'Y-m-d' }}</div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-0">
+      <div class="rounded-2xl border border-stroke bg-white p-5 shadow-default dark:border-gray-700 dark:bg-boxdark transition-transform duration-200 hover:-translate-y-0.5">
+        <div class="flex items-start justify-between">
+          <div>
+            <p class="text-gray-500 text-sm">Today’s Total Loan Amount</p>
+            <div class="flex justify-between items-center">
+              <p class="mt-2 text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">₹ {{ kpis.daily_total_loan_amount|floatformat:2 }}</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Count: <span class="font-medium text-sm">{{ kpis.daily_total_loan_count|default:0 }}</span></p>
+            </div>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">HQ Approved: <span class="font-medium text-sm">₹ {{ kpis.daily_hq_approved_loan_amount|floatformat:2 }}</span> • Count: <span class="font-medium text-sm">{{ kpis.daily_hq_approved_loan_count|default:0 }}</span></p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Applications created/approved today</p>
+          </div>
+          <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-sky-600 dark:bg-sky-500/15 dark:text-sky-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path d="M7 3h7l5 5v13H7z"/>
+              <path d="M14 3v5h5"/>
+              <path d="M9 16h6"/>
+              <path d="M9 12h6"/>
+            </svg>
+          </span>
+        </div>
+      </div>
+
+      <div class="rounded-2xl border border-stroke bg-white p-5 shadow-default dark:border-gray-700 dark:bg-boxdark transition-transform duration-200 hover:-translate-y-0.5">
+        <div class="flex items-start justify-between">
+          <div>
+            <p class="text-gray-500 text-sm">Today’s EMI Collection</p>
+            <p class="mt-2 text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">₹ {{ kpis.daily_collected_amount|floatformat:2 }}</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">EMIs paid today</p>
+          </div>
+          <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M8 12l2.5 2.5L16 9"/>
+            </svg>
+          </span>
+        </div>
+      </div>
+
+      <div class="rounded-2xl border border-stroke bg-white p-5 shadow-default dark:border-gray-700 dark:bg-boxdark transition-transform duration-200 hover:-translate-y-0.5">
+        <div class="flex items-start justify-between">
+          <div>
+          <p class="text-gray-500 text-sm">Today’s EMI Outstanding</p>
+          <p class="mt-2 text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">₹ {{ kpis.daily_outstanding_amount|floatformat:2 }}</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">EMIs due today (unpaid)</p>
+        </div>
+        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 6v6l4 2"/>
+          </svg>
+        </span>
+      </div>
+    </div>
+
+    <div class="rounded-2xl border border-stroke bg-white p-5 shadow-default dark:border-gray-700 dark:bg-boxdark transition-transform duration-200 hover:-translate-y-0.5">
+      <div class="flex items-start justify-between">
+        <div>
+          <p class="text-gray-500 text-sm">Today’s Disbursed</p>
+          <div class="flex justify-between items-center">
+            <p class="mt-2 text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">₹ {{ kpis.daily_disbursed_amount|floatformat:2 }}</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Count: <span class="font-medium text-sm">{{ kpis.daily_disbursed_count|default:0 }}</span></p>
+          </div>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Net Amount to Customer: <span class="text-red-600 text-sm font-medium">₹ {{ kpis.daily_disbursed_net_amount_cust|floatformat:2 }}<span></span></p>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Charges: <span class="text-green-600 text-sm font-medium">₹ {{ kpis.daily_disbursed_tax_charges|floatformat:2 }}</span></p>
+        </div>
+        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-400">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M7 7h14v10H7z"/>
+            <path d="M3 11h4"/>
+            <path d="M3 13h4"/>
+            <path d="M17 12h.01"/>
+          </svg>
+        </span>
+      </div>
+    </div>
+
+    <div class="rounded-2xl border border-stroke bg-white p-5 shadow-default dark:border-gray-700 dark:bg-boxdark transition-transform duration-200 hover:-translate-y-0.5">
+      <div class="flex items-start justify-between">
+        <div>
+          <p class="text-gray-500 text-sm">Today’s Transactions</p>
+            <p class="mt-2 text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">₹ {{ kpis.daily_transaction_net|floatformat:2 }}</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Credit: <span class="font-medium text-sm text-green-600">{{ kpis.daily_transaction_credit|floatformat:2 }}</span> • Debit: <span class="font-medium text-sm text-red-600">{{ kpis.daily_transaction_debit|floatformat:2 }}</span></p>
+          </div>
+          <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-purple-50 text-purple-600 dark:bg-purple-500/15 dark:text-purple-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2"/>
+              <path d="M21 9H7a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h14"/>
+              <path d="M17 13h.01"/>
+            </svg>
+          </span>
+        </div>
+      </div>
+
+    <div class="rounded-2xl border border-stroke bg-white p-5 shadow-default dark:border-gray-700 dark:bg-boxdark transition-transform duration-200 hover:-translate-y-0.5">
+      <div class="flex items-start justify-between">
+        <div>
+          <p class="text-gray-500 text-sm">Saving</p> 
+          <p class="mt-2 text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">₹ {{ kpis.daily_savings_collected_amount|floatformat:2 }}</p>
+          <div class="flex items-center justify-between">
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">RD: <span class="font-medium text-sm text-blue-600">{{ kpis.daily_savings_rd_collected_amount|floatformat:2 }}</span></p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">FD: <span class="font-medium text-sm text-blue-600">{{ kpis.daily_savings_fd_collected_amount|floatformat:2 }}</span></p>
+          </div>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Total Savings Collection</p>
+        </div>
+        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-green-50 text-green-600 dark:bg-green-500/15 dark:text-green-400">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M12 8c-1.1 0-2 .9-2 2v10h4V10c0-1.1-.9-2-2-2z"/>
+            <path d="M20 10c0-4.4-3.6-8-8-8S4 5.6 4 10v2c0 2.4 1.1 4.5 2.8 6h10.4C18.9 16.5 20 14.4 20 12v-2z"/>
+          </svg>
+        </span>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <!-- KPI Pie Chart -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+    <div class="rounded-2xl border border-stroke bg-white p-5 shadow-default dark:border-gray-700 dark:bg-boxdark mb-6">
+      <div class="mb-4 flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Application Funnel</h3>
+        <div class="text-xs text-gray-500 dark:text-gray-400">Window: {{ date_from|date:'Y-m-d' }} to {{ date_to|date:'Y-m-d' }}</div>
+      </div>
+      <div id="funnelChart" class="w-full" style="height: 260px;"></div>
+    </div>
+    <div class="rounded-2xl border border-stroke bg-white p-5 shadow-default dark:border-gray-700 dark:bg-boxdark mb-6">
+      <div class="mb-4 flex items-center justify-between">  
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Loan Distribution</h3>
+        <div class="text-xs text-gray-500 dark:text-gray-400">Total vs Approved vs Rejected vs Active</div>
+      </div>
+      <div id="kpiPieChart" class="w-full" style="height: 280px;"></div>
+    </div>
+  </div>
+
+  <!-- Branch Charts -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+    <div class="rounded-2xl border border-stroke bg-white p-5 shadow-default dark:border-gray-700 dark:bg-boxdark">
+      <div class="mb-4 flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Scheduled vs Collections</h3>
+        <div class="text-xs text-gray-500 dark:text-gray-400">By day</div>
+      </div>
+      <div id="disbCollChart" class="w-full" style="height: 260px;"></div>
+    </div>
+    <div class="rounded-2xl border border-stroke bg-white p-5 shadow-default dark:border-gray-700 dark:bg-boxdark">
+      <div class="mb-4 flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2 relative">
+          PAR Trend
+          <button type="button" id="parInfoBtn" class="inline-flex items-center" aria-label="What is PAR?" aria-expanded="false" aria-controls="parInfoTip">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8h.01"/><path d="M11 12h1v4h1"/></svg>
+          </button>
+          <div id="parInfoTip" role="tooltip" class="hidden absolute left-0 top-full z-20 mt-2 w-64 rounded-md border border-stroke bg-white p-3 text-xs text-gray-700 shadow-lg dark:border-gray-700 dark:bg-boxdark dark:text-gray-200">
+            <div class="font-semibold mb-1">What is PAR?</div>
+            PAR (Portfolio at Risk) is the percentage of outstanding that is overdue.
+            PAR% = Overdue Outstanding / Total Outstanding.
+            Common variants: PAR30, PAR60.
+          </div>
+        </h3>
+        <div class="text-xs text-gray-500 dark:text-gray-400">Last 6 months</div>
+      </div>
+      <div id="parTrendChart" class="w-full" style="height: 260px;"></div>
+    </div>
+  </div>
+
+  <!-- Recent Loans -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Left: Recent Active Applications -->
+    <div id="active-apps" class="rounded-2xl border border-stroke bg-white px-6 pt-6 pb-4 shadow-default dark:border-gray-700 dark:bg-boxdark">
+      <div class="mb-4 flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-blue-600 dark:text-white">Active Applications</h3>
+        <div class="flex items-center gap-8">
+            <a href="{% url 'hq:disbursed_fund_release' %}?branch_id={{ branch.branch_id }}" class="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400">Disbursed</a>
+            <a href="{% url 'hq:hq_loan_list' %}?branch_id={{ branch.branch_id }}" class="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400">Processing</a>
+        </div>
+      </div>
+      <div class="w-full overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead>
+            <tr>
+              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Ref No</th>
+              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Customer</th>
+              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Status</th>
+              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Date</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+            {% if recent_active_applications %}
+              {% for app in recent_active_applications %}
+              <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">{{ app.loan_ref_no }}</td>
+                <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
+                  {% if app.customer %}{{ app.customer.full_name }}{% endif %}
+                </td>
+                <td class="px-4 py-2 text-sm">
+                  <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                        {% comment %} simple badge coloring {% endcomment %}
+                        style="background-color: rgba(59,130,246,0.15); color:#3b82f6;">
+                    {{ app.status|title }}
+                  </span>
+                </td>
+                <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ app.submitted_at|date:'Y-m-d' }}</td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="4" class="px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400">No active applications</td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+
+      {% if active_apps_page_obj and active_apps_page_obj.paginator.num_pages > 1 %}
+      <div class="flex items-center justify-between pt-4">
+        <div class="text-xs text-gray-500 dark:text-gray-400">
+          Page {{ active_apps_page_obj.number }} of {{ active_apps_page_obj.paginator.num_pages }}
+        </div>
+        <div class="inline-flex gap-2">
+          {% if active_apps_page_obj.has_previous %}
+            <a class="px-3 py-1 text-sm border rounded-md" href="?{% if active_apps_query_string %}{{ active_apps_query_string }}&{% endif %}a_page={{ active_apps_page_obj.previous_page_number }}#active-apps">Previous</a>
+          {% else %}
+            <span class="px-3 py-1 text-sm border rounded-md text-gray-400">Previous</span>
+          {% endif %}
+
+          {% for p in active_apps_page_links %}
+            {% if p == '…' or p == '...' %}
+              <span class="px-3 py-1 text-sm border rounded-md text-gray-400">{{ p }}</span>
+            {% elif p == active_apps_page_obj.number %}
+              <span class="px-3 py-1 text-sm border rounded-md bg-blue-500 text-white">{{ p }}</span>
+            {% else %}
+              <a class="px-3 py-1 text-sm border rounded-md" href="?{% if active_apps_query_string %}{{ active_apps_query_string }}&{% endif %}a_page={{ p }}#active-apps">{{ p }}</a>
+            {% endif %}
+          {% endfor %}
+
+          {% if active_apps_page_obj.has_next %}
+            <a class="px-3 py-1 text-sm border rounded-md" href="?{% if active_apps_query_string %}{{ active_apps_query_string }}&{% endif %}a_page={{ active_apps_page_obj.next_page_number }}#active-apps">Next</a>
+          {% else %}
+            <span class="px-3 py-1 text-sm border rounded-md text-gray-400">Next</span>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Right: Top Active Agents (by applications) -->
+    <div id="top-agents" class="rounded-2xl border border-stroke bg-white px-6 pt-6 pb-4 shadow-default dark:border-gray-700 dark:bg-boxdark">
+      <div class="mb-4 flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+          Top Active Agents
+          <span class="text-xs font-normal text-gray-500 dark:text-gray-400">
+            Total: {{ total_agents|default:0 }}  Active in period: {{ active_agents|default:0 }}
+          </span>
+        </h3>
+      </div>
+      <div class="w-full overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead>
+            <tr>
+              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">ID</th>
+              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Agent</th>
+              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Application</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+            {% if top_active_agents %}
+              {% for ag in top_active_agents %}
+              <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">{{ ag.agent_id }}</td>
+                <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">{{ ag.agent_name }}</td>
+                <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ ag.applications }}</td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="3" class="px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400">No agent activity</td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+
+      {% if top_agents_page_obj and top_agents_page_obj.paginator.num_pages > 1 %}
+      <div class="flex items-center justify-between pt-4">
+        <div class="text-xs text-gray-500 dark:text-gray-400">
+          Page {{ top_agents_page_obj.number }} of {{ top_agents_page_obj.paginator.num_pages }}
+        </div>
+        <div class="inline-flex gap-2">
+          {% if top_agents_page_obj.has_previous %}
+            <a class="px-3 py-1 text-sm border rounded-md" href="?{% if top_agents_query_string %}{{ top_agents_query_string }}&{% endif %}t_page={{ top_agents_page_obj.previous_page_number }}#top-agents">Previous</a>
+          {% else %}
+            <span class="px-3 py-1 text-sm border rounded-md text-gray-400">Previous</span>
+          {% endif %}
+
+          {% for p in top_agents_page_links %}
+            {% if p == '…' or p == '...' %}
+              <span class="px-3 py-1 text-sm border rounded-md text-gray-400">{{ p }}</span>
+            {% elif p == top_agents_page_obj.number %}
+              <span class="px-3 py-1 text-sm border rounded-md bg-blue-500 text-white">{{ p }}</span>
+            {% else %}
+              <a class="px-3 py-1 text-sm border rounded-md" href="?{% if top_agents_query_string %}{{ top_agents_query_string }}&{% endif %}t_page={{ p }}#top-agents">{{ p }}</a>
+            {% endif %}
+          {% endfor %}
+
+          {% if top_agents_page_obj.has_next %}
+            <a class="px-3 py-1 text-sm border rounded-md" href="?{% if top_agents_query_string %}{{ top_agents_query_string }}&{% endif %}t_page={{ top_agents_page_obj.next_page_number }}#top-agents">Next</a>
+          {% else %}
+            <span class="px-3 py-1 text-sm border rounded-md text-gray-400">Next</span>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- particuler Branch account details  -->
+<div id="branchAllAccountsModal"
+  class="hidden w-full fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center backdrop-blur-[32px] transition-opacity z-99999 overflow-y-auto">
+  <div class="absolute inset-0 bg-black/50" onclick="branchCloseAllAccountModal()"></div>
+  <div
+    class="relative z-10 mx-auto mt-24 w-[90%] max-w-3xl bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+    <div class="p-2 overflow-x-auto">
+      <div class="creditTransaction">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700">
+          <h3 class="text-base font-semibold text-gray-900 dark:text-white">Transaction Accounts</h3>
+          <button type="button"
+            class="p-2 rounded-md text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white"
+            onclick="branchCloseAllAccountModal()" aria-label="Close">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+              <path fill-rule="evenodd"
+                d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 11-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z"
+                clip-rule="evenodd" />
+            </svg>
+          </button>
+        </div>
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead class="bg-gray-50 dark:bg-gray-800">
+            <tr>
+              <th
+                class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Name</th>
+              <th
+                class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Bank</th>
+              <th
+                class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Account No.</th>
+              <th
+                class="px-3 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Balance</th>
+              <th
+                class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Updated</th>
+              <th
+                class="px-3 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Transaction</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+            {% for account in kpis.branch_all_account %}
+            <tr>
+              <td class="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{{ account.name }}</td>
+              <td class="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{{ account.bank_name }}</td>
+              <td class="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{{ account.account_number|default:'Cash'}}</td>
+              <td class="px-3 py-2 text-sm text-right text-gray-900 dark:text-gray-100">{{ account.current_balance }}</td>
+              <td class="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">{{ account.updated_at }}</td>
+              <td class="px-3 py-2 text-sm text-center">
+                <button type="button"
+                  class="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-blue-600 text-white hover:bg-blue-700"
+                  onclick="openBranchAccountDetailModal('{{ account.id }}')">
+                  View
+                </button>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" class="px-3 py-4 text-sm text-center text-gray-500 dark:text-gray-400">No accounts found for this branch.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="debitTransaction">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">HQ  Branch Transfers</h3>
+          <button type="button"
+            class="p-2 rounded-md text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white"
+            onclick="branchCloseAllAccountModal()" aria-label="Close">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+              <path fill-rule="evenodd"
+                d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 11-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z"
+                clip-rule="evenodd" />
+            </svg>
+          </button>
+        </div>
+        <div class="w-full overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead>
+              <tr>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">HQ Bank</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">HQ Account</th>
+                <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Transaction Amount</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Branch Account</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Transfer Date</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+              {% if kpis.provided_to_branch_tx %}
+                {% for ft in kpis.provided_to_branch_tx %}
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                  <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
+                    {{ ft.hq_transaction.wallet.bank_name|default:'Cash' }}
+                  </td>
+                  <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
+                    {{ ft.hq_transaction.wallet.account_number|default:'Cash' }}
+                  </td>
+                  <td class="px-4 py-2 text-sm text-right text-gray-900 dark:text-gray-100">
+                    {{ ft.amount }}
+                  </td>
+                  <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
+                    {% if ft.branch_account %}
+                      {{ ft.branch_account.bank_name }} - {{ ft.branch_account.account_number }}
+                    {% else %}
+                      Cash
+                    {% endif %}
+                  </td>
+                  <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
+                    {{ ft.transfer_date|date:'Y-m-d H:i' }}
+                  </td>
+                </tr>
+                {% endfor %}
+              {% else %}
+                <tr>
+                  <td colspan="5" class="px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400">No HQ transfers to this branch in the selected period.</td>
+                </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-end px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+    </div>
+  </div>
+</div>
+
+<!-- Transaction Detail Modal -->
+<div id="branchAccountDetailModal"
+  class="hidden w-full fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center backdrop-blur-[32px] transition-opacity z-99999 overflow-y-auto">
+  <div class="absolute inset-0 bg-black/50" onclick="closeBranchAccountDetailModal()"></div>
+  <div
+    class="relative z-10 mx-auto mt-24 w-[90%] max-w-3xl bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+    <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700">
+      <h3 class="text-base font-semibold text-gray-900 dark:text-white">Transaction Details</h3>
+      <button type="button"
+        class="p-2 rounded-md text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white"
+        onclick="closeBranchAccountDetailModal()" aria-label="Close">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+          <path fill-rule="evenodd"
+            d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 11-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z"
+            clip-rule="evenodd" />
+        </svg>
+      </button>
+    </div>
+    <div class="p-2 text-sm text-gray-900 dark:text-gray-100">
+      <div class="mt-1">
+        <div class="overflow-hidden max-h-60 overflow-y-auto">
+          <table class="min-w-full text-xs divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-800">
+              <tr>
+                <th class="px-3 py-2 text-left font-medium text-gray-500 dark:text-gray-400">Date</th>
+                <th class="px-3 py-2 text-right font-medium text-gray-500 dark:text-gray-400">Amount</th>
+                <th class="px-3 py-2 text-left font-medium text-gray-500 dark:text-gray-400">Purpose</th>
+              </tr>
+            </thead>
+            <tbody id="baDetailTxBody" class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+              <tr class="baDetailTxEmptyRow">
+                <td colspan="3" class="px-3 py-3 text-center text-gray-500 dark:text-gray-400">No transfers from this account in the selected period.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="flex justify-end gap-2 px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+      <button type="button" class="px-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200"
+        onclick="backToBranchAccountsList()">Back to list</button>
+      <button type="button" class="px-4 py-2 text-sm rounded-lg bg-gray-800 text-white hover:bg-gray-900"
+        onclick="closeBranchAccountDetailModal()">Close</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+  // Report mode toggle for custom date inputs
+  document.addEventListener('DOMContentLoaded', function() {
+    const mode = document.getElementById('reportMode');
+    const custom = document.getElementById('customDateInputs');
+    const quickThisMonth = document.getElementById('quickThisMonth');
+    const form = document.getElementById('reportFilterForm');
+    if (mode && custom) {
+      mode.addEventListener('change', function() {
+        if (mode.value === 'custom') {
+          custom.style.display = 'flex';
+        } else {
+          custom.style.display = 'none';
+        }
+      });
+    }
+    if (quickThisMonth && form && mode) {
+      quickThisMonth.addEventListener('click', function(){
+        mode.value = 'monthly';
+        form.submit();
+      });
+    }
+  });
+</script>
+<script>
+  // Branch Charts using backend-provided series
+  document.addEventListener('DOMContentLoaded', function() {
+    const isDark = document.documentElement.classList.contains('dark');
+    const fore = isDark ? '#ffffff' : '#000000';
+    const charts = JSON.parse('{{ charts_json|escapejs }}');
+
+    // Scheduled vs Collections
+    const disbOpts = {
+      series: [
+        { name: 'Scheduled', data: charts.scheduled },
+        { name: 'Collections', data: charts.collections }
+      ],
+      chart: { type: 'area', height: 260, toolbar: { show: false }, foreColor: fore },
+      colors: ['#f59e0b', '#10b981'],
+      dataLabels: { enabled: false },
+      stroke: { curve: 'smooth', width: 2 },
+      fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.5, opacityTo: 0.1, stops: [0, 90, 100] } },
+      xaxis: { categories: charts.dates, labels: { style: { colors: fore } } },
+      yaxis: { labels: { style: { colors: fore } } },
+      grid: { borderColor: isDark ? '#374151' : '#e5e7eb', strokeDashArray: 4 },
+      tooltip: { theme: isDark ? 'dark' : 'light' },
+      legend: {
+        position: 'bottom',
+        labels: { colors: fore },
+        formatter: function(seriesName, opts) {
+          const totals = opts.w.globals.seriesTotals || [];
+          const val = totals[opts.seriesIndex] || 0;
+          const fmt = (n) => {
+            try {
+              return Number(n).toLocaleString(); // full amount with separators
+            } catch (e) {
+              return String(n);
+            }
+          };
+          return `${seriesName} (${fmt(val)})`;
+        }
+      }
+    };
+    const disbEl = document.querySelector('#disbCollChart');
+    if (disbEl) new ApexCharts(disbEl, disbOpts).render();
+
+    // PAR Trend
+    const parOpts = {
+      series: [{ name: 'PAR %', data: charts.par.values }],
+      chart: { type: 'line', height: 260, toolbar: { show: false }, foreColor: fore },
+      colors: ['#f59e0b'],
+      dataLabels: { enabled: false },
+      stroke: { curve: 'smooth', width: 2 },
+      xaxis: { categories: charts.par.labels, labels: { style: { colors: fore } } },
+      yaxis: { labels: { style: { colors: fore } }, min: 0 },
+      grid: { borderColor: isDark ? '#374151' : '#e5e7eb', strokeDashArray: 4 },
+      tooltip: { theme: isDark ? 'dark' : 'light' }
+    };
+    const parEl = document.querySelector('#parTrendChart');
+    if (parEl) new ApexCharts(parEl, parOpts).render();
+
+    // Application Funnel (bar)
+    const funnelOpts = {
+      series: [{ name: 'Applications', data: charts.funnel.values }],
+      chart: { type: 'bar', height: 260, toolbar: { show: false }, foreColor: fore },
+      colors: ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6'],
+      plotOptions: { bar: { borderRadius: 6, columnWidth: '40%', distributed: true } },
+      dataLabels: { enabled: false },
+      xaxis: { categories: charts.funnel.labels, labels: { style: { colors: fore } } },
+      yaxis: { labels: { style: { colors: fore } }, min: 0 },
+      grid: { borderColor: isDark ? '#374151' : '#e5e7eb', strokeDashArray: 4 },
+      tooltip: { theme: isDark ? 'dark' : 'light' },
+      legend: {
+        position: 'bottom',
+        customLegendItems: (charts.funnel.labels || []).map((lbl, i) => `${lbl} (${(charts.funnel.values || [])[i] ?? 0})`),
+        markers: { fillColors: ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6'] },
+        onItemClick: { toggleDataSeries: false }
+      }
+    };
+    const funnelEl = document.querySelector('#funnelChart');
+    if (funnelEl) new ApexCharts(funnelEl, funnelOpts).render();
+
+    // KPI Pie (Donut) Chart
+    const kpiPieEl = document.querySelector('#kpiPieChart');
+    if (kpiPieEl) {
+      const kpiLabels = ['Total Applications', 'Approved', 'Rejected', 'Active Loans'];
+      const kpiSeries = JSON.parse('{{ kpi_series_json|escapejs }}');
+      const kpiPieOpts = {
+        series: kpiSeries,
+        labels: kpiLabels,
+        chart: { type: 'donut', height: 280 },
+        legend: {
+          position: 'bottom',
+          labels: { colors: fore },
+          formatter: function(seriesName, opts) {
+            const val = opts.w.globals.series[opts.seriesIndex] || 0;
+            return `${seriesName} (${val})`;
+          }
+        },
+        dataLabels: {
+          enabled: true,
+          style: { colors: ['#ffffff'] },
+          formatter: function(val, opts){
+            try {
+              const series = opts.w.globals.series || [];
+              const total = series.reduce((a,b)=>a + (Number(b)||0), 0) || 1;
+              const value = Number(series[opts.seriesIndex] || 0);
+              const pct = Math.round((value / total) * 100);
+              return pct + '%';
+            } catch(e){ return ''; }
+          }
+        },
+        colors: ['#3b82f6', '#10b981', '#ef4444', '#8b5cf6'],
+        tooltip: { theme: isDark ? 'dark' : 'light' },
+        stroke: { width: 1 },
+        plotOptions: {
+          pie: {
+            donut: { size: '60%' },
+            expandOnClick: true
+          }
+        }
+      };
+      new ApexCharts(kpiPieEl, kpiPieOpts).render();
+    }
+
+    // Minimal toggle for PAR info tooltip
+    const parBtn = document.getElementById('parInfoBtn');
+    const parTip = document.getElementById('parInfoTip');
+    if (parBtn && parTip) {
+      const hideTip = () => { parTip.classList.add('hidden'); parBtn.setAttribute('aria-expanded','false'); };
+      const toggleTip = (e) => { e.stopPropagation(); const hidden = parTip.classList.contains('hidden'); if (hidden) { parTip.classList.remove('hidden'); parBtn.setAttribute('aria-expanded','true'); } else { hideTip(); } };
+      parBtn.addEventListener('click', toggleTip);
+      document.addEventListener('click', (e) => { if (!parTip.contains(e.target) && e.target !== parBtn) hideTip(); });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hideTip(); });
+    }
+
+    // Simple client-side filter demo (optional wiring)
+    const statusSelect = document.getElementById('statusFilter');
+    const dateFrom = document.getElementById('dateFrom');
+    const dateTo = document.getElementById('dateTo');
+    const resetBtn = document.getElementById('resetFilters');
+
+    function normalize(txt) { return (txt || '').toLowerCase(); }
+    function parseDate(str) { return str ? new Date(str) : null; }
+
+    function applyFilters() {
+      const statusVal = normalize(statusSelect.value);
+      const fromVal = parseDate(dateFrom.value);
+      const toVal = parseDate(dateTo.value);
+
+      document.querySelectorAll('table tbody tr').forEach(row => {
+        // skip empty-state row
+        if (row.querySelector('td[colspan]')) return;
+        const statusCell = row.children[2]?.innerText || '';
+        const dateCell = row.children[3]?.innerText || '';
+
+        let ok = true;
+        if (statusVal) {
+          ok = ok && normalize(statusCell).includes(statusVal);
+        }
+        if (fromVal || toVal) {
+          // dateCell format: YYYY-MM-DD HH:mm
+          const dateOnly = dateCell.split(' ')[0];
+          const rowDate = new Date(dateOnly);
+          if (fromVal && rowDate < fromVal) ok = false;
+          if (toVal && rowDate > toVal) ok = false;
+        }
+        row.style.display = ok ? '' : 'none';
+      });
+    }
+
+    if (statusSelect) statusSelect.addEventListener('change', applyFilters);
+    if (dateFrom) dateFrom.addEventListener('change', applyFilters);
+    if (dateTo) dateTo.addEventListener('change', applyFilters);
+    if (resetBtn) resetBtn.addEventListener('click', () => {
+      statusSelect.value = '';
+      dateFrom.value = '';
+      dateTo.value = '';
+      applyFilters();
+    });
+  });
+</script>
+<script>
+  // Profit KPI toggle: switch between Funds Movement and Loan vs EMI profit
+  function toggleProfitMode() {
+    const valueEl = document.getElementById('profitValue');
+    const descEl = document.getElementById('profitDesc');
+    const labelEl = document.getElementById('profitModeLabel');
+    if (!valueEl || !descEl || !labelEl) return;
+
+    const mode = labelEl.textContent.trim();
+    const fundsVal = valueEl.getAttribute('data-funds') || '0.00';
+    const emiVal = valueEl.getAttribute('data-emi') || '0.00';
+    const fundsDesc = descEl.getAttribute('data-funds') || '';
+    const emiDesc = descEl.getAttribute('data-emi') || '';
+
+    if (mode === 'Funds Movement') {
+      // Switch to Loan vs EMI mode
+      labelEl.textContent = 'Loan vs EMI';
+      valueEl.textContent = '₹ ' + emiVal;
+      descEl.textContent = emiDesc;
+    } else {
+      // Switch back to Funds Movement mode
+      labelEl.textContent = 'Funds Movement';
+      valueEl.textContent = '₹ ' + fundsVal;
+      descEl.textContent = fundsDesc;
+    }
+  }
+
+  // Toggle between branch accounts list modal and single account detail modal
+  const BRANCH_ACCOUNT_TX = JSON.parse('{{ branch_account_tx_json|default:"{}"|escapejs }}');
+
+  function BranchAllAccountModal(e){
+    const listModal = document.getElementById('branchAllAccountsModal');
+    const detailModal = document.getElementById('branchAccountDetailModal');
+    if (detailModal) detailModal.classList.add('hidden');
+    if (listModal) listModal.classList.remove('hidden');
+
+    const creditBlocks = document.querySelectorAll('.creditTransaction');
+    const debitBlocks = document.querySelectorAll('.debitTransaction');
+
+    if (e) {
+      // When argument passed: hide creditTransaction, show debitTransaction
+      creditBlocks.forEach(function (el) { el.classList.add('hidden'); });
+      debitBlocks.forEach(function (el) { el.classList.remove('hidden'); });
+    } else {
+      // When no argument: show creditTransaction, hide debitTransaction
+      creditBlocks.forEach(function (el) { el.classList.remove('hidden'); });
+      debitBlocks.forEach(function (el) { el.classList.add('hidden'); });
+    }
+  }
+
+  function branchCloseAllAccountModal(){
+    const listModal = document.getElementById('branchAllAccountsModal');
+    if (listModal) listModal.classList.add('hidden');
+  }
+
+  function openBranchAccountDetailModal(id){
+    const listModal = document.getElementById('branchAllAccountsModal');
+    const detailModal = document.getElementById('branchAccountDetailModal');
+    if (listModal) listModal.classList.add('hidden');
+    if (detailModal) detailModal.classList.remove('hidden');
+
+    const nameEl = document.getElementById('baDetailName');
+    const bankEl = document.getElementById('baDetailBank');
+    const accEl = document.getElementById('baDetailAccountNo');
+    const balEl = document.getElementById('baDetailBalance');
+    const updEl = document.getElementById('baDetailUpdated');
+
+    if (nameEl) nameEl.textContent = name || '';
+    if (bankEl) bankEl.textContent = bank || '';
+    if (accEl) accEl.textContent = accountNo || '';
+    if (balEl) balEl.textContent = balance || '';
+    if (updEl) updEl.textContent = updated || '';
+
+    // Populate transfers table
+    const body = document.getElementById('baDetailTxBody');
+    if (!body) return;
+
+    // Clear old rows
+    while (body.firstChild) {
+      body.removeChild(body.firstChild);
+    }
+
+    const txList = BRANCH_ACCOUNT_TX[id] || [];
+    if (!txList.length) {
+      const emptyRow = document.createElement('tr');
+      emptyRow.className = 'baDetailTxEmptyRow';
+      emptyRow.innerHTML = '<td colspan="3" class="px-3 py-3 text-center text-gray-500 dark:text-gray-400">No transfers from this account in the selected period.</td>';
+      body.appendChild(emptyRow);
+      return;
+    }
+
+    txList.forEach(function(tx){
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td class="px-3 py-2 text-gray-900 dark:text-gray-100">'+(tx.date || '')+'</td>'+
+                     '<td class="px-3 py-2 text-right text-gray-900 dark:text-gray-100">'+(tx.amount != null ? tx.amount : '')+'</td>'+
+                     '<td class="px-3 py-2 text-gray-900 dark:text-gray-100">'+(tx.purpose || '')+'</td>';
+      body.appendChild(tr);
+    });
+  }
+
+  function backToBranchAccountsList(){
+    const listModal = document.getElementById('branchAllAccountsModal');
+    const detailModal = document.getElementById('branchAccountDetailModal');
+    if (detailModal) detailModal.classList.add('hidden');
+    if (listModal) listModal.classList.remove('hidden');
+  }
+
+  function closeBranchAccountDetailModal(){
+    const detailModal = document.getElementById('branchAccountDetailModal');
+    if (detailModal) detailModal.classList.add('hidden');
+  }
+</script>
+<script>
+  // Attach flatpickr to custom date inputs (uses script included by base.html)
+  document.addEventListener('DOMContentLoaded', function() {
+    if (window.flatpickr) {
+      const fromEl = document.getElementById('from');
+      const toEl = document.getElementById('to');
+      const quickFrom = document.getElementById('dateFrom');
+      const quickTo = document.getElementById('dateTo');
+      const common = { dateFormat: 'Y-m-d', allowInput: true };
+      if (fromEl) {
+        flatpickr(fromEl, { ...common, defaultDate: fromEl.value || null });
+      }
+      if (toEl) {
+        flatpickr(toEl, { ...common, defaultDate: toEl.value || null });
+      }
+      if (quickFrom) {
+        flatpickr(quickFrom, { ...common });
+      }
+      if (quickTo) {
+        flatpickr(quickTo, { ...common });
+      }
+    }
+  });
+</script>
+{% endblock %}

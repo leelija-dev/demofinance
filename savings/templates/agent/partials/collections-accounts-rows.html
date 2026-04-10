@@ -1,0 +1,58 @@
+{% for a in accounts %}
+<tr>
+    <td class="px-4 py-2">
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ a.account_id }}</p>
+    </td>
+    <td class="px-4 py-2">
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ a.application_id }}</p>
+    </td>
+    <td class="px-4 py-2">
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ a.customer.full_name }}</p>
+        <p class="text-xs text-gray-400">{{ a.customer.customer_id }}</p>
+    </td>
+    <td class="px-4 py-2">
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ a.get_product_type_display }}</p>
+    </td>
+    <td class="px-4 py-2">
+        <div class="flex items-center gap-2">
+            {% if a.product_type != 'fd' %}
+                <a
+                    href="{% url 'agent:savings_collections_list' a.application_id %}"
+                    class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-600"
+                >
+                    View Collections
+                </a>
+            {% endif %}
+            <button
+                type="button"
+                class="js-close-request-btn inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-semibold border border-gray-200 disabled:opacity-60 disabled:cursor-not-allowed {% if not a.surrender_status or a.surrender_status == 'none' %}text-white bg-red-600 hover:bg-red-700{% elif a.surrender_status == 'requested' or a.surrender_status == 'processing' %}text-red-700 bg-red-100{% elif a.surrender_status == 'approved' or a.surrender_status == 'completed' %}text-white bg-green-600 hover:bg-green-700{% else %}text-gray-700{% endif %}"
+                data-application-id="{{ a.application_id|default:''|escape }}"
+                data-account-id="{{ a.account_id|default:''|escape }}"
+                data-customer-name="{{ a.customer.full_name|default:''|escape }}"
+                data-customer-id="{{ a.customer.customer_id|default:''|escape }}"
+                data-product-name="{{ a.get_product_type_display|default:a.product_type|default:''|escape }}"
+                data-branch-email="{{ a.branch.email|default:''|escape }}"
+                {% if a.surrender_status and a.surrender_status != 'none' %}disabled{% endif %}
+            >
+                {% if a.surrender_status and a.surrender_status != 'none' %}
+                    {{ a.get_surrender_status_display|default:'Requested' }}
+                {% elif a.close_request_ready %}
+                    Close Request
+                {% else %}
+                    Surrender
+                {% endif %}
+            </button>
+        </div>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td class="px-4 py-8 text-center text-gray-500 dark:text-gray-400" colspan="5">No assigned savings accounts found</td>
+</tr>
+{% endfor %}
+
+{% if page_obj and page_obj.has_next %}
+<tr id="accountsLoadMoreRow" data-next-page="{{ page_obj.next_page_number }}">
+    <td class="px-4 py-4 text-center text-sm text-gray-500 dark:text-gray-400" colspan="5">Loading…</td>
+</tr>
+{% endif %}

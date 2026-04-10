@@ -1,0 +1,2213 @@
+{% block content %}
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow">
+    <title>Leelija</title>
+
+    <!-- Favicon -->
+    <!-- <link rel="icon" type="image/x-icon" href="{% static 'main/images/favicon.ico' %}"> -->
+     <link rel="icon" type="image/x-icon" href="{% static 'main/images/leelija.png' %}">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="{% static 'main/css/output.css' %}" />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <style>
+      a.active {
+      color: #007bff;
+      font-weight: bold;
+      }
+    </style>
+  </head>
+
+  <body class="m-0">
+    <!-- Navbar -->
+    <nav class="bg-white shadow fixed w-full top-0 left-0 z-50">
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-fit py-2">
+          <!-- Logo -->
+          <div class="flex items-center space-x-3">
+            <img
+              src="static/main/images/company-logo.png"
+              class="md:h-14 h-10 md:w-14 w-10 "
+              alt="Logo"
+            />
+            <div>
+              <h1 class="text-xl font-bold">LEELIJA</h1>
+              <p class="text-xs text-gray-500">Finance Service</p>
+            </div>
+          </div>
+
+          <div class="flex gap-8">
+            <!-- Desktop Menu -->
+            <div class="hidden slg:flex items-center space-x-8">
+              <a href="#" class="text-blue-600 font-semibold">Home</a>
+              <a id="about-us-link" href="#about-us" class="hover:text-blue-600"
+                >About Us</a
+              >
+              <a href="#contact-us" class="block hover:text-blue-600"
+                >Contact Us</a
+              >
+            </div>
+
+            <!-- Contact -->
+            <div class="hidden slg:flex items-center space-x-3">
+              <div class="bg-blue-600 p-2 rounded">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke-width="2"
+                  stroke="white"
+                  class="w-6 h-6"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M8 10h.01M12 10h.01M16 10h.01M21 16.5a2.5 2.5 0 00-2.5-2.5H5.5A2.5 2.5 0 003 16.5v2A2.5 2.5 0 005.5 21h13a2.5 2.5 0 002.5-2.5v-2z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <p class="text-xs text-gray-500">Contact for support</p>
+                <p class="font-bold">+123 456 789</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mobile Hamburger -->
+          <div class="flex slg:hidden items-center">
+            <button id="menu-btn" class="focus:outline-none">
+              <svg
+                class="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 6h16M4 12h16m-7 6h7"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
+    <!-- Overlay -->
+    <div
+      id="overlay"
+      class="fixed slg:hidden inset-0 bg-black bg-opacity-50 hidden z-40"
+    ></div>
+
+    <!-- Mobile Sidebar -->
+    <div
+      id="mobile-menu"
+      class="fixed slg:hidden block top-0 left-0 w-64 h-full bg-white shadow-lg transform -translate-x-full transition-transform duration-300 ease-in-out z-50"
+    >
+      <div class="p-4 flex justify-between items-center border-b">
+        <h2 class="text-xl font-bold">Menu</h2>
+        <button id="close-menu" class="focus:outline-none">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </div>
+      <nav class="p-4 space-y-4">
+        <a href="#" class="block text-blue-600 font-semibold">Home</a>
+        <a href="#about-us" class="block hover:text-blue-600">About Us</a>
+        <a href="#contact-us" class="block hover:text-blue-600">Contact Us</a>
+      </nav>
+      <div class="p-4 mt-4 border-t">
+        <div class="flex items-center space-x-3">
+          <div class="bg-blue-600 p-2 rounded">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2"
+              stroke="white"
+              class="w-6 h-6"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M8 10h.01M12 10h.01M16 10h.01M21 16.5a2.5 2.5 0 00-2.5-2.5H5.5A2.5 2.5 0 003 16.5v2A2.5 2.5 0 005.5 21h13a2.5 2.5 0 002.5-2.5v-2z"
+              />
+            </svg>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500">Contact for support</p>
+            <p class="font-bold">+123 456 7890</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section
+      class="flex justify-center items-center min-h-screen h-auto px-6 slg:pt-16 pt-[8rem] pb-[5rem]"
+    >
+      <div class="container mx-auto flex slg:flex-nowrap flex-wrap">
+        <div
+          class="slg:w-1/2 w-full slg:order-1 order-2 transition-all duration-300 ease-in-out"
+        >
+          <h1
+            class="slg:text-start text-center text-h1-xs sm:text-h1-sm md:text-h1-md slg:text-h1-lg lgg:text-h1-lgg xl:text-h1-xl 2xl:text-h1-2xl font-bold mb-4"
+          >
+            Simplify all your banking and loan methods.
+          </h1>
+          <p
+            class="slg:text-start text-center text-p-xs sm:text-p-sm md:text-p-md slg:text-p-lg lgg:text-p-lgg xl:text-p-xl 2xl:text-p-2xl"
+          >
+            Our team of experts uses a methodology to identify the credit cards
+            most.
+          </p>
+          <form
+            action=""
+            class="flex gap-3 slg:justify-start justify-center md:flex-nowrap flex-wrap mt-4 mb-6"
+          >
+            <input
+              class="rounded-[15px] border border-[#313131] xll:py-[0.8rem] py-[0.5rem] px-6 sm:w-fit w-full"
+              id="email"
+              type="email"
+              placeholder="Enter Your Email"
+            />
+            <button
+              type="submit"
+              class="cursor-pointer transition-colors duration-300 ease-in-out hover:bg-white hover:border-black hover:border-[1px] bg-[#9CD4FB] border-0 px-6 rounded-[15px] xll:text-xl text-[1.1rem] py-2 font-medium"
+            >
+              Submit
+            </button>
+          </form>
+          <div
+            class="flex slg:flex-nowrap slg:flex-row flex-col slg:justify-start justify-center items-center gap-3"
+          >
+            <div class="flex flex-nowrap items-center gap-2">
+              <img
+                class="xl:w-[30px] slg:w-[22px] w-[16px]"
+                src="static/main/images/point.png"
+                alt=""
+              /><span
+                class="xl:text-[1.3rem] slg:text-[1.2rem] text-[1rem] font-semibold"
+                >Get 30 day free trial</span
+              >
+            </div>
+            <div class="flex flex-nowrap items-center gap-2">
+              <img
+                class="xl:w-[30px] slg:w-[22px] w-[16px]"
+                src="static/main/images/point.png"
+                alt=""
+              /><span
+                class="xl:text-[1.3rem] slg:text-[1.2rem] text-[1rem] font-semibold"
+                >Get 30 day free trial</span
+              >
+            </div>
+          </div>
+        </div>
+        <div
+          class="slg:w-1/2 w-full slg:order-2 order-1 flex slg:justify-end justify-center items-center slg:mb-0 xs:mb-4 mb-12 transition-all duration-300 ease-in-out"
+        >
+          <div
+            class="xll:h-[400px] xl:h-[360px] slg:h-[300px] xs:h-[250px] h-[200px] xll:w-[400px] xl:w-[360px] slg:w-[300px] xs:w-[250px] w-[200px] bg-[#9CD4FB] rounded-[20px] xl:p-12 p-6 relative"
+          >
+            <img
+              class="absolute z-10 2xl:h-[160px] xll:h-[148px] xl:h-[130px] slg:h-[120px] md:h-[100px] h-[90px] w-auto 2xl:-left-[32%] slg:left-[-25%] md:left-[-31%] xs:left-[-27%] top-[-19%] left-[7%] border-[1px] border-black/30 xl:rounded-[20px] slg:rounded-[14px] rounded-[8px] xs:top-[10%]"
+              src="static/main/images/hero-shape-01.png 1.png"
+              alt=""
+            />
+            <img
+              class="absolute z-10 2xl:h-[160px] xll:h-[148px] xl:h-[130px] slg:h-[120px] md:h-[100px] h-[90px] w-auto xs:-left-[19%] border border-black/30 xl:rounded-[20px] slg:rounded-[14px] rounded-[8px] xs:bottom-[4%] left-[17%] bottom-[-17%]"
+              src="static/main/images/hero-shape-02 1.png"
+              alt=""
+            />
+            <div class="overflow-hidden rounded-[12px] w-full h-full relative">
+              <img
+                class="h-full object-cover w-full aspect-square"
+                src="static/main/images/girl-image.jpg"
+                alt=""
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="px-6 py-12 bg-[#f9f9f9]">
+      <div
+        class="container flex slg:flex-nowrap flex-wrap relative mx-auto gap-4"
+      >
+        <div class="xl:w-1/2 slg:w-fit w-full slg:order-1 order-2">
+          <h2
+            class="slg:text-left text-center text-h2-xs sm:text-h2-sm md:text-h2-md slg:text-h2-lg lgg:text-h2-lgg xl:text-h2-xl 2xl:text-h2-2xl slg:mb-6 mb-3"
+          >
+            Our Loans will Fill Your Dreams Come True
+          </h2>
+          <p
+            class="slg:text-start text-center text-p-xs sm:text-p-sm md:text-p-md slg:text-p-lg lgg:text-p-lgg xl:text-p-xl 2xl:text-p-2xl"
+          >
+            There are many variations of passages of lorem ipsum available the
+            majority have suffered alteration in some form by injected humour.
+            Duis aute irure dolor lipsum is simply free text available in the
+            local markets in reprehenderit.Nam aliquam sem et tortor consequat
+            mattis pellentesque
+          </p>
+          <div
+            class="flex slg:flex-nowrap slg:gap-0 gap-3 flex-wrap slg:justify-between justify-center slg:mt-5 mt-3"
+          >
+            <div
+              class="slg:w-[50%] w-fit flex items-center xs:flex-row flex-col xs:p-0 p-4 xs:text-left text-center mb-2 slg:justify-start justify-center gap-2 px-1"
+            >
+              <div
+                class="rounded-full slg:p-3 p-1 bg-[#EFF2F9] xll:w-[80px] xl:w-[70px] slg:w-[60px] w-[55px] xll:min-w-[80px] xl:min-w-[70px] slg:min-w-[60px] min-w-[55px] xll:h-[80px] xl:h-[70px] slg:h-[60px] h-[55px] xll:min-h-[80px] xl:min-h-[70px] slg:min-h-[60px] min-h-[55px]"
+              >
+                <img
+                  class="w-full h-full"
+                  src="static/main/images/house (1).png"
+                  alt=""
+                />
+              </div>
+              <div>
+                <h5
+                  class="xll:text-[1.3rem] leading-relaxed slg:text-[1.1rem] sm:text-[1rem] text-[1rem] m-0 font-medium"
+                >
+                  Award Wining
+                </h5>
+                <p
+                  class="m-0 xll:text-[1.1rem] leading-[1.1rem] slg:text-[0.9rem] text-[0.8rem]"
+                >
+                  Finance categories winning more than 10 awards
+                </p>
+              </div>
+            </div>
+            <div
+              class="slg:w-[50%] w-fit flex items-center xs:flex-row flex-col xs:p-0 p-4 xs:text-left text-center mb-2 slg:justify-start justify-center gap-2 px-1"
+            >
+              <div
+                class="rounded-full slg:p-3 p-1 bg-[#EFF2F9] xll:w-[80px] xl:w-[70px] slg:w-[60px] w-[55px] xll:min-w-[80px] xl:min-w-[70px] slg:min-w-[60px] min-w-[55px] xll:h-[80px] xl:h-[70px] slg:h-[60px] h-[55px] xll:min-h-[80px] xl:min-h-[70px] slg:min-h-[60px] min-h-[55px]"
+              >
+                <img
+                  class="w-full h-full"
+                  src="static/main/images/house (1).png"
+                  alt=""
+                />
+              </div>
+              <div>
+                <h5
+                  class="xll:text-[1.3rem] leading-relaxed slg:text-[1.1rem] sm:text-[1rem] text-[1rem] m-0 font-medium"
+                >
+                  Award Wining
+                </h5>
+                <p
+                  class="m-0 xll:text-[1.1rem] leading-[1.1rem] slg:text-[0.9rem] text-[0.8rem]"
+                >
+                  Finance categories winning more than 10 awards
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="xl:w-1/2 slg:w-fit w-full flex xll:justify-center slg:justify-end justify-center slg:order-2 order-1 mt-[-118px]"
+        >
+          <div
+            class="rounded-xl shadow-md w-full xll:w-[450px] xl:w-[400px] slg:w-[400px] max-w-[500px]"
+          >
+            <div
+              class="h-[70px] w-full bg-[#018cd5] rounded-t-[10px] relative after:content-[''] after:bg-[#018cd5] after:w-[50px] after:h-[50px] after:block after:absolute after:-bottom-[10%] after:left-[46%] after:rotate-45"
+            ></div>
+            <div class="bg-white p-6">
+              <!-- Loan Amount -->
+              <div class="mb-6">
+                <div class="flex justify-between text-gray-700 text-sm mb-1">
+                  <span>₹1000</span>
+                  <span id="loanAmountDisplay" class="font-semibold"
+                    >₹14000</span
+                  >
+                  <span>₹40000</span>
+                </div>
+                <input
+                  type="range"
+                  id="loanAmount"
+                  min="1000"
+                  max="40000"
+                  step="500"
+                  value="14000"
+                  class="w-full bg-[#018cd5]"
+                />
+              </div>
+
+              <!-- Term of Use -->
+              <div class="mb-6">
+                <div class="flex justify-between text-gray-700 text-sm mb-1">
+                  <span>1 Month</span>
+                  <span id="termDisplay" class="font-semibold">8</span>
+                  <span>12 Months</span>
+                </div>
+                <input
+                  type="range"
+                  id="term"
+                  min="1"
+                  max="12"
+                  value="8"
+                  class="w-full bg-[#018cd5]"
+                />
+              </div>
+
+              <!-- Pay Monthly -->
+              <div class="flex justify-between border-b py-3">
+                <span class="text-gray-600">Pay Monthly</span>
+                <span id="payMonthly" class="font-semibold">₹2012</span>
+              </div>
+
+              <!-- Term of Use -->
+              <div class="flex justify-between border-b py-3">
+                <span class="text-gray-600">Term of Use</span>
+                <span id="termOfUse" class="font-semibold">8 Months</span>
+              </div>
+
+              <!-- Total Payback -->
+              <div class="flex justify-between border-b py-3">
+                <span class="text-gray-600">Total Pay Back</span>
+                <span id="totalPayBack" class="font-semibold">₹16100</span>
+              </div>
+
+              <!-- Button -->
+              <div class="mt-6">
+                <button
+                  class="bg-[#018cd5] text-white w-full py-3 rounded-lg hover:bg-blue-700 transition"
+                >
+                  Apply For Loan
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section
+      class="px-4 py-12 min-h-[90vh] h-auto flex justify-center items-center"
+    >
+      <div class="container mx-auto">
+        <!-- Heading -->
+        <div
+          class="w-full flex flex-wrap justify-between xs:text-left text-center lg:py-6 py-4 slg:gap-0 gap-2 xs:flex-row flex-col xs:items-end items-center"
+        >
+          <div class="">
+            <span
+              class="xll:text-[1.3rem] lg:text-[1.2rem] text-[1.1rem] leading-[1.2rem]"
+              >Our Services</span
+            >
+            <h2
+              class="slg:text-left text-center text-h2-xs sm:text-h2-sm md:text-h2-md slg:text-h2-lg lgg:text-h2-lgg xl:text-h2-xl 2xl:text-h2-2xl slg:mb-4 mb-2"
+            >
+              What We Offer For You
+            </h2>
+            <div
+              class="slg:w-[190px] w-[120px] h-[4px] rounded-full mt-1 bg-[#018cd5] xs:mx-0 mx-auto"
+            ></div>
+          </div>
+          <button
+            class="lg:px-7 px-5 lg:py-4 py-2 transition-all duration-300 ease-in-out hover:bg-[linear-gradient(151deg,rgb(0,64,255)_0%,rgba(0,183,255,0.66)_100%)] text-white font-medium bg-[linear-gradient(276deg,rgb(0,64,255)_0%,rgba(0,183,255,0.66)_100%)] xl:text-[1.4rem] slg:text-[1.2rem] text-[1.1rem] leading-[1.2rem]"
+          >
+            View All
+          </button>
+        </div>
+
+        <!-- Services Grid -->
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- Service Card 1 -->
+          <div
+            class="border-[#cacaca] border-[1px] rounded-[10px] p-6 flex gap-3 xs:flex-row flex-col"
+          >
+            <div
+              class="xs:h-full xl:min-w-[74px] xs:min-w-[64px] xl:max-w-[75px] xs:max-w-[65px] w-full h-[80px] p-2"
+            >
+              <img
+                class="xs:w-full w-auto xs:h-auto h-full xs:mx-0 mx-auto"
+                src="static/main/images/house (1).png"
+                alt=""
+              />
+            </div>
+            <div class="w-fit xs:text-left text-center">
+              <h3 class="text-xl font-semibold mt-[0.5rem] mb-2">Home Loans</h3>
+              <p class="text-gray-600 mb-4">
+                Competitive rates for your dream home with flexible repayment
+                options
+              </p>
+              <a href="#" class="text-blue-600 font-medium hover:underline">
+                Learn More →
+              </a>
+            </div>
+          </div>
+
+          <!-- Service Card 2 -->
+          <div
+            class="border-[#cacaca] border-[1px] rounded-[10px] p-6 flex gap-3 xs:flex-row flex-col"
+          >
+            <div
+              class="xs:h-full xl:min-w-[74px] xs:min-w-[64px] xl:max-w-[75px] xs:max-w-[65px] w-full h-[80px] p-2"
+            >
+              <img
+                class="xs:w-full w-auto xs:h-auto h-full xs:mx-0 mx-auto"
+                src="static/main/images/house (1).png"
+                alt=""
+              />
+            </div>
+            <div class="w-fit xs:text-left text-center">
+              <h3 class="text-xl font-semibold mt-[0.5rem] mb-2">
+                Business Financing
+              </h3>
+              <p class="text-gray-600 mb-4">
+                Growth capital and equipment financing for your business needs
+              </p>
+              <a href="#" class="text-blue-600 font-medium hover:underline">
+                Explore Options →
+              </a>
+            </div>
+          </div>
+
+          <!-- Service Card 3 -->
+          <div
+            class="border-[#cacaca] border-[1px] rounded-[10px] p-6 flex gap-3 xs:flex-row flex-col"
+          >
+            <div
+              class="xs:h-full xl:min-w-[74px] xs:min-w-[64px] xl:max-w-[75px] xs:max-w-[65px] w-full h-[80px] p-2"
+            >
+              <img
+                class="xs:w-full w-auto xs:h-auto h-full xs:mx-0 mx-auto"
+                src="static/main/images/house (1).png"
+                alt=""
+              />
+            </div>
+            <div class="w-fit xs:text-left text-center">
+              <h3 class="text-xl font-semibold mt-[0.5rem] mb-2">
+                Personal Loans
+              </h3>
+              <p class="text-gray-600 mb-4">
+                Quick approval for your personal needs with transparent terms
+              </p>
+              <a href="#" class="text-blue-600 font-medium hover:underline">
+                Apply Now →
+              </a>
+            </div>
+          </div>
+
+          <!-- Service Card 4 -->
+          <div
+            class="border-[#cacaca] border-[1px] rounded-[10px] p-6 flex gap-3 xs:flex-row flex-col"
+          >
+            <div
+              class="xs:h-full xl:min-w-[74px] xs:min-w-[64px] xl:max-w-[75px] xs:max-w-[65px] w-full h-[80px] p-2"
+            >
+              <img
+                class="xs:w-full w-auto xs:h-auto h-full xs:mx-0 mx-auto"
+                src="static/main/images/house (1).png"
+                alt=""
+              />
+            </div>
+            <div class="w-fit xs:text-left text-center">
+              <h3 class="text-xl font-semibold mt-[0.5rem] mb-2">
+                Auto Financing
+              </h3>
+              <p class="text-gray-600 mb-4">
+                Drive away with your perfect vehicle through our auto loan
+                programs
+              </p>
+              <a href="#" class="text-blue-600 font-medium hover:underline">
+                Get Approved →
+              </a>
+            </div>
+          </div>
+
+          <!-- Service Card 5 -->
+          <div
+            class="border-[#cacaca] border-[1px] rounded-[10px] p-6 flex gap-3 xs:flex-row flex-col"
+          >
+            <div
+              class="xs:h-full xl:min-w-[74px] xs:min-w-[64px] xl:max-w-[75px] xs:max-w-[65px] w-full h-[80px] p-2"
+            >
+              <img
+                class="xs:w-full w-auto xs:h-auto h-full xs:mx-0 mx-auto"
+                src="static/main/images/house (1).png"
+                alt=""
+              />
+            </div>
+            <div class="w-fit xs:text-left text-center">
+              <h3 class="text-xl font-semibold mt-[0.5rem] mb-2">
+                Education Loans
+              </h3>
+              <p class="text-gray-600 mb-4">
+                Invest in your future with our student and education financing
+              </p>
+              <a href="#" class="text-blue-600 font-medium hover:underline">
+                Start Planning →
+              </a>
+            </div>
+          </div>
+
+          <!-- Service Card 6 -->
+          <div
+            class="border-[#cacaca] border-[1px] rounded-[10px] p-6 flex gap-3 xs:flex-row flex-col"
+          >
+            <div
+              class="xs:h-full xl:min-w-[74px] xs:min-w-[64px] xl:max-w-[75px] xs:max-w-[65px] w-full h-[80px] p-2"
+            >
+              <img
+                class="xs:w-full w-auto xs:h-auto h-full xs:mx-0 mx-auto"
+                src="static/main/images/house (1).png"
+                alt=""
+              />
+            </div>
+            <div class="w-fit xs:text-left text-center">
+              <h3 class="text-xl font-semibold mt-[0.5rem] mb-2">
+                Debt Consolidation
+              </h3>
+              <p class="text-gray-600 mb-4">
+                Simplify your payments and reduce interest with our
+                consolidation loans
+              </p>
+              <a href="#" class="text-blue-600 font-medium hover:underline">
+                Reduce Debt →
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section
+      class="bg-gradient-to-r from-blue-500 to-blue-700 flex items-center justify-center py-8"
+    >
+      <div class="w-full max-w-6xl px-4">
+        <div
+          class="flex flex-wrap justify-center items-center xll:gap-10 gap-8"
+        >
+          <!-- Logo 1 -->
+          <img
+            src="static/main/images/logo-1.png"
+            alt="ELFA"
+            class="h-10 md:h-14 object-contain"
+          />
+
+          <!-- Logo 2 -->
+          <img
+            src="static/main/images/logo-1.png"
+            alt="Voiceware"
+            class="h-10 md:h-14 object-contain"
+          />
+
+          <!-- Logo 3 -->
+          <img
+            src="static/main/images/logo-1.png"
+            alt="Global Finance"
+            class="h-10 md:h-14 object-contain"
+          />
+
+          <!-- Logo 4 -->
+          <img
+            src="static/main/images/logo-1.png"
+            alt="Finance Strategy"
+            class="h-10 md:h-14 object-contain"
+          />
+
+          <!-- Logo 5 -->
+          <img
+            src="static/main/images/logo-1.png"
+            alt="Copixel"
+            class="h-10 md:h-14 object-contain"
+          />
+        </div>
+      </div>
+    </section>
+
+    <section
+      class="px-6 slg:py-24 py-10 bg-[#f9f9f9] min-h-screen h-auto flex justify-center items-center"
+    >
+      <div class="container mx-auto">
+        <!-- Heading and Description -->
+        <div
+          class="grid slg:grid-cols-2 slg:gap-8 gap-4 mb-10 slg:text-left text-center"
+        >
+          <div>
+            <span
+              class="lg:mb-3 slg:gap-3 mb-2 xll:text-[1.3rem] lg:text-[1.2rem] text-[1.1rem] leading-[1.2rem] slg:flex block slg:text-left text-center items-center"
+              >Get to Know About
+              <span
+                class="bg-[#018cd5] w-[50px] h-[4px] rounded-full block slg:mx-0 mx-auto slg:mt-0 mt-2"
+              ></span>
+            </span>
+            <h2
+              class="slg:text-left text-center text-h2-xs sm:text-h2-sm md:text-h2-md slg:text-h2-lg lgg:text-h2-lgg xl:text-h2-xl 2xl:text-h2-2xl slg:mb-4 mb-2 font-semibold"
+            >
+              Flexible and Quick Business Loans For You
+            </h2>
+          </div>
+          <div>
+            <p
+              class="slg:text-start text-center text-p-xs sm:text-p-sm md:text-p-md slg:text-p-lg lgg:text-p-lgg xl:text-p-xl 2xl:text-p-2xl"
+            >
+              Turpis cursus in hac habitasse platea dictumst quisque. Aenean
+              euismod elementum nisi quis eleifend quam adipiscing vitae proin.
+              There of available but the majority have suffered alteration in
+              some form, by injected humour or randomised words which don't look
+              even slightly believable. Nam aliquam sem et tortor consequat at
+              urna mattis pellentesque.
+            </p>
+          </div>
+        </div>
+
+        <!-- Features Boxes -->
+        <div
+          class="flex flex-wrap xl:gap-6 gap-3 justify-center slg:justify-between"
+        >
+          <!-- Box 1 -->
+          <div
+            class="bg-white rounded-lg shadow hover:shadow-lg p-6 flex slg:flex-row flex-col items-center text-center border-b-4 hover:border-blue-600 border-white transition-all duration-300 ease-in-out gap-3 w-full sm:w-[48%] xll:w-[28%] xl:w-[32%] lg:w-[30%] slg:w-[28%]"
+          >
+            <div
+              class="rounded-full slg:p-3 p-2 bg-[#EFF2F9] xll:w-[80px] xl:w-[70px] slg:w-[60px] w-[55px] xll:min-w-[80px] xl:min-w-[70px] slg:min-w-[60px] min-w-[55px] xll:h-[80px] xl:h-[70px] slg:h-[60px] h-[55px] xll:min-h-[80px] xl:min-h-[70px] slg:min-h-[60px] min-h-[55px]"
+            >
+              <img
+                class="w-full h-auto object-contain"
+                src="static/main/images/house (1).png"
+                alt=""
+              />
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800">
+              Very Low Rates on All Loans
+            </h3>
+          </div>
+
+          <div
+            class="bg-white rounded-lg shadow hover:shadow-lg p-6 flex slg:flex-row flex-col items-center text-center border-b-4 hover:border-blue-600 border-white transition-all duration-300 ease-in-out gap-3 w-full sm:w-[48%] xll:w-[28%] xl:w-[32%] lg:w-[30%] slg:w-[28%]"
+          >
+            <div
+              class="rounded-full slg:p-3 p-2 bg-[#EFF2F9] xll:w-[80px] xl:w-[70px] slg:w-[60px] w-[55px] xll:min-w-[80px] xl:min-w-[70px] slg:min-w-[60px] min-w-[55px] xll:h-[80px] xl:h-[70px] slg:h-[60px] h-[55px] xll:min-h-[80px] xl:min-h-[70px] slg:min-h-[60px] min-h-[55px]"
+            >
+              <img
+                class="w-full h-auto object-contain"
+                src="static/main/images/house (1).png"
+                alt=""
+              />
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800">
+              Very Low Rates on All Loans
+            </h3>
+          </div>
+
+          <div
+            class="bg-white rounded-lg shadow hover:shadow-lg p-6 flex slg:flex-row flex-col items-center text-center border-b-4 hover:border-blue-600 border-white transition-all duration-300 ease-in-out gap-3 w-full sm:w-[48%] xll:w-[28%] xl:w-[32%] lg:w-[30%] slg:w-[28%]"
+          >
+            <div
+              class="rounded-full slg:p-3 p-2 bg-[#EFF2F9] xll:w-[80px] xl:w-[70px] slg:w-[60px] w-[55px] xll:min-w-[80px] xl:min-w-[70px] slg:min-w-[60px] min-w-[55px] xll:h-[80px] xl:h-[70px] slg:h-[60px] h-[55px] xll:min-h-[80px] xl:min-h-[70px] slg:min-h-[60px] min-h-[55px]"
+            >
+              <img
+                class="w-full h-auto object-contain"
+                src="static/main/images/house (1).png"
+                alt=""
+              />
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800">
+              Very Low Rates on All Loans
+            </h3>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section
+      class="px-6 slg:py-24 py-10 bg-black min-h-screen h-auto flex justify-center items-center"
+    >
+      <div class="container mx-auto flex slg:flex-nowrap flex-wrap">
+        <div
+          class="text-white slg:w-auto w-full border-white slg:border-r-2 slg:border-b-0 border-b-2 xll:pr-24 xl:pr-20 lg:pr-16 slg:pr-10 slg:pb-0 pb-8"
+        >
+          <!-- Heading -->
+          <div class="mb-8">
+            <h2
+              class="font-semibold slg:text-left text-center text-h2-xs sm:text-h2-sm md:text-h2-md slg:text-h2-lg lgg:text-h2-lgg xl:text-h2-xl 2xl:text-h2-2xl slg:mb-4 mb-2 text-white"
+            >
+              Your trusted partner for personalized loan solutions, expert
+              financial guidance
+            </h2>
+          </div>
+
+          <!-- Image -->
+          <div
+            class="w-full mb-12 slg:max-h-[400px] overflow-hidden rounded-lg"
+          >
+            <img
+              src="static/main/images/127118.jpg"
+              alt="Financial Discussion"
+              class="w-full h-auto object-cover object-center"
+            />
+          </div>
+
+          <!-- Features -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
+            <!-- Feature 1 -->
+            <div class="flex flex-col items-center md:text-left text-center">
+              <div
+                class="flex items-center md:flex-row flex-col gap-3 w-full md:mb-3 mb-2"
+              >
+                <img
+                  src="https://img.icons8.com/ios/100/1E40AF/money-bag.png"
+                  alt="Personalized Loan"
+                  class="w-12 h-12"
+                />
+                <h3 class="text-lg md:text-start text-center font-semibold">
+                  Personalized Loan
+                </h3>
+              </div>
+              <p class="text-white text-sm">
+                We offer customized loan options tailored to meet your specific
+                financial requirements.
+              </p>
+            </div>
+
+            <!-- Feature 2 -->
+            <div class="flex flex-col items-center md:text-left text-center">
+              <div
+                class="flex items-center md:flex-row flex-col gap-3 w-full md:mb-3 mb-2"
+              >
+                <img
+                  src="https://img.icons8.com/ios/100/1E40AF/cheap-2.png"
+                  alt="Personalized Loan"
+                  class="w-12 h-12"
+                />
+                <h3 class="text-lg md:text-start text-center font-semibold">
+                  Competitive Rates
+                </h3>
+              </div>
+              <p class="text-white text-sm">
+                Benefit from loanlift competitive rates, designed to make your
+                loans more affordable.
+              </p>
+            </div>
+
+            <!-- Feature 3 -->
+            <div class="flex flex-col items-center md:text-left text-center">
+              <div
+                class="flex items-center md:flex-row flex-col gap-3 w-full md:mb-3 mb-2"
+              >
+                <img
+                  src="https://img.icons8.com/ios/100/1E40AF/handshake.png"
+                  alt="Personalized Loan"
+                  class="w-12 h-12"
+                />
+                <h3 class="text-lg md:text-start text-center font-semibold">
+                  Trusted Partner
+                </h3>
+              </div>
+              <p class="text-white text-sm">
+                With a commitment to transparency and personalized service, we
+                work with you every step of the way.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div
+          class="slg:w-auto slg:mt-0 mt-4 w-full xl:px-12 slg:px-7 flex slg:flex-col xs:flex-row xs:gap-0 gap-3 flex-col justify-between items-center"
+        >
+          <div class="slg:w-[230px] xs:w-[120px] w-full text-white">
+            <div class="flex flex-col xs:gap-2 gap-0">
+              <span
+                class="slg:text-[5.4rem] text-[3.4rem] block text-left slg:leading-[5.1rem] leading-[3.1rem]"
+                >25+</span
+              >
+              <span class="ml-auto block text-right">1</span>
+            </div>
+            <hr class="bg-white border-t-[2px] my-2" />
+            <p class="text-white slg:text-lg text-sm">
+              Years of trusted expertised.
+            </p>
+          </div>
+          <div class="slg:w-[230px] xs:w-[120px] w-full text-white">
+            <div class="flex flex-col xs:gap-2 gap-0">
+              <span
+                class="slg:text-[5.4rem] text-[3.4rem] block text-left slg:leading-[5.1rem] leading-[3.1rem]"
+                >25+</span
+              >
+              <span class="ml-auto block text-right">1</span>
+            </div>
+            <hr class="bg-white border-t-[2px] my-2" />
+            <p class="text-white slg:text-lg text-sm">
+              Years of trusted expertised.
+            </p>
+          </div>
+          <div class="slg:w-[230px] xs:w-[120px] w-full text-white">
+            <div class="flex flex-col xs:gap-2 gap-0">
+              <span
+                class="slg:text-[5.4rem] text-[3.4rem] block text-left slg:leading-[5.1rem] leading-[3.1rem]"
+                >25+</span
+              >
+              <span class="ml-auto block text-right">1</span>
+            </div>
+            <hr class="bg-white border-t-[2px] my-2" />
+            <p class="text-white slg:text-lg text-sm">
+              Years of trusted expertised.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section
+      class="px-6 slg:py-24 py-10 bg-white min-h-screen h-auto flex justify-center items-center"
+    >
+      <div class="container mx-auto">
+        <div class="flex slg:flex-nowrap flex-wrap">
+          <div class="slg:w-1/2 w-full slg:mb-0 mb-4">
+            <span
+              class="xll:text-[1.3rem] lg:text-[1.2rem] text-[1.1rem] leading-[1.2rem] text-[#018cd5] slg:text-left text-center slg:inline-block block"
+              >Our Process</span
+            >
+            <h2
+              class="slg:text-left text-center text-h2-xs sm:text-h2-sm md:text-h2-md slg:text-h2-lg lgg:text-h2-lgg xl:text-h2-xl 2xl:text-h2-2xl slg:mb-4 mb-2 font-semibold"
+            >
+              Consultation successful loan approval process
+            </h2>
+            <p
+              class="slg:text-start text-center text-p-xs sm:text-p-sm md:text-p-md slg:text-p-lg lgg:text-p-lgg xl:text-p-xl 2xl:text-p-2xl"
+            >
+              Our comprehensive process ensures a seamless journey from initial
+              consultation to successful loan approval. Experience personalized
+              guidance and expert support every step of the way.
+            </p>
+          </div>
+          <div class="slg:w-1/2 w-full slg:px-8 slg:py-4">
+            <div
+              class="w-full slg:max-w-full max-w-[500px] slg:mx-0 mx-auto slg:min-h-[320px] xs:h-[270px] h-[180px] overflow-hidden rounded-lg"
+            >
+              <img
+                class="w-full h-auto object-cover"
+                src="static/main/images/127118.jpg"
+                alt=""
+              />
+            </div>
+          </div>
+        </div>
+        <div
+          class="flex slg:flex-nowrap flex-wrap items-center gap-4 slg:mt-0 mt-6"
+        >
+          <div
+            class="w-fit h-fit flex md:flex-nowrap flex-wrap slg:order-2 order-1"
+          >
+            <div class="md:w-[25%] xs:w-[50%] w-full">
+              <div
+                class="md:h-1/2 h-fit md:p-6 p-4 md:pb-8 pb-2 md:pl-0 border-b-2 border-[#999898] after:content-[''] after:block after:w-[20px] after:h-[20px] after:absolute after:bg-black md:after:left-0 after:left-[46%] after:bottom-[-11px] relative"
+              >
+                <div
+                  class="flex md:items-start items-center flex-col xs:gap-3 gap-0 w-full md:mb-3 mb-2"
+                >
+                  <img
+                    src="https://img.icons8.com/ios/100/1E40AF/money-bag.png"
+                    alt="Personalized Loan"
+                    class="w-12 h-12"
+                  />
+                  <h3 class="text-p-md md:text-start text-center font-semibold">
+                    Personalized Loan
+                  </h3>
+                </div>
+              </div>
+
+              <div class="md:h-1/2 h-fit md:p-6 p-4 md:pt-8 pt-2 md:pl-0">
+                <p class="text-black text-sm md:text-left text-center">
+                  With a commitment to transparency and personalized service, we
+                  work with you every step of the way.
+                </p>
+              </div>
+            </div>
+
+            <div class="md:w-[25%] xs:w-[50%] w-full">
+              <div
+                class="md:h-1/2 h-fit md:p-6 p-4 md:pb-8 pb-2 md:pl-0 border-b-2 border-[#999898] after:content-[''] after:block after:w-[20px] after:h-[20px] after:absolute after:bg-black md:after:left-0 after:left-[46%] after:bottom-[-11px] relative"
+              >
+                <div
+                  class="flex md:items-start items-center flex-col xs:gap-3 gap-0 w-full md:mb-3 mb-2"
+                >
+                  <img
+                    src="https://img.icons8.com/ios/100/1E40AF/money-bag.png"
+                    alt="Personalized Loan"
+                    class="w-12 h-12"
+                  />
+                  <h3 class="text-p-md md:text-start text-center font-semibold">
+                    Personalized Loan
+                  </h3>
+                </div>
+              </div>
+
+              <div class="md:h-1/2 h-fit md:p-6 p-4 md:pt-8 pt-2 md:pl-0">
+                <p class="text-black text-sm md:text-left text-center">
+                  With a commitment to transparency and personalized service, we
+                  work with you every step of the way.
+                </p>
+              </div>
+            </div>
+
+            <div class="md:w-[25%] xs:w-[50%] w-full">
+              <div
+                class="md:h-1/2 h-fit md:p-6 p-4 md:pb-8 pb-2 md:pl-0 border-b-2 border-[#999898] after:content-[''] after:block after:w-[20px] after:h-[20px] after:absolute after:bg-black md:after:left-0 after:left-[46%] after:bottom-[-11px] relative"
+              >
+                <div
+                  class="flex md:items-start items-center flex-col xs:gap-3 gap-0 w-full md:mb-3 mb-2"
+                >
+                  <img
+                    src="https://img.icons8.com/ios/100/1E40AF/money-bag.png"
+                    alt="Personalized Loan"
+                    class="w-12 h-12"
+                  />
+                  <h3 class="text-p-md md:text-start text-center font-semibold">
+                    Personalized Loan
+                  </h3>
+                </div>
+              </div>
+
+              <div class="md:h-1/2 h-fit md:p-6 p-4 md:pt-8 pt-2 md:pl-0">
+                <p class="text-black text-sm md:text-left text-center">
+                  With a commitment to transparency and personalized service, we
+                  work with you every step of the way.
+                </p>
+              </div>
+            </div>
+
+            <div class="md:w-[25%] xs:w-[50%] w-full">
+              <div
+                class="md:h-1/2 h-fit md:p-6 p-4 md:pb-8 pb-2 md:pl-0 border-b-2 border-[#999898] after:content-[''] after:block after:w-[20px] after:h-[20px] after:absolute after:bg-black md:after:left-0 after:left-[46%] after:bottom-[-11px] relative"
+              >
+                <div
+                  class="flex md:items-start items-center flex-col xs:gap-3 gap-0 w-full md:mb-3 mb-2"
+                >
+                  <img
+                    src="https://img.icons8.com/ios/100/1E40AF/money-bag.png"
+                    alt="Personalized Loan"
+                    class="w-12 h-12"
+                  />
+                  <h3 class="text-p-md md:text-start text-center font-semibold">
+                    Personalized Loan
+                  </h3>
+                </div>
+              </div>
+
+              <div class="md:h-1/2 h-fit md:p-6 p-4 md:pt-8 pt-2 md:pl-0">
+                <p class="text-black text-sm md:text-left text-center">
+                  With a commitment to transparency and personalized service, we
+                  work with you every step of the way.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="slg:w-fit w-full slg:order-1 order-2 slg:block hidden">
+            <div
+              class="xl:min-[300px] xl:w-[300px] lg:w-[240px] w-[200px] h-[500px] rounded-lg overflow-hidden"
+            >
+              <img
+                class="object-cover h-full w-auto"
+                src="static/main/images/127118.jpg"
+                alt=""
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="about-us" class="px-6 slg:pt-24 pt-10 pb-0 relative">
+      <div
+        class="w-1/2 h-[105%] absolute bg-blue-600 left-0 bottom-0 slg:block hidden"
+      ></div>
+      <div class="container mx-auto flex slg:flex-nowrap flex-wrap relative">
+        <div class="slg:w-1/2 w-full slg:order-2 order-1 slg:px-6">
+          <div>
+            <span
+              class="lg:mb-3 slg:gap-3 mb-2 xll:text-[1.3rem] lg:text-[1.2rem] text-[1.1rem] leading-[1.2rem] slg:flex block slg:text-left text-center items-center"
+              >Get to Know About
+              <span
+                class="bg-[#018cd5] w-[50px] h-[4px] rounded-full block slg:mx-0 mx-auto slg:mt-0 mt-2"
+              ></span>
+            </span>
+            <h2
+              class="slg:text-left text-center text-h2-xs sm:text-h2-sm md:text-h2-md slg:text-h2-lg lgg:text-h2-lgg xl:text-h2-xl 2xl:text-h2-2xl slg:mb-4 mb-2 font-semibold"
+            >
+              Flexible and Quick Business Loans For You
+            </h2>
+          </div>
+
+          <p
+            class="slg:text-start text-center text-p-xs sm:text-p-sm md:text-p-md slg:text-p-lg lgg:text-p-lgg xl:text-p-xl 2xl:text-p-2xl"
+          >
+            Provide your best loan services and our experience staff help you.
+            Less document and fast approve process of passages. Also we are
+            providing credit card facility to per day interest credit card lorem
+            Ipsum available, but the majority have suffered.
+          </p>
+
+          <div class="w-full py-4">
+            <div class="md:block flex justify-center">
+              <!-- Features -->
+              <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="md:text-left text-center">
+                  <h4
+                    class="text-blue-700 font-semibold flex md:justify-start justify-center items-center gap-2"
+                  >
+                    <span class="text-xl">▶</span> Professional Team
+                  </h4>
+                  <p class="text-gray-500 text-sm mt-2">
+                    Lorem ipsum dolor sit amet, consectetur notted.
+                  </p>
+                </div>
+                <div class="md:text-left text-center">
+                  <h4
+                    class="text-blue-700 font-semibold md:justify-start justify-center flex items-center gap-2"
+                  >
+                    <span class="text-xl">▶</span> Quick Payments
+                  </h4>
+                  <p class="text-gray-500 text-sm mt-2">
+                    Lorem ipsum dolor sit amet, consectetur notted.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Progress Bars -->
+            <div class="mt-10 space-y-6">
+              <!-- Loan Process -->
+              <div>
+                <div class="flex justify-between mb-1">
+                  <span class="font-semibold text-gray-700">Loan Process</span>
+                  <span class="text-gray-500 font-medium">90%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    class="bg-blue-500 h-2 rounded-full progress"
+                    data-percent="90"
+                  ></div>
+                </div>
+              </div>
+
+              <!-- Consultancy -->
+              <div>
+                <div class="flex justify-between mb-1">
+                  <span class="font-semibold text-gray-700">Consultancy</span>
+                  <span class="text-gray-500 font-medium">80%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    class="bg-blue-500 h-2 rounded-full progress"
+                    data-percent="80"
+                  ></div>
+                </div>
+              </div>
+
+              <!-- Payment Benefits -->
+              <div>
+                <div class="flex justify-between mb-1">
+                  <span class="font-semibold text-gray-700"
+                    >Payment Benefits</span
+                  >
+                  <span class="text-gray-500 font-medium">85%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    class="bg-blue-500 h-2 rounded-full progress"
+                    data-percent="85"
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="slg:w-1/2 w-full slg:order-1 order-2 px-6 slg:mt-[-118px]">
+          <div
+            class="flex sm:flex-row flex-col slg:gap-3 gap-2 my-3 slg:justify-start justify-center items-center h-fit sm:text-left text-center"
+          >
+            <img
+              class="xl:h-[60px] h-[50px] xl:w-[60px] w-[50px] slg:invert-0 invert-[1]"
+              src="static/main/images/money-bag.png"
+              alt=""
+            />
+            <p
+              class="slg:block flex items-center xl:text-[1.6rem] slg:text-[1.3rem] text-[1.2rem] leading-relaxed slg:text-white text-black"
+            >
+              26 years of working experience
+            </p>
+          </div>
+          <div class="w-full h-[87%] overflow-hidden slg:block hidden">
+            <img
+              class="h-full w-auto object-cover"
+              src="static/main/images/127118.jpg"
+              alt=""
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-blue-500 text-white py-12 mt-6 relative overflow-hidden">
+      <img
+        class="absolute w-full top-[-150px] left-0 opacity-[0.13]"
+        src="static/main/images/laptop-3196481_1280.jpg"
+        alt=""
+      />
+      <div class="container mx-auto">
+        <div
+          class="flex justify-center xl:gap-16 slg:gap-8 gap-4 text-center md:flex-nowrap flex-wrap"
+        >
+          <!-- Box 1 -->
+          <div class="md:w-fit xs:w-[45%] w-full">
+            <p class="text-4xl font-bold">99%</p>
+            <p class="mt-2 text-lg">We Approve Loans</p>
+          </div>
+          <!-- lines -->
+          <div class="h-auto w-[4px] bg-white md:block hidden"></div>
+          <!-- Box 2 -->
+          <div class="md:w-fit xs:w-[45%] w-full">
+            <p class="text-4xl font-bold">₹90K</p>
+            <p class="mt-2 text-lg">Daily Payments</p>
+          </div>
+          <!-- lines -->
+          <div class="h-auto w-[4px] bg-white md:block hidden"></div>
+          <!-- Box 3 -->
+          <div class="md:w-fit xs:w-[45%] w-full">
+            <p class="text-4xl font-bold">8,900</p>
+            <p class="mt-2 text-lg">Happy Customers</p>
+          </div>
+          <!-- lines -->
+          <div class="h-auto w-[4px] bg-white md:block hidden"></div>
+          <!-- Box 4 -->
+          <div class="md:w-fit xs:w-[45%] w-full">
+            <h2 class="text-4xl font-bold">346</h2>
+            <p class="mt-2 text-lg">Staff Members</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section
+      class="px-6 slg:py-24 py-10 bg-[#f8f8f8] min-h-screen h-auto flex justify-center items-center"
+    >
+      <div class="container mx-auto">
+        <div class="w-full slg:mb-14 mb-6">
+          <span
+            class="w-fit mx-auto uppercase xll:text-[1.3rem] lg:text-[1.2rem] text-[1.1rem] leading-[1.2rem] text-[#018cd5] slg:text-left text-center block"
+            >Latest News</span
+          >
+          <h2
+            class="text-center text-h2-xs sm:text-h2-sm md:text-h2-md slg:text-h2-lg lgg:text-h2-lgg xl:text-h2-xl 2xl:text-h2-2xl slg:mb-4 mb-2 font-semibold"
+          >
+            Our Latest Insights
+          </h2>
+        </div>
+        <div
+          class="flex sm:flex-nowrap flex-wrap sm:gap-0 gap-8 sm:justify-start justify-center"
+        >
+          <div
+            class="bg-white sm:w-[33.33%] min-[700px] flex flex-col-reverse xs:w-[300px] w-[250px] shadow-[0_0_22px_#ccc8c8] sm:shadow-none"
+          >
+            <div
+              class="px-4 slg:py-6 py-4 w-full h-1/2 flex content-between flex-wrap"
+            >
+              <div class="w-full">
+                <span
+                  class="xll:text-[1.3rem] xl:text-[1.2rem] text-[1rem] leading-[1.2rem] text-[#018cd5] slg:text-left text-center block xl:mb-3 mb-2"
+                  >Advices</span
+                >
+                <h3
+                  class="xl:text-[2rem] slg:text-[1.4rem] text-[1rem] xl:leading-[2.4rem] slg:leading-[1.5rem] leading-[1.3rem] slg:mb-4 mb-2"
+                >
+                  How to Appear More Confident And Attractive
+                </h3>
+              </div>
+
+              <div
+                class="border-black border-t-[1px] xl:py-5 slg:py-3 pt-2 flex justify-between w-full"
+              >
+                <a
+                  href="#"
+                  class="w-fit flex gap-3 xl:text-[1.4rem] slg:text-[1rem] text-[0.8rem] items-center"
+                  >Read More
+                  <i
+                    class="fa-solid fa-arrow-right-long slg:text-[1.4rem] text-[1rem]"
+                  ></i>
+                </a>
+                <div class="flex items-center gap-2">
+                  <i
+                    class="fa-solid fa-comment xl:text-[1.7rem] slg:text-[1.2rem] text-[1rem] text-white drop-shadow-[0_0_1px_black]"
+                  ></i
+                  ><span class="xl:text-[1.2rem] text-[0.8rem]">3</span>
+                </div>
+              </div>
+            </div>
+            <div
+              class="overflow-hidden w-full relative h-1/2 before:content-['23jan'] before:absolute before:text-white before:z-10 xl:before:text-[1.1rem] before:text-[0.8rem] before:top-[5%] before:w-fit before:h-fit slg:before:px-5 before:px-4 before:py-2 before:flex before:justify-center before:items-center before:bg-[linear-gradient(276deg,rgb(0,64,255)_0%,rgba(0,183,255,0.66)_100%)] before:left-[5%]"
+            >
+              <img
+                class="w-full h-auto object-cover"
+                src="static/main/images/girl-image.jpg"
+                alt=""
+              />
+            </div>
+          </div>
+          <div
+            class="bg-white sm:w-[33.33%] min-[700px] flex sm:flex-col flex-col-reverse xs:w-[300px] w-[250px] shadow-[0_0_22px_#ccc8c8] sm:shadow-none"
+          >
+            <div
+              class="px-4 slg:py-6 py-4 w-full h-1/2 flex content-between flex-wrap"
+            >
+              <div class="w-full">
+                <span
+                  class="xll:text-[1.3rem] xl:text-[1.2rem] text-[1rem] leading-[1.2rem] text-[#018cd5] slg:text-left text-center block xl:mb-3 mb-2"
+                  >Advices</span
+                >
+                <h3
+                  class="xl:text-[2rem] slg:text-[1.4rem] text-[1rem] xl:leading-[2.4rem] slg:leading-[1.5rem] leading-[1.3rem] slg:mb-4 mb-2"
+                >
+                  How to Appear More Confident And Attractive
+                </h3>
+              </div>
+
+              <div
+                class="border-black border-t-[1px] xl:py-5 slg:py-3 pt-2 flex justify-between w-full"
+              >
+                <a
+                  href="#"
+                  class="w-fit flex gap-3 xl:text-[1.4rem] slg:text-[1rem] text-[0.8rem] items-center"
+                  >Read More
+                  <i
+                    class="fa-solid fa-arrow-right-long slg:text-[1.4rem] text-[1rem]"
+                  ></i>
+                </a>
+                <div class="flex items-center gap-2">
+                  <i
+                    class="fa-solid fa-comment xl:text-[1.7rem] slg:text-[1.2rem] text-[1rem] text-white drop-shadow-[0_0_1px_black]"
+                  ></i
+                  ><span class="xl:text-[1.2rem] text-[0.8rem]">3</span>
+                </div>
+              </div>
+            </div>
+            <div
+              class="overflow-hidden w-full relative h-1/2 before:content-['23jan'] before:absolute before:text-white before:z-10 xl:before:text-[1.1rem] before:text-[0.8rem] before:top-[5%] before:w-fit before:h-fit slg:before:px-5 before:px-4 before:py-2 before:flex before:justify-center before:items-center before:bg-[linear-gradient(276deg,rgb(0,64,255)_0%,rgba(0,183,255,0.66)_100%)] before:left-[5%]"
+            >
+              <img
+                class="w-full h-auto object-cover"
+                src="static/main/images/girl-image.jpg"
+                alt=""
+              />
+            </div>
+          </div>
+          <div
+            class="bg-white sm:w-[33.33%] min-[700px] flex flex-col-reverse xs:w-[300px] w-[250px] shadow-[0_0_22px_#ccc8c8] sm:shadow-none"
+          >
+            <div
+              class="px-4 slg:py-6 py-4 w-full h-1/2 flex content-between flex-wrap"
+            >
+              <div class="w-full">
+                <span
+                  class="xll:text-[1.3rem] xl:text-[1.2rem] text-[1rem] leading-[1.2rem] text-[#018cd5] slg:text-left text-center block xl:mb-3 mb-2"
+                  >Advices</span
+                >
+                <h3
+                  class="xl:text-[2rem] slg:text-[1.4rem] text-[1rem] xl:leading-[2.4rem] slg:leading-[1.5rem] leading-[1.3rem] slg:mb-4 mb-2"
+                >
+                  How to Appear More Confident And Attractive
+                </h3>
+              </div>
+
+              <div
+                class="border-black border-t-[1px] xl:py-5 slg:py-3 pt-2 flex justify-between w-full"
+              >
+                <a
+                  href="#"
+                  class="w-fit flex gap-3 xl:text-[1.4rem] slg:text-[1rem] text-[0.8rem] items-center"
+                  >Read More
+                  <i
+                    class="fa-solid fa-arrow-right-long slg:text-[1.4rem] text-[1rem]"
+                  ></i>
+                </a>
+                <div class="flex items-center gap-2">
+                  <i
+                    class="fa-solid fa-comment xl:text-[1.7rem] slg:text-[1.2rem] text-[1rem] text-white drop-shadow-[0_0_1px_black]"
+                  ></i
+                  ><span class="xl:text-[1.2rem] text-[0.8rem]">3</span>
+                </div>
+              </div>
+            </div>
+            <div
+              class="overflow-hidden w-full relative h-1/2 before:content-['23jan'] before:absolute before:text-white before:z-10 xl:before:text-[1.1rem] before:text-[0.8rem] before:top-[5%] before:w-fit before:h-fit slg:before:px-5 before:px-4 before:py-2 before:flex before:justify-center before:items-center before:bg-[linear-gradient(276deg,rgb(0,64,255)_0%,rgba(0,183,255,0.66)_100%)] before:left-[5%]"
+            >
+              <img
+                class="w-full h-auto object-cover"
+                src="static/main/images/girl-image.jpg"
+                alt=""
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact-us" class="px-6 slg:py-24 py-10 bg-white">
+      <div class="container mx-auto">
+        <div class="grid lg:grid-cols-2 gap-8">
+          <!-- Left Section -->
+          <div>
+            <div>
+              <span
+                class="lg:mb-3 slg:gap-3 mb-2 xll:text-[1.3rem] lg:text-[1.2rem] text-[1.1rem] leading-[1.2rem] slg:flex block slg:text-left text-center items-center"
+                >Get in touch with us
+                <span
+                  class="bg-[#018cd5] w-[50px] h-[4px] rounded-full block slg:mx-0 mx-auto slg:mt-0 mt-2"
+                ></span>
+              </span>
+              <h2
+                class="slg:text-left text-center text-h2-xs sm:text-h2-sm md:text-h2-md slg:text-h2-lg lgg:text-h2-lgg xl:text-h2-xl 2xl:text-h2-2xl slg:mb-4 mb-2 font-semibold"
+              >
+                Ask for your query
+              </h2>
+            </div>
+
+            <!-- Contact Info -->
+            <div class="space-y-6">
+              <!-- Call -->
+              <div
+                class="flex slg:flex-row flex-col slg:text-left text-center items-center gap-4"
+              >
+                <div
+                  class="bg-blue-100 text-blue-600 slg:p-3 p-2 rounded-full slg:w-[60px] w-[50px] slg:h-[60px] h-[50px]"
+                >
+                  <img
+                    class="w-full h-full"
+                    src="static/main/images/phone.png"
+                    alt=""
+                  />
+                </div>
+                <div>
+                  <h5
+                    class="text-h5-xs sm:text-h5-sm md:text-h5-md slg:text-h5-lg lgg:text-h5-lgg font-semibold text-gray-800"
+                  >
+                    Call Anytime
+                  </h5>
+                  <p
+                    class="text-gray-600 text-p-xs sm:text-p-sm md:text-p-md slg:text-p-lg lgg:text-p-lgg"
+                  >
+                    92 666 888 0000
+                  </p>
+                </div>
+              </div>
+
+              <!-- Email -->
+              <div
+                class="flex slg:flex-row flex-col slg:text-left text-center items-center gap-4"
+              >
+                <div
+                  class="bg-blue-100 text-blue-600 slg:p-3 p-2 rounded-full slg:w-[60px] w-[50px] slg:h-[60px] h-[50px]"
+                >
+                  <img
+                    class="w-full h-full"
+                    src="static/main/images/email.png"
+                    alt=""
+                  />
+                </div>
+                <div>
+                  <h5
+                    class="text-h5-xs sm:text-h5-sm md:text-h5-md slg:text-h5-lg lgg:text-h5-lgg font-semibold text-gray-800"
+                  >
+                    Write Email
+                  </h5>
+                  <p
+                    class="text-gray-600 text-p-xs sm:text-p-sm md:text-p-md slg:text-p-lg lgg:text-p-lgg"
+                  >
+                    needhelp@company.com
+                  </p>
+                </div>
+              </div>
+
+              <!-- Office -->
+              <div
+                class="flex slg:flex-row flex-col slg:text-left text-center items-center gap-4"
+              >
+                <div
+                  class="bg-blue-100 text-blue-600 slg:p-3 p-2 rounded-full slg:w-[60px] w-[50px] slg:h-[60px] h-[50px]"
+                >
+                  <img
+                    class="w-full h-full"
+                    src="static/main/images/location.png"
+                    alt=""
+                  />
+                </div>
+                <div>
+                  <h5
+                    class="text-h5-xs sm:text-h5-sm md:text-h5-md slg:text-h5-lg lgg:text-h5-lgg font-semibold text-gray-800"
+                  >
+                    Visit Office
+                  </h5>
+                  <p
+                    class="text-gray-600 text-p-xs sm:text-p-sm md:text-p-md slg:text-p-lg lgg:text-p-lgg"
+                  >
+                    80 Marktin Colvel, Broklyn, New York, USA
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Form -->
+          <div class="sm:p-6 p-0">
+            <form id="contactForm" class="slg:space-y-6 space-y-4">
+              <!-- Name Field -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <input
+                    type="text"
+                    id="name"
+                    placeholder="Your Name"
+                    class="bg-[#f0f7ff] border-2 border-transparent h-[50px] rounded-md px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none w-full"
+                  />
+                  <div
+                    id="nameError"
+                    class="text-red-500 pl-[10px] text-sm mt-1 hidden"
+                  ></div>
+                </div>
+
+                <!-- Email Field -->
+                <div>
+                  <input
+                    type="email"
+                    id="email-contact"
+                    placeholder="Your Email"
+                    class="bg-[#f0f7ff] border-2 border-transparent h-[50px] rounded-md px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none w-full"
+                  />
+                  <div
+                    id="emailError"
+                    class="text-red-500 pl-[10px] text-sm mt-1 hidden"
+                  ></div>
+                </div>
+              </div>
+
+              <!-- Phone and Subject Fields -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <input
+                    type="text"
+                    id="phone"
+                    placeholder="Phone Number"
+                    class="bg-[#f0f7ff] border-2 border-transparent h-[50px] rounded-md px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none w-full"
+                  />
+                  <div
+                    id="phoneError"
+                    class="text-red-500 pl-[10px] text-sm mt-1 hidden"
+                  ></div>
+                </div>
+                <div>
+                  <input
+                    type="text"
+                    id="subject"
+                    placeholder="Subject"
+                    class="bg-[#f0f7ff] border-2 border-transparent h-[50px] rounded-md px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none w-full"
+                  />
+                  <div
+                    id="subjectError"
+                    class="text-red-500 pl-[10px] text-sm mt-1 hidden"
+                  ></div>
+                </div>
+              </div>
+
+              <!-- Message Field -->
+              <div>
+                <textarea
+                  id="message"
+                  placeholder="Write Message"
+                  rows="4"
+                  class="bg-[#f0f7ff] border-2 border-transparent w-full min-h-[210px] rounded-md px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                ></textarea>
+                <div
+                  id="messageError"
+                  class="text-red-500 pl-[10px] text-sm mt-1 hidden"
+                ></div>
+              </div>
+
+              <!-- Submit Button -->
+              <div
+                class="flex slg:justify-start justify-center items-center w-full"
+              >
+                <button
+                  type="submit"
+                  class="hover:bg-[linear-gradient(151deg,rgb(0,64,255)_0%,rgba(0,183,255,0.66)_100%)] text-white font-medium bg-[linear-gradient(276deg,rgb(0,64,255)_0%,rgba(0,183,255,0.66)_100%)] px-6 py-2 rounded-md transition"
+                >
+                  Send A Message
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-blue-600 text-white py-12 px-6 relative overflow-hidden">
+      <img
+        class="absolute w-full top-[-150px] left-0 opacity-[0.13]"
+        src="static/main/images/laptop-3196481_1280.jpg"
+        alt=""
+      />
+      <div
+        class="container mx-auto flex flex-col md:flex-row items-center justify-between gap-6 relative z-10"
+      >
+        <!-- Left Content -->
+        <div class="text-center md:text-left">
+          <p class="text-sm font-medium mb-2">Simple / Transparent / Secure</p>
+          <h2
+            class="text-h2-xs sm:text-h2-sm md:text-h2-md slg:text-h2-lg lgg:text-h2-lgg xl:text-h2-xl 2xl:text-h2-2xl font-semibold"
+          >
+            Get a Business Loans Quickly
+          </h2>
+        </div>
+
+        <!-- Right Button -->
+        <div class="flex justify-center md:justify-end">
+          <a
+            href="#"
+            class="bg-blue-400 hover:bg-blue-500 text-white font-semibold slg:px-6 px-4 py-3 slg:text-p-md text-p-xs rounded-md transition duration-300"
+          >
+            Apply For Loan
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <footer class="bg-[#0a1e3f] text-white">
+      <div class="max-w-[100rem] mx-auto px-6 py-12">
+        <div
+          class="flex flex-col md:flex-row flex-wrap md:items-start items-center gap-10"
+        >
+          <!-- Company Info -->
+          <div
+            class="flex-1 min-w-[250px] max-w-[400px] text-center md:text-left"
+          >
+            <div
+              class="flex flex-col md:flex-row md:items-center space-y-3 md:space-y-0 md:space-x-3 justify-center md:justify-start"
+            >
+              <img
+                src="static/main/images/leelija.png"
+                alt="Logo"
+                class="w-16 h-16 mx-auto md:mx-0"
+              />
+              <h2 class="text-2xl font-semibold">LEELIJA</h2>
+            </div>
+            <p class="mt-4 text-gray-300 text-base leading-6 mb-3">
+              Welcome to pylon loan company we are provide loan as very
+              reasonably interest and you can provide document etur labore.
+            </p>
+            <hr class="mx-auto md:mx-0 w-3/4 md:w-full" />
+            <div class="mt-3">
+              <p class="uppercase text-sm text-gray-400 mb-1">Call Anytime</p>
+              <a
+                href="tel:+198123100000"
+                class="text-lg font-bold hover:text-blue-400 transition block"
+                >+1 9812310000</a
+              >
+            </div>
+          </div>
+
+          <!-- Explore Links -->
+          <div
+            class="flex-1 min-w-[200px] max-w-[300px] text-center md:text-left"
+          >
+            <h3 class="text-xl font-semibold mb-4">Explore</h3>
+            <ul class="space-y-2 text-gray-300 text-base">
+              <li>
+                <a
+                  href="#"
+                  class="hover:text-blue-400 w-fit md:mx-0 mx-auto flex-row flex gap-2 items-center hover:pl-2 transition-all duration-300 ease-in-out"
+                >
+                  <i class="fa-solid fa-arrow-right text-white"></i>About</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="hover:text-blue-400 w-fit md:mx-0 mx-auto flex-row flex gap-2 items-center hover:pl-2 transition-all duration-300 ease-in-out"
+                >
+                  <i class="fa-solid fa-arrow-right text-white"></i> Our
+                  Services</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="hover:text-blue-400 w-fit md:mx-0 mx-auto flex-row flex gap-2 items-center hover:pl-2 transition-all duration-300 ease-in-out"
+                >
+                  <i class="fa-solid fa-arrow-right text-white"></i> Latest
+                  News</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="hover:text-blue-400 w-fit md:mx-0 mx-auto flex-row flex gap-2 items-center hover:pl-2 transition-all duration-300 ease-in-out"
+                >
+                  <i class="fa-solid fa-arrow-right text-white"></i>
+                  Testimonials</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="hover:text-blue-400 w-fit md:mx-0 mx-auto flex-row flex gap-2 items-center hover:pl-2 transition-all duration-300 ease-in-out"
+                >
+                  <i class="fa-solid fa-arrow-right text-white"></i>Contact</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="hover:text-blue-400 w-fit md:mx-0 mx-auto flex-row flex gap-2 items-center hover:pl-2 transition-all duration-300 ease-in-out"
+                >
+                  <i class="fa-solid fa-arrow-right text-white"></i> Loan
+                  Calculator</a
+                >
+              </li>
+            </ul>
+          </div>
+
+          <!-- Latest News -->
+          <div
+            class="flex-1 min-w-[250px] max-w-[400px] text-center md:text-left"
+          >
+            <h3 class="text-xl font-semibold mb-4">Latest News</h3>
+            <div class="space-y-4">
+              <div
+                class="flex flex-col md:flex-row items-center md:items-start space-y-3 md:space-y-0 md:space-x-4"
+              >
+                <img
+                  src="static/main/images/girl-image.jpg"
+                  alt="News"
+                  class="w-16 h-16 rounded object-cover"
+                />
+                <div>
+                  <p class="text-blue-400 text-sm">October 16, 2023</p>
+                  <p
+                    class="text-base hover:text-blue-400 transition cursor-pointer"
+                  >
+                    We're Providing the Quality Services
+                  </p>
+                </div>
+              </div>
+              <div
+                class="flex flex-col md:flex-row items-center md:items-start space-y-3 md:space-y-0 md:space-x-4"
+              >
+                <img
+                  src="static/main/images/girl-image.jpg"
+                  alt="News"
+                  class="w-16 h-16 rounded object-cover"
+                />
+                <div>
+                  <p class="text-blue-400 text-sm">October 16, 2023</p>
+                  <p
+                    class="text-base hover:text-blue-400 transition cursor-pointer"
+                  >
+                    We're Providing the Quality Services
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contact Info -->
+          <div
+            class="flex-1 min-w-[250px] max-w-[400px] bg-[#08192b] p-6 rounded-lg text-center md:text-left"
+          >
+            <h3 class="text-xl font-semibold mb-4">Contact</h3>
+            <ul class="space-y-3 text-gray-300 text-base">
+              <li
+                class="flex flex-col md:flex-row items-center md:items-start space-y-2 md:space-y-0 md:space-x-3"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 text-blue-400 flex-shrink-0"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M16 12h2a2 2 0 012 2v6H4v-6a2 2 0 012-2h2m4 0V6a4 4 0 014-4 4 4 0 014 4v6z"
+                  />
+                </svg>
+                <span>needhelp@company.com</span>
+              </li>
+              <li
+                class="flex flex-col md:flex-row items-center md:items-start space-y-2 md:space-y-0 md:space-x-3"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 text-blue-400 flex-shrink-0"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <span>Mon - Sat 8:00 AM - 6:00 PM</span>
+              </li>
+              <li
+                class="flex flex-col md:flex-row items-center md:items-start space-y-2 md:space-y-0 md:space-x-3"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 text-blue-400 flex-shrink-0"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M17.657 16.657L13.414 12.414m0 0L9.172 8.172m4.242 4.242L9.172 16.657m4.242-4.242l4.243-4.243"
+                  />
+                </svg>
+                <span>80 Broklyn Golden Street, New York, USA</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom -->
+      <div class="bg-[#08192b]">
+        <div
+          class="mt-12 py-4 flex flex-col md:flex-row justify-between items-center px-6 max-w-7xl mx-auto text-gray-400 text-lg"
+        >
+          <p
+            class="text-lg md:text-[17px] md:text-left text-center font-semibold"
+          >
+            © Copyright 2023 by Company.com
+          </p>
+          <div class="flex space-x-4 mt-5 md:mt-0">
+            <a
+              href="#"
+              class="hover:text-blue-400 transition text-xl w-10 h-10 flex justify-center items-center rounded-full bg-[#2d424d] text-white"
+            >
+              <i class="fab fa-facebook-f"></i>
+            </a>
+            <a
+              href="#"
+              class="hover:text-blue-400 transition text-xl w-10 h-10 flex justify-center items-center rounded-full bg-[#2d424d] text-white"
+            >
+              <i class="fab fa-twitter"></i>
+            </a>
+            <a
+              href="#"
+              class="hover:text-blue-400 transition text-xl w-10 h-10 flex justify-center items-center rounded-full bg-[#2d424d] text-white"
+            >
+              <i class="fab fa-pinterest-p"></i>
+            </a>
+            <a
+              href="#"
+              class="hover:text-blue-400 transition text-xl w-10 h-10 flex justify-center items-center rounded-full bg-[#2d424d] text-white"
+            >
+              <i class="fab fa-instagram"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Font Awesome for Social Icons -->
+    <script
+      src="https://kit.fontawesome.com/your-kit-code.js"
+      crossorigin="anonymous"
+    ></script>
+
+    <script>
+      const loanAmount = document.getElementById("loanAmount");
+      const term = document.getElementById("term");
+      const loanAmountDisplay = document.getElementById("loanAmountDisplay");
+      const termDisplay = document.getElementById("termDisplay");
+      const payMonthly = document.getElementById("payMonthly");
+      const termOfUse = document.getElementById("termOfUse");
+      const totalPayBack = document.getElementById("totalPayBack");
+
+      function updateValues() {
+        const amount = parseInt(loanAmount.value);
+        const months = parseInt(term.value);
+
+        // Example calculation (can adjust logic)
+        const interestRate = 0.15; // 15% interest overall
+        const totalPay = amount + amount * interestRate;
+        const monthly = Math.round(totalPay / months);
+
+        loanAmountDisplay.textContent = `₹${amount}`;
+        termDisplay.textContent = months;
+        payMonthly.textContent = `₹${monthly}`;
+        termOfUse.textContent = `${months} Months`;
+        totalPayBack.textContent = `₹${totalPay}`;
+      }
+
+      loanAmount.addEventListener("input", updateValues);
+      term.addEventListener("input", updateValues);
+      updateValues();
+    </script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Select all progress bars
+        const progressBars = document.querySelectorAll(".progress");
+
+        // Options for the Intersection Observer
+        const options = {
+          threshold: 0.5, // Trigger when 50% of the element is visible
+        };
+
+        // Create an Intersection Observer
+        const observer = new IntersectionObserver(function (entries, observer) {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              // Start progress animation for this bar
+              animateProgressBar(entry.target);
+              // Stop observing this element after animation starts
+              observer.unobserve(entry.target);
+            }
+          });
+        }, options);
+
+        // Observe each progress bar
+        progressBars.forEach((bar) => {
+          // Initialize width to 0
+          bar.style.width = "0%";
+          bar.style.transition = "width 1s ease-in-out";
+          observer.observe(bar);
+        });
+
+        // Function to animate progress bar
+        function animateProgressBar(bar) {
+          const percent = bar.getAttribute("data-percent");
+          setTimeout(() => {
+            bar.style.width = percent + "%";
+          }, 200);
+        }
+      });
+    </script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Select all statistic elements
+        const statisticElements = document.querySelectorAll(
+          ".text-4xl.font-bold"
+        );
+
+        // Options for the Intersection Observer
+        const options = {
+          threshold: 0.5, // Trigger when 50% of the element is visible
+        };
+
+        // Create an Intersection Observer
+        const observer = new IntersectionObserver(function (entries, observer) {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              // Start counting animation for this element
+              animateCount(entry.target);
+              // Stop observing this element after animation starts
+              observer.unobserve(entry.target);
+            }
+          });
+        }, options);
+
+        // Observe each statistic element
+        statisticElements.forEach((element) => {
+          observer.observe(element);
+        });
+
+        // Function to animate counting
+        function animateCount(element) {
+          const target = parseInt(element.textContent.replace(/[^0-9]/g, ""));
+          const duration = 2000; // Animation duration in milliseconds
+          const start = 0;
+          const increment = target / (duration / 16); // Roughly 60fps
+
+          let current = start;
+          const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+              clearInterval(timer);
+              current = target;
+            }
+
+            // Format numbers with commas if needed
+            if (element.textContent.includes("₹")) {
+              element.textContent = "₹" + Math.floor(current).toLocaleString();
+            } else if (element.textContent.includes(",")) {
+              element.textContent = Math.floor(current).toLocaleString();
+            } else {
+              element.textContent = Math.floor(current);
+            }
+          }, 16);
+        }
+      });
+    </script>
+
+    <script>
+      const menuBtn = document.getElementById("menu-btn");
+      const closeBtn = document.getElementById("close-menu");
+      const mobileMenu = document.getElementById("mobile-menu");
+      const overlay = document.getElementById("overlay");
+
+      menuBtn.addEventListener("click", () => {
+        mobileMenu.classList.remove("-translate-x-full");
+        overlay.classList.remove("hidden");
+      });
+
+      closeBtn.addEventListener("click", () => {
+        mobileMenu.classList.add("-translate-x-full");
+        overlay.classList.add("hidden");
+      });
+
+      overlay.addEventListener("click", () => {
+        mobileMenu.classList.add("-translate-x-full");
+        overlay.classList.add("hidden");
+      });
+    </script>
+
+    <script>
+      // Function to handle smooth scrolling
+      function smoothScrollTo(targetId, offset) {
+        const targetSection = document.getElementById(targetId);
+        if (targetSection) {
+          window.scrollTo({
+            top: targetSection.offsetTop - offset,
+            behavior: "smooth",
+          });
+        }
+      }
+
+      // Function to set active link
+      function setActiveLink(targetId) {
+        // Remove active class from all links
+        document.querySelectorAll('a[href^="#"]').forEach((link) => {
+          link.classList.remove("active");
+        });
+        // Add active class to the clicked link
+        document.querySelectorAll(`a[href="#${targetId}"]`).forEach((link) => {
+          link.classList.add("active");
+        });
+      }
+
+      // Function to handle initial page load with hash
+      function handleInitialHash() {
+        if (window.location.hash) {
+          const hash = window.location.hash.substring(1); // Remove the #
+          const offset =
+            hash === "about-us" ? 80 : hash === "contact-us" ? 120 : 0;
+
+          // Scroll after a tiny delay to ensure DOM is ready
+          setTimeout(() => {
+            smoothScrollTo(hash, offset);
+            setActiveLink(hash);
+          }, 10);
+
+          // Clear the hash (optional - keeps URL clean)
+          history.replaceState(null, null, " ");
+        }
+      }
+
+      // Add event listeners to all links
+      document.querySelectorAll('a[href="#about-us"]').forEach((link) => {
+        link.addEventListener("click", (e) => {
+          e.preventDefault();
+          smoothScrollTo("about-us", 80);
+          setActiveLink("about-us");
+        });
+      });
+
+      document.querySelectorAll('a[href="#contact-us"]').forEach((link) => {
+        link.addEventListener("click", (e) => {
+          e.preventDefault();
+          smoothScrollTo("contact-us", 120);
+          setActiveLink("contact-us");
+        });
+      });
+
+      // Intersection Observer to monitor section visibility
+      const observerOptions = {
+        root: null,
+        rootMargin: "0px",
+        threshold: 0.3, // Trigger when 30% of the section is visible
+      };
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          const id = entry.target.id;
+          const links = document.querySelectorAll(`a[href="#${id}"]`);
+
+          if (entry.isIntersecting) {
+            // Add active class when section is in view
+            links.forEach((link) => link.classList.add("active"));
+          } else {
+            // Remove active class when section is out of view
+            links.forEach((link) => link.classList.remove("active"));
+          }
+        });
+      }, observerOptions);
+
+      // Observe the sections
+      document.querySelectorAll("#about-us, #contact-us").forEach((section) => {
+        observer.observe(section);
+      });
+
+      // Handle initial page load
+      window.addEventListener("load", handleInitialHash);
+      window.addEventListener("DOMContentLoaded", handleInitialHash);
+    </script>
+
+    <!-- validation code  -->
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById("contactForm");
+        const inputs = {
+          name: document.getElementById("name"),
+          email: document.getElementById("email-contact"),
+          phone: document.getElementById("phone"),
+          subject: document.getElementById("subject"),
+          message: document.getElementById("message"),
+        };
+
+        // Add event listeners for real-time validation
+        Object.entries(inputs).forEach(([key, input]) => {
+          input.addEventListener("blur", () => validateField(key));
+          if (key === "phone") {
+            input.addEventListener("input", handlePhoneInput);
+          }
+          if (key === "email") {
+            input.addEventListener("input", () => validateField("email"));
+          }
+        });
+
+        // Form submission handler
+        form.addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          let isFormValid = true;
+          Object.keys(inputs).forEach((key) => {
+            if (!validateField(key)) {
+              isFormValid = false;
+            }
+          });
+
+          if (isFormValid) {
+            alert("Form submitted successfully!");
+            form.reset();
+            clearErrors();
+          }
+        });
+
+        // Validation functions
+        function validateField(fieldName) {
+          const field = inputs[fieldName];
+          const value = field.value.trim();
+          let isValid = false;
+          let errorMessage = "";
+
+          switch (fieldName) {
+            case "name":
+              isValid = value.length >= 2;
+              errorMessage = "Name must be at least 2 characters";
+              break;
+            case "email":
+              isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+              errorMessage = "Please enter a valid email";
+              break;
+            case "phone":
+              isValid = /^\d{10}$/.test(value);
+              errorMessage = "Phone must be 10 digits";
+              break;
+            case "subject":
+            case "message":
+              isValid = value.length > 0;
+              errorMessage = `${
+                fieldName.charAt(0).toUpperCase() + fieldName.slice(1)
+              } is required`;
+              break;
+          }
+
+          showError(fieldName, isValid, errorMessage);
+          return isValid;
+        }
+
+        // Phone number input handler
+        function handlePhoneInput(e) {
+          e.target.value = e.target.value.replace(/\D/g, "").slice(0, 10);
+          validateField("phone");
+        }
+
+        // Error display function
+        function showError(fieldName, isValid, errorMessage) {
+          const field = inputs[fieldName];
+          const errorElement = document.getElementById(`${fieldName}Error`);
+
+          if (!isValid) {
+            field.classList.add("border-red-500");
+            field.classList.remove("border-transparent");
+            errorElement.textContent = errorMessage;
+            errorElement.classList.remove("hidden");
+          } else {
+            field.classList.remove("border-red-500");
+            field.classList.add("border-transparent");
+            errorElement.textContent = "";
+            errorElement.classList.add("hidden");
+          }
+        }
+
+        // Clear all errors
+        function clearErrors() {
+          Object.values(inputs).forEach((field) => {
+            field.classList.remove("border-red-500");
+            field.classList.add("border-transparent");
+          });
+          document.querySelectorAll('[id$="Error"]').forEach((el) => {
+            el.textContent = "";
+            el.classList.add("hidden");
+          });
+        }
+      });
+    </script>
+  </body>
+</html>
+{% endblock %}

@@ -1,0 +1,902 @@
+{% extends "branch/base.html" %}
+{% load static %}
+{% block title %}Daily Receipts and Payments{% endblock %}
+
+{% block page_id %}dailyTransactionsReport{% endblock %}
+
+{% block content %}
+<div class="p-4 md:p-6 lg:p-8">
+
+  <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+        <h2 class="text-title-md2 font-bold text-black dark:text-white">
+          Daily Receipts &amp; Payments
+        </h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          Periodical report of daily receipts and payments.
+        </p>
+    </div>
+    <nav>
+            <ol class="flex items-center gap-2">
+                <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+                        href="{% url 'branch:dashboard' %}">Dashboard <svg class="stroke-current" width="17" height="16"
+                            viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                            </path>
+                        </svg></a></li>
+                <li class="text-sm text-gray-800 dark:text-white/90">Daily Receipts &amp; Payments</li>
+            </ol>
+        </nav>
+  </div>
+
+<div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] p-2 md:p-4 lg:p-6">
+  <!-- Header + Period Filter -->
+  <div class="mb-4 flex flex-col gap-6 md:flex-row md:items-end md:justify-end">
+
+    <form method="get" class="flex flex-wrap items-end gap-3">
+
+      <div class="flex flex-col">
+        <label class="mb-1 text-xs font-medium text-gray-600 dark:text-gray-300">
+          Product
+        </label>
+        <select
+          name="product"
+          class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm shadow-sm
+                 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500
+                 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+        >
+          <option value="" {% if not product %}selected{% endif %}>All</option>
+          <option value="daily" {% if product == 'daily' %}selected{% endif %}>Daily</option>
+          <option value="weekly" {% if product == 'weekly' %}selected{% endif %}>Weekly</option>
+        </select>
+      </div>
+
+      <div class="flex flex-col">
+        <label class="mb-1 text-xs font-medium text-gray-600 dark:text-gray-300">
+          From Date
+        </label>
+        <input
+          type="text"
+          name="from_date"
+          value="{{ from_date|default_if_none:'' }}"
+          class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm shadow-sm
+                 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500
+                 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+        />
+      </div>
+
+      <div class="flex flex-col">
+        <label class="mb-1 text-xs font-medium text-gray-600 dark:text-gray-300">
+          To Date
+        </label>
+        <input
+          type="text"
+          name="to_date"
+          value="{{ to_date|default_if_none:'' }}"
+          class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm shadow-sm
+                 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500
+                 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+        />
+      </div>
+
+      <button
+        type="submit"
+        class="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium
+               text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2
+               focus:ring-blue-500 focus:ring-offset-1"
+      >
+        Apply
+      </button>
+      <button
+        type="button"
+        id="todayFilterBtn"
+        class="inline-flex items-center rounded-md bg-gray-100 px-3 py-2 text-sm font-medium
+               text-gray-700 shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2
+               focus:ring-blue-500 focus:ring-offset-1"
+      >
+        Reset
+      </button>
+    </form>
+
+    <!-- Global export buttons for all tables -->
+     {% if can_export %}
+      <div class="flex justify-end gap-2">
+        <button type="button"
+          class="inline-flex items-center"
+          onclick="downloadAllPDF()">
+          <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="35" height="30" viewBox="0 0 256 256" xml:space="preserve">
+              <g style="stroke: none; stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: none; fill-rule: nonzero; opacity: 1;" transform="translate(1.4065934065934016 1.4065934065934016) scale(2.81 2.81)">
+              	<path d="M 78.806 62.716 V 20.496 c 0 -1.214 -0.473 -2.356 -1.332 -3.216 L 61.526 1.332 C 60.667 0.473 59.525 0 58.31 0 H 15.742 c -2.508 0 -4.548 2.04 -4.548 4.548 V 43.16 v 19.556 C 34.114 65.376 56.665 65.47 78.806 62.716 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(220,223,225); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round"/>
+              	<path d="M 11.194 62.716 v 11.23 v 11.506 c 0 2.508 2.04 4.548 4.548 4.548 h 58.517 c 2.508 0 4.548 -2.04 4.548 -4.548 V 62.716 H 11.194 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(234,84,64); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round"/>
+              	<polygon points="60.27,18.41 78.81,36.88 78.73,19.73 " style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(196,203,210); fill-rule: nonzero; opacity: 1;" transform="  matrix(1 0 0 1 0 0) "/>
+              	<path d="M 77.474 17.28 L 61.526 1.332 c -0.675 -0.676 -1.529 -1.102 -2.453 -1.258 v 15.382 c 0 2.358 1.919 4.277 4.277 4.277 h 15.382 C 78.576 18.81 78.15 17.956 77.474 17.28 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(171,178,184); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round"/>
+              	<path d="M 33.092 68.321 h -4.374 c -0.69 0 -1.25 0.56 -1.25 1.25 v 8.091 v 5.541 c 0 0.69 0.56 1.25 1.25 1.25 s 1.25 -0.56 1.25 -1.25 v -4.291 h 3.124 c 2.254 0 4.088 -1.834 4.088 -4.088 v -2.415 C 37.18 70.155 35.346 68.321 33.092 68.321 z M 34.68 74.824 c 0 0.876 -0.712 1.588 -1.588 1.588 h -3.124 v -5.591 h 3.124 c 0.876 0 1.588 0.712 1.588 1.588 V 74.824 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round"/>
+              	<path d="M 45.351 84.453 H 41.27 c -0.69 0 -1.25 -0.56 -1.25 -1.25 V 69.571 c 0 -0.69 0.56 -1.25 1.25 -1.25 h 4.082 c 2.416 0 4.38 1.965 4.38 4.38 v 7.371 C 49.731 82.488 47.767 84.453 45.351 84.453 z M 42.52 81.953 h 2.832 c 1.037 0 1.88 -0.844 1.88 -1.881 v -7.371 c 0 -1.036 -0.844 -1.88 -1.88 -1.88 H 42.52 V 81.953 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round"/>
+              	<path d="M 61.282 68.321 H 54.07 c -0.69 0 -1.25 0.56 -1.25 1.25 v 13.632 c 0 0.69 0.56 1.25 1.25 1.25 s 1.25 -0.56 1.25 -1.25 v -5.566 h 3.473 c 0.69 0 1.25 -0.56 1.25 -1.25 s -0.56 -1.25 -1.25 -1.25 H 55.32 v -4.315 h 5.962 c 0.69 0 1.25 -0.56 1.25 -1.25 S 61.973 68.321 61.282 68.321 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round"/>
+              	<path d="M 60.137 40.012 c -0.154 -0.374 -0.52 -0.617 -0.924 -0.617 h -4.805 V 27.616 c 0 -0.552 -0.447 -1 -1 -1 H 40.592 c -0.552 0 -1 0.448 -1 1 v 11.778 h -4.805 c -0.404 0 -0.769 0.244 -0.924 0.617 c -0.155 0.374 -0.069 0.804 0.217 1.09 l 12.213 12.213 c 0.195 0.195 0.451 0.293 0.707 0.293 s 0.512 -0.098 0.707 -0.293 L 59.92 41.102 C 60.206 40.815 60.292 40.386 60.137 40.012 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(196,203,210); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round"/>
+              	<path d="M 58.137 38.012 c -0.154 -0.374 -0.52 -0.617 -0.924 -0.617 h -4.805 V 25.616 c 0 -0.552 -0.447 -1 -1 -1 H 38.592 c -0.552 0 -1 0.448 -1 1 v 11.778 h -4.805 c -0.404 0 -0.769 0.244 -0.924 0.617 c -0.155 0.374 -0.069 0.804 0.217 1.09 l 12.213 12.213 c 0.195 0.195 0.451 0.293 0.707 0.293 s 0.512 -0.098 0.707 -0.293 L 57.92 39.102 C 58.206 38.815 58.292 38.386 58.137 38.012 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(234,84,64); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round"/>
+              </g>
+          </svg>
+        </button>
+        <button type="button"
+                class="inline-flex items-center"
+                onclick="downloadAllExcel()">
+          <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="40" height="40" viewBox="0 0 48 48">
+            <path fill="#4CAF50" d="M41,10H25v28h16c0.553,0,1-0.447,1-1V11C42,10.447,41.553,10,41,10z"></path>
+            <path fill="#FFF" d="M32 15H39V18H32zM32 25H39V28H32zM32 30H39V33H32zM32 20H39V23H32zM25 15H30V18H25zM25 25H30V28H25zM25 30H30V33H25zM25 20H30V23H25z"></path>
+            <path fill="#2E7D32" d="M27 42L6 38 6 10 27 6z"></path>
+            <path fill="#FFF" d="M19.129,31l-2.411-4.561c-0.092-0.171-0.186-0.483-0.284-0.938h-0.037c-0.046,0.215-0.154,0.541-0.324,0.979L13.652,31H9.895l4.462-7.001L10.274,17h3.837l2.001,4.196c0.156,0.331,0.296,0.725,0.42,1.179h0.04c0.078-0.271,0.224-0.68,0.439-1.22L19.237,17h3.515l-4.199,6.939l4.316,7.059h-3.74V31z"></path>
+          </svg>
+        </button>
+      </div>
+      {% endif %}
+  </div>
+
+  <!-- Periodical Report Table -->
+  <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm
+              dark:border-gray-800 dark:bg-gray-950">
+    <div class="flex items-center justify-between border-b border-gray-100 bg-gray-50 px-4 py-3
+                dark:border-gray-800 dark:bg-gray-900">
+      <div>
+        <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">
+          Collector-wise collection &amp; disbursement
+        </h2>
+        <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+          Breakdown by collector and product for the selected period.
+        </p>
+      </div>
+      <span class="hidden sm:inline-block rounded-full bg-blue-50 px-3 py-1 text-[11px] font-medium text-blue-700
+                    dark:bg-blue-900/40 dark:text-blue-100">
+        {{ from_date|default_if_none:'-' }} – {{ to_date|default_if_none:'-' }}
+      </span>
+    </div>
+    <div class="overflow-x-auto">
+      <table id="collectorTable" class="min-w-full text-sm border border-gray-400 border-collapse">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="whitespace-nowrap px-3 py-2 text-left text-xs font-semibold border border-gray-400 dark:text-white">
+              Collector
+            </th>
+            <th class="whitespace-nowrap px-3 py-2 text-left text-xs font-semibold border border-gray-400 dark:text-white">
+              Product
+            </th>
+            <th class="whitespace-nowrap px-3 py-2 text-right text-xs font-semibold border border-gray-400 dark:text-white">
+              Install.
+            </th>
+            <th class="whitespace-nowrap px-3 py-2 text-right text-xs font-semibold border border-gray-400 dark:text-white">
+              LPF
+            </th>
+            <th class="whitespace-nowrap px-3 py-2 text-right text-xs font-semibold border border-gray-400 dark:text-white">
+              Saving
+            </th>
+            <th class="whitespace-nowrap px-3 py-2 text-right text-xs font-semibold border border-gray-400 dark:text-white">
+              Others
+            </th>
+            <th class="whitespace-nowrap px-3 py-2 text-right text-xs font-semibold border border-gray-400 dark:text-white">
+              Total
+            </th>
+            <th class="whitespace-nowrap px-3 py-2 text-right text-xs font-semibold border border-gray-400 dark:text-white">
+              Disbur.
+            </th>
+          </tr>
+        </thead>
+
+        <tbody class="bg-white">
+          {% if rows %}
+          {% for row in rows %}
+          <tr class="hover:bg-gray-50">
+            {# Collector column behaviour depends on whether a product filter is applied #}
+            {% if not product %}
+              {# No product filter (All): show collector once with rowspan=2 on the Daily row #}
+              {% if row.product_label == 'Daily' %}
+              <td rowspan="2" class="whitespace-nowrap px-3 py-2 text-xs font-medium text-gray-800 border border-gray-400 align-middle">
+                <div class="flex flex-col leading-tight">
+                  <span class="text-md font-semibold dark:text-white">{{ row.collector_name }}</span>
+                  {% if row.collector_identity %}
+                  <br>
+                  <span class="text-[10px] font-normal uppercase tracking-wide text-gray-500">
+                    {{ row.collector_identity }}
+                  </span>
+                  {% endif %}
+                  {% if row.collector_code %}
+                  <br>
+                  <span class="text-[10px] font-mono text-gray-500">
+                    ID: {{ row.collector_code }}
+                  </span>
+                  {% endif %}
+                </div>
+              </td>
+              {% endif %}
+            {% else %}
+              {# Product filter applied (Daily or Weekly only): show collector on every row, no rowspan #}
+              <td class="whitespace-nowrap px-3 py-2 text-xs font-medium text-gray-800 border border-gray-400 align-middle">
+                <div class="flex flex-col leading-tight">
+                  <span class="text-md font-semibold dark:text-white">{{ row.collector_name }}</span>
+                  {% if row.collector_identity %}
+                  <br class="m-0 p-0">
+                  <span class="mt-0.5 text-[10px] font-normal uppercase tracking-wide text-gray-500">
+                    {{ row.collector_identity }}
+                  </span>
+                  {% endif %}
+                  {% if row.collector_code %}
+                  <br class="m-0 p-0">
+                  <span class="mt-0.5 text-[10px] font-mono text-gray-500">
+                    ID: {{ row.collector_code }}
+                  </span>
+                  {% endif %}
+                </div>
+              </td>
+            {% endif %}
+
+            <td class="whitespace-nowrap px-3 py-2 text-xs font-semibold text-gray-600 text-center border border-gray-400 dark:text-white">
+              {{ row.product_label }}
+            </td>
+            <td class="whitespace-nowrap px-3 py-2 text-right text-xs border border-gray-400 {% if row.installment_amount %}text-gray-900 font-semibold{% else %}text-gray-500{% endif %}">
+              {{ row.installment_amount|default:0|floatformat:2 }}
+            </td>
+            <td class="whitespace-nowrap px-3 py-2 text-right text-xs border border-gray-400 {% if row.lpf_amount %}text-gray-900 font-semibold{% else %}text-gray-500{% endif %}">
+              {{ row.lpf_amount|default:0|floatformat:2 }}
+            </td>
+            <td class="whitespace-nowrap px-3 py-2 text-right text-xs border border-gray-400 {% if row.saving_amount %}text-gray-900 font-semibold{% else %}text-gray-500{% endif %}">
+              {{ row.saving_amount|default:0|floatformat:2 }}
+            </td>
+            <td class="whitespace-nowrap px-3 py-2 text-right text-xs border border-gray-400 {% if row.others_amount %}text-gray-900 font-semibold{% else %}text-gray-500{% endif %}">
+              {{ row.others_amount|default:0|floatformat:2 }}
+            </td>
+            <td class="whitespace-nowrap px-3 py-2 text-right text-xs border border-gray-400 {% if row.total_amount %}text-gray-900 font-semibold{% else %}text-gray-500{% endif %}">
+              {{ row.total_amount|default:0|floatformat:2 }}
+            </td>
+            <td class="whitespace-nowrap px-3 py-2 text-right text-xs border border-gray-400 {% if row.disbursed_amount %}text-gray-900 font-semibold{% else %}text-gray-500{% endif %}">
+              {{ row.disbursed_amount|default:0|floatformat:2 }}
+            </td>
+          </tr>
+          {% endfor %}
+          {% else %}
+          <tr>
+            <td colspan="8"
+                class="px-3 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+              No data found for the selected period.
+            </td>
+          </tr>
+          {% endif %}
+        </tbody>
+
+        <tfoot class="text-xs font-semibold text-gray-800">
+          <tr class="bg-blue-50 text-blue-900 dark:bg-blue-900/40 dark:text-blue-100">
+            <td colspan="2" class="px-3 py-2 text-center border border-gray-400">
+              All Total
+            </td>
+            <td class="px-3 py-2 text-right border border-gray-400 {% if totals.installment %}text-blue-900 font-semibold dark:text-blue-100{% else %}text-blue-400 dark:text-blue-200 font-normal{% endif %}">
+              {{ totals.installment|default:0|floatformat:2 }}
+            </td>
+            <td class="px-3 py-2 text-right border border-gray-400 {% if totals.lpf %}text-blue-900 font-semibold dark:text-blue-100{% else %}text-blue-400 dark:text-blue-200 font-normal{% endif %}">
+              {{ totals.lpf|default:0|floatformat:2 }}
+            </td>
+            <td class="px-3 py-2 text-right border border-gray-400 {% if totals.saving %}text-blue-900 font-semibold dark:text-blue-100{% else %}text-blue-400 dark:text-blue-200 font-normal{% endif %}">
+              {{ totals.saving|default:0|floatformat:2 }}
+            </td>
+            <td class="px-3 py-2 text-right border border-gray-400 {% if totals.others %}text-blue-900 font-semibold dark:text-blue-100{% else %}text-blue-400 dark:text-blue-200 font-normal{% endif %}">
+              {{ totals.others|default:0|floatformat:2 }}
+            </td>
+            <td class="px-3 py-2 text-right border border-gray-400 {% if totals.total %}text-blue-900 font-semibold dark:text-blue-100{% else %}text-blue-400 dark:text-blue-200 font-normal{% endif %}">
+              {{ totals.total|default:0|floatformat:2 }}
+            </td>
+            <td class="px-3 py-2 text-right border border-gray-400 {% if totals.disbursed %}text-blue-900 font-semibold dark:text-blue-100{% else %}text-blue-400 dark:text-blue-200 font-normal{% endif %}">
+              {{ totals.disbursed|default:0|floatformat:2 }}
+            </td>
+          </tr>
+
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- Expense summary table -->
+  <div class="mt-6 flex justify-end">
+    <div class="w-full md:w-1/2 lg:w-5/12 overflow-hidden ">
+      <div class="px-2 py-1 flex items-center justify-between gap-2">
+        <div>
+          <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Expense summary</h2>
+          <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+            Bank and cash-wise expense breakup for the day.
+          </p>
+        </div>
+      </div>
+      <div class="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-950">
+        <table id="expenseTable" class="min-w-full text-sm border border-gray-400 border-collapse">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="whitespace-nowrap px-3 py-2 text-left text-xs font-semibold border border-gray-400 dark:text-white">
+                Expen-Head
+              </th>
+              <th class="whitespace-nowrap px-3 py-2 text-right text-xs font-semibold border border-gray-400 dark:text-white">
+                Bank
+              </th>
+              <th class="whitespace-nowrap px-3 py-2 text-right text-xs font-semibold border border-gray-400 dark:text-white">
+                Cash
+              </th>
+            </tr>
+          </thead>
+
+          <tbody class="bg-white">
+            {% if expense_rows %}
+            {% for row in expense_rows %}
+            <tr class="hover:bg-gray-50">
+              <td class="whitespace-nowrap px-3 py-2 text-xs font-medium text-gray-800 border border-gray-400 dark:text-gray-100">
+                {{ row.exp_head }}
+              </td>
+              <td class="whitespace-nowrap px-3 py-2 text-right text-xs border border-gray-400 {% if row.bank_amount %} text-gray-900 dark:text-gray-100 font-semibold {% else %} text-gray-400 font-normal {% endif %}">
+                {{ row.bank_amount|default:0|floatformat:2 }}
+              </td>
+              <td class="whitespace-nowrap px-3 py-2 text-right text-xs border border-gray-400 {% if row.cash_amount %} text-gray-900 dark:text-gray-100 font-semibold {% else %} text-gray-400 font-normal {% endif %}">
+                {{ row.cash_amount|default:0|floatformat:2 }}
+              </td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+              <td colspan="3" class="px-3 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                No expense data for the selected period.
+              </td>
+            </tr>
+            {% endif %}
+          </tbody>
+
+          <tfoot class="text-xs font-semibold text-gray-800">
+            <tr class="bg-blue-50 dark:bg-blue-900/40 ">
+              <td class="px-3 py-2 text-right border border-gray-400 text-blue-900 dark:text-blue-100">
+                Total
+              </td>
+              <td class="px-3 py-2 text-right border border-gray-400 {% if expense_totals.bank %} text-blue-900 dark:text-blue-100 font-semibold {% else %} text-blue-400 dark:text-blue-200 font-normal {% endif %}">
+                {{ expense_totals.bank|default:0|floatformat:2 }}
+              </td>
+              <td class="px-3 py-2 text-right border border-gray-400 {% if expense_totals.cash %} text-blue-900 dark:text-blue-100 font-semibold {% else %} text-blue-400 dark:text-blue-200 font-normal {% endif %}">  
+                {{ expense_totals.cash|default:0|floatformat:2 }}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- summary table -->
+   <div class="px-2 py-1 flex items-center justify-between gap-2">
+        <div>
+          <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Fund movement summary</h2>
+          <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+            Opening balance, receipts, payments and closing balance for the selected period.
+          </p>
+        </div>
+    </div>
+  <div class="mt-2 flex justify-end">
+    <div class="w-full overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm
+                dark:border-gray-800 dark:bg-gray-950">
+      <div class="overflow-x-auto">
+        <table id="fundSummaryTable" class="min-w-full text-sm border border-gray-200 border-collapse">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="whitespace-nowrap px-3 py-2 text-left text-xs font-semibold border border-gray-200 dark:text-white">Summary:</th>
+              <th class="whitespace-nowrap px-3 py-2 text-right text-xs font-semibold border border-gray-200 dark:text-white">Cash</th>
+              <th class="whitespace-nowrap px-3 py-2 text-right text-xs font-semibold border border-gray-200 dark:text-white">Bank</th>
+              <th class="whitespace-nowrap px-3 py-2 text-right text-xs font-semibold border border-gray-200 dark:text-white">Total</th>
+              <th class="whitespace-nowrap px-3 py-2 text-left text-xs font-semibold border border-gray-200 dark:text-white">Remarks</th>
+            </tr>
+          </thead>
+
+          <tbody class="bg-white text-xs">
+            <!-- Opening balance -->
+            <tr class="bg-blue-50 text-blue-900 dark:bg-blue-900/30 dark:text-blue-100">
+              <td class="px-3 py-2 font-semibold border border-blue-100">Opening balance (cash &amp; bank)</td>
+              <td class="px-3 py-2 font-semibold text-right border border-blue-100 text-xs md:text-sm">{{ fund_opening_cash|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 font-semibold text-right border border-blue-100 text-xs md:text-sm">{{ fund_opening_bank|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 font-semibold text-right border border-blue-100 text-xs md:text-sm">{{ fund_opening_total|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 font-semibold border border-blue-100 text-[11px] md:text-xs">{{ fund_opening_remarks }}</td>
+            </tr>
+
+            <!-- Add label -->
+            <tr class="bg-emerald-50 dark:bg-emerald-900/30">
+              <td colspan="5" class="px-3 py-2 font-semibold border border-emerald-100 text-emerald-800 dark:text-emerald-100">Add:</td>
+            </tr>
+
+            <!-- Loan fund received -->
+            <tr>
+              <td class="px-3 py-2 border border-gray-200 dark:text-gray-100">Loan fund received</td>
+              <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_add_loan_cash %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_add_loan_cash|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_add_loan_bank %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_add_loan_bank|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_add_loan_total %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_add_loan_total|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 border border-gray-200 text-[11px] md:text-xs {% if fund_add_loan_remarks %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_add_loan_remarks }}</td>
+            </tr>
+
+            <!-- Collection for the day -->
+            <tr>
+              <td class="px-3 py-2 border border-gray-200 dark:text-gray-100">Collection for the day</td>
+              <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_add_collection_cash %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_add_collection_cash|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_add_collection_bank %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_add_collection_bank|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_add_collection_total %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_add_collection_total|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 border border-gray-200 text-[11px] md:text-xs {% if fund_add_collection_remarks %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_add_collection_remarks }}</td>
+            </tr>
+
+            <!-- Fixed deposit for the day -->
+            <tr>
+              <td class="px-3 py-2 border border-gray-200 dark:text-gray-100">Fixed deposit for the day</td>
+              <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_add_fd_cash %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_add_fd_cash|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_add_fd_bank %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_add_fd_bank|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_add_fd_total %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_add_fd_total|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 border border-gray-200 text-[11px] md:text-xs {% if fund_add_fd_remarks %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_add_fd_remarks }}</td>
+            </tr>
+
+            <!-- Withdrawal from Bank -->
+            <tr>
+              <td class="px-3 py-2 border border-gray-200 dark:text-gray-100">Withdrawal from Bank</td>
+              <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_add_withdraw_cash %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_add_withdraw_cash|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_add_withdraw_bank %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_add_withdraw_bank|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_add_withdraw_total %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_add_withdraw_total|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 border border-gray-200 text-[11px] md:text-xs {% if fund_add_withdraw_remarks %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_add_withdraw_remarks }}</td>
+            </tr>
+
+            {# Dynamic Add rows for codes 201/202/205/206/207/208, grouped by code and purpose #}
+            {% if fund_add_205_rows %}
+              {% for row in fund_add_205_rows %}
+              <tr>
+                <td class="px-3 py-2 border border-gray-200 dark:text-gray-100">{{ row.purpose }}</td>
+
+                <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if row.cash_amount %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ row.cash_amount|default:0|floatformat:2 }}</td>
+                <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if row.bank_amount %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ row.bank_amount|default:0|floatformat:2 }}</td>
+                <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if row.total_amount %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ row.total_amount|default:0|floatformat:2 }}</td>
+                <td class="px-3 py-2 border border-gray-200 text-[11px] md:text-xs text-gray-400 font-normal"></td>
+              </tr>
+              {% endfor %}
+            {% endif %}
+
+            <!-- Others (Add) -->
+            <tr>
+              <td class="px-3 py-2 border border-gray-200 dark:text-gray-100">Others</td>
+              <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_add_others_cash %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_add_others_cash|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_add_others_bank %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_add_others_bank|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_add_others_total %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_add_others_total|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 border border-gray-200 text-[11px] md:text-xs {% if fund_add_others_remarks %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_add_others_remarks }}</td>
+            </tr>
+
+            <!-- Total Fund available -->
+            <tr class="bg-emerald-50/80 dark:bg-emerald-900/40">
+              <td class="px-3 py-2 font-semibold border border-emerald-100 text-emerald-800 dark:text-emerald-100">Total Fund available</td>
+              <td class="px-3 py-2 text-right font-semibold border border-emerald-100 text-xs md:text-sm dark:text-emerald-50">{{ fund_total_available_cash|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 text-right font-semibold border border-emerald-100 text-xs md:text-sm dark:text-emerald-50">{{ fund_total_available_bank|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 text-right font-semibold border border-emerald-100 text-xs md:text-sm dark:text-emerald-50">{{ fund_total_available_total|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 border border-emerald-100 text-[11px] md:text-xs dark:text-emerald-50">{{ fund_total_available_remarks }}</td>
+            </tr>
+
+            <!-- Less label -->
+            <tr class="bg-rose-50 dark:bg-rose-900/30">
+              <td colspan="5" class="px-3 py-2 font-semibold border border-rose-100 text-rose-700 dark:text-rose-100">Less:</td>
+            </tr>
+
+            <!-- Disbursement for the day -->
+            <tr>
+              <td class="px-3 py-2 border border-gray-200 dark:text-gray-100">Disbursement for the day</td>
+              <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_less_disbursement_cash %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_less_disbursement_cash|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_less_disbursement_bank %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_less_disbursement_bank|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_less_disbursement_total %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_less_disbursement_total|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 border border-gray-200 text-[11px] md:text-xs {% if fund_less_disbursement_remarks %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_less_disbursement_remarks }}</td>
+            </tr>
+
+            <!-- Expenses for the day -->
+            <tr>
+              <td class="px-3 py-1 border border-gray-200 dark:text-gray-100">Expenses for the day</td>
+              <td class="px-3 py-1 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_less_expenses_cash %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_less_expenses_cash|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-1 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_less_expenses_bank %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_less_expenses_bank|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-1 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_less_expenses_total %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_less_expenses_total|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 border border-gray-200 text-[11px] md:text-xs {% if fund_less_expenses_remarks %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_less_expenses_remarks }}</td>
+            </tr>
+
+            <!-- Loan fund re-payment -->
+            <tr>
+              <td class="px-3 py-2 border border-gray-200 dark:text-gray-100">Loan fund re-payment</td>
+              <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_less_loanrepay_cash %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_less_loanrepay_cash|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_less_loanrepay_bank %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_less_loanrepay_bank|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_less_loanrepay_total %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_less_loanrepay_total|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 border border-gray-200 text-[11px] md:text-xs {% if fund_less_loanrepay_remarks %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_less_loanrepay_remarks }}</td>
+            </tr>
+
+            <!-- Saving return -->
+            <tr>
+              <td class="px-3 py-2 border border-gray-200 dark:text-gray-100">Saving return</td>
+              <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_less_saving_return_cash %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_less_saving_return_cash|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_less_saving_return_bank %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_less_saving_return_bank|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_less_saving_return_total %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_less_saving_return_total|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 border border-gray-200 text-[11px] md:text-xs {% if fund_less_saving_return_remarks %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_less_saving_return_remarks }}</td>
+            </tr>
+
+            <!-- Interest paid on Saving -->
+            <tr>
+              <td class="px-3 py-2 border border-gray-200 dark:text-gray-100">Interest paid on Saving</td>
+              <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_less_interest_saving_cash %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_less_interest_saving_cash|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_less_interest_saving_bank %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_less_interest_saving_bank|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_less_interest_saving_total %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_less_interest_saving_total|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 border border-gray-200 text-[11px] md:text-xs {% if fund_less_interest_saving_remarks %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_less_interest_saving_remarks }}</td>
+            </tr>
+
+            <!-- Deposit to Bank -->
+            <tr>
+              <td class="px-3 py-2 border border-gray-200 dark:text-gray-100">Deposit to Bank</td>
+              <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_less_deposit_bank_cash %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_less_deposit_bank_cash|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_less_deposit_bank_bank %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_less_deposit_bank_bank|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_less_deposit_bank_total %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_less_deposit_bank_total|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 border border-gray-200 text-[11px] md:text-xs {% if fund_less_deposit_bank_remarks %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_less_deposit_bank_remarks }}</td>
+            </tr>
+
+            <!-- Others (Less) -->
+            <tr>
+              <td class="px-3 py-2 border border-gray-200 dark:text-gray-100">Others</td>
+              <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_less_others_cash %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_less_others_cash|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_less_others_bank %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_less_others_bank|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 text-right border border-gray-200 text-[11px] md:text-xs {% if fund_less_others_total %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_less_others_total|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 border border-gray-200 text-[11px] md:text-xs {% if fund_less_others_remarks %} text-gray-900 font-semibold dark:text-gray-100{% else %}text-gray-400 font-normal{% endif %}">{{ fund_less_others_remarks }}</td>
+            </tr>
+
+            <!-- Total Payment -->
+            <tr class="bg-rose-50/80 dark:bg-rose-900/40">
+              <td class="px-3 py-2 font-semibold border border-rose-100 text-rose-700 dark:text-rose-100">Total Payment</td>
+              <td class="px-3 py-2 text-right font-semibold border border-rose-100 text-xs md:text-sm dark:text-rose-50">{{ fund_total_payment_cash|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 text-right font-semibold border border-rose-100 text-xs md:text-sm dark:text-rose-50">{{ fund_total_payment_bank|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 text-right font-semibold border border-rose-100 text-xs md:text-sm dark:text-rose-50">{{ fund_total_payment_total|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-2 border border-rose-100 text-[11px] md:text-xs dark:text-rose-50">{{ fund_total_payment_remarks }}</td>
+            </tr>
+            <!-- Closing Cash in hand and at bank -->
+            <tr class="bg-blue-600 text-white">
+              <td class="px-3 py-3 font-semibold">Closing Cash in hand and at bank</td>
+              <td class="px-3 py-3 text-right font-semibold border border-slate-200 text-xs md:text-sm">{{ fund_closing_cash|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-3 text-right font-semibold border border-slate-200 text-xs md:text-sm">{{ fund_closing_bank|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-3 text-right font-semibold border border-slate-200 text-xs md:text-sm">{{ fund_closing_total|default:0|floatformat:2 }}</td>
+              <td class="px-3 py-3 border border-slate-200 text-[11px] md:text-xs">{{ fund_closing_remarks }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Export loader: only spinner + text, no card/background -->
+<div id="exportLoader" class="fixed bottom-4 right-4 z-50 hidden">
+  <div class="flex items-center gap-1 text-xs font-medium text-gray-700 dark:text-gray-200">
+    <svg class="h-4 w-4 animate-spin text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+    </svg>
+    <span>Preparing download...</span>
+  </div>
+</div>
+
+    <!-- jsPDF (with autotable for tables) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <!-- SheetJS (XLSX) for Excel export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <script>
+      function showExportLoader() {
+        var el = document.getElementById('exportLoader');
+        if (el) {
+          el.classList.remove('hidden');
+          el.style.display = 'block';
+        }
+      }
+
+      function hideExportLoader() {
+        var el = document.getElementById('exportLoader');
+        if (el) {
+          el.classList.add('hidden');
+          el.style.display = 'none';
+        }
+      }
+
+      function downloadTablePDF(tableId, baseFileName) {
+        const table = document.getElementById(tableId);
+        if (!table) {
+          console.warn('Table not found:', tableId);
+          return;
+        }
+
+        const { jsPDF } = window.jspdf || {};
+        if (!jsPDF && !(window.jspdf && window.jspdf.jsPDF)) {
+          alert('PDF library is not loaded.');
+          return;
+        }
+
+        const doc = new (window.jspdf && window.jspdf.jsPDF ? window.jspdf.jsPDF : jsPDF)('p', 'pt', 'a4');
+
+        const title = (baseFileName || 'report').replace(/[-_]/g, ' ');
+        doc.setFontSize(12);
+        doc.text(title.charAt(0).toUpperCase() + title.slice(1), 40, 30);
+
+        if (doc.autoTable) {
+          doc.autoTable({
+            html: '#' + tableId,
+            startY: 50,
+            styles: { fontSize: 8 },
+            headStyles: { fillColor: [37, 99, 235] },
+            theme: 'grid',
+            // Match web view emphasis: non-zero numeric values darker and slightly larger
+            didParseCell: function (data) {
+              if (data.section === 'body') {
+                // Use the rendered text content, not raw HTML element
+                var text = '';
+                if (data.cell && data.cell.text != null) {
+                  if (Array.isArray(data.cell.text)) {
+                    text = data.cell.text.join(' ');
+                  } else {
+                    text = String(data.cell.text);
+                  }
+                }
+                text = text.trim();
+
+                // Try to detect numeric cell from text (e.g. "0.00", "500.00")
+                var num = parseFloat(text.replace(/,/g, ''));
+                if (!isNaN(num)) {
+                  if (num !== 0) {
+                    // Non-zero: deeper text color & a bit larger/bold
+                    data.cell.styles.textColor = [0, 0, 0];
+                    data.cell.styles.fontSize = 9;
+                    data.cell.styles.fontStyle = 'bold';
+                  } else {
+                    // Zero: lighter text color & normal weight
+                    data.cell.styles.textColor = [150, 150, 150];
+                    data.cell.styles.fontSize = 8;
+                    data.cell.styles.fontStyle = 'normal';
+                  }
+                }
+              }
+            },
+          });
+        }
+
+        const fileName = (baseFileName || 'report') + '.pdf';
+        doc.save(fileName);
+      }
+
+      function downloadTableExcel(tableId, baseFileName) {
+        const table = document.getElementById(tableId);
+        if (!table) {
+          console.warn('Table not found:', tableId);
+          return;
+        }
+
+        if (typeof XLSX === 'undefined') {
+          alert('Excel export library is not loaded.');
+          return;
+        }
+
+        const wb = XLSX.utils.table_to_book(table, { sheet: 'Sheet1' });
+        const fileName = (baseFileName || 'report') + '.xlsx';
+        XLSX.writeFile(wb, fileName);
+      }
+
+      // Download all three tables (collector, expense, fund summary) into a single PDF
+      function downloadAllPDF() {
+        showExportLoader();
+        setTimeout(function () {
+          try {
+            const { jsPDF } = window.jspdf || {};
+            if (!jsPDF && !(window.jspdf && window.jspdf.jsPDF)) {
+              alert('PDF library is not loaded.');
+              return;
+            }
+
+            const doc = new (window.jspdf && window.jspdf.jsPDF ? window.jspdf.jsPDF : jsPDF)('p', 'pt', 'a4');
+            // Header texts
+            const headerLeft = 'Sundaram(K S S F)';
+            const headerRight = 'Downloaded: ' + new Date().toLocaleString();
+
+            const pageWidth = doc.internal.pageSize.getWidth();
+
+            const sections = [
+              { id: 'collectorTable', title: 'Collector-wise collection & disbursement' },
+              { id: 'expenseTable', title: 'Expense summary' },
+              { id: 'fundSummaryTable', title: 'Fund movement summary' },
+            ];
+
+            // Start content a bit lower to give space below header texts
+            let currentY = 60;
+
+            sections.forEach(function (section) {
+              const table = document.getElementById(section.id);
+              if (!table) {
+                console.warn('Table not found for PDF:', section.id);
+                return;
+              }
+
+              // Section title
+              doc.setFontSize(12);
+              doc.text(section.title, 40, currentY);
+
+              // Add extra gap between section title and table
+              const startY = currentY + 15;
+
+              if (doc.autoTable) {
+                doc.autoTable({
+                  html: '#' + section.id,
+                  startY: startY,
+                  styles: { fontSize: 8 },
+                  headStyles: { fillColor: [37, 99, 235] },
+                  theme: 'grid',
+                  didDrawPage: function (data) {
+                    doc.setFontSize(11);
+                    doc.text(headerLeft, 40, 20);
+                    doc.text(headerRight, pageWidth - 40, 20, { align: 'right' });
+                  },
+                  // Match web view emphasis for numeric values
+                  didParseCell: function (data) {
+                    if (data.section === 'body') {
+                      var text = '';
+                      if (data.cell && data.cell.text != null) {
+                        if (Array.isArray(data.cell.text)) {
+                          text = data.cell.text.join(' ');
+                        } else {
+                          text = String(data.cell.text);
+                        }
+                      }
+                      text = text.trim();
+
+                      var num = parseFloat(text.replace(/,/g, ''));
+                      if (!isNaN(num)) {
+                        if (num !== 0) {
+                          data.cell.styles.textColor = [0, 0, 0];
+                          data.cell.styles.fontSize = 9;
+                          data.cell.styles.fontStyle = 'bold';
+                        } else {
+                          data.cell.styles.textColor = [150, 150, 150];
+                          data.cell.styles.fontSize = 8;
+                          data.cell.styles.fontStyle = 'normal';
+                        }
+                      }
+                    }
+                  },
+                });
+
+                // Move below the last table with some spacing
+                currentY = doc.lastAutoTable.finalY + 20;
+              } else {
+                currentY = startY + 20;
+              }
+            });
+
+            doc.save('daily-report.pdf');
+          } finally {
+            hideExportLoader();
+          }
+        }, 1000); // 1 second delay to show loader
+      }
+
+      // Download all three tables into a single Excel sheet
+      function downloadAllExcel() {
+        showExportLoader();
+        setTimeout(function () {
+          try {
+            if (typeof XLSX === 'undefined') {
+              alert('Excel export library is not loaded.');
+              return;
+            }
+
+            const tables = [
+              { id: 'collectorTable', title: 'Collector-wise collection & disbursement' },
+              { id: 'expenseTable', title: 'Expense summary' },
+              { id: 'fundSummaryTable', title: 'Fund movement summary' },
+            ];
+
+            const wb = XLSX.utils.book_new();
+            let ws = XLSX.utils.aoa_to_sheet([]);
+            let currentMaxRow = -1;
+
+            function appendTableToSheet(tableElem, title) {
+              if (!tableElem) return;
+
+              const tmpSheet = XLSX.utils.table_to_sheet(tableElem);
+              const data = XLSX.utils.sheet_to_json(tmpSheet, { header: 1, raw: true });
+
+              if (!data || data.length === 0) return;
+
+              if (!ws['!ref']) {
+                currentMaxRow = -1;
+              } else {
+                const range = XLSX.utils.decode_range(ws['!ref']);
+                currentMaxRow = range.e.r;
+              }
+
+              let startRow = currentMaxRow + 1;
+              if (currentMaxRow >= 0) {
+                startRow += 1; // blank row between sections
+              }
+
+              // Section title row
+              if (title) {
+                XLSX.utils.sheet_add_aoa(ws, [[title]], { origin: { r: startRow, c: 0 } });
+                startRow += 1;
+              }
+
+              // Table data
+              XLSX.utils.sheet_add_aoa(ws, data, { origin: { r: startRow, c: 0 } });
+
+              const newRange = XLSX.utils.decode_range(ws['!ref']);
+              currentMaxRow = newRange.e.r;
+            }
+
+            tables.forEach(function (section) {
+              const table = document.getElementById(section.id);
+              if (!table) {
+                console.warn('Table not found for Excel:', section.id);
+                return;
+              }
+              appendTableToSheet(table, section.title);
+            });
+
+            XLSX.utils.book_append_sheet(wb, ws, 'Report');
+            XLSX.writeFile(wb, 'daily-report.xlsx');
+          } finally {
+            hideExportLoader();
+          }
+        }, 1000); // 1 second delay to show loader
+      }
+    </script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (window.flatpickr) {
+      flatpickr("input[name='from_date']", {
+        dateFormat: 'Y-m-d',
+        allowInput: true,
+        defaultDate: "{{ from_date|date:'Y-m-d' }}",
+      });
+
+      flatpickr("input[name='to_date']", {
+        dateFormat: 'Y-m-d',
+        allowInput: true,
+        defaultDate: "{{ to_date|date:'Y-m-d' }}",
+      });
+    }
+
+    // Today button: set both dates to current date and submit form
+    var todayBtn = document.getElementById('todayFilterBtn');
+    if (todayBtn) {
+      todayBtn.addEventListener('click', function () {
+        var today = new Date();
+        var yyyy = today.getFullYear();
+        var mm = String(today.getMonth() + 1).padStart(2, '0');
+        var dd = String(today.getDate()).padStart(2, '0');
+        var formatted = yyyy + '-' + mm + '-' + dd;
+
+        var fromInput = document.querySelector("input[name='from_date']");
+        var toInput = document.querySelector("input[name='to_date']");
+        var productSelect = document.querySelector("select[name='product']");
+
+        if (fromInput) {
+          fromInput.value = formatted;
+          if (fromInput._flatpickr) {
+            fromInput._flatpickr.setDate(formatted, true);
+          }
+        }
+
+        if (toInput) {
+          toInput.value = formatted;
+          if (toInput._flatpickr) {
+            toInput._flatpickr.setDate(formatted, true);
+          }
+        }
+
+        // Reset product filter to "All" (empty value)
+        if (productSelect) {
+          productSelect.value = "";
+        }
+
+        var form = todayBtn.closest('form');
+        if (form) {
+          form.submit();
+        }
+      });
+    }
+  });
+</script>
+
+{% endblock %}

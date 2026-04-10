@@ -1,0 +1,61 @@
+{% extends 'agent/base.html' %}
+{% block title %}Auto Payment Status{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="glass-card animate-up text-center p-5">
+            {% if status == 'SUCCESS' or status == 'ACTIVE' %}
+                <div class="icon-blob mb-4 mx-auto bg-success-soft" style="width: 80px; height: 80px;">
+                    <i class="bi bi-check-circle-fill fs-1 text-success"></i>
+                </div>
+                <h2 class="fw-bold mb-3 text-success">Mandate Authorized Successfully!</h2>
+                <p class="text-muted mb-4">
+                    Your eNACH auto-payment mandate for Subscription ID <strong>{{ subscription_id }}</strong> has been successfully authorized. 
+                    The monthly deductions will now happen automatically.
+                </p>
+                
+                <div class="bg-light bg-opacity-50 p-4 rounded-3 mb-4 border border-success border-opacity-25 shadow-sm">
+                    <div class="d-flex align-items-center justify-content-center text-success mb-2">
+                        <i class="bi bi-shield-lock-fill me-2"></i>
+                        <strong>Secure Direct Debit Setup</strong>
+                    </div>
+                    <small class="text-muted">You can cancel or manage this mandate from your bank's portal at any time.</small>
+                </div>
+
+            {% elif status == 'PENDING' %}
+                <div class="icon-blob mb-4 mx-auto bg-warning-soft" style="width: 80px; height: 80px;">
+                    <i class="bi bi-clock-history fs-1 text-warning"></i>
+                </div>
+                <h2 class="fw-bold mb-3 text-warning">Authorization Pending</h2>
+                <p class="text-muted mb-4">
+                    Your mandate authorization for Subscription ID <strong>{{ subscription_id }}</strong> is currently pending or processing with your bank.
+                </p>
+
+            {% else %}
+                <div class="icon-blob mb-4 mx-auto bg-danger-soft" style="width: 80px; height: 80px;">
+                    <i class="bi bi-x-circle-fill fs-1 text-danger"></i>
+                </div>
+                <h2 class="fw-bold mb-3 text-danger">Authorization Failed</h2>
+                <p class="text-muted mb-4">
+                    We could not authorize your mandate (Subscription ID <strong>{{ subscription_id }}</strong>). Status: {{ status }}. 
+                    Please try again or use a different bank account.
+                </p>
+                <div class="mb-4">
+                    <a href="{% url 'agent:auto_payment' %}" class="btn btn-outline-danger rounded-pill px-4">
+                        <i class="bi bi-arrow-repeat me-2"></i> Try Again
+                    </a>
+                </div>
+            {% endif %}
+
+            <hr class="border-secondary opacity-25 my-4">
+            
+            <div>
+                <a href="{% url 'agent:dashboard' %}" class="btn btn-primary btn-lg rounded-pill px-5 fw-bold shadow-sm">
+                    <i class="bi bi-house-door me-2"></i> Go to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

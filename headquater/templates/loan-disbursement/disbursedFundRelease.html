@@ -1,0 +1,410 @@
+{% extends 'hq/base.html' %}
+{% load static %}
+{% block title %}Loan Confirmed and Released{% endblock %}
+
+{% block page_id %}confirmReleaseFunds{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+    <!-- Breadcrumb Start -->
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 class="text-title-md2 font-bold text-black dark:text-white">
+            Loan Confirmed and Fund Release
+        </h2>
+        <nav>
+            <ol class="flex items-center gap-2">
+                <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+                        href="{% url 'hq:dashboard' %}">Dashboard <svg class="stroke-current" width="17" height="16"
+                            viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                            </path>
+                        </svg></a></li>
+                <li class="text-sm text-gray-800 dark:text-white/90">Loan Confirmed and Fund Release</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        <div class="p-5 space-y-6 border-t border-gray-100 dark:border-gray-800 sm:p-6">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead>
+                        <tr>
+                            <th class="px-4 py-2 text-left text-xs font-bold text-gray-500 uppercase">S.N.</th>
+                            <th class="px-4 py-2 text-left text-xs font-bold text-gray-500 uppercase">Loan No</th>
+                            <th class="px-4 py-2 text-left text-xs font-bold text-gray-500 uppercase">Branch</th>
+                            <th class="px-4 py-2 text-left text-xs font-bold text-gray-500 uppercase">Customer Id
+                            </th>
+                            <th class="px-4 py-2 text-left text-xs font-bold text-gray-500 uppercase">Customer Name
+                            </th>
+                            <th class="px-4 py-2 text-left text-xs font-bold text-gray-500 uppercase">Catergory</th>
+                            <th class="px-4 py-2 text-left text-xs font-bold text-gray-500 uppercase">Frequency</th>
+                            <th class="px-4 py-2 text-left text-xs font-bold text-gray-500 uppercase">ROI(%)</th>
+                            <th class="px-4 py-2 text-left text-xs font-bold text-gray-500 uppercase">Tenure</th>
+                            <th class="px-4 py-2 text-left text-xs font-bold text-gray-500 uppercase">Senction Amount</th>
+                            <th class="px-4 py-2 text-left text-xs font-bold text-gray-500 uppercase">Applied Date</th>
+                            <th class="px-4 py-2 text-left text-xs font-bold text-gray-500 uppercase">Disbursed Date</th>
+                            <th class="px-4 py-2 text-left text-xs font-bold text-gray-500 uppercase">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                        {% for app in disbursement_releaseFund %}
+                        <tr class="border-t">
+                            <td class="px-4 py-2">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ page_obj.start_index|add:forloop.counter0 }}</p>
+                            </td>
+                            <td class="px-4 py-2">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ app.loan_ref_no }}</p>
+                            </td>
+                            <td class="px-4 py-2">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ app.branch.branch_name }}</p>
+                            </td>
+                            <td class="px-4 py-2">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ app.customer.customer_id }}</p>
+                            </td>
+                            <td class="px-4 py-2">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400"> {{ app.customer.full_name }}
+                                </p>
+                            </td>
+                            <td class="px-4 py-2">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ app.loan_details.first.loan_category.name|default:"N/A" }}
+                                </p>
+                            </td>
+                            <td class="px-4 py-2">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ app.loan_details.first.tenure.unit|default:"N/A" }}</p></td>
+                            <td class="px-4 py-2">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ app.loan_details.first.interest_rate.rate_of_interest|default:"N/A" }}</p></td>
+                            <td class="px-4 py-2">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ app.loan_details.first.tenure.value|default:"N/A" }}</p></td>
+                            <td class="px-4 py-2">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ app.loan_details.first.loan_amount|default:"N/A" }}</p></td>
+                             <td class="px-4 py-2">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ app.submitted_at|date:"Y-m-d"|default:"N/A" }}</p></td>
+                             <td class="px-4 py-2">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ app.disbursed_at|date:"Y-m-d"|default:"N/A" }}</p></td>
+                            <td class="px-4 py-2 flex gap-2">
+                                <button 
+                                    onclick="showLoanDetails(this)" 
+                                    data-loan='{"loan_ref_no": "{{ app.loan_ref_no }}", "disbursed_date": "{{ app.disbursed_at|date:'Y-m-d'|default:'N/A' }}", "customer_name": "{{ app.customer.full_name|default:'N/A' }}", "agent_name": "{{ app.agent.full_name|default:'N/A' }}", "loan_amount": "{{ app.loan_details.first.loan_amount|default:'N/A' }}", "tenure": "{{ app.loan_details.first.tenure.value|default:'N/A' }} {{ app.loan_details.first.tenure.unit|default:'' }}", "roi": "{{ app.loan_details.first.interest_rate.rate_of_interest|default:'N/A' }}%", "emi": "{{ app.loan_details.first.emi_amount|default:'N/A' }}", "category": "{{ app.loan_details.first.loan_category.name|default:'N/A' }}"}'
+                                    class="inline-block px-3 py-1 text-sm rounded bg-brand-500 text-white hover:bg-brand-600 transition">View</button>
+                                    <button class="tracking-icon-btn bg-blue-100 hover:bg-blue-200 rounded-full p-2 transition" title="Track Loan" onclick="openLoanTrackingModal(this)" data-loan='{"loan_ref_no": "{{ app.loan_ref_no }}", "status": "{{ app.status }}", "submitted_at": "{{ app.submitted_at|date:'Y-m-d H:i:s' }}", "disbursed_at": "{{ app.disbursed_at|date:'Y-m-d H:i:s' }}", "branch_approved_at": "{{ app.branch_approved_at|date:'Y-m-d H:i:s' }}", "hq_approved_at": "{{ app.hq_approved_at|date:'Y-m-d H:i:s' }}", "ever_branch_approved": {{ app.ever_branch_approved|yesno:'true,false' }}, "branch_approver": "{{ app.branch_approver|default:'' }}", "hq_approver": "{{ app.hq_approver|default:'' }}", "customer_name": "{{ app.customer.full_name|default:'N/A' }}", "agent_name": "{{ app.agent.full_name|default:'N/A' }}", "loan_amount": "{{ app.loan_details.first.loan_amount|default:'N/A' }}", "tenure": "{{ app.loan_details.first.tenure.value|default:'N/A' }} {{ app.loan_details.first.tenure.unit|default:'' }}", "roi": "{{ app.loan_details.first.interest_rate.rate_of_interest|default:'N/A' }}%", "emi": "{{ app.loan_details.first.emi_amount|default:'N/A' }}", "category": "{{ app.loan_details.first.loan_category.name|default:'N/A' }}", "document_requests": {{ app.document_requests_json|default:'[]'|safe }}, "document_reviews": {{ app.document_reviews_json|default:'[]'|safe }}, "document_reuploads": {{ app.document_reuploads_json|default:'[]'|safe }}, "tracking_history": {{ app.tracking_history_json|default:'{"agent":[],"system":[]}'|safe }} }'>
+                                        <svg class="w-5 h-5 text-brand-500 hover:text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <circle cx="5" cy="19" r="2" stroke-width="2"/>
+                                            <circle cx="12" cy="12" r="2" stroke-width="2"/>
+                                            <circle cx="19" cy="5" r="2" stroke-width="2"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19c2-2 5-5 7-7s5-5 7-7" />
+                                        </svg>
+                                    </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="12" class="text-center pt-4 text-sm font-medium text-red-600">Not Found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="flex items-center justify-between pt-4">
+                <div class="text-sm text-gray-600 dark:text-gray-400">
+                    {% if page_obj %}
+                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                    {% endif %}
+                </div>
+                {% if page_obj and page_obj.paginator.num_pages > 1 %}
+                    <div class="inline-flex gap-2">
+                        {% if page_obj.has_previous %}
+                            <a class="px-3 py-1 text-sm border rounded-md" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
+                        {% else %}
+                            <span class="px-3 py-1 text-sm border rounded-md text-gray-400">Previous</span>
+                        {% endif %}
+                        {% for p in page_links %}
+                            {% if p == '…' or p == '...' %}
+                                <span class="px-3 py-1 text-sm border rounded-md text-gray-400">{{ p }}</span>
+                            {% elif p == page_obj.number %}
+                                <span class="px-3 py-1 text-sm border rounded-md bg-blue-500 text-white">{{ p }}</span>
+                            {% else %}
+                                <a class="px-3 py-1 text-sm border rounded-md" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ p }}">{{ p }}</a>
+                            {% endif %}
+                        {% endfor %}
+                        {% if page_obj.has_next %}
+                            <a class="px-3 py-1 text-sm border rounded-md" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
+                        {% else %}
+                            <span class="px-3 py-1 text-sm border rounded-md text-gray-400">Next</span>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div id="no-loan-applications-message" class="text-center text-gray-500 py-8 hidden">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">Not Found</h3>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">There are no loan applications disbursed and fund release.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tracking Button and Modal -->
+    <div id="loanTrackingModal" class="fixed inset-0 z-99999 hidden bg-gray-400/50 backdrop-blur-[32px]">
+        <div class="flex items-center justify-center min-h-screen p-4">
+          <div class="relative bg-white rounded-lg shadow-lg max-w-lg w-full">
+            <button id="closeLoanTrackingModal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            <div id="loanTrackingModalContent" class="p-4">
+              <!-- Tracking content will be injected here -->
+            </div>
+          </div>
+        </div>
+    </div>
+
+    <!-- Report Style Modal -->
+    <div id="loanDetailsModal" class="fixed inset-0 z-99999 hidden overflow-y-auto" aria-labelledby="report-title"
+        role="dialog" aria-modal="true">
+        <div class="flex min-h-screen items-center justify-center p-4 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500/80 backdrop-blur-sm transition-opacity" aria-hidden="true"></div>
+            <span class="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">&#8203;</span>
+            <div
+                class="inline-block w-full mx-auto max-w-4xl transform overflow-hidden bg-white text-left align-bottom shadow-2xl transition-all sm:my-8 sm:align-middle sm:rounded-lg">
+                <!-- Report Header -->
+                <div class="bg-white px-6 py-4 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-900" id="report-title">Loan Disbursement Report</h3>
+                            <p class="text-sm text-gray-500" id="report-date"></p>
+                        </div>
+                        <button
+                            id="pdfDownloadButton"
+                            type="button"
+                            class="text-gray-400 hover:text-gray-500 print:hidden flex"
+                            style="display: inline-block;"
+                            onclick="handlePdfDownload(event)"
+                        >
+                            <span id="pdfDownloadIcon">
+                                <svg class="h-6 w-6 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                </svg>
+                            </span>
+                            <span id="pdfDownloadText">Download</span>
+                        </button>
+                    </div>
+                </div>
+    
+                <!-- Report Body -->
+                <div class="px-6 py-4">
+                    <div class="bg-white overflow-hidden sm:rounded-lg">
+                        <div class="border-b border-gray-200">
+                            <dl class="divide-y divide-gray-200">
+                                <!-- Basic Information -->
+                                <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5">
+                                    <dt class="text-sm font-medium text-gray-500">Loan Information</dt>
+                                    <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <p class="text-xs text-gray-500">Loan Number</p>
+                                                <p id="modal-loan-no" class="font-medium"></p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs text-gray-500">Disbursed Date</p>
+                                                <p id="modal-disbursed-date" class="font-medium"></p>
+                                            </div>
+                                        </div>
+                                    </dd>
+                                </div>
+    
+                                <!-- Customer & Agent -->
+                                <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5">
+                                    <dt class="text-sm font-medium text-gray-500">Parties</dt>
+                                    <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <p class="text-xs text-gray-500">Customer Name</p>
+                                                <p id="modal-customer-name" class="font-medium"></p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs text-gray-500">Agent Name</p>
+                                                <p id="modal-agent-name" class="font-medium"></p>
+                                            </div>
+                                        </div>
+                                    </dd>
+                                </div>
+    
+                                <!-- Loan Details -->
+                                <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5">
+                                    <dt class="text-sm font-medium text-gray-500">Loan Terms</dt>
+                                    <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <div>
+                                                <p class="text-xs text-gray-500">Loan Amount</p>
+                                                <p id="modal-loan-amount" class="font-medium"></p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs text-gray-500">Tenure</p>
+                                                <p id="modal-tenure" class="font-medium"></p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs text-gray-500">Interest Rate</p>
+                                                <p id="modal-roi" class="font-medium"></p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs text-gray-500">EMI Amount</p>
+                                                <p id="modal-emi" class="font-medium"></p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs text-gray-500">Category</p>
+                                                <p id="modal-category" class="font-medium"></p>
+                                            </div>
+                                        </div>
+                                    </dd>
+                                </div>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                    <button type="button" onclick="closeModal()"
+                        class="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    function showLoanDetails(button) {
+    const loanData = JSON.parse(button.getAttribute('data-loan'));
+    document.getElementById('loanDetailsModal').classList.remove('hidden');
+    document.getElementById('modal-loan-no').textContent = loanData.loan_ref_no;
+    document.getElementById('modal-disbursed-date').textContent = loanData.disbursed_date;
+    document.getElementById('modal-customer-name').textContent = loanData.customer_name;
+    document.getElementById('modal-agent-name').textContent = loanData.agent_name;
+    document.getElementById('modal-loan-amount').textContent = loanData.loan_amount;
+    document.getElementById('modal-tenure').textContent = loanData.tenure;
+    document.getElementById('modal-roi').textContent = loanData.roi;
+    document.getElementById('modal-emi').textContent = loanData.emi;
+    document.getElementById('modal-category').textContent = loanData.category;
+    // Set the PDF download URL as a data attribute on the button
+    document.getElementById('pdfDownloadButton').setAttribute('data-download-url', `/hq/generate-loan-pdf/${loanData.loan_ref_no}/`);
+    resetPdfDownloadIcon();
+}
+
+function closeModal() {
+    document.getElementById('loanDetailsModal').classList.add('hidden');
+}
+
+function handlePdfDownload(event) {
+    event.preventDefault();
+    const button = event.currentTarget;
+    const iconSpan = document.getElementById('pdfDownloadIcon');
+    const textSpan = document.getElementById('pdfDownloadText');
+    const url = button.getAttribute('data-download-url');
+    // Show spinner only (no text)
+    iconSpan.innerHTML = `
+        <svg class="animate-spin h-6 w-6 inline-block text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+        </svg>
+    `;
+    textSpan.innerHTML = `<span class='text-blue-500'>Downloading...</span>`;
+    button.disabled = true;
+
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Failed to generate PDF');
+        return response.blob();
+    })
+    .then(blob => {
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = 'Loan_Disbursement_Report.pdf';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(downloadUrl);
+        // Show success toast after download
+        showToast('PDF downloaded successfully!', 'success');
+    })
+    .catch(err => {
+        showToast('Error generating PDF: ' + err.message, 'error');
+    })
+    .finally(() => {
+        // Restore icon and enable button
+        resetPdfDownloadIcon();
+        button.disabled = false;
+        textSpan.textContent = 'Download PDF';
+    });
+}
+
+function resetPdfDownloadIcon() {
+    const iconSpan = document.getElementById('pdfDownloadIcon');
+    iconSpan.innerHTML = `
+        <svg class="h-6 w-6 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+        </svg>
+    `;
+}
+    
+
+function openLoanTrackingModal(button) {
+    const loanData = JSON.parse(button.getAttribute('data-loan'));
+    // console.log(loanData);
+    if (!loanData) {
+        alert('Loan data not found!');
+        return;
+    }
+
+    // Create a container for the tracking UI with progress bar
+    const container = document.createElement('div');
+    container.innerHTML = `
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 text-center border-b border-gray-800 dark:border-gray-200 pb-4">Loan Tracking</h3>
+        <div id="loan-progress-bar" class="w-full max-w-md mx-auto mb-6"></div>
+        <div class="mt-8 border-t border-gray-100 pt-6 custom-scrollbar overflow-y-auto max-h-[60vh]">
+            <div id="loan-history-agent" class="mb-6"></div>
+            <div id="loan-history-branch" class="mb-6"></div>
+            <div id="loan-history-hq" class="mb-6"></div>
+            <div id="loan-history-system" class="mb-6"></div>
+        </div>
+    `;
+
+    // Inject the container into the modal content
+    const modalContent = document.getElementById('loanTrackingModalContent');
+    modalContent.innerHTML = '';
+    modalContent.appendChild(container);
+
+    // Build progress bar based on loan history
+    buildLoanProgressBar(loanData);
+
+    // Build complete history
+    buildLoanHistory(loanData);
+
+    // Show the modal
+    document.getElementById('loanTrackingModal').classList.remove('hidden');
+}
+
+// Close modal logic
+document.getElementById('closeLoanTrackingModal').onclick = function() {
+    document.getElementById('loanTrackingModal').classList.add('hidden');
+};
+document.getElementById('loanTrackingModal').onclick = function(e) {
+    if (e.target === this) this.classList.add('hidden');
+};
+</script>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'application_tracking.js' %}"></script>
+<script src="/static/loan/js/loan-application.js"></script>
+{% endblock %}
+    

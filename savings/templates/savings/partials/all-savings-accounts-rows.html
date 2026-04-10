@@ -1,0 +1,113 @@
+{% for a in accounts %}
+<tr class="{% if a.status == 'inactive' %}bg-gray-50 dark:bg-gray-800/30{% endif %}">
+    <td class="px-4 py-2">
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ a.account_id }}</p>
+    </td>
+    <td class="px-4 py-2">
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ a.application_id }}</p>
+    </td>
+    <td class="px-4 py-2">
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ a.customer.full_name }}</p>
+        <p class="text-xs text-gray-400">{{ a.customer.customer_id }}</p>
+    </td>
+    <td class="px-4 py-2">
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ a.get_product_type_display }}</p>
+    </td>
+    <td class="px-4 py-2">
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+            {% if a.agent %}
+                {{ a.agent.full_name|default:a.agent.agent_id|default:"-" }}
+            {% else %}
+                -
+            {% endif %}
+        </p>
+    </td>
+    <td class="px-4 py-2">
+        {% if a.status == 'inactive' %}
+        <span class="inline-flex items-center justify-center rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-400 dark:bg-red-900/30 dark:text-red-200">{{ a.get_status_display|default:a.status }}</span>
+        {% elif a.status == 'active' or a.status == 'success' or a.status == 'hq_approved' %}
+        <span class="inline-flex items-center justify-center rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-200">{{ a.get_status_display|default:a.status }}</span>
+        {% elif a.status == 'pending' or a.status == 'branch_approved' or a.status == 'document_requested' or a.status == 'document_requested_by_hq' %}
+        <span class="inline-flex items-center justify-center rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-200">{{ a.get_status_display|default:a.status }}</span>
+        {% elif a.status == 'reject' or a.status == 'hq_rejected' or a.status == 'rejected_by_branch' %}
+        <span class="inline-flex items-center justify-center rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700 dark:bg-red-900/30 dark:text-red-200">{{ a.get_status_display|default:a.status }}</span>
+        {% else %}
+        <span class="inline-flex items-center justify-center rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-200">{{ a.get_status_display|default:a.status }}</span>
+        {% endif %}
+    </td>
+    <td class="px-4 py-2">
+        <div class="flex flex-wrap gap-2">
+            <a
+                href="{% url 'branch:savings_application_detail' a.application_id %}"
+                class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
+            >
+                View
+            </a>
+            {% if a.product_type == 'rd' %}
+                <a
+                    href="{% url 'branch:savings_collections_list' a.application_id %}"
+                    class="inline-flex items-center justify-center rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700"
+                >
+                    Collections
+                </a>
+            {% endif %}
+
+            {% if a.surrender_status == 'requested' %}
+            <button
+                type="button"
+                class="js-branch-surrender-verify inline-flex items-center justify-center rounded-lg bg-orange-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-orange-700"
+                data-application-id="{{ a.application_id }}"
+            >
+                Verify
+            </button>
+            {% elif a.surrender_status == 'approved' %}
+            <button
+                type="button"
+                disabled
+                class="inline-flex items-center justify-center rounded-lg bg-green-100 px-3 py-1.5 text-xs font-semibold text-green-700 border border-green-200 cursor-not-allowed"
+            >
+                Approved
+            </button>
+            {% elif a.surrender_status and a.surrender_status != 'none' %}
+            <button
+                type="button"
+                disabled
+                class="inline-flex items-center justify-center rounded-lg bg-orange-100 px-3 py-1.5 text-xs font-semibold text-orange-700 cursor-not-allowed"
+            >
+                {{ a.get_surrender_status_display|default:a.surrender_status }}
+            </button>
+            {% else %}
+            {% if a.tenure_completed %}
+            <button
+                type="button"
+                class="js-branch-surrender-verify inline-flex items-center justify-center rounded-lg bg-orange-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-orange-700"
+                data-application-id="{{ a.application_id }}"
+            >
+                Verify
+            </button>
+            {% else %}
+            <button
+                type="button"
+                class="js-branch-surrender-request inline-flex items-center justify-center rounded-lg bg-red-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700"
+                data-application-id="{{ a.application_id }}"
+            >
+                Surrender
+            </button>
+            {% endif %}
+            {% endif %}
+        </div>
+    </td>
+</tr>
+{% empty %}
+{% if page_obj.number == 1 %}
+<tr>
+    <td class="px-4 py-8 text-center text-gray-500 dark:text-gray-400" colspan="7">No savings accounts found</td>
+</tr>
+{% endif %}
+{% endfor %}
+
+{% if page_obj.has_next %}
+<tr id="allSavingsAccountsLoadMoreRow" data-next-page="{{ page_obj.next_page_number }}">
+    <td class="px-4 py-4 text-center text-sm text-gray-500 dark:text-gray-400" colspan="7">Loading…</td>
+</tr>
+{% endif %}

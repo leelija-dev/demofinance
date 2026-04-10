@@ -1,0 +1,59 @@
+{% extends "hq/base.html" %}
+{% load static %}
+
+{% block title %}Branch Register{% endblock %}
+
+{% block page_id %}BranchManagement{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'main/css/submit-loader/submit-loader.css' %}">
+{% endblock %}
+{% block content %}
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+    <!-- loader form submit  -->
+     <div id="full-page-loader" class="full-page-loader" >
+        <div class="w-auto relative ">
+        <div class="loader">
+        </div>
+        <span class="absolute text-[15px] top-[36%] left-[12%] text-[#8c8b8b]">Submitting..</span>
+        </div>
+        
+    </div>
+
+    <!-- Breadcrumb Start -->
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 class="text-title-md2 font-bold text-black dark:text-white">
+            Create New Branch
+        </h2>
+        <nav>
+            <ol class="flex items-center gap-2">
+                <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+                        href="{% url 'hq:dashboard' %}">Dashboard <svg class="stroke-current" width="17" height="16"
+                            viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                            </path>
+                        </svg></a></li>
+                <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+                        href="{% url 'hq:branch_management' %}">Branch<svg class="stroke-current" width="17" height="16"
+                            viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                            </path>
+                        </svg></a></li>
+                <li class="text-sm text-gray-800 dark:text-white/90">Create New Branch</li>
+            </ol>
+        </nav>
+    </div>
+    <!-- Breadcrumb End -->
+
+    <!-- Branch Management Content -->
+    <div
+        class="rounded-2xl border border-stroke bg-white px-6 pt-8 pb-6 shadow-default dark:border-gray-700 dark:bg-boxdark">
+        {% include 'branch/branch_form.html' %}
+    </div>
+</div>
+{% endblock %}
+
+  {% block extra_js %}
+  
+  {% endblock %}

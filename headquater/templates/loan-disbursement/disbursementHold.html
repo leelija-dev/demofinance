@@ -1,0 +1,109 @@
+{% extends 'hq/base.html' %}
+{% load static %}
+{% block title %}Loan Disbursement On Hold{% endblock %}
+
+{% block page_id %}onHoldDisbursements{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+    <!-- Breadcrumb Start -->
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 class="text-title-md2 font-bold text-black dark:text-white">
+            Loan Disbursement
+        </h2>
+        <nav>
+            <ol class="flex items-center gap-2">
+                <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+                        href="{% url 'hq:dashboard' %}">Dashboard <svg class="stroke-current" width="17" height="16"
+                            viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                            </path>
+                        </svg></a></li>
+                <li class="text-sm text-gray-800 dark:text-white/90">Loan Disbursement</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        <div class="p-5 space-y-6 border-t border-gray-100 dark:border-gray-800 sm:p-6">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead>
+                        <tr>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">S.N.</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Branch</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Loan No</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Customer Id
+                            </th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Customer Name
+                            </th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Catergory</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Frequency</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">ROI(%)</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tenure</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Senction Amount</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Applied Date</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Approved Date</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                        {% for app in loan_disbursement %}
+                        <tr class="border-t">
+                            <td class="px-4 py-2">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ forloop.counter }}</p>
+                            </td>
+                            <td class="px-4 py-2">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ app.branch.branch_name }}</p>
+                            </td>
+                            <td class="px-4 py-2">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ app.loan_ref_no }}</p>
+                            </td>
+                            <td class="px-4 py-2">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ app.customer.customer_id }}</p>
+                            </td>
+                            <td class="px-4 py-2">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400"> {{ app.customer.full_name }}
+                                </p>
+                            </td>
+                            <td class="px-4 py-2">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ app.loan_details.first.loan_category.name|default:"N/A" }}
+                                </p>
+                            </td>
+                            <td class="px-4 py-2">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ app.loan_details.first.tenure.unit|default:"N/A" }}</p></td>
+                            <td class="px-4 py-2">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ app.loan_details.first.interest_rate.rate_of_interest|default:"N/A" }}</p></td>
+                            <td class="px-4 py-2">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ app.loan_details.first.tenure.value|default:"N/A" }}</p></td>
+                            <td class="px-4 py-2">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ app.loan_details.first.loan_amount|default:"N/A" }}</p></td>
+                             <td class="px-4 py-2">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ app.submitted_at|date:"Y-m-d"|default:"N/A" }}</p></td>
+                             <td class="px-4 py-2">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ app.approved_at|date:"Y-m-d"|default:"N/A" }}</p></td>
+                            <td class="px-4 py-2">
+                                <a href="{% url 'hq:disburesement_on_hold_detail' app.loan_ref_no %}" class="inline-block px-3 py-1 text-sm rounded bg-brand-500 text-white hover:bg-brand-600 transition">View</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="12" class="text-center pt-4 text-sm font-medium text-red-600">No Loan Ready For Disbursement.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div id="no-loan-applications-message" class="text-center text-gray-500 py-8 hidden">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No Loan Applications</h3>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">There are no loan applications pending HQ approval.
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endblock %}

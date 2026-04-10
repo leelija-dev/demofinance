@@ -1,0 +1,966 @@
+                <!-- Rescheduled EMI Table (if any) -->
+                <div id="reschedule-emi-container" class="mb-6 hidden">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-md font-semibold text-gray-800">Rescheduled EMI Schedule</h3>
+                        <span id="reschedule-meta" class="text-xs text-gray-500"></span>
+                    </div>
+                    <!-- Reschedule header totals (same design as original header) -->
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <div>
+                                <h3 class="text-sm text-gray-600 font-semibold">Total Amount: <span
+                                        class="text-lg text-blue-700 font-bold" id="reschedule-total-emi-amount">0.00</span></h3>
+                            </div>
+                            <div>
+                                <div class="flex gap-2">
+                                    <h3 class="text-xs text-gray-600 font-semibold">Received: <span
+                                        class="text-sm text-green-600 font-semibold" id="reschedule-collected-emi-amount"> 0.00</span></h3>
+                                    <h3 class="text-xs text-gray-600 font-semibold">Due: <span
+                                            class="text-sm text-red-600 font-semibold" id="reschedule-remaining-emi-amount"> 0.00</span></h3>
+                                    <h3 class="text-xs text-gray-600 font-semibold">Excess: <span
+                                            class="text-sm text-blue-600 font-semibold" id="reschedule-excess-emi-amount"> 0.00</span></h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div>
+                                <h3 class="text-sm text-gray-600 font-semibold">Principal Amount: <span
+                                        class="text-lg text-blue-700 font-bold" id="reschedule-total-principal-amount">0.00</span></h3>
+                            </div>
+                            <div>
+                                <div class="flex gap-2">
+                                    <h3 class="text-xs text-gray-600 font-semibold">Received: <span
+                                        class="text-sm text-green-600 font-semibold" id="reschedule-collected-principal-amount">0.00</span></h3>
+                                    <h3 class="text-xs text-gray-600 font-semibold">Due: <span
+                                            class="text-sm text-red-600 font-semibold" id="reschedule-remaining-principal-amount">0.00</span></h3>
+                                    <h3 class="text-xs text-gray-600 font-semibold">Excess: <span
+                                            class="text-sm text-blue-600 font-semibold" id="reschedule-excess-emi-principal"> 0.00</span></h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div>
+                                <h3 class="text-sm text-gray-600 font-semibold">Interest Amount: <span
+                                        class="text-lg text-blue-700 font-bold" id="reschedule-total-interest-amount">0.00</span></h3>
+                            </div>
+                            <div>
+                                <div class="flex gap-2">
+                                    <h3 class="text-xs text-gray-600 font-semibold">Received: <span
+                                        class="text-sm text-green-600 font-semibold" id="reschedule-collected-interest-amount">0.00</span></h3>
+                                    <h3 class="text-xs text-gray-600 font-semibold">Due: <span
+                                            class="text-sm text-red-600 font-semibold" id="reschedule-remaining-interest-amount">0.00</span></h3>
+                                    <h3 class="text-xs text-gray-600 font-semibold">Excess: <span
+                                            class="text-sm text-blue-600 font-semibold" id="reschedule-excess-emi-interest"> 0.00</span></h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div>
+                                <h3 class="text-sm text-gray-600 font-semibold flex items-center gap-1">Total Collected: <span
+                                        class="text-lg text-blue-700 font-bold" id="reschedule-total-collected-amount"> 0.00</span></h3>
+                            </div>
+                            <div>
+                                <div class="flex gap-2">
+                                    <h3 class="text-xs text-gray-600 font-semibold">Total Late Fee: <span
+                                        class="text-sm text-green-600 font-semibold" id="reschedule-total-late-fee-amount">0.00</span></h3>
+                                    <h3 class="text-xs text-gray-600 font-semibold">Due: <span
+                                            class="text-sm text-red-600 font-semibold" id="reschedule-due-late-fee-amount">0.00</span></h3>
+                                    <h3 class="text-xs text-gray-600 font-semibold">Received: <span
+                                            class="text-sm text-blue-600 font-semibold" id="reschedule-received-late-fee-amount">0.00</span></h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto bg-white rounded-lg shadow">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Installment Date</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">EMI Amount</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Principal</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interest</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Overdue Days</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Late Fee</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paid Date</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assign Agent</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reschedule-emi-tbody" class="bg-white divide-y divide-gray-200">
+                                <tr>
+                                    <td colspan="10" class="px-6 py-4 text-center text-gray-500">
+                                        No reschedule EMI data
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                   
+                    <hr class="my-6" />
+                </div>
+                 <!-- History of previous reschedules (Reschedule #1, #2, ...) -->
+                    <div id="reschedule-history-wrapper" class="mt-6 space-y-4"></div>
+
+                <!-- Reschedule Loan Modal -->
+                <div id="reschedule-modal" class="fixed inset-0 z-9999 hidden">
+                    <div class="absolute inset-0 bg-black/50" onclick="closeRescheduleModal()"></div>
+                    <div id="reschedule-panel" class="absolute w-[480px] rounded-lg bg-white p-6 shadow-xl border border-gray-200">
+                      <h3 class="text-lg font-semibold text-gray-800 mb-4">Reschedule Loan</h3>
+
+                      <div class="space-y-4">
+                        <div class="grid grid-cols-1 gap-4">
+                          <div>
+                            <label class="block text-sm font-medium text-gray-700">Outstanding Balance</label>
+                            <input id="reschedule-outstanding" type="number" step="1" readonly
+                                   class="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm bg-gray-50">
+                          </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                          <div>
+                            <label class="block text-sm font-medium text-gray-700">Penalty Interest Rate (%)</label>
+                            <input id="reschedule-penalty-rate" type="number" step="1" value=""
+                                   class="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
+                          </div>
+                          <div>
+                            <label id="reschedule-period-label" class="block text-sm font-medium text-gray-700">Reschedule Period (Days)</label>
+                            <input id="reschedule-period" type="number" value=""
+                                   class="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
+                          </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                          <div>
+                            <label class="block text-sm font-medium text-gray-700">Penalty Amount</label>
+                            <input id="reschedule-penalty-amount" type="number" step="1" readonly
+                                   class="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm bg-gray-50">
+                          </div>
+                          <div>
+                            <label class="block text-sm font-medium text-gray-700">New Installment Count</label>
+                            <input id="reschedule-emi-count" type="number" step="1" readonly
+                                   class="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm bg-gray-50">
+                          </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                          <div>
+                            <label class="block text-sm font-medium text-gray-700">New Total Balance</label>
+                            <input id="reschedule-new-balance" type="number" step="1" readonly
+                                   class="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm bg-gray-50">
+                          </div>
+                          <div>
+                            <label class="block text-sm font-medium text-gray-700">New Installment Amount</label>
+                            <input id="reschedule-new-installment" type="number" step="1" readonly
+                                   class="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm bg-gray-50">
+                          </div>
+                        </div>
+
+                        <div>
+                          <label class="block text-sm font-medium text-gray-700">Remarks</label>
+                          <textarea id="reschedule-remarks" rows="2"
+                                    class="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                                    placeholder="Optional remarks for rescheduling"></textarea>
+                        </div>
+
+                        <div id="reschedule-error" class="hidden text-sm text-red-600 bg-red-50 p-3 rounded"></div>
+                      </div>
+
+                      <div class="mt-6 flex justify-between">
+                        <button type="button"
+                                class="px-4 py-2 rounded border border-gray-300 text-sm text-gray-700 hover:bg-gray-50"
+                                onclick="closeRescheduleModal()">Cancel</button>
+                        <button id="reschedule-confirm-btn" type="button"
+                                class="px-4 py-2 rounded bg-orange-600 text-sm text-white hover:bg-orange-700 disabled:opacity-50"
+                                onclick="handleRescheduleConfirm()">Reschedule Loan</button>
+                      </div>
+                    </div>
+                  </div>
+
+                <script>
+                // Global helper to fetch and render rescheduled EMIs for a loan
+                async function fetchRescheduleEmis(loanRefNo) {
+                    const container = document.getElementById('reschedule-emi-container');
+                    const tbody = document.getElementById('reschedule-emi-tbody');
+                    const metaEl = document.getElementById('reschedule-meta');
+                    const originalWrapper = document.getElementById('original-emi-wrapper');
+                    const toggleBtn = document.getElementById('toggle-original-emi-btn');
+
+                    // Reschedule header elements (same layout as original header)
+                    const totalEmiEl      = document.getElementById('reschedule-total-emi-amount');
+                    const collectedEmiEl  = document.getElementById('reschedule-collected-emi-amount');
+                    const remainingEmiEl  = document.getElementById('reschedule-remaining-emi-amount');
+                    const excessEmiEl     = document.getElementById('reschedule-excess-emi-amount');
+
+                    const totalPrinEl     = document.getElementById('reschedule-total-principal-amount');
+                    const collectedPrinEl = document.getElementById('reschedule-collected-principal-amount');
+                    const remainingPrinEl = document.getElementById('reschedule-remaining-principal-amount');
+                    const excessPrinEl    = document.getElementById('reschedule-excess-emi-principal');
+
+                    const totalIntEl      = document.getElementById('reschedule-total-interest-amount');
+                    const collectedIntEl  = document.getElementById('reschedule-collected-interest-amount');
+                    const remainingIntEl  = document.getElementById('reschedule-remaining-interest-amount');
+                    const excessIntEl     = document.getElementById('reschedule-excess-emi-interest');
+
+                    const totalCollectedEl = document.getElementById('reschedule-total-collected-amount');
+                    const totalLateFeeEl   = document.getElementById('reschedule-total-late-fee-amount');
+                    const dueLateFeeEl     = document.getElementById('reschedule-due-late-fee-amount');
+                    const receivedLateFeeEl= document.getElementById('reschedule-received-late-fee-amount');
+                    if (!container || !tbody) return;
+
+                    try {
+                        const resp = await fetch(`{% url 'branch:api_loan_reschedule_emis' loan_ref_no='__REF__' %}`.replace('__REF__', encodeURIComponent(loanRefNo)));
+                        if (!resp.ok) {
+                            // No reschedule: hide reschedule section, show original table, hide toggle button
+                            container.classList.add('hidden');
+                            if (originalWrapper) originalWrapper.classList.remove('hidden');
+                            if (toggleBtn) {
+                                toggleBtn.textContent = 'Hide';
+                                toggleBtn.classList.add('hidden');
+                            }
+                            return;
+                        }
+                        const data = await resp.json();
+                        // console.log('rrrrrrrrrrrrddddddddd-',data);
+                        
+                        const emis = Array.isArray(data.emis) ? data.emis : [];
+                        if (!emis.length) {
+                            // No reschedule rows; hide container, show original table, hide toggle button
+                            container.classList.add('hidden');
+                            if (originalWrapper) originalWrapper.classList.remove('hidden');
+                            if (toggleBtn) {
+                                toggleBtn.textContent = 'Hide';
+                                toggleBtn.classList.add('hidden');
+                            }
+                            return;
+                        }
+
+                        // Show reschedule container and meta, and hide original table by default
+                        container.classList.remove('hidden');
+                        if (originalWrapper) originalWrapper.classList.add('hidden');
+                        if (toggleBtn) {
+                            toggleBtn.classList.remove('hidden');
+                            toggleBtn.textContent = 'Show';
+                        }
+                        if (metaEl && typeof data.reschedule_no !== 'undefined') {
+                            metaEl.textContent = `Reschedule #${data.reschedule_no}`;
+                            metaEl.style.color = 'green';
+                            metaEl.style.fontWeight = 'bold';
+                            metaEl.style.fontSize = '14px';
+                        }
+
+                        // ---- Populate reschedule header using the same pattern as normal EMI header ---- //
+                        const fmt = (n) => {
+                            const num = Number(n) || 0;
+                            return `₹${num.toFixed(2)}`;
+                        };
+
+                        const toNum = (v) => {
+                            const n = typeof v === 'string' ? parseFloat(v) : (typeof v === 'number' ? v : 0);
+                            return Number.isFinite(n) ? n : 0;
+                        };
+
+                        // Totals across all rescheduled EMIs
+                        let totalEmi = 0;
+                        let totalPrin = 0;
+                        let totalInt = 0;
+
+                        // Collected (paid) amounts
+                        let collectedEmi = 0;
+                        let collectedPrin = 0;
+                        let collectedInt = 0;
+
+                        // Late fee buckets
+                        let totalLateFee = 0;
+                        let collectedLateFee = 0;
+                        let dueLateFee = 0;
+
+                        emis.forEach(e => {
+                            const emiAmt  = toNum(e.installment_amount);
+                            const prinAmt = toNum(e.principal_amount);
+                            const intAmt  = toNum(e.interest_amount);
+                            const lateFee = toNum(e.late_fee);
+                            const isPaid  = !!e.paid;
+                            const isOverdue = !!e.is_overdue;
+
+                            totalEmi  += emiAmt;
+                            totalPrin += prinAmt;
+                            totalInt  += intAmt;
+
+                            if (isPaid) {
+                                collectedEmi  += emiAmt;
+                                collectedPrin += prinAmt;
+                                collectedInt  += intAmt;
+                            }
+
+                            if (isOverdue) {
+                                totalLateFee += lateFee;
+                                if (isPaid) {
+                                    collectedLateFee += lateFee;
+                                } else {
+                                    dueLateFee += lateFee;
+                                }
+                            }
+                        });
+
+                        const remainingEmi  = Math.max(totalEmi  - collectedEmi, 0);
+                        const remainingPrin = Math.max(totalPrin - collectedPrin, 0);
+                        const remainingInt  = Math.max(totalInt  - collectedInt, 0);
+
+                        // Backend snapshot of remaining amounts from latest reschedule period
+                        const apiRemainingBalance   = toNum(data.remaining_balance);
+                        const apiRemainingPrincipal = toNum(data.remaining_principal);
+                        const apiRemainingInterest  = toNum(data.remaining_interest);
+
+                        // Update EMI header (Amount)
+                        if (totalEmiEl)     totalEmiEl.textContent     = fmt(totalEmi);
+                        if (collectedEmiEl) collectedEmiEl.textContent = fmt(collectedEmi);
+                        if (remainingEmiEl) remainingEmiEl.textContent = fmt(remainingEmi);
+                        if (excessEmiEl)    excessEmiEl.textContent    = fmt(apiRemainingBalance);
+
+                        // Principal header
+                        if (totalPrinEl)     totalPrinEl.textContent     = fmt(totalPrin);
+                        if (collectedPrinEl) collectedPrinEl.textContent = fmt(collectedPrin);
+                        if (remainingPrinEl) remainingPrinEl.textContent = fmt(remainingPrin);
+                        if (excessPrinEl)    excessPrinEl.textContent    = fmt(apiRemainingPrincipal);
+
+                        // Interest header
+                        if (totalIntEl)     totalIntEl.textContent     = fmt(totalInt);
+                        if (collectedIntEl) collectedIntEl.textContent = fmt(collectedInt);
+                        if (remainingIntEl) remainingIntEl.textContent = fmt(remainingInt);
+                        if (excessIntEl)    excessIntEl.textContent    = fmt(apiRemainingInterest);
+
+                        // Late fee header (Total / Due / Received)
+                        if (totalCollectedEl)  totalCollectedEl.textContent  = fmt(collectedEmi + collectedLateFee);
+                        if (totalLateFeeEl)    totalLateFeeEl.textContent    = fmt(totalLateFee);
+                        if (dueLateFeeEl)      dueLateFeeEl.textContent      = fmt(dueLateFee);
+                        if (receivedLateFeeEl) receivedLateFeeEl.textContent = fmt(collectedLateFee);
+
+                        // Automatically toggle Loan Close button when reschedule plan is fully settled
+                        const closeBtn = document.getElementById('close-emi-btn');
+                        if (closeBtn) {
+                            const nearZero = (v) => Math.abs(Number(v) || 0) < 0.01;
+
+                            const noRemainingCore = nearZero(remainingEmi) && nearZero(remainingPrin) && nearZero(remainingInt);
+                            const noBackendRemaining = nearZero(apiRemainingBalance) && nearZero(apiRemainingPrincipal) && nearZero(apiRemainingInterest);
+                            const noDueLateFee = nearZero(dueLateFee);
+
+                            const rescheduleComplete = noRemainingCore && noBackendRemaining && noDueLateFee;
+
+                            // IMPORTANT: only SHOW the button when reschedule is
+                            // fully complete. Do NOT hide it here; other logic
+                            // in emi-scedule.html decides when to hide.
+                            if (rescheduleComplete) {
+                                closeBtn.classList.remove('hidden');
+                            }
+                        }
+
+                        // ---------------------------------------------------------------------- //
+                        // Update global RESCHEDULE_META so that any subsequent reschedule
+                        // uses the latest rescheduled outstanding instead of the original loan.
+                        // ---------------------------------------------------------------------- //
+                        if (window.RESCHEDULE_META) {
+                            const backendOutstanding = Number(data.outstanding || 0);
+                            if (backendOutstanding > 0) {
+                                window.RESCHEDULE_META.outstanding_balance = backendOutstanding;
+                                window.RESCHEDULE_META.remaining_balance = backendOutstanding;
+                            }
+
+                            // For repeat reschedules, treat the first rescheduled EMI as the
+                            // reference "previous" installment amount and frequency.
+                            const firstResEmi = emis[0];
+                            if (firstResEmi) {
+                                const prevAmt = Number(firstResEmi.installment_amount || 0);
+                                if (prevAmt > 0) {
+                                    window.RESCHEDULE_META.previous_installment_amount = prevAmt;
+                                }
+                                if (firstResEmi.frequency) {
+                                    window.RESCHEDULE_META.frequency = firstResEmi.frequency;
+                                }
+                            }
+                        }
+
+                        // Determine the first unpaid rescheduled EMI index (only this one is actionable)
+                        const firstUnpaidIndex = emis.findIndex(e => !e.paid);
+
+                        tbody.innerHTML = emis.map((emi, index) => {
+                            const isPaid = !!emi.paid;
+                            const isOverdue = !!emi.is_overdue;
+                            const overdueDays = Number(emi.overdue_days || 0);
+                            const lateFee = parseFloat(emi.late_fee || 0) || 0;
+                            const assignedAgentName = emi.assigned_agent_name || '-';
+
+                            const statusBadge = isPaid
+                                ? '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-50 text-green-800">Paid</span>'
+                                : '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-50 text-yellow-800">Current</span>';
+
+                            const overdueText = isOverdue
+                                ? `${overdueDays} day(s)`
+                                : '-';
+
+                            const paidDateText = emi.paid_date ? formatDate(emi.paid_date) : '-';
+
+                            let actionsHtml = '';
+                            if (isPaid) {
+                                actionsHtml = `
+                                    <button type="button" class="px-3 py-1 text-xs rounded bg-gray-100 text-gray-400 cursor-not-allowed" disabled>
+                                        Paid
+                                    </button>
+                                `;
+                            } else if (index !== firstUnpaidIndex || firstUnpaidIndex === -1) {
+                                // Future EMIs stay locked until previous one is received
+                                actionsHtml = `
+                                    <button type="button" class="px-3 py-1 text-xs rounded bg-gray-100 text-gray-400 cursor-not-allowed" disabled>
+                                        Collect
+                                    </button>
+                                `;
+                            } else {
+                                // This is the first unpaid EMI: either already collected or new
+                                if (emi.collection_status === 'collected') {
+                                    actionsHtml = `
+                                        <button
+                                            type="button"
+                                            class="px-3 py-1 text-xs rounded bg-emerald-600 text-white hover:bg-emerald-700"
+                                            onclick="receiveRescheduleEmi('${loanRefNo}', ${emi.id}, this)">
+                                            Receive
+                                        </button>
+                                    `;
+                                } else {
+                                    actionsHtml = `
+                                        <button
+                                            type="button"
+                                            class="px-3 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-700"
+                                            onclick="recordReschedulePayment('${loanRefNo}', ${emi.id}, this)">
+                                            Collect
+                                        </button>
+                                    `;
+                                }
+                            }
+
+                            return `
+                                <tr data-res-emi-id="${emi.id}">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formatDate(emi.installment_date)}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${fmt(emi.installment_amount)}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${fmt(emi.principal_amount)}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${fmt(emi.interest_amount)}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">${statusBadge}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${overdueText}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${lateFee ? fmt(lateFee) : '-'}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${paidDateText}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${assignedAgentName}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">${actionsHtml}</td>
+                                </tr>
+                            `;
+                        }).join('');
+
+                        // Mark all original EMI rows as inactive/disabled for this rescheduled loan
+                        if (typeof markOriginalEmisAsInactive === 'function') {
+                            markOriginalEmisAsInactive();
+                        }
+
+                        // -------------------------------------------------------------
+                        // Expose a lightweight global state about this latest reschedule
+                        // so the Reschedule button visibility logic can decide whether
+                        // we are in an "active" reschedule period or can allow another
+                        // reschedule once this period has expired with unpaid EMIs.
+                        // -------------------------------------------------------------
+                        if (emis.length > 0) {
+                            const lastRes = emis[emis.length - 1];
+                            const lastResDate = lastRes.installment_date || null;
+                            const hasUnpaidRes = emis.some(e => !e.paid);
+
+                            window.RESCHEDULE_STATE = {
+                                has_reschedule: true,
+                                last_reschedule_installment_date: lastResDate,
+                                has_unpaid_reschedule: hasUnpaidRes,
+                            };
+                        } else {
+                            window.RESCHEDULE_STATE = {
+                                has_reschedule: false,
+                                last_reschedule_installment_date: null,
+                                has_unpaid_reschedule: false,
+                            };
+                        }
+
+                        // Render history of previous reschedules (if any)
+                        const historyWrapper = document.getElementById('reschedule-history-wrapper');
+                        if (historyWrapper) {
+                            const history = Array.isArray(data.history) ? data.history : [];
+                            const latestNo = data.reschedule_no;
+
+                            // Keep only previous reschedules (exclude the latest, which is already shown above)
+                            const previous = history
+                                .filter(h => h.reschedule_no !== latestNo)
+                                .sort((a, b) => a.reschedule_no - b.reschedule_no);
+
+                            historyWrapper.innerHTML = previous.map(h => {
+                                const sectionId = `res-history-${h.reschedule_no}`;
+                                const tableId = `res-history-table-${h.reschedule_no}`;
+                                const emisH = Array.isArray(h.emis) ? h.emis : [];
+
+                                const rowsHtml = emisH.map(e => {
+                                    const statusBadge = e.paid
+                                        ? '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-50 text-green-800">Paid</span>'
+                                        : '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-600">Planned</span>';
+
+                                    const overdueText = e.is_overdue
+                                        ? `${Number(e.overdue_days || 0)} day(s)`
+                                        : '-';
+
+                                    const paidDateText = e.paid_date ? formatDate(e.paid_date) : '-';
+                                    const assignedAgentName = e.assigned_agent_name || '-';
+
+                                    return `
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formatDate(e.installment_date)}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${fmt(e.installment_amount)}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${fmt(e.principal_amount)}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${fmt(e.interest_amount)}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">${statusBadge}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${overdueText}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${e.late_fee ? fmt(e.late_fee) : '-'}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${paidDateText}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${assignedAgentName}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">-</td>
+                                        </tr>
+                                    `;
+                                }).join('');
+
+                                // Header summary for this historical reschedule: compute totals like main header
+                                let hTotalEmi = 0;
+                                let hTotalPrin = 0;
+                                let hTotalInt = 0;
+                                let hCollectedEmi = 0;
+                                let hCollectedPrin = 0;
+                                let hCollectedInt = 0;
+                                let hTotalLateFee = 0;
+                                let hCollectedLateFee = 0;
+                                let hDueLateFee = 0;
+
+                                emisH.forEach(e => {
+                                    const emiAmt  = toNum(e.installment_amount);
+                                    const prinAmt = toNum(e.principal_amount);
+                                    const intAmt  = toNum(e.interest_amount);
+                                    const lateFee = toNum(e.late_fee);
+                                    const isPaid  = !!e.paid;
+                                    const isOverdue = !!e.is_overdue;
+
+                                    hTotalEmi  += emiAmt;
+                                    hTotalPrin += prinAmt;
+                                    hTotalInt  += intAmt;
+
+                                    if (isPaid) {
+                                        hCollectedEmi  += emiAmt;
+                                        hCollectedPrin += prinAmt;
+                                        hCollectedInt  += intAmt;
+                                    }
+
+                                    if (isOverdue) {
+                                        hTotalLateFee += lateFee;
+                                        if (isPaid) {
+                                            hCollectedLateFee += lateFee;
+                                        } else {
+                                            hDueLateFee += lateFee;
+                                        }
+                                    }
+                                });
+
+                                const hRemainingEmi  = Math.max(hTotalEmi  - hCollectedEmi, 0);
+                                const hRemainingPrin = Math.max(hTotalPrin - hCollectedPrin, 0);
+                                const hRemainingInt  = Math.max(hTotalInt  - hCollectedInt, 0);
+
+                                const hApiRemainingBalance   = toNum(h.remaining_balance);
+                                const hApiRemainingPrincipal = toNum(h.remaining_principal);
+                                const hApiRemainingInterest  = toNum(h.remaining_interest);
+
+                                const hTotalCollected = hCollectedEmi + hCollectedLateFee;
+
+                                const headerHtml = `
+                                    <div class="flex justify-between items-center mb-4">
+                                        <div>
+                                            <div>
+                                                <h3 class="text-sm text-gray-600 font-semibold">Total Amount: <span class="text-lg text-blue-700 font-bold">${fmt(hTotalEmi)}</span></h3>
+                                            </div>
+                                            <div>
+                                                <div class="flex gap-2">
+                                                    <h3 class="text-xs text-gray-600 font-semibold">Received: <span class="text-sm text-green-600 font-semibold">${fmt(hCollectedEmi)}</span></h3>
+                                                    <h3 class="text-xs text-gray-600 font-semibold">Due: <span class="text-sm text-red-600 font-semibold">${fmt(hRemainingEmi)}</span></h3>
+                                                    <h3 class="text-xs text-gray-600 font-semibold">Excess: <span class="text-sm text-blue-600 font-semibold">${fmt(hApiRemainingBalance)}</span></h3>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div>
+                                                <h3 class="text-sm text-gray-600 font-semibold">Principal Amount: <span class="text-lg text-blue-700 font-bold">${fmt(hTotalPrin)}</span></h3>
+                                            </div>
+                                            <div>
+                                                <div class="flex gap-2">
+                                                    <h3 class="text-xs text-gray-600 font-semibold">Received: <span class="text-sm text-green-600 font-semibold">${fmt(hCollectedPrin)}</span></h3>
+                                                    <h3 class="text-xs text-gray-600 font-semibold">Due: <span class="text-sm text-red-600 font-semibold">${fmt(hRemainingPrin)}</span></h3>
+                                                    <h3 class="text-xs text-gray-600 font-semibold">Excess: <span class="text-sm text-blue-600 font-semibold">${fmt(hApiRemainingPrincipal)}</span></h3>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div>
+                                                <h3 class="text-sm text-gray-600 font-semibold">Interest Amount: <span class="text-lg text-blue-700 font-bold">${fmt(hTotalInt)}</span></h3>
+                                            </div>
+                                            <div>
+                                                <div class="flex gap-2">
+                                                    <h3 class="text-xs text-gray-600 font-semibold">Received: <span class="text-sm text-green-600 font-semibold">${fmt(hCollectedInt)}</span></h3>
+                                                    <h3 class="text-xs text-gray-600 font-semibold">Due: <span class="text-sm text-red-600 font-semibold">${fmt(hRemainingInt)}</span></h3>
+                                                    <h3 class="text-xs text-gray-600 font-semibold">Excess: <span class="text-sm text-blue-600 font-semibold">${fmt(hApiRemainingInterest)}</span></h3>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div>
+                                                <h3 class="text-sm text-gray-600 font-semibold flex items-center gap-1">Total Collected: <span class="text-lg text-blue-700 font-bold">${fmt(hTotalCollected)}</span></h3>
+                                            </div>
+                                            <div>
+                                                <div class="flex gap-2">
+                                                    <h3 class="text-xs text-gray-600 font-semibold">Total Late Fee: <span class="text-sm text-green-600 font-semibold">${fmt(hTotalLateFee)}</span></h3>
+                                                    <h3 class="text-xs text-gray-600 font-semibold">Due: <span class="text-sm text-red-600 font-semibold">${fmt(hDueLateFee)}</span></h3>
+                                                    <h3 class="text-xs text-gray-600 font-semibold">Received: <span class="text-sm text-blue-600 font-semibold">${fmt(hCollectedLateFee)}</span></h3>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+
+                                return `
+                                    <div id="${sectionId}" class="">
+                                        <div class="flex items-center justify-between py-2 border-b border-gray-200">
+                                            <h4 class="text-md font-semibold text-gray-800">Rescheduled EMI Schedule #${h.reschedule_no}</h4>
+                                            <button
+                                                type="button"
+                                                class="text-xs text-blue-600 hover:underline"
+                                                onclick="(function(btnId, tableId){
+                                                    const el = document.getElementById(tableId);
+                                                    const btn = document.getElementById(btnId);
+                                                    if (!el || !btn) return;
+                                                    const hidden = el.classList.contains('hidden');
+                                                    if (hidden) {
+                                                        el.classList.remove('hidden');
+                                                        btn.textContent = 'Hide';
+                                                    } else {
+                                                        el.classList.add('hidden');
+                                                        btn.textContent = 'Show';
+                                                    }
+                                                })('btn-${sectionId}', '${tableId}')"
+                                                id="btn-${sectionId}"
+                                            >Show</button>
+                                        </div>
+                                        <div id="${tableId}" class="overflow-x-auto border-b border-gray-200 rounded-lg bg-white shadow-sm my-4 hidden">
+                                             ${headerHtml}
+                                            <table class="min-w-full divide-y divide-gray-200">
+                                                <thead class="bg-gray-50">
+                                                    <tr>
+                                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Installment Date</th>
+                                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">EMI Amount</th>
+                                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Principal</th>
+                                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interest</th>
+                                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Overdue Days</th>
+                                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Late Fee</th>
+                                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paid Date</th>
+                                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assign Agent</th>
+                                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="bg-white divide-y divide-gray-200">
+                                                    ${rowsHtml || '<tr><td colspan="10" class="px-6 py-4 text-center text-gray-500">No EMI data</td></tr>'}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('');
+                        }
+
+                        // Re-evaluate the Reschedule button (if the helper exists)
+                        if (typeof updateRescheduleButtonVisibility === 'function' && window.RESCHEDULE_META) {
+                            updateRescheduleButtonVisibility(window.RESCHEDULE_META);
+                        }
+                    } catch (e) {
+                        console.error('Failed to fetch reschedule emis', e);
+                        container.classList.add('hidden');
+                        if (originalWrapper) originalWrapper.classList.remove('hidden');
+                        if (toggleBtn) toggleBtn.textContent = 'Hide';
+                    }
+                }
+
+                // Assign an AGENT to a RESCHEDULED EMI (per-row dropdown)
+                async function assignAgentToRescheduleEmi(loanRefNo, rescheduleEmiId, selectEl) {
+                    if (!rescheduleEmiId || !selectEl) return;
+
+                    const agentId = selectEl.value;
+                    if (!agentId) {
+                        return;
+                    }
+
+                    const originalDisabled = selectEl.disabled;
+                    selectEl.disabled = true;
+
+                    try {
+                        const res = await fetch('/branch/api/assign-agent-to-reschedule-emi/', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': getCSRFToken(),
+                            },
+                            body: JSON.stringify({
+                                loan_ref_no: loanRefNo,
+                                reschedule_emi_id: String(rescheduleEmiId),
+                                agent_id: agentId,
+                            }),
+                        });
+
+                        const data = await res.json().catch(() => ({}));
+                        if (!res.ok) {
+                            const msg = data.detail || data.message || 'Failed to assign agent to rescheduled EMI';
+                            throw new Error(msg);
+                        }
+
+                        const agentName = data.assigned_agent_name || (selectEl.options[selectEl.selectedIndex]?.textContent || 'Assigned');
+
+                        // Replace dropdown with plain text showing assigned agent
+                        const cell = selectEl.closest('td');
+                        if (cell) {
+                            cell.textContent = agentName;
+                        }
+
+                        if (window.showToast) {
+                            const toastMsg = data.message || 'Agent assigned successfully to rescheduled EMI';
+                            showToast(toastMsg, 'success');
+                        }
+                    } catch (err) {
+                        console.error('Failed to assign agent to rescheduled EMI', err);
+                        if (window.showToast) {
+                            showToast(err.message || 'Failed to assign agent to rescheduled EMI', 'error');
+                        } else {
+                            alert(err.message || 'Failed to assign agent to rescheduled EMI');
+                        }
+                        selectEl.disabled = originalDisabled;
+                    }
+                }
+
+                // Receive (verify) a collected RESCHEDULED EMI
+                async function receiveRescheduleEmi(loanRefNo, rescheduleEmiId, btn) {
+                    if (!rescheduleEmiId) return;
+
+                    const originalLabel = btn ? btn.textContent : '';
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.textContent = 'Receiving...';
+                    }
+
+                    try {
+                        const payload = {};
+                        // If the main page exposes remaining data (like original flow), forward it
+                        if (window.REMAINING_EMI_DATA) {
+                            if (window.REMAINING_EMI_DATA.remaining_balance != null) {
+                                payload.remaining_balance = window.REMAINING_EMI_DATA.remaining_balance;
+                            }
+                            if (window.REMAINING_EMI_DATA.remaining_principal != null) {
+                                payload.remaining_principal = window.REMAINING_EMI_DATA.remaining_principal;
+                            }
+                            if (window.REMAINING_EMI_DATA.remaining_interest != null) {
+                                payload.remaining_interest = window.REMAINING_EMI_DATA.remaining_interest;
+                            }
+                        }
+
+                        const res = await fetch(`/branch/api/reschedule-emi-receive/${encodeURIComponent(rescheduleEmiId)}/`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': getCSRFToken(),
+                            },
+                            body: JSON.stringify(payload),
+                        });
+
+                        const data = await res.json().catch(() => ({}));
+                        if (!res.ok || !data.success) {
+                            const msg = data.message || data.detail || 'Failed to receive rescheduled EMI';
+                            throw new Error(msg);
+                        }
+
+                        // Update row UI to Paid
+                        const row = document.querySelector(`#reschedule-emi-tbody tr[data-res-emi-id="${rescheduleEmiId}"]`);
+                        if (row) {
+                            const tds = row.querySelectorAll('td');
+                            // Status badge cell
+                            if (tds[4]) {
+                                tds[4].innerHTML = '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-50 text-green-800">Paid</span>';
+                            }
+                            // Paid date cell
+                            if (tds[7]) {
+                                const paidDate = data.paid_date || null;
+                                tds[7].textContent = paidDate ? paidDate : '-';
+                            }
+                            // Actions cell -> Paid
+                            if (tds[9]) {
+                                tds[9].innerHTML = '<button type="button" class="px-3 py-1 text-xs rounded bg-gray-100 text-gray-400 cursor-not-allowed" disabled>Paid</button>';
+                            }
+                        }
+
+                        // Enable the next unpaid rescheduled EMI (sequential flow)
+                        const rows = Array.from(document.querySelectorAll('#reschedule-emi-tbody tr[data-res-emi-id]'));
+                        const currentIndex = rows.findIndex(r => r.getAttribute('data-res-emi-id') === String(rescheduleEmiId));
+                        if (currentIndex !== -1) {
+                            for (let i = currentIndex + 1; i < rows.length; i++) {
+                                const r = rows[i];
+                                const cells = r.querySelectorAll('td');
+                                const statusCell = cells[4];
+                                const actionsCell = cells[9];
+                                if (!statusCell || !actionsCell) continue;
+
+                                const isAlreadyPaid = statusCell.textContent.includes('Paid');
+                                if (isAlreadyPaid) {
+                                    continue;
+                                }
+
+                                const btnNext = actionsCell.querySelector('button');
+                                if (!btnNext) continue;
+
+                                // Turn next row's button into active Collect
+                                btnNext.disabled = false;
+                                btnNext.textContent = 'Collect';
+                                btnNext.classList.remove('bg-gray-100', 'text-gray-400', 'cursor-not-allowed');
+                                btnNext.classList.add('bg-blue-600', 'text-white', 'hover:bg-blue-700');
+
+                                const nextId = r.getAttribute('data-res-emi-id');
+                                btnNext.onclick = function () {
+                                    recordReschedulePayment(loanRefNo, Number(nextId), btnNext);
+                                };
+                                break;
+                            }
+                        }
+
+                        if (window.showToast) {
+                            showToast('Rescheduled EMI received successfully.', 'success');
+                        }
+
+                        // Refresh the page so that headers, remaining balances,
+                        // and any subsequent EMIs are reloaded from the latest
+                        // backend state after a successful receive.
+                        window.location.reload();
+                    } catch (err) {
+                        console.error('Failed to receive rescheduled EMI', err);
+                        if (window.showToast) {
+                            showToast(err.message || 'Failed to receive rescheduled EMI', 'error');
+                        } else {
+                            alert(err.message || 'Failed to receive rescheduled EMI');
+                        }
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.textContent = originalLabel || 'Receive';
+                        }
+                    }
+                }
+
+                // Collect a RESCHEDULED EMI from branch side
+                async function recordReschedulePayment(loanRefNo, rescheduleEmiId, btn) {
+                    if (!rescheduleEmiId) return;
+
+                    const row = document.querySelector(`#reschedule-emi-tbody tr[data-res-emi-id="${rescheduleEmiId}"]`);
+                    const tds = row ? row.querySelectorAll('td') : [];
+                    const emiAmount = parseFloat((tds[1]?.textContent || '0').replace(/[^0-9.]/g, '')) || 0;
+                    const principal = parseFloat((tds[2]?.textContent || '0').replace(/[^0-9.]/g, '')) || 0;
+                    const interest = parseFloat((tds[3]?.textContent || '0').replace(/[^0-9.]/g, '')) || 0;
+
+                    if (!emiAmount) {
+                        alert('Invalid EMI amount for this rescheduled EMI.');
+                        return;
+                    }
+
+                    const originalLabel = btn ? btn.textContent : '';
+
+                    // Ask user for collected amount
+                    const proceedWithAmount = (amountVal) => {
+                        const amount = parseFloat(amountVal);
+                        if (!Number.isFinite(amount) || amount <= 0) {
+                            window.showToast && showToast('Please enter a valid collected amount greater than 0.', 'error');
+                            return;
+                        }
+
+                        // Simple proportional split principal/interest based on schedule amounts
+                        const fullInstallments = Math.floor(amount / emiAmount);
+                        const balance = amount % emiAmount;
+                        const fullPrincipal = fullInstallments * principal;
+                        const fullInterest = fullInstallments * interest;
+                        const balancePrincipal = balance * (principal / emiAmount);
+                        const balanceInterest = balance * (interest / emiAmount);
+                        const totalPrincipal = +(fullPrincipal + balancePrincipal).toFixed(2);
+                        const totalInterest = +(fullInterest + balanceInterest).toFixed(2);
+
+                        if (btn) {
+                            btn.disabled = true;
+                            btn.textContent = 'Collecting...';
+                        }
+
+                        fetch('/branch/api/reschedule-emi-collect/', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': getCSRFToken(),
+                            },
+                            body: JSON.stringify({
+                                reschedule_emi_id: rescheduleEmiId,
+                                loan_ref_no: loanRefNo,
+                                amount_received: amount,
+                                principal_received: totalPrincipal,
+                                interest_received: totalInterest,
+                                payment_mode: 'Cash',
+                            }),
+                        })
+                        .then(async (res) => {
+                            const data = await res.json().catch(() => ({}));
+                            if (!res.ok || !data.success) {
+                                const msg = data.message || data.detail || 'Failed to collect rescheduled EMI';
+                                throw new Error(msg);
+                            }
+
+                            // Switch button to Receive state
+                            if (btn) {
+                                btn.disabled = false;
+                                btn.textContent = 'Receive';
+                                btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                                btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+                                btn.onclick = function() {
+                                    receiveRescheduleEmi(loanRefNo, rescheduleEmiId, btn);
+                                };
+                            }
+
+                            if (window.showToast) {
+                                showToast('Rescheduled EMI collected successfully. Please click Receive to verify.', 'success');
+                            }
+                        })
+                        .catch((err) => {
+                            console.error('Failed to collect rescheduled EMI', err);
+                            if (window.showToast) {
+                                showToast(err.message || 'Failed to collect rescheduled EMI', 'error');
+                            } else {
+                                alert(err.message || 'Failed to collect rescheduled EMI');
+                            }
+                            if (btn) {
+                                btn.disabled = false;
+                                btn.textContent = originalLabel || 'Collect';
+                            }
+                        });
+                    };
+
+                    // Prefer the shared openConfirm modal if available
+                    if (typeof openConfirm === 'function') {
+                        openConfirm('Confirm to mark this RESCHEDULED EMI as collected?', (confirmAmount) => {
+                            proceedWithAmount(confirmAmount);
+                        });
+                    } else {
+                        const input = prompt('Enter collected amount for this RESCHEDULED EMI:', emiAmount.toFixed(2));
+                        if (input === null) {
+                            return; // cancelled
+                        }
+                        proceedWithAmount(input);
+                    }
+                }
+                </script>

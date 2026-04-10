@@ -1,0 +1,390 @@
+{% extends "branch/base.html" %}
+{% load static %}
+{% block title %}AllSavingsAccounts{% endblock %}
+
+{% block page_id %}savingsAllAccounts{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 class="text-title-md2 font-bold text-black dark:text-white">All Savings Accounts</h2>
+        <nav>
+            <ol class="flex items-center gap-2">
+                <li>
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400" href="{% url 'branch:dashboard' %}">Dashboard</a>
+                </li>
+                <li class="text-sm text-gray-800 dark:text-white/90">All Savings Accounts</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="mb-6 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        <div class="p-5 sm:p-6">
+            <form method="get" class="grid grid-cols-1 gap-4 md:grid-cols-5">
+                <div class="md:col-span-2">
+                    <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Search</label>
+                    <input
+                        type="text"
+                        name="q"
+                        value="{{ filter_q|default:'' }}"
+                        placeholder="Account ID / Application ID / Customer"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                    />
+                </div>
+                <div>
+                    <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Account Type</label>
+                    <select
+                        name="product_type"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                    >
+                        <option value="">All</option>
+                        <option value="rd" {% if filter_product_type == 'rd' %}selected{% endif %}>RD</option>
+                        <option value="fd" {% if filter_product_type == 'fd' %}selected{% endif %}>FD</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Agent</label>
+                    <select
+                        name="agent_id"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                    >
+                        <option value="">All</option>
+                        {% for ag in agents %}
+                        <option value="{{ ag.agent_id }}" {% if filter_agent_id == ag.agent_id %}selected{% endif %}>{{ ag.full_name|default:ag.agent_id }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Account Status</label>
+                    <select
+                        name="account_status"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                    >
+                        <option value="">All</option>
+                        <option value="active" {% if filter_account_status == 'active' %}selected{% endif %}>Active</option>
+                        <option value="inactive" {% if filter_account_status == 'inactive' %}selected{% endif %}>Inactive</option>
+                    </select>
+                </div>
+
+                <div class="md:col-span-2 flex flex-wrap gap-3">
+                    <button type="submit" class="inline-flex items-center justify-center rounded-md bg-brand-500 px-6 py-2 text-sm font-medium text-white hover:bg-brand-600 transition">Apply</button>
+                    <a href="{% url 'branch:savings_all_accounts' %}" class="inline-flex items-center justify-center rounded-md bg-gray-500 px-6 py-2 text-sm font-medium text-white hover:bg-gray-700 transition">Clear</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        <div class="p-5 space-y-6 border-t border-gray-100 dark:border-gray-800 sm:p-6">
+            <div class="custom-scrollbar overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead>
+                        <tr>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Account ID</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Application ID</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Agent</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="allSavingsAccountsTbody" class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                        {% include 'savings/partials/all-savings-accounts-rows.html' %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'savings/js/infinite-scroll.js' %}"></script>
+
+<script>
+    window.addEventListener('DOMContentLoaded', function () {
+        if (typeof window.initInfiniteScroll !== 'function') return;
+        window.initInfiniteScroll({
+            tbodyId: 'allSavingsAccountsTbody',
+            sentinelId: 'allSavingsAccountsLoadMoreRow',
+            rootMargin: '200px',
+        });
+    });
+</script>
+
+<div id="collectModal" class="fixed inset-0 z-[9999] hidden overflow-y-auto">
+    <div class="fixed inset-0 bg-black/50"></div>
+    <div class="relative z-10 flex min-h-screen items-start justify-center p-4 sm:items-center sm:p-6">
+        <div class="flex w-full max-w-sm sm:max-w-lg md:max-w-xl flex-col rounded-2xl bg-white shadow-lg dark:bg-gray-900 max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] overflow-hidden">
+            <div class="sticky top-0 z-10 flex items-center justify-between border-b border-gray-100 bg-white p-4 dark:border-gray-800 dark:bg-gray-900 sm:p-6">
+                <h3 id="collectModalTitle" class="text-base font-semibold text-gray-900 dark:text-white sm:text-lg">Collect Amount</h3>
+                <button type="button" id="collectModalClose" class="inline-flex h-9 w-9 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200">X</button>
+            </div>
+
+            <form id="collectForm" class="flex flex-1 flex-col overflow-hidden">
+                <div class="flex-1 space-y-1 overflow-y-auto p-4 sm:p-6">
+                    <input type="hidden" id="collectAccountId" />
+                    <input type="hidden" id="collectExpectedCollectionId" name="expected_collection_id" />
+
+                    <div>
+                        <label class="block text-sm text-gray-600 dark:text-gray-300">Type</label>
+                        <input type="text" id="collectType" class="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-white" readonly />
+                    </div>
+
+                    <div>
+                        <label class="block text-sm text-gray-600 dark:text-gray-300">Date</label>
+                        <input type="date" id="collectDate" class="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-white" />
+                    </div>
+
+                    <div>
+                        <label class="block text-sm text-gray-600 dark:text-gray-300">Amount</label>
+                        <input type="number" step="0.01" id="collectAmount" class="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-white" />
+                    </div>
+
+                    <div>
+                        <label class="block text-sm text-gray-600 dark:text-gray-300">Payment Mode</label>
+                        <select id="collectPaymentMode" class="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                            <option value="cash">Cash</option>
+                            <option value="upi">UPI</option>
+                            <option value="bank">Bank</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm text-gray-600 dark:text-gray-300">Receipt No</label>
+                        <input type="text" id="collectReceiptNo" class="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-white" />
+                    </div>
+
+                    <div>
+                        <label class="block text-sm text-gray-600 dark:text-gray-300">Note</label>
+                        <textarea id="collectNote" rows="2" class="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-white"></textarea>
+                    </div>
+                </div>
+
+                <div class="shrink-0 border-t border-gray-100 bg-white p-4 dark:border-gray-800 dark:bg-gray-900 sm:p-6">
+                    <div class="flex items-center justify-end gap-3">
+                        <button type="button" id="collectCancel" class="inline-flex items-center justify-center rounded-md bg-gray-500 px-5 py-2 text-sm font-medium text-white hover:bg-gray-700 transition">Cancel</button>
+                        <button type="submit" id="collectSubmit" class="inline-flex items-center justify-center rounded-md bg-green-600 px-5 py-2 text-sm font-medium text-white hover:bg-green-700 transition">Collect</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const show = (msg, type) => {
+            if (typeof window.showToast === 'function') {
+                window.showToast(msg, type || 'info');
+            } else {
+                alert(msg);
+            }
+        };
+
+        const getCookie = (name) => {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return null;
+        };
+
+        const bindSurrenderActions = () => {
+            document.querySelectorAll('.js-branch-surrender-request').forEach((btn) => {
+                if (btn.dataset.bound === '1') return;
+                btn.dataset.bound = '1';
+
+                btn.addEventListener('click', async () => {
+                    const applicationId = (btn.getAttribute('data-application-id') || '').trim();
+                    if (!applicationId) return;
+                    btn.disabled = true;
+
+                    try {
+                        const body = new URLSearchParams();
+                        body.append('application_id', applicationId);
+
+                        const res = await fetch("{% url 'branch:api_savings_surrender_request' %}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                                'X-CSRFToken': getCookie('csrftoken') || '',
+                            },
+                            body: body.toString(),
+                        });
+
+                        const data = await res.json().catch(() => ({}));
+                        if (!res.ok || !data.success) {
+                            show(data.message || 'Failed to request surrender.', 'error');
+                            btn.disabled = false;
+                            return;
+                        }
+                        show(data.message || 'Requested.', 'success');
+                        window.location.reload();
+                    } catch (e) {
+                        btn.disabled = false;
+                        show('Failed to request surrender.', 'error');
+                    }
+                });
+            });
+
+            document.querySelectorAll('.js-branch-surrender-verify').forEach((btn) => {
+                if (btn.dataset.bound === '1') return;
+                btn.dataset.bound = '1';
+
+                btn.addEventListener('click', async () => {
+                    const applicationId = (btn.getAttribute('data-application-id') || '').trim();
+                    if (!applicationId) return;
+                    btn.disabled = true;
+
+                    try {
+                        const body = new URLSearchParams();
+                        body.append('application_id', applicationId);
+
+                        const res = await fetch("{% url 'branch:api_savings_surrender_verify' %}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                                'X-CSRFToken': getCookie('csrftoken') || '',
+                            },
+                            body: body.toString(),
+                        });
+
+                        const data = await res.json().catch(() => ({}));
+                        if (!res.ok || !data.success) {
+                            show(data.message || 'Failed to verify surrender request.', 'error');
+                            btn.disabled = false;
+                            return;
+                        }
+                        show(data.message || 'Verified.', 'success');
+                        window.location.reload();
+                    } catch (e) {
+                        btn.disabled = false;
+                        show('Failed to verify surrender request.', 'error');
+                    }
+                });
+            });
+        };
+
+        const modal = document.getElementById('collectModal');
+        const closeBtn = document.getElementById('collectModalClose');
+        const cancelBtn = document.getElementById('collectCancel');
+        const form = document.getElementById('collectForm');
+
+        const accountIdEl = document.getElementById('collectAccountId');
+        const expectedIdEl = document.getElementById('collectExpectedCollectionId');
+        const typeEl = document.getElementById('collectType');
+        const dateEl = document.getElementById('collectDate');
+        const amountEl = document.getElementById('collectAmount');
+        const paymentModeEl = document.getElementById('collectPaymentMode');
+        const receiptNoEl = document.getElementById('collectReceiptNo');
+        const noteEl = document.getElementById('collectNote');
+        const submitBtn = document.getElementById('collectSubmit');
+        const titleEl = document.getElementById('collectModalTitle');
+
+        const openModal = () => modal && modal.classList.remove('hidden');
+        const closeModal = () => modal && modal.classList.add('hidden');
+        if (closeBtn) closeBtn.addEventListener('click', closeModal);
+        if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+
+        const bindCollectButtons = () => {
+            document.querySelectorAll('.js-collect-btn').forEach((btn) => {
+                if (btn.dataset.bound === '1') return;
+                btn.dataset.bound = '1';
+
+                btn.addEventListener('click', () => {
+                    accountIdEl.value = btn.getAttribute('data-account-id') || '';
+                    expectedIdEl.value = btn.getAttribute('data-expected-collection-id') || '';
+                    typeEl.value = btn.getAttribute('data-collection-type') || '';
+                    amountEl.value = btn.getAttribute('data-amount') || '';
+
+                    const ctype = (typeEl.value || '').trim().toLowerCase();
+                    if (titleEl) {
+                        titleEl.textContent = (ctype === 'withdrawal') ? 'Withdraw / Close' : 'Collect Amount';
+                    }
+                    if (submitBtn) {
+                        submitBtn.textContent = (ctype === 'withdrawal') ? 'Withdraw' : 'Collect';
+                        submitBtn.classList.toggle('bg-red-600', ctype === 'withdrawal');
+                        submitBtn.classList.toggle('hover:bg-red-700', ctype === 'withdrawal');
+                        submitBtn.classList.toggle('bg-green-600', ctype !== 'withdrawal');
+                        submitBtn.classList.toggle('hover:bg-green-700', ctype !== 'withdrawal');
+                    }
+
+                    const rowDate = btn.getAttribute('data-collection-date') || '';
+                    if (rowDate) {
+                        dateEl.value = rowDate;
+                    } else {
+                        const d = new Date();
+                        const yyyy = d.getFullYear();
+                        const mm = String(d.getMonth() + 1).padStart(2, '0');
+                        const dd = String(d.getDate()).padStart(2, '0');
+                        dateEl.value = `${yyyy}-${mm}-${dd}`;
+                    }
+
+                    receiptNoEl.value = '';
+                    noteEl.value = '';
+                    paymentModeEl.value = 'cash';
+                    openModal();
+                });
+            });
+        };
+
+        bindSurrenderActions();
+        bindCollectButtons();
+
+        const tbody = document.getElementById('allSavingsAccountsTbody');
+        if (tbody && typeof MutationObserver !== 'undefined') {
+            const obs = new MutationObserver(() => {
+                bindSurrenderActions();
+                bindCollectButtons();
+            });
+            obs.observe(tbody, { childList: true, subtree: true });
+        }
+
+        if (form) {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const amount = parseFloat(amountEl.value);
+                if (!amount || amount <= 0) return;
+                if (!dateEl.value) return;
+                if (!(accountIdEl.value || '').trim()) return;
+
+                submitBtn.disabled = true;
+                try {
+                    const res = await fetch("{% url 'branch:api_savings_collect' %}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken') || '',
+                        },
+                        body: JSON.stringify({
+                            account_id: accountIdEl.value,
+                            expected_collection_id: expectedIdEl.value,
+                            collection_type: typeEl.value,
+                            amount: amountEl.value,
+                            collection_date: dateEl.value,
+                            payment_mode: paymentModeEl.value,
+                            receipt_no: receiptNoEl.value,
+                            note: noteEl.value,
+                        }),
+                    });
+
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok || !data.success) {
+                        submitBtn.disabled = false;
+                        show(data.detail || data.message || 'Failed.', 'error');
+                        return;
+                    }
+
+                    closeModal();
+                    window.location.reload();
+                } catch (err) {
+                    submitBtn.disabled = false;
+                    show('Failed.', 'error');
+                }
+            });
+        }
+    })();
+</script>
+{% endblock %}

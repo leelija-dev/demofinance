@@ -1,0 +1,412 @@
+{% extends "branch/base.html" %}
+{% load static %}
+{% block title %}Emi Repayment{% endblock %}
+
+{% block page_id %}viewRepayments{% endblock %}
+
+{% block content %}
+
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+    <!-- Breadcrumb Start -->
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" id="emi-payment-header">
+        <h2 class="text-title-md2 font-bold text-black dark:text-white">
+            Emi Repayment
+        </h2>
+        <nav>
+            <ol class="flex items-center gap-2">
+                <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+                        href="{% url 'branch:dashboard' %}">Dashboard <svg class="stroke-current" width="17" height="16"
+                            viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                            </path>
+                        </svg></a></li>
+                <li class="text-sm text-gray-800 dark:text-white/90">Emi Repayment</li>
+            </ol>
+        </nav>
+    </div>
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <button id="emi-payment-back"
+                type="button"
+                class="hidden inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg
+                       bg-blue-700 text-white border border-blue-200
+                       hover:bg-blue-100 hover:text-blue-800 hover:border-blue-300
+                       dark:bg-blue-900 dark:text-blue-300 dark:border-blue-700 dark:hover:bg-blue-800 dark:hover:border-blue-600">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M15 19l-7-7 7-7" />
+                </svg>
+                <span>Back</span>
+    </button>
+    </div>
+
+    <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        <!-- <div class="grid grid-cols-2 gap-4 p-5 space-y-6 border-t border-gray-100 dark:border-gray-800 sm:p-6"> -->
+            <div class="flex gap-4 p-5">
+                <div class="relative w-full max-w-md">
+                    <div class="relative">
+                        <input type="text" id="loanSearch" placeholder="Search by Loan No"
+                            class="w-full p-2 pl-3 pr-10 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            autocomplete="off">
+                        <button type="button" id="searchActionBtn"
+                            class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 group"
+                            aria-label="Search" title="Search">
+                            <!-- search icon (default) -->
+                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div id="loanSuggestions"
+                        class="hidden absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                        <!-- Suggestions will be populated by JavaScript -->
+                    </div>
+                </div>
+                <button id="full-payment-btn" class="hidden bg-green-200 text-green-800 font-medium text-sm px-4 py-2 rounded-md 
+                border border-green-800 hover:bg-green-600 hover:text-white dark:bg-green-900 dark:text-green-300 dark:border-green-700 dark:hover:bg-green-800 dark:hover:border-green-600">
+                    Complete Payment
+                </button>
+                <button id="refresh-loans-btn" class="hidden bg-gray-100 text-gray-800 font-medium text-sm p-2 rounded-md 
+                border border-gray-400 hover:bg-gray-300 hover:text-gray-900" title="Refresh">
+                    <svg xmlns="http://www.w3.org/2000/svg" title="Refresh" fill="#000000" width="18px" height="18px" viewBox="0 0 512 512" data-name="Layer 1" id="Layer_1" class="h-4 w-4 transition-transform duration-500 group-hover:rotate-[180deg]">
+                        <path d="M64,256H34A222,222,0,0,1,430,118.15V85h30V190H355V160h67.27A192.21,192.21,0,0,0,256,64C150.13,64,64,150.13,64,256Zm384,0c0,105.87-86.13,192-192,192A192.21,192.21,0,0,1,89.73,352H157V322H52V427H82V393.85A222,222,0,0,0,478,256Z">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+        <!-- </div> -->
+        <div class="p-5 space-y-6 border-t border-gray-100 dark:border-gray-800 sm:p-6">
+            <div class="custom-scrollbar overflow-x-auto">
+
+                <!-- Loans Table -->
+                <div id="loans-table-container" class="position-relative">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead id="thead">
+                            <tr>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Loan No</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Customer
+                                    Name</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Loan Amount
+                                </th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Disbursed
+                                    Date</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pending-applications-tbody"
+                            class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                            {% if loans_page %}
+                                {% include "loanPaymentAndCollection/partials/_emi-payment-rows.html" with loans=loans_page.object_list %}
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+                <div id="assign-agent-dropdown" class="hidden position-fixed">
+
+                </div>
+            </div>
+            <div id="emi-scroll-loading" class="hidden text-center text-gray-500 py-4">Loading...</div>
+            <div id="emi-scroll-sentinel" class="h-1 w-full" data-next-page="2" data-has-next="{% if has_next %}1{% else %}0{% endif %}"></div>
+            <div id="no-applications-message" class="text-center text-red-600 py-8 hidden">No EMI data available</div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const agentId = new URLSearchParams(window.location.search).get('agent');
+        // console.log('agentId', agentId);
+        if(agentId){
+            const header = document.getElementById('emi-payment-header');
+            header.classList.add('hidden');
+            const backBtn = document.getElementById('emi-payment-back');
+            backBtn.classList.remove('hidden');
+            backBtn.addEventListener('click', function () {
+                history.back();
+            });
+        }
+        const searchInput = document.getElementById('loanSearch');
+        const suggestionsContainer = document.getElementById('loanSuggestions');
+        const actionBtn = document.getElementById('searchActionBtn');
+        const refreshLoansBtn = document.getElementById('refresh-loans-btn');
+        let loansData = [];
+        let showPaidOnly = false;
+        let isRefresh = false; // toggles icon state
+
+        function resetToDefaultLoans() {
+            // default mode = show unpaid loans
+            showPaidOnly = false;
+            searchInput.value = '';
+            suggestionsContainer.classList.add('hidden');
+            window.location.reload();
+            setIcon('search');
+        }
+
+        // Initial load of loans
+        fetchLoans();
+
+        // Show ALL suggestions on input focus or click (ignore current text)
+        searchInput.addEventListener('focus', showAllSuggestions);
+        searchInput.addEventListener('click', showAllSuggestions);
+
+        // Action button click: either open suggestions (search mode) or clear and restore (refresh mode)
+        actionBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            if (!isRefresh) {
+                // Search mode: open suggestions
+                searchInput.focus();
+                showAllSuggestions();
+            } else {
+                // Refresh mode: reset to default unpaid loans
+                resetToDefaultLoans();
+                showAllSuggestions();
+            }
+        });
+
+        // Separate Refresh button to reset to default unpaid loans
+        if (refreshLoansBtn) {
+            refreshLoansBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                resetToDefaultLoans();
+            });
+        }
+
+        // Hide suggestions when clicking outside
+        document.addEventListener('click', function (e) {
+            if (!searchInput.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+                suggestionsContainer.classList.add('hidden');
+            }
+        });
+
+        // Helper to toggle icon inside the action button
+        function setIcon(mode) {
+            const btn = document.getElementById('searchActionBtn');
+            if (!btn) return;
+            if (mode === 'refresh') {
+                btn.setAttribute('aria-label', 'Refresh');
+                btn.setAttribute('title', 'Refresh');
+                btn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" title="Refresh" fill="#000000" width="18px" height="18px" viewBox="0 0 512 512" data-name="Layer 1" id="Layer_1" class="h-4 w-4 transition-transform duration-500 group-hover:rotate-[180deg]">
+                        <path d="M64,256H34A222,222,0,0,1,430,118.15V85h30V190H355V160h67.27A192.21,192.21,0,0,0,256,64C150.13,64,64,150.13,64,256Zm384,0c0,105.87-86.13,192-192,192A192.21,192.21,0,0,1,89.73,352H157V322H52V427H82V393.85A222,222,0,0,0,478,256Z">
+                        </path>
+                    </svg>`;
+                isRefresh = true;
+            } else {
+                btn.setAttribute('aria-label', 'Search');
+                btn.setAttribute('title', 'Search');
+                btn.innerHTML = `
+                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" title="Search">
+                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                    </svg>`;
+                isRefresh = false;
+            }
+        }
+
+        // Fetch loans for the dropdown
+        function fetchLoans() {
+            fetch('{% url "branch:api_emi_statement" %}')
+                .then(response => response.json())
+                .then(data => {
+                    loansData = data;
+                    syncFullPaymentButtons();
+                    // console.log('Loan data loaded:', loansData);
+                })
+                .catch(error => {
+                    console.error('Error fetching loan data:', error);
+                });
+        }
+
+        function syncFullPaymentButtons() {
+            // Enable the Full Payment button only if there are any fully-paid loans
+            const paidLoan = loansData.filter(loan => loan.all_emi_paid);
+            const fullPaymentBtn = document.getElementById('full-payment-btn');
+            const refreshLoansBtn = document.getElementById('refresh-loans-btn');
+            if (!fullPaymentBtn || !refreshLoansBtn) return;
+
+            if (paidLoan.length > 0) {
+                fullPaymentBtn.classList.remove('hidden');
+                refreshLoansBtn.classList.remove('hidden');
+                fullPaymentBtn.onclick = () => {
+                    showPaidOnly = true;
+                    renderLoansTable(loansData);
+                };
+            } else {
+                fullPaymentBtn.classList.add('hidden');
+                refreshLoansBtn.classList.add('hidden');
+            }
+        }
+
+        // Render loans in the table
+        function renderLoansTable(loans) {
+            // console.log('Loan data:', loans);
+            const tbody = document.getElementById('pending-applications-tbody');
+            const noDataMessage = document.getElementById('no-applications-message');
+
+            if (loans.length === 0) {
+                tbody.innerHTML = '';
+                noDataMessage.classList.remove('hidden');
+                return;
+            }
+
+            noDataMessage.classList.add('hidden');
+
+            // When we render rows client-side (paid-only/search), disable server-driven infinite scroll UI.
+            disableInfiniteScrollUI();
+
+            const filteredLoans = loans.filter(loan =>
+                showPaidOnly ? loan.all_emi_paid : !loan.all_emi_paid
+            );
+
+            tbody.innerHTML = filteredLoans.map(loan => `
+                <tr class="hover:bg-gray-100 ${loan.all_emi_paid ? 'bg-green-100' : ''}">
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                        ${loan.loan_ref_no}
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                        ${loan.customer_name || 'N/A'}
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                        ₹${loan.loan_amount || '0.00'}
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                        ${loan.disbursed_date || 'N/A'}
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">
+                        <a href="{% url 'branch:emi_schedule' %}?loan_ref_no=${loan.loan_ref_no}" 
+                           class="text-indigo-600 hover:text-indigo-900">
+                            View EMI
+                        </a>
+                        ${loan.all_emi_paid ? '' : `
+                        <button class="ml-2 bg-indigo-600 font-bold py-1 px-2 rounded opacity-60 cursor-not-allowed" disabled>
+                            <span class="inline-flex items-center">
+                                <span class="text-gray-400">Auto Pay</span>
+                                <svg class="h-4 w-4 absolute ml-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 12a9 9 0 1 1-3.2-6.9"/>
+                                    <path d="M21 3v6h-6"/>
+                                </svg>
+                            </span>
+                        </button>
+                        `}
+                    </td>   
+                </tr>
+            `).join('');
+
+            syncFullPaymentButtons();
+        }
+
+        // Show loan suggestions in the search dropdown (filtered by input text)
+        function showSuggestions() {
+            if (loansData.length === 0) return;
+
+            const searchTerm = searchInput.value.toLowerCase();
+
+            // Base set respects paid/unpaid mode
+            const baseLoans = loansData.filter(loan =>
+                showPaidOnly ? loan.all_emi_paid : !loan.all_emi_paid
+            );
+
+            const filteredLoans = baseLoans.filter(loan =>
+                loan.loan_ref_no.toLowerCase().includes(searchTerm) ||
+                (loan.customer_name && loan.customer_name.toLowerCase().includes(searchTerm))
+            );
+
+            if (filteredLoans.length > 0) {
+                suggestionsContainer.innerHTML = filteredLoans.map(loan => `
+                    <div class="flex justify-between px-4 py-2 hover:bg-gray-100 cursor-pointer" 
+                         onclick="selectLoan('${loan.loan_ref_no}')">
+                        <div class="font-medium">${loan.loan_ref_no}</div>
+                        <div>-</div>
+                        <div class="text-sm text-gray-500">${loan.customer_name || 'N/A'}</div>
+                    </div>
+                `).join('');
+                suggestionsContainer.classList.remove('hidden');
+            } else {
+                suggestionsContainer.innerHTML = '<div class="px-4 py-2 text-gray-500">No matching loans found</div>';
+                suggestionsContainer.classList.remove('hidden');
+            }
+        }
+
+        // Show ALL loans in the dropdown (used on focus/click)
+        function showAllSuggestions() {
+            if (loansData.length === 0) return;
+
+            // Base set respects paid/unpaid mode
+            const baseLoans = loansData.filter(loan =>
+                showPaidOnly ? loan.all_emi_paid : !loan.all_emi_paid
+            );
+
+            suggestionsContainer.innerHTML = baseLoans.map(loan => `
+                <div class="flex justify-between px-4 py-2 hover:bg-gray-100 cursor-pointer" 
+                     onclick="selectLoan('${loan.loan_ref_no}')">
+                    <div class="font-medium">${loan.loan_ref_no}</div>
+                    <div>-</div>
+                    <div class="text-sm text-gray-500">${loan.customer_name || 'N/A'}</div>
+                </div>
+            `).join('');
+            suggestionsContainer.classList.remove('hidden');
+        }
+
+        // Update suggestions while typing and restore table when cleared
+        searchInput.addEventListener('input', function () {
+            showSuggestions();
+            const term = searchInput.value.trim();
+            if (term === '' && loansData.length > 0) {
+                // When search is cleared, show all loans again
+                renderLoansTable(loansData);
+                setIcon('search');
+            } else if (term !== '') {
+                setIcon('search'); // keep search icon while typing
+            }
+        });
+
+        // Select a loan from suggestions: show that single loan regardless of paid/unpaid mode
+        window.selectLoan = function (loanRefNo) {
+            searchInput.value = loanRefNo;
+            suggestionsContainer.classList.add('hidden');
+            if (Array.isArray(loansData) && loansData.length > 0) {
+                const selected = loansData.filter(l => String(l.loan_ref_no) === String(loanRefNo));
+                if (selected.length > 0) {
+                    // Ensure the paid/unpaid filter allows this row to be shown
+                    showPaidOnly = !!selected[0].all_emi_paid;
+                    renderLoansTable(selected);
+                    disableInfiniteScrollUI();
+                }
+            }
+            setIcon('refresh');
+        };
+
+        function disableInfiniteScrollUI() {
+            const sentinel = document.getElementById('emi-scroll-sentinel');
+            const loading = document.getElementById('emi-scroll-loading');
+            if (loading) loading.classList.add('hidden');
+            if (sentinel) {
+                sentinel.dataset.hasNext = '0';
+                sentinel.classList.add('hidden');
+            }
+        }
+
+    });
+</script>
+
+{% block extra_js %}
+<script src="{% static 'loan/js/infinite-scroll.js' %}"></script>
+<script src="{% static 'branch/js/emi-payment.js' %}"></script>
+<script src="{% static 'branch/js/auto-pay.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (window.LoanInfiniteScroll && window.LoanInfiniteScroll.create) {
+            window.LoanInfiniteScroll.create({
+                containerSelector: '#pending-applications-tbody',
+                sentinelSelector: '#emi-scroll-sentinel',
+                loadingSelector: '#emi-scroll-loading',
+                noDataSelector: '#no-applications-message',
+                url: '{% url "branch:api_emi_payment_rows" %}',
+            });
+        }
+    });
+</script>
+{% endblock %}
+
+{% endblock %}

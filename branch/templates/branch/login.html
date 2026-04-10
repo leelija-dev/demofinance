@@ -1,0 +1,96 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Branch Manager Login</title>
+    <!-- Load Tailwind CSS -->
+    <link rel="stylesheet" href="{% static 'dist/css/tailwind.css' %}?v=1.0.0">
+    <!-- Your custom styles -->
+    <link rel="stylesheet" href="{% static 'branch/style.css' %}">
+    <link rel="stylesheet" href="{% static 'main/css/output.css' %}" />
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+    </style>
+    <!-- Debug information -->
+    {% if debug %}
+    <script>
+      console.log('Debug mode is ON');
+      console.log('Static URL:', '{{ STATIC_URL }}');
+    </script>
+    {% endif %}
+</head>
+
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    {% block content %}
+    <div class="w-full max-w-md bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-2xl font-bold text-center mb-6">Branch Manager Login</h2>
+
+        <!-- Display Django messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mb-4 px-4 py-3 rounded text-sm text-white {% if message.tags == 'error' %}bg-red-500{% elif message.tags == 'warning' %}bg-yellow-500{% else %}bg-green-500{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Note: This will POST to the REST API and show a JSON response, not a redirect/dashboard. -->
+        <form id="loginForm" class="space-y-5">
+            {% csrf_token %}
+            <div id="login-error" class="mb-4 px-4 py-3 rounded text-sm text-white bg-red-500 hidden"></div>
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                <input type="email" id="email" name="email" required
+                    class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                <input type="password" id="password" name="password" required
+                    class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+            <button type="submit"
+                class="w-full py-2 px-4 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                Login
+            </button>
+        </form>
+        <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('login-error');
+            errorDiv.classList.add('hidden');
+            errorDiv.textContent = '';
+            try {
+                const response = await fetch('/branch/api/branch_manager/login/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    window.location.href = data.redirect_url || '/branch/dashboard/';
+                } else {
+                    errorDiv.textContent = data.detail || 'Login failed.';
+                    errorDiv.classList.remove('hidden');
+                }
+            } catch (err) {
+                errorDiv.textContent = 'Network error. Please try again.';
+                errorDiv.classList.remove('hidden');
+            }
+        });
+        </script>
+    </div>
+    {% endblock %}
+</body>
+
+</html> 
+

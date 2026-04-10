@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Securely redirecting to Cashfree for subscription authorization.">
+    <meta name="keywords" content="Cashfree, Checkout, Subscription, eNACH">
+    <title>Redirecting to Secure Checkout...</title>
+    <!-- Include Cashfree JS SDK v3 -->
+    <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f8f9fa;
+            margin: 0;
+            text-align: center;
+        }
+        .loader {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #0d6efd;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="loader"></div>
+    <h3>Securely connecting to your bank...</h3>
+    <p class="text-muted">Please do not refresh the page.</p>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var isSandbox = {{ is_sandbox|yesno:"true,false" }};
+            var cashfree = Cashfree({
+                mode: isSandbox ? "sandbox" : "production"
+            });
+            var subsSessionId = "{{ subscription_session_id }}";
+
+            // Trigger the checkout modal automatically
+            cashfree.subscriptionsCheckout({
+                subsSessionId: subsSessionId,
+                redirectTarget: "_self"
+            }).then(function(result) {
+                if(result.error){
+                    alert("Failure connecting to Cashfree: " + result.error.message);
+                    window.location.href = "{% url 'agent:dashboard' %}";
+                }
+            });
+        });
+    </script>
+</body>
+</html>

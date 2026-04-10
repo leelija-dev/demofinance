@@ -1,0 +1,663 @@
+{% extends "branch/base.html" %}
+{% load static %}
+{% block title %}loanPendingApplications{% endblock %}
+
+{% block page_id %}disbursedByHQ{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="{% static 'main/css/submit-loader/submit-loader.css' %}">
+{% endblock %}
+{% block content %}
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+    <div id="full-page-loader" class="full-page-loader" >
+        <div class="w-auto relative ">
+        <div class="loader">
+        </div>
+        <span class="absolute text-[15px] top-[36%] left-[12%] text-[#8c8b8b]">Submitting..</span>
+        </div>
+        
+    </div>
+    <!-- Breadcrumb Start -->
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 class="text-title-md2 font-bold text-black dark:text-white">
+            Loan Disbursement 
+        </h2>
+        <nav>
+            <ol class="flex items-center gap-2">
+                <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+                        href="{% url 'branch:dashboard' %}">Dashboard <svg class="stroke-current" width="17" height="16"
+                            viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                            </path>
+                        </svg></a></li>
+                <li class="text-sm text-gray-800 dark:text-white/90">Loan Disbursement</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] mb-6">
+        <div class="p-5 grid grid-cols-1 md:grid-cols-3 sm:p-6 gap-6">
+            <div>
+                <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300" for="">Loan ID:</label>
+                <p id='loanId'></p>
+            </div>
+            <div>
+                <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300" for="">Customer Name:</label>
+                <p id='customerName'></p>
+            </div>
+            <div>
+                <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300" for="">HQ Disbursed On:</label>
+                <p id='disburseDate'></p>
+            </div>
+            <div>
+                <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300" for="">Tenure:</label>
+                <p id='tenure'></p>
+            </div>
+            <div>
+                <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300" for="">EMI:</label>
+                <p id='emi'></p>
+            </div>
+            <div>
+                <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300" for="">Interest Rate:</label>
+                <p id='interestRate'></p>
+            </div>
+            <div>
+                <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300" for="">Loan Amount:</label>
+                <p id='loanAmount'></p>
+            </div>
+            <div>
+                <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300" for="">Realisable Amount:</label>
+                <p id='realisableAmount'></p>
+            </div>
+            <div id="shopField" class="hidden">
+                <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300" for="">Shop:</label>
+                <p id='shopName'></p>
+            </div>
+        </div>
+    </div>
+    <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        <form id="disbursement-details-form" class="p-5 sm:p-6 space-y-6" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Disbursement Details</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label for="branch_account" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Disbursement Source Account</label>
+                    <select id="branch_account" name="branch_account"
+                        class="block w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-gray-900 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white sm:text-sm">
+                        <option value="">Select Source Account</option>
+                        {% for account in bank_account %}
+                        <option value="{{ account.id }}" data-type="{{ account.type }}" data-account-name="{{ account.name }}" data-bank-name="{{ account.bank_name }}" data-account-number="{{ account.account_number }}">
+                            {% if account.type == 'CASH' %} {{ account.name|default:'Cash' }} {% else %} {{ account.bank_name }} - ({{ account.account_number }}) {% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <!-- Bank Name -->
+                <div id="customer-bank-name-field">
+                    <label for="bank_name" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Bank Name (if applicable)</label>
+                    <input type="text" id="bank_name" name="bank_name"
+                        class="block w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-gray-900 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white sm:text-sm" />
+                </div>
+                <div id="shop-bank-account-field" class="hidden">
+                    <label for="shop_bank_account" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Shop Bank Account</label>
+                    <select id="shop_bank_account" name="shop_bank_account"
+                        class="block w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-gray-900 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white sm:text-sm">
+                        <option value="">Select Shop Bank Account</option>
+                    </select>
+                </div>
+                <!-- Account Number / UPI ID -->
+                <div id="customer-account-upi-field">
+                    <label for="account_upi" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Account Number / UPI ID</label>
+                    <input type="text" id="account_upi" name="account_upi"
+                        class="block w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-gray-900 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white sm:text-sm" />
+                </div>
+                <!-- Disbursed Amount -->
+                <div>
+                    <label for="disbursed_amount" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Disbursed Amount (₹)</label>
+                    <input type="number" id="disbursed_amount" name="disbursed_amount" value="" min="0" step="0.01"
+                        class="block w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-gray-900 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white sm:text-sm" />
+                </div>
+                <!-- Disbursement Date -->
+                <div>
+                    <label for="disbursement_date" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Disbursement Date</label>
+                    <input type="date" id="disbursement_date" name="disbursement_date"
+                        class="block w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-gray-900 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white sm:text-sm" />
+                </div>
+                <!-- Deductions -->
+                <div id='deduction-div'>
+                </div>
+                <!-- Down Payment -->
+                <div id='down_payment-div'>
+                </div>
+                <!-- Net Amount to Customer -->
+                <div>
+                    <label for="net_amount" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Net Amount to Customer (₹)</label>
+                    <input type="number" id="net_amount" name="net_amount" readonly
+                        class="block w-full rounded-md border border-gray-300 bg-gray-100 py-2 px-3 text-gray-900 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm" />
+                </div>
+                <!-- Upload Proof of Disbursement -->
+                <div class="">
+                    <label for="proof_of_disbursement" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Disbursement Proof</label>
+                    <input type="text" id="proof_of_disbursement" name="proof_of_disbursement"
+                        class="block w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-gray-900 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white sm:text-sm" />
+                </div>
+                <!-- Disbursement Remarks -->
+                <div class="">
+                    <label for="disbursement_remarks" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Disbursement Remarks</label>
+                    <textarea id="disbursement_remarks" name="disbursement_remarks" rows="3" placeholder="Transferred via UPI - successful"
+                        class="block w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-gray-900 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white sm:text-sm"></textarea>
+                </div>
+            </div>
+            <div class="pt-4 flex justify-end">
+                <button type="submit" class="inline-block px-3 py-1 text-sm rounded bg-blue-500 text-white hover:bg-brand-600 transition">Submit</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+
+window.HAS_SHOP_LOAN = false;
+window.SHOP_HAS_BANK_ACCOUNTS = false;
+
+function getLoanIdFromUrl() {
+    const parts = window.location.pathname.split('/');
+    return parts[parts.length - 2] || '';
+}
+
+// Function to check if selected account is Cash (using BranchAccount.type)
+function isCashInHandAccount() {
+    const chartOfAccountsSelect = document.getElementById('branch_account');
+    const selectedOption = chartOfAccountsSelect.options[chartOfAccountsSelect.selectedIndex];
+    
+    if (selectedOption && selectedOption.value) {
+        const type = (selectedOption.getAttribute('data-type') || '').toUpperCase();
+        return type === 'CASH';
+    }
+    return false;
+}
+
+// Function to check if selected account is Bank (using BranchAccount.type)
+function isCashInBankAccount() {
+    const chartOfAccountsSelect = document.getElementById('branch_account');
+    const selectedOption = chartOfAccountsSelect.options[chartOfAccountsSelect.selectedIndex];
+    
+    if (selectedOption && selectedOption.value) {
+        const type = (selectedOption.getAttribute('data-type') || '').toUpperCase();
+        return type === 'BANK';
+    }
+    return false;
+}
+
+// Function to check if account requires validation (all accounts except "Cash in hand")
+function requiresBankValidation() {
+    return !isCashInHandAccount();
+}
+
+// Function to calculate net amount
+function calculateNetAmount() {
+    const disbursedAmount = parseFloat(document.getElementById('disbursed_amount').value) || 0;
+    const deductionCheckboxes = document.querySelectorAll('#deduction-div input[type="checkbox"]');
+    
+    const downPaymentInput = document.getElementById('down_payment');
+    const downPayment = downPaymentInput ? parseFloat(downPaymentInput.value) || 0 : 0;
+    
+    
+    const processingFeeInput = document.getElementById('processing_fee');
+    const processingFee = processingFeeInput ? parseFloat(processingFeeInput.value) || 0 : 0;
+
+    
+    let totalDeductions = 0;
+
+    deductionCheckboxes.forEach(checkbox => {
+        if (!checkbox.checked) return;
+        
+        const deductionValue = parseFloat(checkbox.getAttribute('data-deduction-value')) || 0;
+        const deductionType = checkbox.getAttribute('data-deduction-type');
+        
+        if (deductionType === 'percentage') {
+            totalDeductions += (disbursedAmount * deductionValue) / 100;
+        } else {
+            totalDeductions += deductionValue;
+        }
+    });
+
+    const netAmount = disbursedAmount - (downPayment > 0 ? processingFee : totalDeductions);
+    document.getElementById('net_amount').value = netAmount.toFixed(2);
+}
+
+// Function to handle form submission
+function handleDisbursementSubmit(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const loanId = getLoanIdFromUrl();
+    // const loanId = document.getElementById('loanId').textContent.trim();
+    const formData = new FormData(form);
+
+    // Clear previous error messages
+    document.querySelectorAll('.field-error').forEach(el => el.remove());
+
+    // const disbursementMode = formData.get('disbursement_mode');
+    const branchAccount = formData.get('branch_account');
+    const accountUpi = formData.get('account_upi').trim();
+    const disbursedAmount = parseFloat(formData.get('disbursed_amount'));
+    const disbursementDate = formData.get('disbursement_date');
+    const netAmount = parseFloat(formData.get('net_amount'));
+    const proofOfDisbursement = formData.get('proof_of_disbursement').trim();
+    const remarks = formData.get('disbursement_remarks').trim();
+    const bankName = formData.get('bank_name').trim();
+    const shopBankAccountId = (formData.get('shop_bank_account') || '').trim();
+
+    const shopBankAccountSelect = document.getElementById('shop_bank_account');
+    const shopAccountsRequired = !!(shopBankAccountSelect && shopBankAccountSelect.options && shopBankAccountSelect.options.length > 1);
+
+    if (window.HAS_SHOP_LOAN && !window.SHOP_HAS_BANK_ACCOUNTS) {
+        showToast('Please add bank account for this shop before disbursement.', 'error');
+        return;
+    }
+
+    // Read selected BranchAccount metadata
+    const branchAccountSelect = document.getElementById('branch_account');
+    const selectedOption = branchAccountSelect.options[branchAccountSelect.selectedIndex];
+    const sourceAccountType = selectedOption ? (selectedOption.getAttribute('data-type') || '') : '';
+    const sourceAccountName = selectedOption ? (selectedOption.getAttribute('data-account-name') || '') : '';
+    const sourceBankName = selectedOption ? (selectedOption.getAttribute('data-bank-name') || '') : '';
+    const sourceAccountNumber = selectedOption ? (selectedOption.getAttribute('data-account-number') || '') : '';
+
+    let isValid = true;
+
+    function showFieldError(id, message) {
+        const field = document.getElementById(id);
+        if (!field) return;
+
+        field.classList.add('border-red-500');
+        const error = document.createElement('p');
+        error.className = 'mt-1 text-xs text-red-500 field-error';
+        error.innerText = message;
+        field.parentNode.appendChild(error);
+        isValid = false;
+    }
+
+    // // Validate disbursement mode
+    // if (!disbursementMode) {
+    //     showFieldError('disbursement_mode', 'Please select disbursement mode.');
+    // }
+    // Validate disbursement accounts
+    if (!branchAccount) {
+        showFieldError('branch_account', 'Please select disbursement account.');
+    }
+
+    if (shopAccountsRequired && !shopBankAccountId) {
+        showFieldError('shop_bank_account', 'Please select shop bank account.');
+    }
+
+    if (branchAccount && requiresBankValidation()) {
+        if (!accountUpi) {
+            showFieldError('account_upi', 'Account Number / UPI ID is required for non-cash disbursements.');
+        }
+        if (!proofOfDisbursement) {
+            showFieldError('proof_of_disbursement', 'Proof of disbursement is required for non-cash disbursements.');
+        }
+    }
+
+    // Validate common required fields
+    if (!disbursedAmount || disbursedAmount <= 0) {
+        showFieldError('disbursed_amount', 'Enter a valid disbursed amount.');
+    }
+
+    if (!disbursementDate) {
+        showFieldError('disbursement_date', 'Select a disbursement date.');
+    }
+
+    if (netAmount < 0) {
+        showFieldError('net_amount', 'Net amount cannot be negative.');
+    }
+
+    if (netAmount > disbursedAmount) {
+        showFieldError('net_amount', 'Net amount cannot be greater than disbursed amount.');
+    }
+
+    if (!isValid) return;
+    
+    const apiData = {
+        loan_ref_no: loanId,
+        bank_name: bankName,
+        account_upi: accountUpi,
+        shop_bank_account_id: shopBankAccountId || null,
+        disbursed_amount: disbursedAmount,
+        net_amount: netAmount,
+        disbursement_date: disbursementDate,
+        proof_of_disbursement: proofOfDisbursement,
+        disbursement_remarks: remarks,
+        account_id: branchAccount,
+        account_type: sourceAccountType,
+        source_bank_name: sourceBankName,
+        account_name: sourceAccountName,
+        source_account_number: sourceAccountNumber
+    };
+    // console.log(apiData);
+    
+    // Show loading state
+    const submitButton = form.querySelector('button[type="submit"]');
+    const originalText = submitButton.textContent;
+    submitButton.textContent = 'Processing...';
+    submitButton.disabled = true;
+    
+    // Show loader before making request
+    showLoader();
+    
+    fetch('/branch/api/disbursement-submit/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify(apiData)
+    })
+    .then(async response => {
+        const data = await response.json();
+        if (!response.ok) {
+            // Handle HTTP error status codes
+            let errorMessage = 'Something went wrong';
+            if (response.status === 500) {
+                errorMessage = 'Internal server error. Please try again later.';
+                if (data.detail) {
+                    errorMessage += `\n\nError details: ${data.detail}`;
+                }
+            } else if (response.status === 400) {
+                if (data.detail) {
+                    errorMessage = data.detail;
+                } else {
+                    errorMessage = 'Validation error. Please check your input.';
+                }
+            }
+            throw new Error(errorMessage);
+        }
+        return data;
+    })
+    .then(data => {
+        if (data.success) {
+            showToast('Loan disbursed successfully - Fund Released!', 'success');
+            // Redirect to disbursement list after a short delay
+            setTimeout(() => {
+                window.location.href = '/branch/disbursement/';
+            }, 1500);
+        } else {
+            throw new Error(data.detail || 'Something went wrong');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        // Show the error message in a toast
+        const errorMessage = error.message || 'Failed to process your request. Please try again.';
+        const cleanMessage = errorMessage.includes('Error:') 
+            ? errorMessage.split('Error:')[1].trim() 
+            : errorMessage;
+        showToast(cleanMessage, 'error');
+    })
+    .finally(() => {
+        // Reset button state
+        submitButton.textContent = originalText;
+        submitButton.disabled = false;
+        hideLoader(); // Always hide loader when request finishes
+    });
+
+}
+
+document.querySelectorAll('input, select, textarea').forEach(field => {
+    field.addEventListener('input', () => {
+        field.classList.remove('border-red-500');
+        const error = field.parentNode.querySelector('.field-error');
+        if (error) error.remove();
+    });
+});
+
+// Clear bank-related field validations when cash account is selected
+function clearBankFieldValidations() {
+    const bankFields = ['bank_name', 'account_upi', 'proof_of_disbursement', 'disbursement_remarks'];
+    bankFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.classList.remove('border-red-500');
+            const error = field.parentNode.querySelector('.field-error');
+            if (error) error.remove();
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const loanId = getLoanIdFromUrl();
+    
+    // Add form submit event listener
+    const form = document.getElementById('disbursement-details-form');
+    form.addEventListener('submit', handleDisbursementSubmit);
+
+    // const disbursementMode = document.getElementById('disbursement_mode');
+    // // Clear bank-related field validations when mode changes to Cash
+    // disbursementMode.addEventListener('change', function() {
+    //     if (this.value === 'Cash') {
+    //         const bankFields = ['bank_name', 'account_upi', 'proof_of_disbursement', 'disbursement_remarks', 'disbursement_date', 'disbursed_amount', 'net_amount'];
+    //         bankFields.forEach(fieldId => {
+    //             const field = document.getElementById(fieldId);
+    //             if (field) {
+    //                 field.classList.remove('border-red-500');
+    //                 const error = field.parentNode.querySelector('.field-error');
+    //                 if (error) error.remove();
+    //             }
+    //         });
+    //     }
+    // });
+
+    // Add event listener for chart of accounts change
+    const chartOfAccountsSelect = document.getElementById('branch_account');
+    chartOfAccountsSelect.addEventListener('change', function() {
+        // Clear validation errors when account changes
+        clearBankFieldValidations();
+        
+        // If cash account selected, clear some validations
+        if (isCashInHandAccount()) {
+            clearBankFieldValidations();
+        }
+    });
+
+    // Initialize flatpickr for disbursement date after a short delay to ensure DOM is ready
+    setTimeout(() => {
+        setupDisbursementDatepicker();
+    }, 100);
+    
+    // Fetch disbursement details
+    fetch(`/branch/api/disbursement-details/${loanId}/`)
+        .then(response => response.json())
+        .then(data => {
+            // console.log('disbursement details data-', data[0]);
+            const app = data[0];
+            
+            const loan = app.loans && app.loans.length > 0 ? app.loans[0] : null;
+            const period = app.periods && app.periods.length > 0 ? app.periods[0] : null;
+
+            // Populate fields
+            document.getElementById('loanId').textContent = app.loan_ref_no || 'N/A';
+            document.getElementById('customerName').textContent = app.customer.full_name || 'N/A';
+            document.getElementById('disburseDate').textContent = app.disbursed_at || 'N/A';
+            document.getElementById('tenure').textContent = loan.tenure_display || 'N/A';
+            document.getElementById('emi').textContent = '₹' + (loan.emi_amount || '0');
+            document.getElementById('interestRate').textContent = loan.interest_rate + '%' || 'N/A';
+            const loanAmount = loan.sale_price !== null ? loan.sale_price : loan.loan_amount;
+            document.getElementById('loanAmount').textContent = '₹' + (loanAmount || '0');
+            document.getElementById('realisableAmount').textContent = '₹' + (period.realizable_amount || '0');
+
+            if (app.shop && app.shop.name) {
+                document.getElementById('shopName').textContent = app.shop.name;
+                document.getElementById('shopField').classList.remove('hidden');
+                window.HAS_SHOP_LOAN = true;
+            }
+            
+            document.getElementById('disbursed_amount').value = loan.loan_amount || 0;
+
+            if (app.customer_account) {
+                document.getElementById('bank_name').value = app.customer_account.bank_name || '';
+                document.getElementById('account_upi').value = app.customer_account.account_number || '';
+            }
+
+            // Shop bank accounts (only if the loan has a shop with bank accounts)
+            const shopAccounts = Array.isArray(app.shop_bank_accounts) ? app.shop_bank_accounts : [];
+            window.SHOP_HAS_BANK_ACCOUNTS = shopAccounts.length > 0;
+            const shopBankAccountField = document.getElementById('shop-bank-account-field');
+            const shopBankAccountSelect = document.getElementById('shop_bank_account');
+            const customerBankNameField = document.getElementById('customer-bank-name-field');
+            const customerAccountUpiField = document.getElementById('customer-account-upi-field');
+            const submitBtn = document.querySelector('#disbursement-details-form button[type="submit"]');
+
+            if (window.HAS_SHOP_LOAN && shopAccounts.length === 0) {
+                if (submitBtn) submitBtn.disabled = true;
+                showToast('This loan is linked to a shop. Please add bank account for this shop before disbursement.', 'error');
+            }
+            if (shopBankAccountField && shopBankAccountSelect && shopAccounts.length > 0) {
+                if (customerBankNameField) customerBankNameField.classList.add('hidden');
+                if (customerAccountUpiField) customerAccountUpiField.classList.add('hidden');
+
+                // Reset options (keep placeholder)
+                shopBankAccountSelect.innerHTML = '<option value="">Select Shop Bank Account</option>';
+
+                shopAccounts.forEach((acc) => {
+                    const opt = document.createElement('option');
+                    opt.value = acc.bank_account_id || '';
+                    const bankName = acc.bank_name || '';
+                    const accountNumber = acc.account_number || '';
+                    opt.textContent = `${bankName}${accountNumber ? ' - ' + accountNumber : ''}`;
+                    opt.dataset.bankName = bankName;
+                    opt.dataset.accountNumber = accountNumber;
+                    opt.dataset.isPrimary = acc.is_primary ? 'true' : 'false';
+                    shopBankAccountSelect.appendChild(opt);
+                });
+
+                const onShopAccountChange = () => {
+                    const selected = shopBankAccountSelect.options[shopBankAccountSelect.selectedIndex];
+                    if (!selected || !selected.value) return;
+                    const bankName = selected.dataset.bankName || '';
+                    const accountNumber = selected.dataset.accountNumber || '';
+                    if (bankName) document.getElementById('bank_name').value = bankName;
+                    if (accountNumber) document.getElementById('account_upi').value = accountNumber;
+                };
+
+                shopBankAccountSelect.addEventListener('change', onShopAccountChange);
+                shopBankAccountField.classList.remove('hidden');
+
+                // Auto-select primary if present
+                const primaryOpt = Array.from(shopBankAccountSelect.options).find((o) => o.dataset && o.dataset.isPrimary === 'true');
+                if (primaryOpt && primaryOpt.value) {
+                    shopBankAccountSelect.value = primaryOpt.value;
+                    onShopAccountChange();
+                }
+            } else {
+                if (customerBankNameField) customerBankNameField.classList.remove('hidden');
+                if (customerAccountUpiField) customerAccountUpiField.classList.remove('hidden');
+            }
+
+            // Populate deductions with checkboxes only
+            const deductionDiv = document.getElementById('deduction-div');
+            // const deductions = app.deductions || [];
+            const decoded_shapshot = JSON.parse(loan.processing_fee_snapshot);
+            const deductions = Array.isArray(decoded_shapshot) ? decoded_shapshot : [];
+            //console.log('deductions ', deductions);
+            
+            deductions.forEach(deduction => {
+                const isPercentage = deduction.deduction_type === 'percentage';
+                const symbol = isPercentage ? '%' : '₹';
+                const isActive = deduction.is_active !== false; // Default to true if not specified
+                const displayValue = isPercentage ? 
+                    `${deduction.deduction_value}%` : 
+                    `₹${parseFloat(deduction.deduction_value || 0).toFixed(2)}`;
+                
+                deductionDiv.innerHTML += `
+                    <div class="deduction-row mb-3">
+                        <label class="inline-flex items-center">
+                            <input 
+                                type="checkbox" 
+                                name="deduction_${deduction.id}" 
+                                class="form-checkbox h-4 w-4 text-brand-600 transition duration-150 ease-in-out"
+                                data-deduction-type="${deduction.deduction_type}"
+                                data-deduction-value="${deduction.deduction_value || '0'}"
+                                ${isActive ? 'checked' : ''}
+                                onchange="calculateNetAmount()"
+                                disabled
+                            >
+                            <span class="ml-2 text-sm font-medium text-gray-700">
+                                ${deduction.name} - ${displayValue}
+                                ${deduction.deduction_description ? `<span class="text-xs text-gray-500 ml-2">(${deduction.deduction_description})</span>` : ''}
+                            </span>
+                        </label>
+                    </div>
+                `;
+                // deductionDiv.innerHTML += `
+                //     <div class="deduction-row mb-3">
+                //         <label class="inline-flex items-center">
+                //             <input 
+                //                 type="checkbox" 
+                //                 name="deduction_${deduction.deduction_id}" 
+                //                 class="form-checkbox h-4 w-4 text-brand-600 transition duration-150 ease-in-out"
+                //                 data-deduction-type="${deduction.deduction_type}"
+                //                 data-deduction-value="${deduction.deduction_value || '0'}"
+                //                 ${isActive ? 'checked' : ''}
+                //                 onchange="calculateNetAmount()"
+                //             >
+                //             <span class="ml-2 text-sm font-medium text-gray-700">
+                //                 ${deduction.deduction_name} - ${displayValue}
+                //                 ${deduction.deduction_description ? `<span class="text-xs text-gray-500 ml-2">(${deduction.deduction_description})</span>` : ''}
+                //             </span>
+                //         </label>
+                //     </div>
+                // `;
+            });
+            deductionDiv.innerHTML += `
+                <hr class="my-4 border-gray-200" />
+
+                <div class="deduction-row mb-3">
+                    <label class="inline-flex items-center">
+                        <span class="ml-2 text-sm font-medium text-gray-700">
+                            Total Processing Fee - ₹${loan.processing_fee}
+                        </span>
+                    </label>
+                </div>
+                <input type="hidden" id="processing_fee" name="processing_fee" value="${loan.processing_fee}">
+
+            `;
+
+            // down_payment ----------------------------
+            if(loan.product){
+                const downPaymentDiv = document.getElementById('down_payment-div');
+                downPaymentDiv.innerHTML += `
+                    <div class="deduction-row mb-3">
+                        <label class="inline-flex items-center">
+                            <span class="ml-2 text-sm font-medium text-gray-700">
+                                Total Down Payment at Shop - ₹${loan.down_payment}                                
+                            </span>
+                        </label>
+                    </div>
+                    <input type="hidden" id="down_payment" name="down_payment" value="${loan.down_payment}">
+                `;
+            }
+
+            // Initial net amount calculation
+            calculateNetAmount();
+
+            // Add event listener for disbursed amount changes
+            document.getElementById('disbursed_amount').addEventListener('input', calculateNetAmount);
+        })
+        .catch(error => {
+            console.error('Error fetching disbursement details:', error);
+        });
+});
+</script>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="/static/branch/js/formValidation.js"></script>
+
+<script src="/static/main/js/main.js"></script>
+
+{% endblock %}

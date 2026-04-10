@@ -1,0 +1,44 @@
+{
+  "name": "sundaram",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "npx tailwindcss -i ./static/main/css/input.css -o ./static/main/css/output.css --watch",
+    "build": "vite build",
+    "preview": "vite preview",
+    "tailwind:build": "npx tailwindcss -c tailwind.config.js -i ./static/agent/css/tailwind.css -o ./static/dist/css/tailwind.css --minify",
+    "tailwind:watch": "npx tailwindcss -c tailwind.config.js -i ./static/agent/css/tailwind.css -o ./static/dist/css/tailwind.css --watch"
+  },
+  "dependencies": {
+    "@alpinejs/persist": "^3.14.9",
+    "@fullcalendar/bootstrap": "^6.1.17",
+    "@fullcalendar/core": "^6.1.17",
+    "@fullcalendar/daygrid": "^6.1.17",
+    "@fullcalendar/interaction": "^6.1.17",
+    "@fullcalendar/list": "^6.1.17",
+    "@fullcalendar/timegrid": "^6.1.17",
+    "@svgdotjs/svg.js": "^3.2.4",
+    "@tailwindcss/postcss": "^4.1.10",
+    "alpinejs": "^3.14.9",
+    "apexcharts": "^4.7.0",
+    "dropzone": "^6.0.0-beta.2",
+    "flatpickr": "^4.6.13",
+    "jsvectormap": "^1.7.0",
+    "svgmap": "^2.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/forms": "^0.5.10",
+    "@tailwindcss/typography": "^0.5.16",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.5",
+    "postcss-import": "^16.0.1",
+    "postcss-nested": "^7.0.1",
+    "tailwindcss": "^3.4.17",
+    "vite": "^5.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}

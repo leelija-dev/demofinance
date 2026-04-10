@@ -1,0 +1,3174 @@
+{% extends base_template %} {% load static %} {% block title %}New Loan Application{% endblock %} {% block page_id %}loanNewApplicationsv2{% endblock %} {% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+<link rel="stylesheet" href="{% static 'main/css/submit-loader/submit-loader.css' %}" />
+<style>
+  [x-cloak] {
+    display: none !important;
+  }
+
+  .card {
+    background: white;
+    border-radius: 16px;
+    box-shadow:
+      0 4px 6px -1px rgba(0, 0, 0, 0.1),
+      0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .card.dark {
+    background: #1f2937;
+    border-color: #374151;
+  }
+
+  .card-header {
+    padding: 16px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb;
+  }
+
+  .card.dark .card-header {
+    background: #111827;
+    border-color: #374151;
+  }
+
+  .card-body {
+    padding: 24px;
+  }
+
+  .progress-indicator {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    position: relative;
+  }
+
+  .progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+    flex: 1;
+  }
+
+  .progress-step:last-child .progress-line {
+    display: none;
+  }
+
+  .progress-dot {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: #6b7280;
+    transition: all 0.3s ease;
+    border: 2px solid #e5e7eb;
+  }
+
+  .progress-step.active .progress-dot {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+  }
+
+  .progress-step.completed .progress-dot {
+    background: #10b981;
+    color: white;
+    border-color: #10b981;
+  }
+
+  .progress-line {
+    position: absolute;
+    top: 16px;
+    left: 50%;
+    width: 100%;
+    height: 2px;
+    background: #e5e7eb;
+    z-index: -1;
+  }
+
+  .progress-step.completed .progress-line {
+    background: #10b981;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+  }
+
+  .dark .form-label {
+    color: #d1d5db;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    background: white;
+    color: #1f2937;
+  }
+
+  .dark .form-input {
+    background: #374151;
+    border-color: #4b5563;
+    color: #f9fafb;
+  }
+
+  .form-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  .btn {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-primary {
+    background: #3b82f6;
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background: #2563eb;
+  }
+
+  .btn-secondary {
+    background: #6b7280;
+    color: white;
+  }
+
+  .btn-secondary:hover {
+    background: #4b5563;
+  }
+
+  .btn-success {
+    background: #10b981;
+    color: white;
+  }
+
+  .btn-success:hover {
+    background: #059669;
+  }
+
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .otp-input {
+    width: 38px;
+    height: 38px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+    border: 2px solid #d1d5db;
+    border-radius: 8px;
+  }
+
+  @media (min-width: 640px) {
+    .otp-input {
+      width: 50px;
+      height: 50px;
+      font-size: 18px;
+    }
+  }
+
+  .otp-input:focus {
+    border-color: #3b82f6;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  .error-message {
+    color: #ef4444;
+    font-size: 12px;
+    margin-top: 4px;
+  }
+
+  .dark .error-message {
+    color: #f87171;
+  }
+
+  .success-message {
+    color: #10b981;
+    font-size: 12px;
+    margin-top: 4px;
+  }
+
+  .dark .success-message {
+    color: #34d399;
+  }
+
+  .fade-enter-active {
+    transition: opacity 0.3s ease;
+  }
+
+  .fade-enter {
+    opacity: 0;
+  }
+
+  .fade-enter-to {
+    opacity: 1;
+  }
+
+  .loading {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .full-page-loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+
+  .loader-content {
+    background: white;
+    border-radius: 12px;
+    padding: 32px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    text-align: center;
+    max-width: 320px;
+  }
+
+  .loader-spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid #e5e7eb;
+    border-radius: 50%;
+    border-top-color: #3b82f6;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 16px;
+  }
+
+  .loader-text {
+    font-size: 16px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 8px;
+  }
+
+  .loader-subtext {
+    font-size: 14px;
+    color: #6b7280;
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+  <!-- Breadcrumb Start -->
+  <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <h2 class="text-title-md2 font-bold text-black dark:text-white">New Loan Application</h2>
+    <nav>
+      <ol class="flex items-center gap-2">
+        <li>
+          <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400" href="{% url 'agent:dashboard' %}"
+            >Dashboard
+            <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </a>
+        </li>
+        <li class="text-sm text-gray-800 dark:text-white/90">New Loan Application</li>
+      </ol>
+    </nav>
+  </div>
+
+  {% if is_active %}
+  <div class="card-container" x-data="loanApplication()">
+    <script>
+      window.DEFAULT_SHOP_ID = "{{ default_shop_id|default:''|escapejs }}";
+      window.AGENT_SHOPS_COUNT = parseInt("{{ agent_shops|length|default_if_none:'0' }}", 10) || 0;
+    </script>
+    <!-- Progress Indicator -->
+    <div class="progress-indicator">
+      <div class="progress-step" :class="getStepClass(0)">
+        <div class="progress-dot">0</div>
+        <span class="text-xs mt-2 text-gray-600 dark:text-gray-400">Category</span>
+        <div class="progress-line"></div>
+      </div>
+      <div class="progress-step" :class="getStepClass(1)">
+        <div class="progress-dot">1</div>
+        <span class="text-xs mt-2 text-gray-600 dark:text-gray-400">Loan Details</span>
+        <div class="progress-line"></div>
+      </div>
+      <div class="progress-step" :class="getStepClass(2)">
+        <div class="progress-dot">2</div>
+        <span class="text-xs mt-2 text-gray-600 dark:text-gray-400">Verification</span>
+        <div class="progress-line"></div>
+      </div>
+      <div class="progress-step" :class="getStepClass(3)">
+        <div class="progress-dot">3</div>
+        <span class="text-xs mt-2 text-gray-600 dark:text-gray-400">Personal Info</span>
+        <div class="progress-line"></div>
+      </div>
+      <div class="progress-step" :class="getStepClass(4)">
+        <div class="progress-dot">4</div>
+        <span class="text-xs mt-2 text-gray-600 dark:text-gray-400">Address</span>
+        <div class="progress-line"></div>
+      </div>
+      <div class="progress-step" :class="getStepClass(5)">
+        <div class="progress-dot">5</div>
+        <span class="text-xs mt-2 text-gray-600 dark:text-gray-400">Bank Details</span>
+        <div class="progress-line"></div>
+      </div>
+      <div class="progress-step" :class="getStepClass(6)">
+        <div class="progress-dot">6</div>
+        <span class="text-xs mt-2 text-gray-600 dark:text-gray-400">Documents</span>
+      </div>
+    </div>
+
+    <!-- Form Container -->
+    <form id="loan-application-form" enctype="multipart/form-data" x-show="currentStep <= 6">
+      {% csrf_token %}
+
+      <!-- Step 0: Main Category Selection -->
+      <div class="card" x-show="currentStep === 0" x-transition:enter="fade-enter-active" x-transition:enter-start="fade-enter">
+        <div class="card-header">
+          <!-- <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Select Loan</h3> -->
+          <p class="text-center text-md font-medium text-gray-600 dark:text-gray-400 mt-1">Choose the category for your loan</p>
+        </div>
+        <div class="card-body">
+          <!-- Loading State -->
+          <div x-show="!mainCategories.length" class="text-center py-8">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p class="text-gray-600 mt-2">Loading categories...</p>
+          </div>
+
+          <!-- Categories Grid -->
+          <div x-show="mainCategories.length" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <template x-for="category in mainCategories" :key="category.id">
+              <div
+                class="relative mx-auto w-full max-w-[220px] cursor-pointer rounded-2xl border p-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-lg focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20"
+                @click="selectMainCategory(category)"
+                :class="{
+                  'border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900': !(selectedMainCategory && selectedMainCategory.id === category.id),
+                  'border-blue-500 bg-blue-50 shadow-lg ring-2 ring-blue-500 ring-offset-2 ring-offset-white dark:border-blue-400 dark:bg-blue-500/15 dark:ring-offset-gray-900': selectedMainCategory && selectedMainCategory.id === category.id
+                }"
+                role="button"
+                tabindex="0"
+              >
+                <div class="absolute right-2 top-2" x-show="selectedMainCategory && selectedMainCategory.id === category.id">
+                  <div class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-white shadow">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                  </div>
+                </div>
+                <div class="flex flex-col items-center justify-center text-center gap-3">
+                  <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100 p-2 text-blue-600 dark:bg-blue-200/15 dark:text-blue-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" id="rupee">
+                      <path
+                        d="M365.42,131H335l-.46,0h-.28l-.42.07-.32.05c-.12,0-.23.06-.35.09l-.35.09-.37.13-.32.12-.43.21-.22.11-.37.22-.25.16c-.1.06-.19.14-.29.21s-.21.15-.3.23l-.23.21-.33.3a.08.08,0,0,1,0,0c-.06.06-.11.13-.16.19l-.29.33L329,134c-.07.1-.15.2-.22.31s-.13.21-.19.31l-.18.32c-.06.11-.11.22-.16.33l-.15.34L328,136a3.59,3.59,0,0,0-.12.35l-.09.35c0,.12-.06.24-.08.36s0,.25-.06.37,0,.24,0,.36,0,.28,0,.42,0,.17,0,.26v.06l0,.43a1.72,1.72,0,0,0,0,.32c0,.12,0,.24.05.36l.06.37c0,.09,0,.18.07.27s.07.29.12.44,0,.14.07.21l.17.47.16.33c.06.11.1.22.16.32s.13.22.2.33l.18.29a2.69,2.69,0,0,0,.2.27l.25.33.2.21c.1.12.2.23.31.34s0,0,0,0l65.66,63.54a7.5,7.5,0,0,0,10.43-10.78L353.6,146h11.82A44.27,44.27,0,0,0,409,109.25H421.9a7.5,7.5,0,0,0,0-15H409a44,44,0,0,0-10.41-21.71H421.9a7.5,7.5,0,0,0,0-15H335.06a7.5,7.5,0,1,0,0,15h30.36a29.25,29.25,0,0,1,28.23,21.71H335.06a7.5,7.5,0,0,0,0,15h58.59A29.26,29.26,0,0,1,365.42,131ZM512,348.76a31.22,31.22,0,0,0-40.28-28.09L356.4,355.75a32.62,32.62,0,0,0-18.89-23.29L262.37,299.8A118.31,118.31,0,0,0,181.28,295l-35.4,10.65-.47-2.73A24.53,24.53,0,0,0,117,283L56.89,293.38h0L6.22,302.17A7.5,7.5,0,1,0,8.78,317l43.27-7.51L82.28,483.92,6.22,497.11A7.5,7.5,0,0,0,7.49,512a8,8,0,0,0,1.29-.11L152.39,487a24.58,24.58,0,0,0,20-28.38l-1.74-10,2.14-.5a32.07,32.07,0,0,1,14-.08l133.87,29.51A63.91,63.91,0,0,0,334.48,479a64.59,64.59,0,0,0,37.67-12.1L499,376A31.11,31.11,0,0,0,512,348.76ZM149.83,472.21l-52.77,9.15L66.83,306.88l52.77-9.15a9.54,9.54,0,0,1,11,7.78l27,155.66A9.56,9.56,0,0,1,149.83,472.21ZM490.22,363.78l-126.81,91a49.7,49.7,0,0,1-39.58,8.13L190,433.35a47,47,0,0,0-20.58.12l-1.3.31L148.46,320.57l37.14-11.18a103.27,103.27,0,0,1,70.79,4.17l75.15,32.66a17.57,17.57,0,0,1,10.37,18.51,15.16,15.16,0,0,1-.36,1.83,17.46,17.46,0,0,1-20.85,12.85L278,369.78a7.5,7.5,0,0,0-3.3,14.64L317.39,394a32.46,32.46,0,0,0,38.32-22.4L476,335A16.21,16.21,0,0,1,497,349.62,16.18,16.18,0,0,1,490.22,363.78ZM378.48,267A133.52,133.52,0,0,0,472.89,39.11,133.52,133.52,0,1,0,284.07,227.93,132.65,132.65,0,0,0,378.48,267ZM294.68,49.71A118.52,118.52,0,0,1,462.29,217.32,118.52,118.52,0,1,1,294.68,49.71Z"
+                      />
+                    </svg>
+                  </div>
+                  <div class="min-w-0">
+                    <h4 class="text-sm md:text-base leading-snug font-semibold text-gray-900 dark:text-white" x-text="category.name"></h4>
+                    <p class="mt-1 text-xs md:text-sm text-gray-600 dark:text-gray-400">Choose this category to continue</p>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <!-- Error State -->
+          <div x-show="categoryError" class="text-center py-8">
+            <div class="text-red-500">
+              <svg class="w-12 h-12 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <p class="font-medium">Error Loading Categories</p>
+              <p class="text-sm mt-1" x-text="categoryError"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="card-footer bg-gray-50 dark:bg-gray-800 px-6 py-4">
+          <div class="flex justify-center md:justify-end">
+            <button
+              type="button"
+              class="btn btn-primary"
+              @click="proceedToLoanDetails()"
+              :disabled="!selectedMainCategory"
+              :class="{ 'opacity-50 cursor-not-allowed': !selectedMainCategory }"
+            >
+              Continue to Loan Details
+              <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 1: Loan Details -->
+      <div class="card" x-show="currentStep === 1" x-transition:enter="fade-enter-active" x-transition:enter-start="fade-enter">
+        <div class="card-header dark:bg-gray-800">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Loan Details</h3>
+          <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Enter your loan requirements and calculate EMI</p>
+        </div>
+
+        <!-- Selected Main Category Display -->
+        <div x-show="selectedMainCategory" class="mx-6 mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div class="flex items-center">
+            <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+              ></path>
+            </svg>
+            <div>
+              <p class="text-sm font-medium text-blue-800">Selected Main Category</p>
+              <p class="text-sm text-blue-600" x-text="selectedMainCategory.name"></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="-mx-2.5 flex flex-wrap gap-y-5">
+            <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"> Loan Category <span class="text-[#ec4a0a]">*</span> </label>
+              <div x-data="{ isOptionSelected: false }" class="relative z-20 bg-transparent">
+                <select
+                  name="loan_category"
+                  x-model="loanData.loan_category"
+                  class="w-full px-4 py-3 text-sm text-gray-800 bg-transparent border border-gray-300 rounded-lg appearance-none dark:bg-dark-900 h-11 bg-none shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                  :class="isOptionSelected && 'text-gray-500 dark:text-gray-400'"
+                  @change="isOptionSelected = true; updateInterestRate()"
+                  required
+                >
+                  <option value="">Select Loan Category</option>
+                  <template x-for="category in loanCategories">
+                    <option :value="category.id" x-text="category.name"></option>
+                  </template>
+                </select>
+                <div class="text-error-500 text-xs mt-1" id="error-loan_category"></div>
+              </div>
+            </div>
+
+            <!-- Product Selection Fields (only show for product category LoanCAT-CF580341) -->
+            <div x-show="isProductCategorySelected()" class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"> Product Main Category <span class="text-[#ec4a0a]">*</span> </label>
+              <select
+                name="product_main_category"
+                x-model="selectedProductMainCategory"
+                @change="loadProductSubcategories($event.target.value)"
+                class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+              >
+                <option value="">Select Product Main Category</option>
+                <template x-for="category in productMainCategories">
+                  <option :value="category.id" x-text="category.name"></option>
+                </template>
+              </select>
+            </div>
+            <div x-show="isProductCategorySelected()" class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"> Product Subcategory <span class="text-[#ec4a0a]">*</span> </label>
+              <select
+                name="product_subcategory"
+                x-model="selectedProductSubcategory"
+                @change="loadProductTypes($event.target.value)"
+                class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+              >
+                <option value="">Select Product Subcategory</option>
+                <template x-for="subcategory in productSubcategories">
+                  <option :value="subcategory.id" x-text="subcategory.name"></option>
+                </template>
+              </select>
+            </div>
+            <div x-show="isProductCategorySelected()" class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"> Product Type <span class="text-[#ec4a0a]">*</span> </label>
+              <select
+                name="product_type"
+                x-model="selectedProductType"
+                @change="updateLoanAmountBasedOnProductSelection()"
+                class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+              >
+                <option value="">Select Product Type</option>
+                <template x-for="type in productTypes">
+                  <option :value="type.id" x-text="`${type.name} (₹${type.price})`"></option>
+                </template>
+              </select>
+            </div>
+            <div x-show="isProductCategorySelected()" class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"> Sale Price <span class="text-[#ec4a0a]">*</span> </label>
+              <input
+                id="sale_price"
+                name="sale_price"
+                x-model="loanData.sale_price"
+                @input="updateLoanAmount()"
+                type="number"
+                placeholder="Enter sale price"
+                min="1"
+                max="100"
+                class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                required
+              />
+              <div class="text-error-500 text-xs mt-1" id="error-sale_price"></div>
+            </div>
+
+            <div x-show="isProductCategorySelected()" class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"> Loan Percentage (%) <span class="text-[#ec4a0a]">*</span> </label>
+              <input
+                id="loan_percentage"
+                name="loan_percentage"
+                x-model="loanData.loan_percentage"
+                @input="calculateLoanAmountFromPercentage()"
+                type="number"
+                placeholder="Enter percentage (e.g., 80)"
+                min="1"
+                max="100"
+                class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                required
+              />
+              <div class="text-error-500 text-xs mt-1" id="error-loan_percentage"></div>
+            </div>
+
+            <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"> Loan Amount <span class="text-[#ec4a0a]">*</span> </label>
+              <input
+                id="loan_amount"
+                name="loan_amount"
+                x-model="loanData.loan_amount"
+                @input="formatLoanAmount(); calculateEMI()"
+                type="text"
+                placeholder="Enter loan amount (e.g., 50000)"
+                :readonly="isProductCategorySelected()"
+                class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                required
+              />
+              <div class="text-error-500 text-xs mt-1" id="error-loan_amount"></div>
+            </div>
+
+            <!-- Processing Fees Section -->
+
+            <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"> Processing Fees <span class="text-[#ec4a0a]">*</span> </label>
+              <div class="relative">
+                <input
+                  x-model="totalProcessingFees"
+                  type="text"
+                  placeholder="Enter processing fee"
+                  class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                  required
+                  readonly
+                />
+
+                <svg
+                  class="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  @click="showProcessingFeesModal()"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  ></path>
+                </svg>
+              </div>
+              <div class="text-error-500 text-xs mt-1" id="error-processing_fee"></div>
+            </div>
+
+            <div x-show="isProductCategorySelected()" class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"> Down payment <span class="text-[#ec4a0a]">*</span> </label>
+              <input
+                x-model="loanData.down_payment"
+                type="text"
+                placeholder="Enter processing fee"
+                class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                required
+                readonly
+              />
+              <div class="text-error-500 text-xs mt-1" id="error-down_payment"></div>
+            </div>
+            <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"> Loan Purpose <span class="text-[#ec4a0a]">*</span> </label>
+              <input
+                id="loan_purpose"
+                name="loan_purpose"
+                x-model="loanData.loan_purpose"
+                type="text"
+                placeholder="Enter loan purpose"
+                class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                required
+              />
+              <div class="text-error-500 text-xs mt-1" id="error-loan_purpose"></div>
+            </div>
+            <div class="w-full px-2.5">
+              <h4 class="pb-2 text-base font-medium text-gray-800 border-b border-gray-200 dark:border-gray-800 dark:text-white/90">EMI Details :</h4>
+            </div>
+            <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"> Tenure<span class="text-[#ec4a0a]">*</span> </label>
+              <select
+                name="tenure_months"
+                x-model="loanData.tenure_months"
+                @change="updateInterestRate()"
+                class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                required
+              >
+                <option value="">Select Tenure</option>
+                <template x-for="tenure in loanTenures">
+                  <option :value="tenure.id" x-text="tenure.display"></option>
+                </template>
+              </select>
+              <div class="text-error-500 text-xs mt-1" id="error-tenure_months"></div>
+            </div>
+
+            <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"> Interest Rate(%) <span class="text-[#ec4a0a]">*</span> </label>
+              <input
+                id="interest_rate"
+                name="interest_rate_display"
+                x-model="loanData.interest_rate_display"
+                type="text"
+                readonly
+                class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+              />
+              <input type="hidden" id="interest_rate_id" name="interest_rate" />
+              <div class="text-error-500 text-xs mt-1" id="error-interest_rate"></div>
+            </div>
+            <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"> EMI Amount <span class="text-[#ec4a0a]">*</span> </label>
+              <input
+                name="emi_amount"
+                x-model="loanData.emi_amount"
+                type="text"
+                readonly
+                placeholder="EMI will be calculated automatically"
+                class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+              />
+              <div class="text-error-500 text-xs mt-1" id="error-emi_amount"></div>
+            </div>
+
+            {% if agent_shops %}
+            <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4" x-show="isShopRequired()" x-cloak>
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"> Shop <span class="text-[#ec4a0a]">*</span> </label>
+              {% if agent_shops|length == 1 %}
+              <input
+                type="text"
+                value="{{ agent_shops.0.name|default:'' }}"
+                readonly
+                class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+              />
+              <input type="hidden" name="shop_id" value="{{ agent_shops.0.shop_id }}" :disabled="!isShopRequired()" />
+              {% else %}
+              <div x-data="{ isOptionSelected: false }" class="relative z-20 bg-transparent">
+                <select
+                  name="shop_id"
+                  x-model="loanData.shop_id"
+                  class="w-full px-4 py-3 text-sm text-gray-800 bg-transparent border border-gray-300 rounded-lg appearance-none dark:bg-dark-900 h-11 bg-none shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                  :class="isOptionSelected && 'text-gray-500 dark:text-gray-400'"
+                  @change="isOptionSelected = true"
+                  :required="isShopRequired()"
+                  :disabled="!isShopRequired()"
+                >
+                  <option value="">Select Shop</option>
+                  {% for s in agent_shops %}
+                  <option value="{{ s.shop_id }}">{{ s.name }}</option>
+                  {% endfor %}
+                </select>
+                <div class="text-error-500 text-xs mt-1" id="error-shop_id"></div>
+              </div>
+              {% endif %}
+            </div>
+
+            <div x-show="isShopRequired()" class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"> Shop Bank Account <span class="text-[#ec4a0a]">*</span> </label>
+              <select
+                name="shop_bank_account"
+                x-model="loanData.shop_bank_account_id"
+                class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                :disabled="!shopBankAccount.length"
+                required
+              >
+                <option value="">
+                  <span x-show="shopBankAccount.length">Select Shop Bank Account</span>
+                </option>
+                <template x-for="bank in shopBankAccount">
+                  <option :value="bank.bank_account_id" x-text="`${bank.account_number || ''} (${bank.bank_name})`"></option>
+                </template>
+              </select>
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="mt-8 flex justify-between gap-2">
+            <button type="button" class="btn btn-secondary" @click="previousStep()">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+              </svg>
+              Back to Category
+            </button>
+            <button type="button" class="btn btn-primary" @click="nextStep()" :disabled="!isLoanDetailsValid()">
+              Continue to Verification
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Personal Information -->
+      <div class="card" x-show="currentStep === 3" x-transition:enter="fade-enter-active" x-transition:enter-start="fade-enter">
+        <div class="card-header">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Personal Information</h3>
+          <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Your details have been fetched from Aadhaar verification</p>
+        </div>
+        <div class="card-body">
+          <!-- Aadhaar-fetched Information -->
+          <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <h4 class="text-sm font-medium text-green-800 mb-2">✓ Verified Information from Aadhaar</h4>
+            <p class="text-xs text-green-600">The following fields have been automatically populated and are readonly</p>
+          </div>
+
+          <!-- Aadhaar Photo Display -->
+          <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg" x-show="aadhaarPhoto">
+            <div class="flex items-center space-x-4">
+              <img :src="aadhaarPhoto" alt="Aadhaar Photograph" class="w-24 h-24 rounded-lg border-2 border-gray-300 object-cover shadow-sm" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Aadhaar-fetched fields -->
+            <div class="form-group">
+              <label class="form-label">Full Name <span class="text-red-500">*</span></label>
+              <input type="text" id="full_name" class="form-input" x-model="personalInfo.full_name" :readonly="aadhaarPopulatedFields.full_name === true" />
+              <input type="hidden" name="full_name" :value="personalInfo.full_name" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Father Name <span class="text-red-500">*</span></label>
+              <input type="text" id="father_name" class="form-input" x-model="personalInfo.father_name" :readonly="aadhaarPopulatedFields.father_name === true" />
+              <input type="hidden" name="father_name" :value="personalInfo.father_name" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Date of Birth <span class="text-red-500">*</span></label>
+              <input type="text" id="date_of_birth" class="form-input" x-model="personalInfo.date_of_birth" :readonly="aadhaarPopulatedFields.date_of_birth === true" />
+              <input type="hidden" name="date_of_birth" :value="personalInfo.date_of_birth" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Gender <span class="text-red-500">*</span></label>
+              <input type="text" id="gender" class="form-input" x-model="personalInfo.gender" :readonly="aadhaarPopulatedFields.gender === true" />
+              <input type="hidden" name="gender" :value="personalInfo.gender" />
+            </div>
+
+            <!-- Address fields from Aadhaar -->
+            <div class="form-group md:col-span-2">
+              <label class="form-label">Permanent Address <span class="text-red-500">*</span></label>
+              <textarea id="address" class="form-input" x-model="personalInfo.address" rows="3" :readonly="aadhaarPopulatedFields.address === true"></textarea>
+              <input type="hidden" name="permanent_address_line_1" :value="personalInfo.address" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Pincode <span class="text-red-500">*</span></label>
+              <input type="text" id="pincode" class="form-input" x-model="personalInfo.pincode" :readonly="aadhaarPopulatedFields.pincode === true" />
+              <input type="hidden" name="permanent_post_code" :value="personalInfo.pincode" />
+            </div>
+
+            <!-- User input fields -->
+            <div class="form-group">
+              <label class="form-label">Email Address</label>
+              <input type="email" class="form-input" x-model="personalInfo.email" placeholder="your@email.com" />
+              <input type="hidden" name="email" :value="personalInfo.email" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Guarantor Name <span class="text-red-500">*</span></label>
+              <input type="text" id="guarantor_name" class="form-input" x-model="personalInfo.guarantor_name" :readonly="aadhaarPopulatedFields.guarantor_name === true" />
+              <input type="hidden" name="guarantor_name" :value="personalInfo.guarantor_name" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">PAN Number <span class="text-red-500">*</span></label>
+              <div class="relative">
+                <input
+                  type="text"
+                  class="form-input pr-28"
+                  x-model="personalInfo.pan_number"
+                  placeholder="ABCDE1234F"
+                  maxlength="10"
+                  pattern="[A-Z]{5}\d{4}[A-Z]"
+                  @input="validatePANFormat"
+                />
+                <input type="hidden" name="pan_number" :value="personalInfo.pan_number" />
+                <div class="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-2" x-show="personalInfo.pan_number.length === 10">
+                  <button
+                    type="button"
+                    class="text-xs font-medium text-blue-600 hover:text-blue-700 disabled:opacity-50 dark:text-blue-300 dark:hover:text-blue-200"
+                    @click="verifyPANAadhaarLink()"
+                    :disabled="panVerificationStatus === 'checking' || errors.pan_number"
+                    x-show="panVerificationStatus !== 'linked'"
+                  >
+                    Verify
+                  </button>
+                  <svg x-show="panVerificationStatus === 'checking'" class="animate-spin h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  <svg x-show="panVerificationStatus === 'linked'" class="h-4 w-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  <svg x-show="panVerificationStatus === 'not_linked'" class="h-4 w-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </div>
+              </div>
+              <div class="text-error-500 text-xs mt-1" x-show="errors.pan_number" x-text="errors.pan_number"></div>
+              <div class="text-xs mt-1 text-green-600" x-show="panVerificationStatus === 'linked'" class="text-green-600">PAN is linked to Aadhaar</div>
+              <div class="text-xs mt-1 text-red-600" x-show="panVerificationStatus === 'not_linked'" class="text-red-600">PAN is not linked to Aadhaar</div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Voter ID</label>
+              <input type="text" class="form-input" x-model="personalInfo.voter_number" placeholder="ABC1234567" maxlength="10" />
+              <input type="hidden" name="voter_number" :value="personalInfo.voter_number" />
+            </div>
+          </div>
+
+          <div class="mt-8 flex justify-between gap-2">
+            <button type="button" class="btn btn-secondary" @click="previousStep()" disabled>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+              </svg>
+              Back
+            </button>
+            <button type="button" class="btn btn-primary" @click="nextStep()" :disabled="!isPersonalInfoValidate()">
+              Continue to Address Details
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4: Address Information -->
+      <div class="card" x-show="currentStep === 4" x-transition:enter="fade-enter-active" x-transition:enter-start="fade-enter">
+        <div class="card-header">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Address Information</h3>
+          <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Please provide your permanent and current address details</p>
+        </div>
+        <div class="card-body">
+          <!-- Aadhaar-fetched Permanent Address -->
+          <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <h4 class="text-sm font-medium text-blue-800 mb-2">📍 Permanent Address (from Aadhaar)</h4>
+            <p class="text-xs text-blue-600">The following fields have been automatically populated from Aadhaar verification</p>
+          </div>
+
+          <!-- Permanent Address Section -->
+          <div class="mb-8">
+            <div class="w-full px-2.5">
+              <h4 class="pb-2 text-base font-medium text-gray-800 border-b border-gray-200 dark:border-gray-800 dark:text-white/90">Permanent Address :</h4>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+              <div class="form-group">
+                <label class="form-label">Address line 1 <span class="text-red-500">*</span></label>
+                <input
+                  id="address_line_1"
+                  name="address_line_1"
+                  type="text"
+                  x-model="addressData.permanent.address_line_1"
+                  readonly
+                  class="form-input"
+                  placeholder="Address line 1 (from Aadhaar)"
+                  required
+                />
+                <div class="text-error-500 text-xs mt-1" id="error-address_line_1"></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Address line 2</label>
+                <input id="address_line_2" name="address_line_2" type="text" x-model="addressData.permanent.address_line_2" class="form-input" placeholder="Enter address line 2" />
+                <div class="text-error-500 text-xs mt-1" id="error-address_line_2"></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Landmark</label>
+                <input id="landmark" name="landmark" type="text" x-model="addressData.permanent.landmark" class="form-input" placeholder="Enter landmark" />
+                <div class="text-error-500 text-xs mt-1" id="error-landmark"></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Post Code <span class="text-red-500">*</span></label>
+                <input
+                  id="post_code"
+                  name="post_code"
+                  type="text"
+                  x-model="addressData.permanent.post_code"
+                  readonly
+                  class="form-input"
+                  placeholder="Post code (from Aadhaar)"
+                  maxlength="6"
+                  required
+                />
+                <div class="text-error-500 text-xs mt-1" id="error-post_code"></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Post Office</label>
+                <input id="post_office" name="post_office" type="text" x-model="addressData.permanent.post_office" class="form-input" placeholder="Enter post office" />
+                <div class="text-error-500 text-xs mt-1" id="error-post_office"></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">City/Town <span class="text-red-500">*</span></label>
+                <input
+                  id="city_or_town"
+                  name="city_or_town"
+                  type="text"
+                  x-model="addressData.permanent.city_or_town"
+                  class="form-input"
+                  placeholder="Enter city or town"
+                  required
+                />
+                <div class="text-error-500 text-xs mt-1" id="error-city_or_town"></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">District <span class="text-red-500">*</span></label>
+                <input id="district" name="district" type="text" x-model="addressData.permanent.district" class="form-input" placeholder="Enter district" required />
+                <div class="text-error-500 text-xs mt-1" id="error-district"></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">State <span class="text-red-500">*</span></label>
+                <input id="state" name="state" type="text" x-model="addressData.permanent.state" class="form-input" placeholder="Enter state" required />
+                <div class="text-error-500 text-xs mt-1" id="error-state"></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Country</label>
+                <input id="country" name="country" type="text" x-model="addressData.permanent.country" class="form-input" placeholder="Enter country" value="India" />
+                <div class="text-error-500 text-xs mt-1" id="error-country"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Same Address Checkbox -->
+          <div class="mb-6">
+            <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-400">
+              <input
+                type="checkbox"
+                id="same-address"
+                name="same_address"
+                x-model="addressData.sameAddress"
+                class="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-900"
+                @change="toggleCurrentAddress()"
+              />
+              Permanent and Current Address are the same
+            </label>
+          </div>
+
+          <!-- Current Address Section -->
+          <div id="current-address-section" x-show="!addressData.sameAddress" class="w-full">
+            <div class="w-full px-2.5">
+              <h4 class="pb-2 text-base font-medium text-gray-800 border-b border-gray-200 dark:border-gray-800 dark:text-white/90">Current Address :</h4>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+              <div class="form-group">
+                <label class="form-label">Current Address Line 1 <span class="text-red-500">*</span></label>
+                <input
+                  id="current_address_line_1"
+                  name="current_address_line_1"
+                  type="text"
+                  x-model="addressData.current.address_line_1"
+                  class="form-input"
+                  placeholder="Enter current address line 1"
+                  required
+                />
+                <div class="text-error-500 text-xs mt-1" id="error-current_address_line_1"></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Current Address Line 2</label>
+                <input
+                  id="current_address_line_2"
+                  name="current_address_line_2"
+                  type="text"
+                  x-model="addressData.current.address_line_2"
+                  class="form-input"
+                  placeholder="Enter current address line 2"
+                />
+                <div class="text-error-500 text-xs mt-1" id="error-current_address_line_2"></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Current Landmark</label>
+                <input id="current_landmark" name="current_landmark" type="text" x-model="addressData.current.landmark" class="form-input" placeholder="Enter landmark" />
+                <div class="text-error-500 text-xs mt-1" id="error-current_landmark"></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Current Post Code <span class="text-red-500">*</span></label>
+                <input
+                  id="current_post_code"
+                  name="current_post_code"
+                  type="text"
+                  x-model="addressData.current.post_code"
+                  class="form-input"
+                  placeholder="Enter post code (6 digits)"
+                  maxlength="6"
+                  required
+                />
+                <div class="text-error-500 text-xs mt-1" id="error-current_post_code"></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Current Post Office</label>
+                <input
+                  id="current_post_office"
+                  name="current_post_office"
+                  type="text"
+                  x-model="addressData.current.post_office"
+                  class="form-input"
+                  placeholder="Enter post office"
+                />
+                <div class="text-error-500 text-xs mt-1" id="error-current_post_office"></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Current City/Town <span class="text-red-500">*</span></label>
+                <input
+                  id="current_city_or_town"
+                  name="current_city_or_town"
+                  type="text"
+                  x-model="addressData.current.city_or_town"
+                  class="form-input"
+                  placeholder="Enter city or town"
+                  required
+                />
+                <div class="text-error-500 text-xs mt-1" id="error-current_city_or_town"></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Current District <span class="text-red-500">*</span></label>
+                <input id="current_district" name="current_district" type="text" x-model="addressData.current.district" class="form-input" placeholder="Enter district" required />
+                <div class="text-error-500 text-xs mt-1" id="error-current_district"></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Current State <span class="text-red-500">*</span></label>
+                <input id="current_state" name="current_state" type="text" x-model="addressData.current.state" class="form-input" placeholder="Enter state" required />
+                <div class="text-error-500 text-xs mt-1" id="error-current_state"></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Current Country</label>
+                <input id="current_country" name="current_country" type="text" x-model="addressData.current.country" class="form-input" placeholder="Enter country" value="India" />
+                <div class="text-error-500 text-xs mt-1" id="error-current_country"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-8 flex justify-between gap-2">
+            <button type="button" class="btn btn-secondary" @click="previousStep()">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+              </svg>
+              Back
+            </button>
+            <button type="button" class="btn btn-primary" @click="nextStep()">
+              Continue to Bank Details
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 5: Bank Details -->
+      <div class="card" x-show="currentStep === 5" x-transition:enter="fade-enter-active" x-transition:enter-start="fade-enter">
+        <div class="card-header">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Bank Details</h3>
+          <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Enter your bank account information for loan disbursement</p>
+        </div>
+        <div class="card-body">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="form-group">
+              <label class="form-label">Account Number <span class="text-red-500">*</span></label>
+              <div class="flex gap-2">
+                <input
+                  type="text"
+                  class="form-input flex-1"
+                  x-model="bankDetails.account_number"
+                  placeholder="Enter account number"
+                  x-on:input="bankDetails.account_number = $event.target.value.replace(/[^0-9]/g, '').slice(0, 18)"
+                />
+                <button
+                  type="button"
+                  class="btn btn-secondary px-3"
+                  @click="verifyBankAccount()"
+                  :disabled="!isBankDetailsValid() || bankVerificationStatus === 'verifying'"
+                  x-text="bankVerificationStatus === 'verifying' ? 'Verifying...' : 'Verify'"
+                >
+                  Verify
+                </button>
+              </div>
+              <input type="hidden" name="account_number" :value="bankDetails.account_number" />
+              <div class="error-message" x-show="errors.account_number" x-text="errors.account_number"></div>
+              <div
+                class="text-error-500 text-xs mt-1"
+                x-show="bankDetails.account_number.length !== 0 &&
+                    (!/^[0-9]{9,18}$/.test(bankDetails.account_number))"
+              >
+                Account number must contain digits only.
+              </div>
+              <div
+                class="text-error-500 text-xs mt-1"
+                x-show="bankDetails.account_number.length !== 0 &&
+                    (bankDetails.account_number.length < 9 || bankDetails.account_number.length > 18)"
+              >
+                Account number must be between 9 and 18 digits.
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Confirm Account Number <span class="text-red-500">*</span></label>
+              <input
+                type="text"
+                class="form-input"
+                x-model="bankDetails.confirm_account_number"
+                placeholder="Re-enter account number"
+                x-on:input="bankDetails.confirm_account_number = $event.target.value.replace(/[^0-9]/g, '').slice(0, 18)"
+              />
+              <div class="error-message" x-show="errors.confirm_account_number" x-text="errors.confirm_account_number"></div>
+              <div class="text-error-500 text-xs mt-1" x-show="bankDetails.confirm_account_number !== bankDetails.account_number">Account numbers don't match.</div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">IFSC Code <span class="text-red-500">*</span></label>
+              <input type="text" id="ifsc_code" class="form-input" x-model="bankDetails.ifsc_code" placeholder="SBIN0001234" maxlength="11" />
+              <input type="hidden" name="ifsc_code" :value="bankDetails.ifsc_code" />
+              <div class="error-message" id="error-ifsc_code" x-show="errors.ifsc_code" x-text="errors.ifsc_code"></div>
+              <div
+                class="text-error-500 text-xs mt-1"
+                x-show="bankDetails.ifsc_code.length !== 0 &&
+                    !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(bankDetails.ifsc_code)"
+              >
+                Enter a valid IFSC code (e.g., SBIN0001234).
+              </div>
+              <div id="bank-branch-display" class="text-xs text-gray-600 mt-1"></div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Bank Name <span class="text-red-500">*</span></label>
+              <input type="text" id="bank_name" class="form-input" x-model="bankDetails.bank_name" placeholder="Enter bank name" />
+              <input type="hidden" name="bank_name" :value="bankDetails.bank_name" />
+              <div class="error-message" x-show="errors.bank_name" x-text="errors.bank_name"></div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Account Type <span class="text-red-500">*</span></label>
+              <select class="form-input" x-model="bankDetails.account_type">
+                <option value="">Select Account Type</option>
+                <option value="savings">Savings</option>
+                <option value="current">Current</option>
+                <option value="fixed_deposit">Fixed Deposit</option>
+                <option value="recurring_deposit">Recurring Deposit</option>
+              </select>
+              <input type="hidden" name="account_type" :value="bankDetails.account_type" />
+              <div class="error-message" x-show="errors.account_type" x-text="errors.account_type"></div>
+            </div>
+          </div>
+
+          <!-- Bank Verification Status -->
+          <div x-show="bankVerificationStatus" class="mt-6">
+            <div
+              class="p-4 rounded-lg"
+              :class="{
+                'bg-green-50 border border-green-200': bankVerificationStatus === 'verified',
+                'bg-red-50 border border-red-200': bankVerificationStatus === 'failed',
+                'bg-blue-50 border border-blue-200': bankVerificationStatus === 'verifying'
+              }"
+            >
+              <div class="flex items-center space-x-2">
+                <svg x-show="bankVerificationStatus === 'verifying'" class="animate-spin h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                <svg x-show="bankVerificationStatus === 'verified'" class="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <svg x-show="bankVerificationStatus === 'failed'" class="h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+                <div>
+                  <p
+                    class="text-sm font-medium"
+                    :class="{
+                      'text-green-800': bankVerificationStatus === 'verified',
+                      'text-red-800': bankVerificationStatus === 'failed',
+                      'text-blue-800': bankVerificationStatus === 'verifying'
+                    }"
+                  >
+                    <span
+                      x-text="bankVerificationStatus === 'verifying' ? 'Verifying bank account...' : (bankVerificationStatus === 'verified' ? 'Bank account verified successfully' : 'Bank verification failed')"
+                    ></span>
+                  </p>
+                  <p x-show="bankVerificationMessage" class="text-xs mt-1" x-text="bankVerificationMessage"></p>
+                  <div x-show="bankVerificationStatus === 'verified' && bankVerificationData" class="text-xs mt-2 space-y-1">
+                    {% comment %}
+                    <p><strong>Bank:</strong> <span x-text="bankVerificationData.bank_name"></span></p>
+                    <p><strong>Branch:</strong> <span x-text="bankVerificationData.branch"></span></p>
+                    <p><strong>Account Type:</strong> <span x-text="bankVerificationData.account_type"></span></p>
+                    <p><strong>City:</strong> <span x-text="bankVerificationData.city"></span></p>
+                    {% endcomment %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-8 flex justify-between gap-2">
+            <button type="button" class="btn btn-secondary" @click="previousStep()" :disabled="!isBankDetailsVeryfied()">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+              </svg>
+              Back
+            </button>
+            <button type="button" class="btn btn-primary" @click="nextStep()">
+              Continue to Documents
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 6: Document Upload -->
+      <div class="card" x-show="currentStep === 6" x-transition:enter="fade-enter-active" x-transition:enter-start="fade-enter">
+        <div class="card-header">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Document Upload</h3>
+          <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Upload required documents for loan processing</p>
+        </div>
+        <div class="card-body">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="form-group">
+              <label class="form-label">Guarantor ID Proof (Front) <span class="text-red-500">*</span></label>
+              <input type="file" class="form-input" @change="handleFileUpload($event, 'guarantor_id_proof')" accept="image/*,.pdf" />
+              <input type="hidden" name="guarantor_id_proof" :value="documents.guarantor_id_proof" />
+              <div class="error-message" x-show="errors.guarantor_id_proof" x-text="errors.guarantor_id_proof"></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">ID Proof (Front) <span class="text-red-500">*</span></label>
+              <input type="file" class="form-input" @change="handleFileUpload($event, 'id_proof')" accept="image/*,.pdf" />
+              <input type="hidden" name="id_proof" :value="documents.id_proof" />
+              <div class="error-message" x-show="errors.id_proof" x-text="errors.id_proof"></div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">ID Proof (Back)</label>
+              <input type="file" class="form-input" @change="handleFileUpload($event, 'id_proof_back')" accept="image/*,.pdf" />
+              <input type="hidden" name="id_proof_back" :value="documents.id_proof_back" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">PAN Card</label>
+              <input type="file" class="form-input" @change="handleFileUpload($event, 'pan_card')" accept="image/*,.pdf" />
+              <input type="hidden" name="pan_card_document" :value="documents.pan_card" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Photograph <span class="text-red-500">*</span></label>
+              <input type="file" class="form-input" @change="handleFileUpload($event, 'photo')" accept="image/*" />
+              <input type="hidden" name="photo" :value="documents.photo" />
+              <div class="error-message" x-show="errors.photo" x-text="errors.photo"></div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Signature <span class="text-red-500">*</span></label>
+              <input type="file" class="form-input" @change="handleFileUpload($event, 'signature')" accept="image/*" />
+              <input type="hidden" name="signature" :value="documents.signature" />
+              <div class="error-message" x-show="errors.signature" x-text="errors.signature"></div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Income Proof</label>
+              <input type="file" class="form-input" @change="handleFileUpload($event, 'income_proof')" accept="image/*,.pdf" />
+              <input type="hidden" name="income_proof" :value="documents.income_proof" />
+            </div>
+          </div>
+
+          <div class="mt-8 flex justify-between">
+            <button type="button" class="btn btn-secondary" @click="previousStep()">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+              </svg>
+              Back
+            </button>
+            <button type="button" class="btn btn-success" @click="submitApplication()" :disabled="isSubmitting">
+              <span x-show="!isSubmitting">Submit Application</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Mobile & Aadhaar Verification -->
+      <div class="card verification-section" x-show="currentStep === 2" x-transition:enter="fade-enter-active" x-transition:enter-start="fade-enter">
+        <div class="card-header">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Identity Verification</h3>
+          <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Enter your mobile number and verify your Aadhaar card</p>
+        </div>
+        <div class="card-body">
+          <!-- Mobile Number -->
+          <div class="mb-6">
+            <!-- <h4 class="text-md font-medium text-gray-900 dark:text-white mb-4">Mobile Number</h4> -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="form-group">
+                <label class="form-label">Mobile Number <span class="text-red-500">*</span></label>
+                <input type="tel" id="mobile-number" class="form-input" x-model="verificationData.mobile" placeholder="9876543210" maxlength="10" pattern="[6-9][0-9]{9}" />
+                <input type="hidden" name="contact" :value="verificationData.mobile" />
+                <div class="text-error-500 text-xs mt-1" id="error-mobile"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Aadhaar Verification -->
+          <div>
+            <h4 class="text-center md:text-start text-md font-medium text-gray-900 dark:text-white">Aadhaar Card Verification</h4>
+            <hr class="mb-4" />
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="form-group">
+                <label class="form-label">Aadhaar Number <span class="text-red-500">*</span></label>
+                <input
+                  type="text"
+                  id="aadhaar-number"
+                  class="form-input"
+                  x-model="verificationData.aadhaar"
+                  placeholder="1234 5678 9012"
+                  maxlength="14"
+                  pattern="[0-9 ]{1,14}"
+                  inputmode="numeric"
+                  disabled
+                />
+                <input type="hidden" name="adhar_number" :value="verificationData.aadhaar" />
+                <div class="text-error-500 text-xs mt-1" id="error-aadhaar"></div>
+              </div>
+              <div class="form-group flex items-end justify-center md:justify-start">
+                <button type="button" id="send-aadhaar-otp" class="btn btn-primary" disabled>Send OTP</button>
+              </div>
+            </div>
+
+            <div id="aadhaarOtpModal" class="fixed inset-0 z-9999 bg-black/50 hidden">
+              <div class="absolute inset-0 bg-black/40"></div>
+              <div class="relative flex min-h-full items-center justify-center p-3 sm:p-4">
+                <div class="w-auto max-w-none md:max-w-md rounded-2xl md:rounded-2xl border border-gray-200 bg-white p-4 sm:p-5 shadow-xl dark:border-gray-700 dark:bg-gray-900">
+                  <div class="flex items-center justify-between">
+                    <h3 class="text-base font-semibold text-gray-900 dark:text-white">Enter Aadhaar OTP</h3>
+                    <button
+                      type="button"
+                      id="close-aadhaar-otp-modal"
+                      class="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-200"
+                    >
+                      <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                      </svg>
+                    </button>
+                  </div>
+
+                  <div id="otp-section" class="mt-4 hidden">
+                    <div class="flex flex-nowrap justify-center gap-1.5 sm:gap-2 mb-4">
+                      <input type="text" class="otp-input" maxlength="1" />
+                      <input type="text" class="otp-input" maxlength="1" />
+                      <input type="text" class="otp-input" maxlength="1" />
+                      <input type="text" class="otp-input" maxlength="1" />
+                      <input type="text" class="otp-input" maxlength="1" />
+                      <input type="text" class="otp-input" maxlength="1" />
+                    </div>
+                    <div class="text-error-500 text-xs mt-1" id="error-aadhaar_otp"></div>
+                    <div class="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 mt-4">
+                      <button type="button" id="verify-aadhaar-otp" class="btn btn-primary">Verify OTP</button>
+                      <button type="button" id="resend-otp" class="btn btn-secondary" disabled>Resend OTP (<span id="otp-countdown">60</span>s)</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-8 flex justify-start">
+            <button type="button" class="btn btn-secondary" @click="previousStep()">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+              </svg>
+              Back
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hidden fields for form submission -->
+      <input type="hidden" name="loan_category" :value="loanData.loan_category" />
+      <input type="hidden" name="loan_amount" :value="loanData.loan_amount" />
+      <input type="hidden" name="tenure_months" :value="loanData.tenure_months" />
+      <input type="hidden" name="interest_rate_display" :value="loanData.interest_rate" />
+      <input type="hidden" name="interest_rate" :value="loanData.interest_rate_id" />
+      <input type="hidden" name="emi_amount" :value="loanData.emi_amount" />
+      <input type="hidden" name="loan_purpose" :value="loanData.loan_purpose" />
+      <input type="hidden" name="contact" :value="verificationData.mobile" />
+      <input type="hidden" name="adhar_number" :value="verificationData.aadhaar" />
+
+      <!-- Personal info fields will be populated dynamically -->
+      <template x-for="field in personalInfoFields">
+        <input type="hidden" :name="field.name" :value="field.value" />
+      </template>
+
+      <!-- Bank details fields will be populated dynamically -->
+      <template x-for="field in bankDetailsFields">
+        <input type="hidden" :name="field.name" :value="field.value" />
+      </template>
+
+      <!-- Document fields will be populated dynamically -->
+      <template x-for="field in documentFields">
+        <input type="hidden" :name="field.name" :value="field.value" />
+      </template>
+
+      <!-- Processing Fees Modal -->
+      <div id="processingFeesModal" class="fixed inset-0 z-9999 bg-black/50 hidden">
+        <div class="absolute inset-0 bg-black/40"></div>
+        <div class="relative flex h-screen items-center justify-center p-3 sm:p-4">
+          <div class="w-auto max-w-none md:max-w-md rounded-2xl md:rounded-2xl border border-gray-200 bg-white p-4 sm:p-5 shadow-xl dark:border-gray-700 dark:bg-gray-900">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-base font-semibold text-gray-900 dark:text-white">Processing Fees Breakdown</h3>
+              <button
+                type="button"
+                id="close-processing-fees-modal"
+                class="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-200"
+              >
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+            <div class="space-y-3">
+              <template x-for="fee in processingFees" :key="fee.id">
+                <div class="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
+                  <span class="text-sm font-medium text-gray-900 dark:text-white" x-text="fee.name"></span>
+                  <span class="text-sm text-gray-600 dark:text-gray-400">
+                    <span x-text="fee.deduction_type === 'percentage' ? fee.deduction_value + '%' : '₹' + fee.deduction_value"></span>
+                  </span>
+                </div>
+              </template>
+              <div x-show="!processingFees.length" class="text-center py-4 text-gray-500">No processing fees available</div>
+              <div class="flex justify-between items-center py-2 border-t border-gray-200 dark:border-gray-700 font-semibold">
+                <span class="text-sm text-gray-900 dark:text-white">Total</span>
+                <span class="text-sm text-gray-900 dark:text-white" x-text="totalProcessingFees"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+  {% else %}
+  <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] p-5">
+    <div class="p-4 mb-4 rounded bg-red-100 text-red-800 text-center">{{ error_message }}</div>
+  </div>
+</div>
+
+{% endif %}
+
+<!-- Full Page Loader -->
+<div x-show="isSubmitting" x-cloak class="full-page-loader">
+  <div class="loader-content">
+    <div class="loader-spinner"></div>
+    <div class="loader-text">Submitting Application</div>
+    <div class="loader-subtext">Please wait while we process your application...</div>
+  </div>
+</div>
+
+{% if is_active %} {% include 'loan/preview-modal.html' %} {% endif %} {% if is_active %}
+<script>
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+      const cookies = document.cookie.split(";");
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === name + "=") {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  // Prevent duplicate form submissions
+  let isSubmitting = false;
+
+  function toTitleCase(str) {
+    return (str || "").replace(/\w\S*/g, function (txt) {
+      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+    });
+  }
+
+  const fullNameField = document.getElementById("full_name");
+  if (fullNameField) {
+    fullNameField.addEventListener("input", function () {
+      fullNameField.value = toTitleCase(fullNameField.value);
+    });
+    fullNameField.addEventListener("blur", function () {
+      fullNameField.value = toTitleCase(fullNameField.value);
+    });
+  }
+
+  const fatherNameField = document.getElementById("father_name");
+  if (fatherNameField) {
+    fatherNameField.addEventListener("input", function () {
+      fatherNameField.value = toTitleCase(fatherNameField.value);
+    });
+    fatherNameField.addEventListener("blur", function () {
+      fatherNameField.value = toTitleCase(fatherNameField.value);
+    });
+  }
+
+  const guarantorNameField = document.getElementById("guarantor_name");
+  if (guarantorNameField) {
+    guarantorNameField.addEventListener("input", function () {
+      guarantorNameField.value = toTitleCase(guarantorNameField.value);
+    });
+    guarantorNameField.addEventListener("blur", function () {
+      guarantorNameField.value = toTitleCase(guarantorNameField.value);
+    });
+  }
+
+  document.getElementById("loan-application-form").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    // Form submission is now handled by Alpine.js submitApplication function
+    // This old event listener is disabled to prevent conflicts
+    return false;
+  });
+
+  // Clear error message for a field when its value changes
+  ["input", "change"].forEach((eventType) => {
+    document.querySelectorAll("#loan-application-form input, #loan-application-form select").forEach((field) => {
+      field.addEventListener(eventType, function () {
+        const errDiv = document.getElementById("error-" + this.name);
+        if (errDiv) errDiv.textContent = "";
+      });
+    });
+  });
+  // Explicitly clear error for loan_category on change
+  const loanCategoryField = document.getElementById("loan_category");
+  if (loanCategoryField) {
+    loanCategoryField.addEventListener("change", function () {
+      const errDiv = document.getElementById("error-loan_category");
+      if (errDiv) {
+        if (this.value) {
+          errDiv.textContent = "";
+        } else {
+          // Only show error if field has been touched or form is being submitted
+          if ((window.touchedFields && window.touchedFields.has("loan_category")) || window._showAllErrors) {
+            errDiv.textContent = "This field is required.";
+          }
+        }
+      }
+    });
+  }
+
+  function validateStep(stepNumber) {
+    const stepDiv = document.getElementById("step-" + stepNumber);
+    if (!stepDiv) return true;
+
+    let valid = true;
+    window._showAllErrors = true;
+
+    const inputs = stepDiv.querySelectorAll("input[required], select[required]");
+    inputs.forEach((field) => {
+      // Skip hidden fields (like current address fields if same as permanent)
+      if (field.offsetParent === null && field.type !== "hidden") return;
+
+      // Custom validation check
+      const errMsg = window.customValidation ? window.customValidation(field) : null;
+
+      if (!field.value.trim()) {
+        if (window.showFieldError) window.showFieldError(field, "This field is required.");
+        valid = false;
+      } else if (errMsg) {
+        if (window.showFieldError) window.showFieldError(field, errMsg);
+        valid = false;
+      } else {
+        if (window.clearFieldError) window.clearFieldError(field);
+      }
+    });
+
+    window._showAllErrors = false;
+
+    if (!valid) {
+      const firstError = stepDiv.querySelector(".border-red-500");
+      if (firstError) firstError.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    return valid;
+  }
+
+  // Make validation functions available globally
+  window.showFieldError = function (field, message) {
+    const errDiv = document.getElementById("error-" + field.name);
+    if (errDiv) errDiv.textContent = message;
+    field.classList.add("border-red-500");
+  };
+
+  window.clearFieldError = function (field) {
+    const errDiv = document.getElementById("error-" + field.name);
+    if (errDiv) errDiv.textContent = "";
+    field.classList.remove("border-red-500");
+  };
+
+  // Current address toggle functionality
+  window.toggleCurrentAddress = function (checkbox) {
+    const currentAddressSection = document.getElementById("current-address-section");
+    const residentialProofSections = document.querySelectorAll(".residential-proof-section");
+
+    if (checkbox.checked) {
+      // Hide current address section
+      if (currentAddressSection) {
+        currentAddressSection.style.display = "none";
+      }
+      if (residentialProofSections.length > 0) {
+        residentialProofSections.forEach((section) => {
+          section.style.display = "none";
+        });
+      }
+
+      // Copy permanent address to current address fields
+      const permanentFields = ["address_line_1", "address_line_2", "landmark", "post_office", "city_or_town", "district", "state", "country", "post_code"];
+      permanentFields.forEach((fieldName) => {
+        const permanentField = document.getElementById(fieldName);
+        const currentFieldName = fieldName === "post_code" ? "current_post_code" : "current_" + fieldName;
+        const currentField = document.getElementById(currentFieldName);
+
+        if (permanentField && currentField) {
+          currentField.value = permanentField.value;
+          // Clear any errors on current field
+          window.clearFieldError(currentField);
+        }
+      });
+    } else {
+      // Show current address section
+      if (currentAddressSection) {
+        currentAddressSection.style.display = "flex";
+      }
+      if (residentialProofSections.length > 0) {
+        residentialProofSections.forEach((section) => {
+          section.style.display = "block";
+        });
+      }
+
+      // Clear current address fields
+      const currentFields = [
+        "current_address_line_1",
+        "current_address_line_2",
+        "current_landmark",
+        "current_post_office",
+        "current_city_or_town",
+        "current_district",
+        "current_state",
+        "current_country",
+        "current_post_code",
+      ];
+      currentFields.forEach((fieldName) => {
+        const field = document.getElementById(fieldName);
+        if (field) {
+          field.value = "";
+          window.clearFieldError(field);
+        }
+      });
+    }
+  };
+
+  // Initialize current address toggle when DOM is ready
+  document.addEventListener("DOMContentLoaded", function () {
+    const sameAddressCheckbox = document.getElementById("same-address");
+    if (sameAddressCheckbox) {
+      sameAddressCheckbox.addEventListener("change", function () {
+        window.toggleCurrentAddress(this);
+      });
+      // Initialize the state
+      window.toggleCurrentAddress(sameAddressCheckbox);
+    }
+
+    // Processing fees modal functionality
+    const processingFeesModal = document.getElementById("processingFeesModal");
+    const closeProcessingFeesModalBtn = document.getElementById("close-processing-fees-modal");
+
+    if (closeProcessingFeesModalBtn) {
+      closeProcessingFeesModalBtn.addEventListener("click", function () {
+        if (processingFeesModal) {
+          processingFeesModal.style.display = "none";
+          document.body.style.overflow = "";
+        }
+      });
+    }
+  });
+
+  // Show preview modal function
+  window.showPreviewModal = function () {
+    const modal = document.getElementById("preview-modal");
+    if (modal) {
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+      document.body.style.overflow = "hidden";
+    }
+  };
+
+  // Show processing fees modal function
+  window.showProcessingFeesModal = function () {
+    const modal = document.getElementById("processingFeesModal");
+    console.log(modal);
+    if (modal) {
+      modal.style.display = "flex";
+      modal.style.justifyContent = "center"; 
+      modal.style.alignItems = "center";
+      document.body.style.overflow = "hidden";
+    }
+  };
+
+  window.customValidation = function (field) {
+    // File validations
+    if (field.type === "file") {
+      const files = field.files;
+      if (files && files.length > 0) {
+        const file = files[0];
+        const maxSize = 1024 * 1024; // 1MB
+        if (file.size > maxSize) {
+          return "File size must be less than or equal to 1MB.";
+        }
+        if (field.name === "photo" || field.name === "signature") {
+          if (!file.type || !file.type.startsWith("image/")) {
+            return "Please upload an image file (JPG, PNG, etc.).";
+          }
+        }
+      }
+    }
+
+    // Check if same address checkbox is checked
+    const sameAddressCheckbox = document.getElementById("same-address");
+    const isSame = sameAddressCheckbox && sameAddressCheckbox.checked;
+
+    if (field.name === "adhar_number") {
+      const cleanValue = field.value.replace(/\s/g, "");
+      if (!/^\d{12}$/.test(cleanValue)) return "Adhar number must be exactly 12 digits.";
+    }
+
+    if (field.name === "pan_number") {
+      const panValue = field.value.toUpperCase();
+      field.value = panValue;
+      if (!/^[A-Z]{5}\d{4}[A-Z]$/.test(panValue)) {
+        return "PAN number must be 5 letters, 4 digits, 1 letter (e.g., ABCDE1234F).";
+      }
+    }
+
+    if (field.name === "contact") {
+      if (!/^\d{10}$/.test(field.value)) return "Contact number must be exactly 10 digits.";
+    }
+
+    if (field.name === "voter_number") {
+      if (field.value && !/^[A-Za-z]{3}\d{7}$/.test(field.value)) {
+        return "Voter ID must be 3 letters followed by 7 digits (e.g. ABC1234567).";
+      }
+    }
+
+    if (field.name === "email") {
+      if (field.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(field.value)) {
+        return "Please enter a valid email address.";
+      }
+    }
+
+    if (field.name === "post_code") {
+      if (!/^\d{6}$/.test(field.value)) return "Post code must be exactly 6 digits.";
+    }
+
+    if (field.name === "current_post_code") {
+      if (!isSame && !/^\d{6}$/.test(field.value)) return "Current post code must be exactly 6 digits.";
+    }
+
+    if (field.name === "loan_amount") {
+      const amount = parseFloat(field.value.replace(/,/g, ""));
+      if (isNaN(amount) || amount <= 0) return "Please enter a valid loan amount.";
+      if (amount < 1000) return "Loan amount must be at least ₹1,000.";
+      if (amount > 10000000) return "Loan amount cannot exceed ₹1,00,00,000.";
+    }
+
+    // For current address fields, only require if checkbox is unchecked
+    if (!isSame) {
+      if (["current_post_code", "current_state", "current_address_line_1", "current_city_or_town", "current_district"].includes(field.name)) {
+        if (!field.value) return "This field is required.";
+      }
+      if (field.name === "residential_proof_type" && !field.value) {
+        return "This field is required when current address differs from permanent address.";
+      }
+      if (field.name === "residential_proof_file" && (!field.files || field.files.length === 0)) {
+        return "This field is required when current address differs from permanent address.";
+      }
+    }
+
+    return null;
+  };
+
+  function loanApplication() {
+    return {
+      currentStep: 0, // Start with category selection
+      completedSteps: [],
+      otpVerified: false,
+      aadhaarPhoto: null,
+      aadhaarPopulatedFields: {},
+
+      // Main category data
+      mainCategories: [],
+      selectedMainCategory: null,
+      categoryError: null,
+
+      // Product selection data
+      selectedProductMainCategory: null,
+      selectedProductSubcategory: null,
+      selectedProductType: null,
+      productMainCategories: [],
+      productSubcategories: [],
+      productTypes: [],
+
+      // Shop Account List
+      shopBankAccount: [],
+
+      // Processing fees data
+      processingFees: [],
+
+      // Loan data
+      loanData: {
+        shop_id: "",
+        loan_category: "",
+        loan_amount: "",
+        loan_percentage: "",
+        tenure_months: "",
+        interest_rate: "",
+        interest_rate_display: "",
+        interest_rate_id: "",
+        emi_amount: "",
+        loan_purpose: "",
+        processing_fee: "",
+        down_payment: "",
+      },
+
+      // Verification data
+      verificationData: {
+        mobile: "",
+        aadhaar: "",
+      },
+
+      // Personal info from Aadhaar
+      personalInfo: {
+        full_name: "",
+        father_name: "",
+        date_of_birth: "",
+        gender: "",
+        address: "",
+        pincode: "",
+        email: "",
+        pan_number: "",
+        voter_number: "",
+        guarantor_name: "",
+      },
+
+      // Bank details
+      bankDetails: {
+        account_number: "",
+        confirm_account_number: "",
+        ifsc_code: "",
+        bank_name: "",
+        account_type: "",
+      },
+
+      // Address data
+      addressData: {
+        sameAddress: true,
+        permanent: {
+          address_line_1: "",
+          address_line_2: "",
+          landmark: "",
+          post_code: "",
+          post_office: "",
+          city_or_town: "",
+          district: "",
+          state: "",
+          country: "India",
+        },
+        current: {
+          address_line_1: "",
+          address_line_2: "",
+          landmark: "",
+          post_code: "",
+          post_office: "",
+          city_or_town: "",
+          district: "",
+          state: "",
+          country: "India",
+        },
+      },
+
+      // Documents
+      documents: {
+        guarantor_id_proof: null,
+        id_proof: null,
+        id_proof_back: null,
+        pan_card: null,
+        photo: null,
+        signature: null,
+      },
+
+      // Dynamic data
+      loanCategories: [],
+      loanTenures: [],
+
+      // Errors
+      errors: {},
+
+      // Bank verification status
+      bankVerificationStatus: null, // null, 'verifying', 'verified', 'failed'
+      bankVerificationData: null,
+      bankVerificationMessage: null,
+
+      // PAN verification status
+      panVerificationStatus: null, // null, 'checking', 'linked', 'not_linked'
+
+      // Customer type toggle
+      customerType: "new", // 'new' or 'existing'
+
+      // Existing customer data
+      selectedCustomerId: null,
+
+      // Submission state
+      // isSubmitting: false,
+      totalProcessingFees: "",
+
+      init() {
+        this.loadMainCategories();
+        this.loadLoanTenures();
+
+        if (window.DEFAULT_SHOP_ID) {
+          this.loanData.shop_id = window.DEFAULT_SHOP_ID;
+          this.loadShopBankAccounts(window.DEFAULT_SHOP_ID);
+        }
+
+        // Watch for loan category changes to load relevant tenures
+        this.$watch("loanData.loan_category", (newValue) => {
+          this.loadTenuresForSubcategory(newValue);
+          if (this.isProductCategorySelected()) {
+            this.loadProductMainCategories();
+          }
+        });
+
+        // Watch for product subcategory changes to update loan amount
+        this.$watch("selectedProductSubcategory", (newValue) => {
+          this.updateLoanAmountBasedOnProductSelection();
+        });
+
+        // Watch for product type changes to update loan amount
+        this.$watch("selectedProductType", (newValue) => {
+          this.updateLoanAmountBasedOnProductSelection();
+        });
+
+        // Watch for shop changes to load bank accounts
+        this.$watch("loanData.shop_id", (newValue) => {
+          this.loadShopBankAccounts(newValue);
+        });
+      },
+
+      // async loadLoanCategories() {
+      //   try {
+      //     const response = await fetch("/agent/api/loan-category");
+      //     const categories = await response.json();
+      //     this.loanCategories = categories;
+      //   } catch (error) {
+      //     console.error("Error loading loan categories:", error);
+      //   }
+      // },
+
+      async loadLoanTenures() {
+        try {
+          const response = await fetch("/agent/api/loan-tenure");
+          const tenures = await response.json();
+          this.loanTenures = tenures;
+        } catch (error) {
+          console.error("Error loading loan tenures:", error);
+        }
+      },
+
+      async loadTenuresForSubcategory(subcategoryId) {
+        if (!subcategoryId) {
+          this.loanTenures = [];
+          this.loanData.tenure_months = "";
+          return;
+        }
+
+        try {
+          const response = await fetch(`/agent/api/loan-sub-category-tenure?subcategory_id=${subcategoryId}`);
+          const tenures = await response.json();
+
+          if (response.ok) {
+            this.loanTenures = tenures;
+            this.loanData.tenure_months = ""; // Reset tenure selection when category changes
+            console.log("Successfully loaded", tenures.length, "tenures for subcategory");
+          } else {
+            console.error("API Error:", tenures);
+            this.loanTenures = [];
+            this.loanData.tenure_months = "";
+          }
+        } catch (error) {
+          console.error("Error loading tenures for subcategory:", error);
+          this.loanTenures = [];
+          this.loanData.tenure_months = "";
+        }
+      },
+
+      async loadMainCategories() {
+        try {
+          const response = await fetch("/agent/api/loan-main-category");
+          const categories = await response.json();
+          this.mainCategories = categories;
+          this.categoryError = null;
+        } catch (error) {
+          console.error("Error loading main categories:", error);
+          this.categoryError = "Failed to load categories. Please try again.";
+        }
+      },
+
+      selectMainCategory(category) {
+        this.selectedMainCategory = category;
+        if (!this.isShopRequired()) {
+          this.loanData.shop_id = "";
+        }
+        console.log("Selected main category:", category);
+      },
+
+      async proceedToLoanDetails() {
+        if (!this.selectedMainCategory) {
+          return;
+        }
+
+        // Load subcategories for the selected main category
+        try {
+          const response = await fetch(`/agent/api/loan-sub-category?main_category_id=${this.selectedMainCategory.id}`);
+          const subcategories = await response.json();
+
+          console.log("API Response status:", response.status);
+          console.log("Subcategories loaded:", subcategories);
+
+          if (response.ok) {
+            this.loanCategories = subcategories;
+            this.loanData.loan_category = ""; // Reset loan category selection
+            this.currentStep = 1; // Move to loan details step
+            console.log("Successfully loaded", subcategories.length, "subcategories");
+
+            // Load processing fees for the selected main category
+            this.loadProcessingFees();
+          } else {
+            console.error("API Error:", subcategories);
+            this.categoryError = subcategories.error || "Failed to load subcategories";
+          }
+        } catch (error) {
+          console.error("Error loading subcategories:", error);
+          this.categoryError = "Failed to load subcategories. Please try again.";
+        }
+      },
+
+      getStepClass(step) {
+        if (this.currentStep > step) {
+          return "completed";
+        } else if (this.currentStep === step) {
+          return "active";
+        }
+        return "";
+      },
+
+      isLoanDetailsValid() {
+        this.errors = {};
+        if (this.isShopRequired() && Number(window.AGENT_SHOPS_COUNT) > 1) {
+          if (!this.loanData.shop_id) {
+            this.errors.shop_id = "Please select shop";
+          }
+        }
+        if (!this.loanData.loan_category) {
+          this.errors.loan_category = "Please select loan category";
+        }
+        if (!this.loanData.loan_amount) {
+          this.errors.loan_amount = "Please enter loan amount";
+        }
+        if (!this.loanData.tenure_months) {
+          this.errors.tenure_months = "Please select loan tenure";
+        }
+        if (!this.loanData.loan_purpose) {
+          this.errors.loan_purpose = "Please enter loan purpose";
+        }
+        return Object.keys(this.errors).length === 0;
+      },
+
+      isShopRequired() {
+        return !!(this.selectedMainCategory && this.selectedMainCategory.is_shop_active);
+      },
+
+      formatLoanAmount() {
+        let amount = this.loanData.loan_amount.replace(/[^0-9.]/g, "");
+        if (amount) {
+          this.loanData.loan_amount = parseFloat(amount).toLocaleString("en-IN");
+        }
+        this.calculateTotalAmount();
+      },
+
+      calculateEMI() {
+        console.log("calculating EMI...");
+        const amount = (this.loanData.loan_amount || "")
+          .toString()
+          .replace(/,/g, "")
+          .replace(/[^0-9.]/g, "");
+        const principal = parseFloat(amount) || 0;
+        const rate = parseFloat(this.loanData.interest_rate) || 0;
+
+        // Get actual tenure value, not the ID
+        let tenure = 0;
+        if (this.loanData.tenure_months) {
+          const selectedTenure = this.loanTenures.find((t) => t.id == this.loanData.tenure_months);
+          if (selectedTenure) {
+            tenure = parseInt(selectedTenure.value) || 0;
+            console.log("Found tenure:", selectedTenure);
+          }
+        }
+
+        const monthlyRate = rate / 12 / 100;
+
+        let emi = 0;
+
+        if (principal > 0 && rate > 0 && tenure > 0) {
+          // Calculate EMI using standard formula
+          // emi = (principal * monthlyRate * Math.pow(1 + monthlyRate, tenure)) / (Math.pow(1 + monthlyRate, tenure) - 1);
+          const interestRatePerMonth = (principal * rate) / 100;
+          const totalRepayment = principal + interestRatePerMonth;
+          emi = totalRepayment / tenure;
+
+          // Check if calculation resulted in a valid number
+          if (isNaN(emi) || emi <= 0 || !isFinite(emi)) {
+            this.loanData.emi_amount = "";
+            console.log("Invalid EMI calculation result");
+            return;
+          }
+
+          // Format EMI with Indian number format
+          // this.loanData.emi_amount = Math.round(emi).toLocaleString('en-IN');
+          this.loanData.emi_amount = Number(emi).toLocaleString("en-IN", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          });
+          console.log("calculated -> " + this.loanData.emi_amount);
+        } else {
+          this.loanData.emi_amount = "";
+          console.log("EMI calculation skipped - missing required values");
+          console.log("Principal:", principal, "Rate:", rate, "Tenure:", tenure);
+        }
+      },
+
+      updateInterestRate() {
+        if (this.loanData.loan_category && this.loanData.tenure_months) {
+          const selectedTenure = this.loanTenures.find((t) => t.id == this.loanData.tenure_months);
+          if (selectedTenure) {
+            console.log("selectedTenure-", selectedTenure);
+            this.loanData.interest_rate = selectedTenure.interest_rate;
+            this.loanData.interest_rate_display = selectedTenure.interest_rate + "%";
+            this.loanData.interest_rate_id = selectedTenure.interest_id; // Use interest_id, not tenure ID
+          }
+        }
+        this.calculateEMI();
+      },
+
+      // Product-related methods
+
+      isProductCategorySelected() {
+        const selectedCategory = this.loanCategories.find((cat) => cat.id === this.loanData.loan_category);
+        if (selectedCategory == undefined) {
+          return false;
+        }
+        console.log("selectedCategory.has_product_categories-", selectedCategory.has_product_categories);
+        return selectedCategory && selectedCategory.has_product_categories;
+      },
+
+      async loadProductMainCategories() {
+        try {
+          const selectedCategory = this.loanCategories.find((cat) => cat.id === this.loanData.loan_category);
+          const response = await fetch(`/agent/api/product-category?loan_category_id=${selectedCategory.id}`);
+          const categories = await response.json();
+          this.productMainCategories = categories;
+          console.log("Product main categories loaded:", categories);
+        } catch (error) {
+          console.error("Error loading product main categories:", error);
+        }
+      },
+
+      async loadProductSubcategories(mainCategoryId) {
+        if (!mainCategoryId) {
+          this.productSubcategories = [];
+          return;
+        }
+
+        try {
+          const response = await fetch(`/agent/api/product-sub-category?main_category_id=${mainCategoryId}`);
+          const subcategories = await response.json();
+          this.productSubcategories = subcategories;
+          console.log("Product subcategories loaded:", subcategories);
+        } catch (error) {
+          console.error("Error loading product subcategories:", error);
+          this.productSubcategories = [];
+        }
+      },
+
+      async loadProductTypes(subcategoryId) {
+        if (!subcategoryId) {
+          this.productTypes = [];
+          return;
+        }
+
+        try {
+          const response = await fetch(`/agent/api/product-type?subcategory_id=${subcategoryId}`);
+          const types = await response.json();
+          this.productTypes = types;
+          console.log("Product types loaded:", types);
+        } catch (error) {
+          console.error("Error loading product types:", error);
+          this.productTypes = [];
+        }
+      },
+
+      // Load shop bank accounts for selected shop
+      async loadShopBankAccounts(shopId) {
+        if (!shopId) {
+          this.shopBankAccount = [];
+          this.loanData.shop_bank_account_id = "";
+          return;
+        }
+
+        try {
+          const response = await fetch(`/agent/api/shop-bank-accounts/?shop_id=${shopId}`);
+          const data = await response.json();
+          console.log("Shop bank accounts response:", data);
+          console.log("Shop bank accounts response is success:", data.success);
+
+          if (data.success) {
+            this.shopBankAccount = data.bank_accounts || [];
+            console.log("Loaded shop bank accounts:", this.shopBankAccount.length);
+          } else {
+            this.shopBankAccount = [];
+            console.error("Failed to load shop bank accounts:", data.message);
+          }
+
+          // Reset selected bank account when shop changes
+          this.loanData.shop_bank_account_id = "";
+        } catch (error) {
+          console.error("Error loading shop bank accounts:", error);
+          this.shopBankAccount = [];
+          this.loanData.shop_bank_account_id = "";
+        }
+      },
+
+      // Load processing fees for selected main category
+      async loadProcessingFees() {
+        try {
+          const response = await fetch(`/agent/api/loan-deductions?main_category_id=${this.selectedMainCategory.id}`);
+          const data = await response.json();
+          console.log("Raw API response:", data);
+          let deductions = data;
+          if (!Array.isArray(data)) {
+            deductions = data.data?.deductions || data.data || data.deductions || data;
+            if (!Array.isArray(deductions)) {
+              deductions = [];
+            }
+          }
+          this.processingFees = deductions;
+          console.log("Extracted processing fees:", this.processingFees);
+          // Calculate total fees after loading
+          this.calculateTotalAmount();
+        } catch (error) {
+          console.error("Error loading processing fees:", error);
+          this.processingFees = [];
+        }
+      },
+
+      // Calculate total amount and down payment based on selected processing fees
+      calculateTotalAmount() {
+        const loanAmount = parseFloat(this.loanData.loan_amount.replace(/,/g, "")) || 0;
+        const selectedType = this.productTypes.find((type) => type.id === this.selectedProductType);
+        const productPrice = selectedType ? selectedType.price : 0;
+        const basePrice = parseFloat(this.loanData.sale_price && this.loanData.sale_price > 0 ? this.loanData.sale_price : productPrice);
+
+        console.log("calculateTotalAmount - loanAmount:", loanAmount, "basePrice:", basePrice, "isProductCategorySelected:", this.isProductCategorySelected());
+        console.log("calculateTotalAmount - processingFees:", this.processingFees);
+
+        let totalFees = 0;
+        if (this.isProductCategorySelected()) {
+          console.log("Calculating fees for product category");
+          // For product categories, sum all processing fees
+          console.log("Processing fees:", this.processingFees);
+          this.processingFees.forEach((fee) => {
+            console.log("Processing fee:", fee);
+            if (fee.deduction_type === "percentage") {
+              const feeAmount = (basePrice * fee.deduction_value) / 100;
+              console.log("Percentage fee calculation:", basePrice, "*", fee.deduction_value, "/ 100 =", feeAmount);
+              totalFees += feeAmount;
+            } else {
+              console.log("Fixed fee:", fee.deduction_value);
+              totalFees += fee.deduction_value;
+            }
+          });
+        } else {
+          console.log("Calculating fees for non-product category");
+          // For non-product categories, sum all processing fees
+          this.processingFees.forEach((fee) => {
+            console.log("Processing fee:", fee);
+            if (fee.deduction_type === "percentage") {
+              const feeAmount = (loanAmount * fee.deduction_value) / 100;
+              console.log("Percentage fee calculation:", loanAmount, "*", fee.deduction_value, "/ 100 =", feeAmount);
+              totalFees += feeAmount;
+            } else {
+              console.log("Fixed fee:", fee.deduction_value);
+              totalFees += fee.deduction_value;
+            }
+          });
+        }
+
+        console.log("Total fees calculated:", totalFees);
+        this.totalProcessingFees = "₹" + totalFees.toLocaleString("en-IN");
+
+        if (this.isProductCategorySelected()) {
+          this.loanData.processing_fee = totalFees.toLocaleString("en-IN");
+          this.loanData.total_loan_amount = (loanAmount + totalFees).toLocaleString("en-IN");
+          this.loanData.down_payment = (basePrice + totalFees - loanAmount).toLocaleString("en-IN");
+        }
+      },
+      // Update loan amount based on sale price or product selection
+      updateLoanAmount() {
+        if (this.selectedProductType) {
+          const selectedType = this.productTypes.find((type) => type.id === this.selectedProductType);
+          if (selectedType) {
+            if (this.loanData.sale_price && this.loanData.sale_price > 0) {
+              this.loanData.loan_amount = this.loanData.sale_price;
+            } else {
+              this.loanData.loan_amount = selectedType.price;
+            }
+            this.loanData.loan_percentage = ""; // Clear percentage when product is selected
+            this.formatLoanAmount();
+            this.calculateEMI();
+          }
+        }
+      },
+
+      updateLoanAmountBasedOnProductSelection() {
+        this.updateLoanAmount();
+      },
+
+      calculateLoanAmountFromPercentage() {
+        if (this.selectedProductType && this.loanData.loan_percentage) {
+          const selectedType = this.productTypes.find((type) => type.id === this.selectedProductType);
+          if (selectedType) {
+            const basePrice = this.loanData.sale_price && this.loanData.sale_price > 0 ? this.loanData.sale_price : selectedType.price;
+            const percentage = parseFloat(this.loanData.loan_percentage);
+            if (!isNaN(percentage) && percentage > 0 && percentage <= 100) {
+              const calculatedAmount = basePrice * (percentage / 100);
+              console.log("Calculated amount:", calculatedAmount, "Base price:", basePrice);
+              this.loanData.loan_amount = calculatedAmount.toFixed(2);
+              this.formatLoanAmount();
+              this.calculateEMI();
+            }
+          }
+        }
+      },
+
+      nextStep() {
+        if (this.validateCurrentStep()) {
+          this.completedSteps.push(this.currentStep);
+          this.currentStep++;
+          this.errors = {};
+        }
+      },
+
+      previousStep() {
+        // Prevent going back if Aadhaar is verified and we're past verification step
+        if (this.otpVerified && this.currentStep > 2) {
+          return;
+        }
+
+        // If going back from step 1 to step 0, reset loan categories
+        if (this.currentStep === 1) {
+          this.loanCategories = []; // Clear categories
+          this.loanData.loan_category = ""; // Reset selection
+        }
+
+        this.currentStep--;
+        this.errors = {};
+      },
+
+      // PAN format validation
+      validatePANFormat() {
+        this.personalInfo.pan_number = this.personalInfo.pan_number.toUpperCase();
+        if (this.personalInfo.pan_number.length === 10) {
+          if (!/^[A-Z]{5}\d{4}[A-Z]$/.test(this.personalInfo.pan_number)) {
+            this.errors.pan_number = "Invalid PAN format. Format: 5 letters, 4 digits, 1 letter";
+            this.panVerificationStatus = null;
+          } else {
+            this.errors.pan_number = null;
+          }
+        } else {
+          this.errors.pan_number = null;
+          this.panVerificationStatus = null;
+        }
+      },
+
+      // Verify PAN-Aadhaar linking
+      async verifyPANAadhaarLink() {
+        const pan = this.personalInfo.pan_number;
+
+        if (!pan || pan.length !== 10) {
+          return;
+        }
+
+        if (!/^[A-Z]{5}\d{4}[A-Z]$/.test(pan)) {
+          return;
+        }
+
+        // Get Aadhaar number from local verification data (entered in step 2)
+        const aadhaarRaw = this.verificationData.aadhaar;
+        const aadhaar = String(aadhaarRaw || "").replace(/\D/g, "");
+
+        if (!aadhaar || aadhaar.length !== 12) {
+          console.error("Aadhaar number not found/invalid for PAN verification");
+          this.panVerificationStatus = null;
+          this.errors.pan_number = "Aadhaar number not found/invalid for PAN verification";
+          return;
+        }
+        console.log("Aadhaar number:", aadhaar);
+        // Check if we should use mock verification (when Aadhaar verification was mocked)
+        if (window.aadhaarVerification && window.aadhaarVerification.mockAadhaarVerification) {
+          // Use mock PAN verification
+          console.log("Using mock PAN verification");
+          console.log("this.mockPanVerification:", this.mockPanVerification);
+          if (this.mockPanVerification) {
+            this.panVerificationStatus = "checking";
+            setTimeout(() => {
+              this.mockPanVerification();
+            }, 1000); // Simulate API delay
+          }
+          return;
+        }
+
+        this.panVerificationStatus = "checking";
+
+        try {
+          const response = await fetch("/agent/api/verify-pan-aadhaar/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": this.getCSRFToken(),
+            },
+            body: JSON.stringify({
+              pan_number: pan,
+              aadhaar_number: aadhaar,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            this.panVerificationStatus = data.is_linked ? "linked" : "not_linked";
+            if (data.is_linked) {
+              this.errors.pan_number = null;
+            } else {
+              this.errors.pan_number = "PAN is not linked to Aadhaar, Enter valid PAN number";
+            }
+          } else {
+            this.panVerificationStatus = "not_linked";
+            this.errors.pan_number = data.message || "Failed to verify PAN-Aadhaar linking";
+          }
+        } catch (error) {
+          console.error("PAN verification error:", error);
+          this.panVerificationStatus = "not_linked";
+          this.errors.pan_number = "Failed to verify PAN-Aadhaar linking";
+        }
+      },
+
+      // Mock PAN verification method (accessible globally)
+      mockPanVerification() {
+        console.log("Mock PAN verification called");
+        // Mock PAN verification - simulate successful PAN-Aadhaar linking
+        if (window.Alpine) {
+          const appElement = document.querySelector('[x-data*="loanApplication"]');
+          if (appElement) {
+            const alpineData = Alpine.$data(appElement);
+            if (alpineData) {
+              // Set PAN verification status to linked
+              alpineData.panVerificationStatus = "linked";
+              this.showSuccess("PAN verified successfully! PAN is linked to Aadhaar.");
+
+              // You could also populate some mock PAN data if needed
+              if (alpineData.personalInfo && alpineData.personalInfo.pan_number) {
+                console.log("PAN verified:", alpineData.personalInfo.pan_number);
+              }
+            }
+          }
+        }
+      },
+
+      // Get CSRF token
+      getCSRFToken() {
+        const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]");
+        return csrfToken ? csrfToken.value : "";
+      },
+
+      isPersonalInfoValidate() {
+        const fullName = (this.personalInfo.full_name || "").trim();
+        const fatherName = (this.personalInfo.father_name || "").trim();
+        const guarantorName = (this.personalInfo.guarantor_name || "").trim();
+        const dob = (this.personalInfo.date_of_birth || "").trim();
+        const gender = (this.personalInfo.gender || "").trim();
+        const address = (this.personalInfo.address || "").trim();
+        const pincode = String(this.personalInfo.pincode || "").trim();
+        const pan = (this.personalInfo.pan_number || "").trim().toUpperCase();
+
+        if (!fullName || !fatherName || !guarantorName || !dob || !gender || !address || !pincode || !pan) {
+          this.errors.personal_info = "Please fill all required fields";
+          return false;
+        }
+
+        // DOB can come as DD-MM-YYYY (from Aadhaar) or YYYY-MM-DD
+        if (!/^\d{2}-\d{2}-\d{4}$/.test(dob) && !/^\d{4}-\d{2}-\d{2}$/.test(dob)) {
+          this.errors.personal_info = "Please enter a valid Date of Birth";
+          return false;
+        }
+
+        if (!/^\d{6}$/.test(pincode)) {
+          this.errors.personal_info = "Please enter a valid 6-digit pincode";
+          return false;
+        }
+
+        if (!/^[A-Z]{5}\d{4}[A-Z]$/.test(pan)) {
+          this.errors.pan_number = "Invalid PAN format. Format: 5 letters, 4 digits, 1 letter";
+          return false;
+        }
+
+        if (this.panVerificationStatus === "not_linked") {
+          this.errors.pan_number = "PAN must be linked to Aadhaar to proceed";
+          return false;
+        }
+        if (this.panVerificationStatus === "checking") {
+          this.errors.pan_number = "Please wait for PAN verification to complete";
+          return false;
+        }
+        if (this.panVerificationStatus === null) {
+          this.errors.pan_number = "Please verify PAN-Aadhaar linking";
+          return false;
+        }
+
+        this.errors.personal_info = null;
+        this.errors.pan_number = null;
+        return true;
+      },
+
+      // Bank account verification
+      async verifyBankAccount() {
+        if (!this.isBankDetailsValid()) {
+          return;
+        }
+
+        this.bankVerificationStatus = "verifying";
+        this.bankVerificationMessage = null;
+        this.bankVerificationData = null;
+
+        try {
+          const response = await fetch("/agent/api/verify-bank-account/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": this.getCSRFToken(),
+            },
+            body: JSON.stringify({
+              account_number: this.bankDetails.account_number,
+              ifsc_code: this.bankDetails.ifsc_code,
+              name: this.personalInfo.full_name || this.personalInfo.name,
+              phone: this.verificationData.mobile,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            this.bankVerificationStatus = "verified";
+            this.bankVerificationData = data.data;
+            this.bankVerificationMessage = data.message;
+
+            // Auto-populate bank details from verification
+            if (data.data) {
+              this.bankDetails.bank_name = data.data.bank_name || this.bankDetails.bank_name;
+              this.bankDetails.account_type = data.data.account_type ? data.data.account_type.toLowerCase() : this.bankDetails.account_type;
+            }
+          } else {
+            this.bankVerificationStatus = "failed";
+            this.bankVerificationMessage = data.message;
+          }
+        } catch (error) {
+          console.error("Bank verification error:", error);
+          this.bankVerificationStatus = "failed";
+          this.bankVerificationMessage = "Network error occurred during verification";
+        }
+      },
+
+      // Validate bank details for verification
+      isBankDetailsValid() {
+        return (
+          this.bankDetails.account_number &&
+          this.bankDetails.account_number.length >= 9 &&
+          this.bankDetails.account_number.length <= 18 &&
+          this.bankDetails.ifsc_code &&
+          this.bankDetails.ifsc_code.length === 11 &&
+          /^[A-Z]{4}0[A-Z0-9]{6}$/.test(this.bankDetails.ifsc_code) &&
+          this.bankDetails.confirm_account_number === this.bankDetails.account_number
+        );
+      },
+
+      validateCurrentStep() {
+        this.errors = {};
+
+        if (this.currentStep === 1) {
+          return this.isLoanDetailsValid();
+        }
+
+        if (this.currentStep === 2) {
+          // Check if Aadhaar is verified using the external verification
+          // if (window.aadhaarVerification && !window.aadhaarVerification.isVerified()) {
+          // this.errors.verification = "Please complete Aadhaar verification";
+          // return false;
+          // }
+          return true;
+        }
+
+        if (this.currentStep === 3) {
+          // Validate personal info step - check required fields are populated
+          return this.isPersonalInfoValidate();
+        }
+
+        if (this.currentStep === 4) {
+          // Validate address step
+          if (
+            !this.addressData.permanent.address_line_1 ||
+            !this.addressData.permanent.post_code ||
+            !this.addressData.permanent.city_or_town ||
+            !this.addressData.permanent.district ||
+            !this.addressData.permanent.state
+          ) {
+            this.errors.address = "Please fill all required permanent address fields";
+            return false;
+          }
+
+          // If same address is not checked, validate current address
+          if (!this.addressData.sameAddress) {
+            if (
+              !this.addressData.current.address_line_1 ||
+              !this.addressData.current.post_code ||
+              !this.addressData.current.city_or_town ||
+              !this.addressData.current.district ||
+              !this.addressData.current.state
+            ) {
+              this.errors.current_address = "Please fill all required current address fields";
+              return false;
+            }
+          }
+
+          return true;
+        }
+
+        if (this.currentStep === 5) {
+          // Validate bank details step
+          return this.isBankDetailsVeryfied();
+        }
+
+        return true;
+      },
+
+      isBankDetailsVeryfied() {
+        if (!this.bankDetails.account_number || !this.bankDetails.ifsc_code) {
+          this.errors.bank_details = "Please fill all required bank details";
+          return false;
+        }
+        if (this.bankVerificationStatus != "verified") {
+          this.errors.bank_details = "Please verify your bank account";
+          return false;
+        }
+        return true;
+      },
+
+      toggleCurrentAddress() {
+        if (this.addressData.sameAddress) {
+          // Copy permanent address to current address
+          Object.assign(this.addressData.current, this.addressData.permanent);
+        }
+      },
+
+      // Handle file uploads
+      handleFileUpload(event, documentType) {
+        const file = event.target.files[0];
+        if (file) {
+          // Store file in documents object
+          this.documents[documentType] = file;
+
+          // Clear any existing error for this document type
+          if (this.errors[documentType]) {
+            this.errors[documentType] = null;
+          }
+
+          console.log(`File uploaded: ${documentType}`, file);
+        }
+      },
+
+      // Submit application
+      async submitApplication() {
+        if (this.isSubmitting) {
+          return;
+        }
+
+        this.errors = {};
+
+        try {
+          // Show preview before submission and stop here
+          this.showPreview();
+          return; // Stop here - actual submission will happen from confirmSubmit
+        } catch (error) {
+          console.error("Submit error:", error);
+          alert("Network error occurred. Please try again.");
+        }
+      },
+
+      // Show preview modal
+      showPreview() {
+        const modal = document.getElementById("preview-modal");
+        if (!modal) return;
+
+        // Get Alpine data instance of the modal
+        const modalData = Alpine.$data(modal);
+
+        if (modalData) {
+          // Directly update the existing Alpine data
+          modalData.processingFees = this.processingFees || [];
+          modalData.totalProcessingFees = this.totalProcessingFees || "₹0";
+        } else {
+          console.warn("Preview modal Alpine data not found");
+        }
+
+        // Populate all other fields
+        this.populatePreviewFields();
+
+        // Show modal
+        modal.classList.remove("hidden");
+      },
+
+      // Populate preview fields with form data
+      populatePreviewFields() {
+        // Personal Information
+        this.setPreviewValue("preview_full_name", this.personalInfo.full_name);
+        this.setPreviewValue("preview_date_of_birth", this.personalInfo.date_of_birth);
+        this.setPreviewValue("preview_gender", this.personalInfo.gender);
+        this.setPreviewValue("preview_contact", this.verificationData.mobile);
+        this.setPreviewValue("preview_email", this.personalInfo.email);
+        this.setPreviewValue("preview_adhar_number", this.verificationData.aadhaar);
+        this.setPreviewValue("preview_pan_number", this.personalInfo.pan_number);
+        this.setPreviewValue("preview_voter_number", this.personalInfo.voter_number);
+
+        // Permanent Address
+        this.setPreviewValue("preview_address_line_1", this.addressData.permanent.address_line_1);
+        this.setPreviewValue("preview_address_line_2", this.addressData.permanent.address_line_2);
+        this.setPreviewValue("preview_landmark", this.addressData.permanent.landmark);
+        this.setPreviewValue("preview_post_office", this.addressData.permanent.post_office);
+        this.setPreviewValue("preview_city_or_town", this.addressData.permanent.city_or_town);
+        this.setPreviewValue("preview_district", this.addressData.permanent.district);
+        this.setPreviewValue("preview_state", this.addressData.permanent.state);
+        this.setPreviewValue("preview_country", this.addressData.permanent.country);
+        this.setPreviewValue("preview_post_code", this.addressData.permanent.post_code);
+
+        // Current Address
+        this.setPreviewValue("preview_current_address_line_1", this.addressData.current.address_line_1);
+        this.setPreviewValue("preview_current_address_line_2", this.addressData.current.address_line_2);
+        this.setPreviewValue("preview_current_landmark", this.addressData.current.landmark);
+        this.setPreviewValue("preview_current_post_office", this.addressData.current.post_office);
+        this.setPreviewValue("preview_current_city_or_town", this.addressData.current.city_or_town);
+        this.setPreviewValue("preview_current_district", this.addressData.current.district);
+        this.setPreviewValue("preview_current_state", this.addressData.current.state);
+        this.setPreviewValue("preview_current_country", this.addressData.current.country);
+        this.setPreviewValue("preview_current_post_code", this.addressData.current.post_code);
+
+        // Loan Details
+        this.setPreviewValue("preview_loan_category", this.loanData.loan_category);
+        this.setPreviewValue("preview_loan_amount", this.loanData.loan_amount);
+        this.setPreviewValue("preview_tenure_months", this.loanData.tenure_months);
+        this.setPreviewValue("preview_loan_purpose", this.loanData.loan_purpose);
+        this.setPreviewValue("preview_interest_rate", this.loanData.interest_rate);
+        this.setPreviewValue("preview_emi_amount", this.loanData.emi_amount);
+        const selectedType = this.productTypes.find((type) => type.id === this.selectedProductType);
+
+        this.setPreviewValue("preview_selected_product", selectedType ? selectedType.name : "N/A");
+        this.setPreviewValue("preview_loan_percentage", this.loanData.loan_percentage);
+        this.setPreviewValue("preview_sale_price", this.loanData.sale_price);
+        this.setPreviewValue("preview_processing_fee", this.loanData.processing_fee);
+        this.setPreviewValue("preview_down_payment", this.loanData.down_payment);
+        this.setPreviewValue("preview_total_loan_amount", this.loanData.total_loan_amount);
+
+        // Hide/show product-related fields based on selected product
+        const selectedProduct = this.productTypes.find((type) => type.id === this.selectedProductType);
+        const hasProduct = selectedProduct && selectedProduct.name && selectedProduct.name !== "N/A";
+
+        // Product-related containers
+        const containers = [
+          "preview_loan_percentage_container",
+          "preview_sale_price_container",
+          "preview_processing_fee_container",
+          "preview_down_payment_container",
+          "preview_total_loan_amount_container",
+          "preview_product_main_category_container",
+          "preview_product_subcategory_container",
+          "preview_product_type_container",
+        ];
+
+        containers.forEach((containerId) => {
+          const container = document.getElementById(containerId);
+          if (container) {
+            container.style.display = hasProduct ? "block" : "none";
+          }
+        });
+
+        // Product details
+        const selectedMainCategory = this.productMainCategories.find((cat) => cat.id === this.selectedProductMainCategory);
+        const selectedSubcategory = this.productSubcategories.find((sub) => sub.id === this.selectedProductSubcategory);
+        this.setPreviewValue("preview_product_main_category", selectedMainCategory ? selectedMainCategory.name : "N/A");
+        this.setPreviewValue("preview_product_subcategory", selectedSubcategory ? selectedSubcategory.name : "N/A");
+        this.setPreviewValue("preview_product_type", selectedType ? `${selectedType.name} (₹${selectedType.price})` : "N/A");
+
+        // Bank Details
+        this.setPreviewValue("preview_account_number", this.bankDetails.account_number);
+        this.setPreviewValue("preview_confirm_account_number", this.bankDetails.confirm_account_number);
+        this.setPreviewValue("preview_bank_name", this.bankDetails.bank_name);
+        this.setPreviewValue("preview_account_type", this.bankDetails.account_type);
+        this.setPreviewValue("preview_ifsc_code", this.bankDetails.ifsc_code);
+
+        // Documents
+        this.setPreviewValue("preview_guarantor_id_proof", this.documents.guarantor_id_proof ? this.documents.guarantor_id_proof.name : "Not uploaded");
+        this.setPreviewValue("preview_id_proof", this.documents.id_proof ? this.documents.id_proof.name : "Not uploaded");
+        this.setPreviewValue("preview_pan_card_document", this.documents.pan_card ? this.documents.pan_card.name : "Not uploaded");
+        this.setPreviewValue("preview_income_proof", this.documents.income_proof ? this.documents.income_proof.name : "Not uploaded");
+        this.setPreviewValue("preview_collaterol", "Not uploaded"); // Assuming no collateral field
+        this.setPreviewValue("preview_photo", this.documents.photo ? this.documents.photo.name : "Not uploaded");
+        this.setPreviewValue("preview_signature", this.documents.signature ? this.documents.signature.name : "Not uploaded");
+      },
+
+      // Helper function to set preview field value
+      setPreviewValue(fieldId, value) {
+        const field = document.getElementById(fieldId);
+        if (field) {
+          field.value = value || "N/A";
+        }
+      },
+
+      // Perform actual form submission
+      async performActualSubmission() {
+        this.isSubmitting = true;
+
+        try {
+          // Create FormData for file uploads
+          const formData = new FormData();
+
+          if (this.selectedCustomerId) {
+            formData.append("customer_id", this.selectedCustomerId);
+          }
+
+          // Add all form data
+          if (this.loanData.shop_id) {
+            formData.append("shop_id", this.loanData.shop_id);
+          } else {
+            const shopInput = document.querySelector("input[name='shop_id']");
+            if (shopInput && shopInput.value) {
+              formData.append("shop_id", shopInput.value);
+            }
+          }
+          if (this.loanData.shop_bank_account_id) {
+            formData.append("shop_bank_account_id", this.loanData.shop_bank_account_id);
+          }
+
+          formData.append("loan_category", this.loanData.loan_category);
+          formData.append("loan_amount", this.loanData.loan_amount.replace(/,/g, ""));
+          formData.append("tenure_months", this.loanData.tenure_months);
+          formData.append("loan_purpose", this.loanData.loan_purpose);
+          formData.append("interest_rate", this.loanData.interest_rate_id);
+          formData.append("emi_amount", this.loanData.emi_amount.replace(/,/g, ""));
+          formData.append("sale_price", this.loanData.sale_price || 0);
+          //formData.append("processing_fee", this.loanData.processing_fee ? this.loanData.processing_fee.replace(/,/g, "") : "");
+          formData.append("down_payment", this.loanData.down_payment ? this.loanData.down_payment.replace(/,/g, "") : 0);
+          formData.append("total_loan_amount", this.loanData.total_loan_amount ? this.loanData.total_loan_amount.replace(/,/g, "") : 0);
+          formData.append("loan_purpose", this.loanData.loan_purpose);
+          formData.append("processing_fees_data", JSON.stringify(this.processingFees));
+          formData.append("total_processing_fees", this.totalProcessingFees);
+
+          // Add verification data
+          formData.append("adhar_number", this.verificationData.aadhaar);
+          formData.append("contact", this.verificationData.mobile);
+
+          // Add personal info
+          formData.append("full_name", this.personalInfo.full_name);
+          formData.append("father_name", this.personalInfo.father_name);
+          formData.append("guarantor_name", this.personalInfo.guarantor_name);
+          const dateParts = this.personalInfo.date_of_birth.split("-");
+          const formattedDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+          formData.append("date_of_birth", formattedDate);
+          formData.append("gender", this.personalInfo.gender);
+          formData.append("email", this.personalInfo.email);
+          formData.append("pan_number", this.personalInfo.pan_number);
+          formData.append("voter_number", this.personalInfo.voter_number);
+
+          // Add address data
+          formData.append("address_line_1", this.addressData.permanent.address_line_1);
+          formData.append("address_line_2", this.addressData.permanent.address_line_2);
+          formData.append("landmark", this.addressData.permanent.landmark);
+          formData.append("post_code", this.addressData.permanent.post_code);
+          formData.append("post_office", this.addressData.permanent.post_office);
+          formData.append("city_or_town", this.addressData.permanent.city_or_town);
+          formData.append("district", this.addressData.permanent.district);
+          formData.append("state", this.addressData.permanent.state);
+          formData.append("country", this.addressData.permanent.country);
+
+          formData.append("same_address", this.addressData.sameAddress ? "on" : "off");
+
+          // Add current address fields (always required by API)
+          if (this.addressData.sameAddress) {
+            // Copy permanent address to current address fields
+            formData.append("current_address_line_1", this.addressData.permanent.address_line_1);
+            formData.append("current_address_line_2", this.addressData.permanent.address_line_2);
+            formData.append("current_landmark", this.addressData.permanent.landmark);
+            formData.append("current_post_code", this.addressData.permanent.post_code);
+            formData.append("current_post_office", this.addressData.permanent.post_office);
+            formData.append("current_city_or_town", this.addressData.permanent.city_or_town);
+            formData.append("current_district", this.addressData.permanent.district);
+            formData.append("current_state", this.addressData.permanent.state);
+            formData.append("current_country", this.addressData.permanent.country);
+            // Add empty residential proof when same address (API requires the field)
+            formData.append("residential_proof_type", "");
+            formData.append("residential_proof_file", "");
+          } else {
+            // Use current address fields when different
+            formData.append("current_address_line_1", this.addressData.current.address_line_1);
+            formData.append("current_address_line_2", this.addressData.current.address_line_2);
+            formData.append("current_landmark", this.addressData.current.landmark);
+            formData.append("current_post_code", this.addressData.current.post_code);
+            formData.append("current_post_office", this.addressData.current.post_office);
+            formData.append("current_city_or_town", this.addressData.current.city_or_town);
+            formData.append("current_district", this.addressData.current.district);
+            formData.append("current_state", this.addressData.current.state);
+            formData.append("current_country", this.addressData.current.country);
+            // Add residential proof fields when different addresses
+            if (this.documents.residential_proof_type) {
+              formData.append("residential_proof_type", this.documents.residential_proof_type);
+            }
+            if (this.documents.residential_proof_file) {
+              formData.append("residential_proof_file", this.documents.residential_proof_file);
+            }
+          }
+
+          // Add bank details
+          formData.append("account_number", this.bankDetails.account_number);
+          formData.append("confirm_account_number", this.bankDetails.confirm_account_number);
+          formData.append("ifsc_code", this.bankDetails.ifsc_code);
+          formData.append("bank_name", this.bankDetails.bank_name);
+          formData.append("account_type", this.bankDetails.account_type);
+
+          // Add documents
+          if (this.documents.guarantor_id_proof) {
+            formData.append("guarantor_id_proof", this.documents.guarantor_id_proof);
+          }
+          if (this.documents.id_proof) {
+            formData.append("id_proof", this.documents.id_proof);
+          }
+          if (this.documents.id_proof_back) {
+            formData.append("id_proof_back", this.documents.id_proof_back);
+          }
+          if (this.documents.pan_card) {
+            formData.append("pan_card_document", this.documents.pan_card);
+          }
+          formData.append("loan_purpose", this.loanData.loan_purpose);
+          formData.append("product_id", this.selectedProductType || "");
+          formData.append("loan_percentage", this.loanData.loan_percentage || "");
+          if (this.documents.income_proof) {
+            formData.append("income_proof", this.documents.income_proof);
+          }
+          if (this.documents.photo) {
+            formData.append("photo", this.documents.photo);
+          }
+          if (this.documents.signature) {
+            formData.append("signature", this.documents.signature);
+          }
+
+          const csrftoken = this.getCSRFToken();
+
+          const response = await fetch("/agent/api/application-v2/", {
+            method: "POST",
+            body: formData,
+            headers: {
+              "X-CSRFToken": csrftoken,
+            },
+          });
+
+          const result = await response.json();
+
+          if (response.ok && result.success) {
+            // Handle automatic PDF download
+            if (result.pdf_download) {
+              try {
+                // console.log('[Download] Triggering automatic PDF download:', result.pdf_download.filename);
+                // Create blob from base64
+                const binaryString = atob(result.pdf_download.content);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                  bytes[i] = binaryString.charCodeAt(i);
+                }
+                const blob = new Blob([bytes], { type: "application/pdf" });
+
+                // Trigger automatic download
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = result.pdf_download.filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                // console.log('[Download] PDF download triggered successfully');
+              } catch (pdfError) {
+                console.error("[Download Error] Failed to trigger PDF download:", pdfError);
+              }
+            } else {
+              console.log("[Download] No PDF download data in response");
+            }
+            const msg = "Application submitted successfully! Customer ID: " + result.customer_id;
+            try {
+              sessionStorage.setItem("pending_toast", JSON.stringify({ message: msg, type: "success" }));
+            } catch (e) {}
+            if (typeof window.showToast === "function") {
+              window.showToast(msg, "success");
+            }
+            this.isSubmitting = false;
+            setTimeout(() => {
+              window.location.href = "/agent/application/";
+            }, 1000);
+          } else {
+            // Show error message
+            const errMsg =
+              (result && result.message) ||
+              (result && result.errors && (result.errors.documents || result.errors.non_field_errors)) ||
+              (result && result.errors && Object.values(result.errors)[0]) ||
+              "Failed to submit application";
+            if (typeof window.showToast === "function") {
+              window.showToast(errMsg, "error");
+            } else {
+              alert(errMsg);
+            }
+          }
+        } catch (error) {
+          console.error("Submit error:", error);
+          const errMsg = "Network error occurred. Please try again.";
+          if (typeof window.showToast === "function") {
+            window.showToast(errMsg, "error");
+          } else {
+            alert(errMsg);
+          }
+        } finally {
+          this.isSubmitting = false;
+        }
+      },
+    };
+  }
+
+  // Close preview modal
+  function closePreview() {
+    const modal = document.getElementById("preview-modal");
+    if (modal) {
+      modal.classList.add("hidden");
+    }
+  }
+
+  // Confirm and submit application
+  async function confirmSubmit() {
+    const modal = document.getElementById("preview-modal");
+    if (modal) {
+      modal.classList.add("hidden");
+    }
+    // Get the Alpine.js component and call the actual submission logic
+    const appElement = document.querySelector('[x-data*="loanApplication"]');
+    if (appElement) {
+      const alpineData = Alpine.$data(appElement);
+      if (alpineData) {
+        await alpineData.performActualSubmission();
+      }
+    }
+  }
+
+  // Sync Aadhaar verification with form flow
+  document.addEventListener("DOMContentLoaded", function () {
+    // Aadhaar verification now handles automatic step progression
+    // No need to manually enable/disable next button
+  });
+</script>
+{% endif %} {% endblock %} {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="/static/loan/js/aadhaar-verification.js"></script>
+<script src="/static/loan/js/loan-application.js"></script>
+<script src="/static/loan/js/formValidation.js"></script>
+<script src="/static/main/js/main.js"></script>
+{% endblock %}

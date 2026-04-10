@@ -1,0 +1,16 @@
+{
+  "agent/css/tailwind.css": {
+    "file": "css/tailwind.css",
+    "src": "agent/css/tailwind.css",
+    "isEntry": true
+  },
+  "agent/js/index.js": {
+    "file": "js/main.js",
+    "name": "main",
+    "src": "agent/js/index.js",
+    "isEntry": true,
+    "css": [
+      "css/main.css"
+    ]
+  }
+}

@@ -1,0 +1,149 @@
+{% extends "branch/base.html" %}
+{% load static %}
+{% block title %}loanPendingApplications{% endblock %}
+
+{% block page_id %}disbursedByHQ{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+    <!-- Breadcrumb Start -->
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 class="text-title-md2 font-bold text-black dark:text-white">
+            Loans Ready for Disbursement
+        </h2>
+        <nav>
+            <ol class="flex items-center gap-2">
+                <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+                        href="{% url 'branch:dashboard' %}">Dashboard <svg class="stroke-current" width="17" height="16"
+                            viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                            </path>
+                        </svg></a></li>
+                <li class="text-sm text-gray-800 dark:text-white/90">Loans Ready for Disbursement</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        <div class="p-5 space-y-6 border-t border-gray-100 dark:border-gray-800 sm:p-6">
+            <div class="custom-scrollbar overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead id="thead">
+                        <tr>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Loan No</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Agent</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Customer Name</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Loan Amount</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tenure</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">EMI</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">ROI(%)</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Catergory</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Disbursed Date</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pending-applications-tbody" class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="no-applications-message" class="text-center text-red-600 py-8 hidden">No Loans Ready for Fund Release</div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('{% url "branch:api_disbursed_by_hq" %}')
+        .then(response => response.json())
+        .then(data => {
+            // console.log('data', data);
+            const tbody = document.getElementById('pending-applications-tbody');
+            const noMsg = document.getElementById('no-applications-message');
+            const thead = document.getElementById('thead');
+            tbody.innerHTML = '';
+            if (data.length === 0) {
+                noMsg.classList.remove('hidden');
+                thead.classList.add('hidden');
+                return;
+            } else {
+                noMsg.classList.add('hidden');
+            }
+            data.forEach(app => {
+                const loan = app.loans && app.loans.length > 0 ? app.loans[0] : null;
+                let statusHtml = '';
+                if (app.status === 'pending') statusHtml = '<span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-orange-400 text-white">Pending Review</span>';
+                else if (app.status === 'document_requested') statusHtml = '<span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-yellow-400 text-white">Document Requested</span>';
+                else if (app.status === 'resubmitted') statusHtml = '<span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-brand-500 text-white">Resubmitted – Pending Review</span>';
+                else if (app.status === 'branch_approved') statusHtml = '<span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-success-500 text-white">Branch Approved – Pending HQ</span>';
+                else if (app.status === 'rejected_by_branch') statusHtml = '<span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-error-500 text-white">Rejected</span>';
+                else if (app.status === 'branch_document_accepted') statusHtml = '<span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-success-50 text-success-500">Branch Accepted Document</span>';
+                else if (app.status == 'branch_resubmitted')
+                statusHtml = '<span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-success-50 text-success-500">Re-uploaded – Pending HQ Review</span>';
+                else if (app.status === 'document_requested_by_hq') statusHtml = '<a href="{% url "branch:document_request_Hq" %}"><span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-error-50 text-error-500">Document Requested by HQ</span></a>';
+                else if (app.status === 'hq_document_accepted') statusHtml = '<a href="{% url "branch:document_request_Hq" %}"><span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-success-50 text-success-500">HQ Accepted Document</span></a>';
+                else if (app.status === 'hq_resubmitted') statusHtml = '<a href="{% url "branch:document_request_Hq" %}"><span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-brand-50 text-brand-500">HQ Requested Resubmission</span></a>';
+                else if (app.status === 'hq_approved') statusHtml = '<span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-success-500 text-white">HQ Approved</span>';
+                else if (app.status === 'hq_rejected') statusHtml = '<span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-error-500 text-white">HQ Rejected</span>';
+                else if (app.status === 'disbursed') statusHtml = '<span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-success-500 text-white">HQ Disbursed</span>';
+                else if (app.status === 'active' || app.status === 'success') statusHtml = '<span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-green-100 text-green-800">Success</span>';
+                else if (app.status === 'reject') statusHtml = '<span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-red-100 text-red-800">Rejected</span>';
+                else statusHtml = '<span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-gray-200 text-gray-700">Inactive</span>';
+
+                // Format submitted_at using the global function
+                const disbursedAt = app.disbursed_at ? formatDateTimeIST(app.disbursed_at) : '-';
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="px-4 py-2">
+                            <p class="text-gray-500 text-theme-sm dark:text-gray-400">${app.loan_ref_no}</p>
+                        </td>
+                        <td class="px-4 py-2">
+                            <p class="text-gray-500 text-theme-sm dark:text-gray-400">${app.agent ? app.agent.full_name : 'N/A'}</p>
+                            <p class="text-xs text-gray-400">${app.agent ? app.agent.agent_id : 'N/A'}</p>
+                        </td>
+                        <td class="px-4 py-2">
+                            <a href="/branch/application-detail/${app.customer ? app.customer.customer_id : (app.customer_id || '')}/${app.loan_ref_no}/?dflag=details"
+                               class="hover:text-brand-600"
+                               title="View ${app.customer ? app.customer.full_name : 'customer'} details">
+                                <p class="text-brand-500 text-theme-sm dark:text-brand-400">${app.customer ? app.customer.full_name : 'N/A'}</p>
+                                <p class="text-xs text-gray-400">${app.customer ? app.customer.customer_id : 'N/A'}</p>
+                            </a>
+                        </td>
+                        <td class="px-4 py-2">
+                            <p class="text-gray-500 text-theme-sm dark:text-gray-400">${loan ? '₹' + loan.loan_amount : 'No loan details'}</p>
+                        </td>
+                        <td class="px-4 py-2">
+                            <p class="text-gray-500 text-theme-sm dark:text-gray-400">${loan ? loan.tenure_display : '-'}</p>
+                        </td>
+                        
+                        <td class="px-4 py-2">
+                            <p class="text-gray-500 text-theme-sm dark:text-gray-400">${loan ? loan.emi_amount : '-'}</p>
+                        </td>
+                        <td class="px-4 py-2">
+                            <p class="text-gray-500 text-theme-sm dark:text-gray-400">${loan ? loan.interest_rate : '-'} %</p>
+                        </td>
+                        <td class="px-4 py-2">
+                            <p class="text-gray-500 text-theme-sm dark:text-gray-400">${loan && loan.loan_category ? loan.loan_category.name : '-'}</p>
+                        </td>
+                        <td class="px-4 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">${disbursedAt}</p></td>
+                        <td class="px-4 py-2">${statusHtml}</td>
+                        <td class="px-4 py-2">
+                            <div class="flex gap-2">
+                                   <a href="/branch/disbursement-details/${app.loan_ref_no}"
+                                   class="inline-block px-3 py-1 text-sm rounded bg-brand-500 text-white hover:bg-brand-600 transition">Process</a>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+        });
+});
+</script>
+{% block extra_js %}
+<script src="/static/loan/js/loan-application.js"></script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,151 @@
+
+{% extends 'hq/base.html' %}
+{% load static %}
+
+{% block title %}Agents{% endblock %}
+
+{% block page_id %}AgentManagement{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+  <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <h2 class="text-title-md2 font-bold text-black dark:text-white">Agents</h2>
+    <nav>
+      <ol class="flex items-center gap-2">
+        <li>
+          <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400" href="{% url 'hq:dashboard' %}">
+            Dashboard
+            <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </a>
+        </li>
+        <li class="text-sm text-gray-800 dark:text-white/90">Agents</li>
+      </ol>
+    </nav>
+  </div>
+
+  <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+    <div class="p-5">
+      <form method="get" class="grid grid-cols-1 gap-3 md:grid-cols-5">
+        <div class="md:col-span-4 max-w-[400px]">
+          <input
+            type="text"
+            name="q"
+            value="{{ q }}"
+            placeholder="Search (Agent ID / Name / Phone / Branch)"
+            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-transparent dark:text-gray-200"
+          />
+        </div>
+
+        <div class="md:col-span-3">
+          <select name="branch_id" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-transparent dark:text-gray-200">
+            <option value="">All Branches</option>
+            {% for b in branches %}
+              <option value="{{ b.branch_id }}" {% if selected_branch_id == b.branch_id|stringformat:'s' %}selected{% endif %}>{{ b.branch_name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="md:col-span-3">
+          <select name="status" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-transparent dark:text-gray-200">
+            <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+            <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+            <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All</option>
+          </select>
+        </div>
+
+        <div class="md:col-span-2 flex items-center gap-2">
+          <button type="submit" class="inline-flex items-center justify-center rounded-md bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 transition">Filter</button>
+          <a href="{% url 'hq:hq_agent_list' %}" class="inline-flex items-center justify-center rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-300 transition dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600">Clear</a>
+        </div>
+      </form>
+    </div>
+
+    <div class="px-5 pb-5">
+      {% regroup agents by branch as branch_groups %}
+      {% if branch_groups %}
+        <div class="space-y-6">
+          {% for group in branch_groups %}
+            <div class="rounded-xl border border-gray-200 dark:border-gray-800">
+              <div class="flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-white/[0.03]">
+                <div class="text-sm font-semibold text-gray-800 dark:text-gray-100">
+                  {{ group.grouper.branch_name }}
+                </div>
+                <div class="text-xs text-gray-500 dark:text-gray-400">
+                  Total: {{ group.list|length }}
+                </div>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
+                  <thead>
+                    <tr>
+                      <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Agent ID</th>
+                      <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                      <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                      <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
+                      <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Area</th>
+                      <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                      <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
+                    {% for a in group.list %}
+                      <tr>
+                        <td class="px-4 py-2 text-sm text-gray-800 dark:text-gray-200">{{ a.agent_id }}</td>
+                        <td class="px-4 py-2 text-sm text-gray-800 dark:text-gray-200">{{ a.full_name }}</td>
+                        <td class="px-4 py-2 text-sm text-gray-800 dark:text-gray-200">{{ a.email }}</td>
+                        <td class="px-4 py-2 text-sm text-gray-800 dark:text-gray-200">{{ a.phone }}</td>
+                        <td class="px-4 py-2 text-sm text-gray-800 dark:text-gray-200">{{ a.area }}</td>
+                        <td class="px-4 py-2 text-sm text-gray-800 dark:text-gray-200">{{ a.status }}</td>
+                        <td class="px-4 py-2 text-sm">
+                          <a href="{% url 'hq:hq_agent_detail' a.agent_id %}" class="inline-flex items-center justify-center rounded-md bg-brand-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-600 transition">View</a>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="py-10 text-center text-sm text-gray-500 dark:text-gray-400">No agents found.</div>
+      {% endif %}
+
+      <div class="flex items-center justify-between pt-4">
+        <div class="text-sm text-gray-600">
+          {% if page_obj %}
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+          {% endif %}
+        </div>
+        {% if page_obj and page_obj.paginator.num_pages > 1 %}
+          <div class="inline-flex gap-2">
+            {% if page_obj.has_previous %}
+              <a class="px-3 py-1 text-sm border rounded-md" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
+            {% else %}
+              <span class="px-3 py-1 text-sm border rounded-md text-gray-400">Previous</span>
+            {% endif %}
+
+            {% for p in page_links %}
+              {% if p == '…' or p == '...' %}
+                <span class="px-3 py-1 text-sm border rounded-md text-gray-400">{{ p }}</span>
+              {% elif p == page_obj.number %}
+                <span class="px-3 py-1 text-sm border rounded-md bg-blue-500 text-white">{{ p }}</span>
+              {% else %}
+                <a class="px-3 py-1 text-sm border rounded-md" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ p }}">{{ p }}</a>
+              {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+              <a class="px-3 py-1 text-sm border rounded-md" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
+            {% else %}
+              <span class="px-3 py-1 text-sm border rounded-md text-gray-400">Next</span>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,818 @@
+{% extends "agent/base.html" %}
+{% load static %}
+{% block title %}Application Detail{% endblock %}
+
+{% block page_id %}applicationDetail{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+    <!-- Breadcrumb Start -->
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 class="text-title-md2 font-bold text-black dark:text-white">
+            Application Detail
+        </h2>
+        <nav>
+            <ol class="flex items-center gap-2">
+                <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+                        href="{% url 'agent:dashboard' %}">Dashboard <svg class="stroke-current" width="17" height="16"
+                            viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                            </path>
+                        </svg></a></li>
+                <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+                        href="{% url 'agent:loan_applications' %}">Loan Applications <svg class="stroke-current"
+                            width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                            </path>
+                        </svg></a></li>
+                <li class="text-sm text-gray-800 dark:text-white/90">Application Detail</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div id="application-detail-content"></div>
+    <div id="application-detail-error" class="text-center text-red-600 py-8 hidden"></div>
+</div>
+
+<!-- Tracking Button and Modal (Non-intrusive addition) -->
+<div id="customTrackingBtn" class="flex items-center justify-between gap-2 mb-6 cursor-pointer">
+    <div class="flex w-auto flex-col items-center flex-1">
+        <div class="w-6 h-6 flex items-center justify-center rounded-full bg-brand-500 text-white font-bold">1</div>
+        <span class="mt-2 text-sm font-medium text-gray-500">Agent</span>
+    </div>
+    <div class="flex-1 h-1 bg-brand-500"></div>
+    <div class="flex flex-col items-center flex-1">
+        <div class="w-6 h-6 flex items-center justify-center rounded-full bg-gray-300 text-gray-700 font-bold">2</div>
+        <span class="mt-2 text-sm font-medium text-gray-500">Branch</span>
+    </div>
+    <div class="flex-1 h-1 bg-gray-300"></div>
+    <div class="flex flex-col items-center flex-1">
+        <div class="w-6 h-6 flex items-center justify-center rounded-full bg-gray-300 text-gray-700 font-bold">3</div>
+        <span class="mt-2 text-sm font-medium text-gray-500">Headquater</span>
+    </div>
+</div>
+<div id="customTrackingModal" class="fixed inset-0 z-9999 bg-gray-400/50 backdrop-blur-[32px] hidden">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="relative bg-white rounded-lg shadow-lg max-w-md w-full">
+            <button id="closeCustomTrackingModal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            <div id="customTrackingModalContent">
+                {% include "application_tracking.html" %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Include application_tracking.js -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="{% static 'application_tracking.js' %}"></script>
+<script src="/static/loan/js/formValidation.js"></script>
+<script src="/static/loan/js/loan-application.js"></script>
+<script>
+    function getCustomerIdFromUrl() {
+        const parts = window.location.pathname.split('/');
+        // /agent/application-detail/<customer_id>/<loan_ref_no>/
+        return parts[3] || '';
+    }
+
+    function getLoanRefNoFromUrl() {
+        const parts = window.location.pathname.split('/');
+        // /agent/application-detail/<customer_id>/<loan_ref_no>/
+        return parts[4] || '';
+    }
+    
+    // // Dynamic step configuration based on status
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const customerId = getCustomerIdFromUrl();
+        const loan_ref_no = getLoanRefNoFromUrl();
+        fetch(`/agent/api/application-detail/${customerId}/${loan_ref_no}`)
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.detail || 'Application not found.');
+                    }).catch(() => {
+                        throw new Error('Application not found.');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                // console.log(data);
+
+                const content = document.getElementById('application-detail-content');
+                const errorDiv = document.getElementById('application-detail-error');
+                if (!data || !data.customer_id) {
+                    content.innerHTML = '';
+                    errorDiv.classList.remove('hidden');
+                    return;
+                }
+                errorDiv.classList.add('hidden');
+                // Render customer info
+                let html = `
+                <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+                    <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+                        <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Customer Information</h3>
+                    </div>
+                    <div class="p-5 space-y-4 sm:p-6">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Customer ID</label><p class="text-sm text-gray-800 dark:text-white">${data.customer_id}</p></div>
+                            <div><label class="flex text-sm font-medium text-gray-500 dark:text-gray-400">Full Name
+                                ${data.status == 'pending' ? `<span class="ml-2 cursor-pointer" id="editFullNameIcon" title="Edit Full Name">
+                              <svg class="w-5 h-5 text-brand-500 hover:text-white border border-blue-300 hover:bg-blue-500 rounded-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.536-6.536a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13z"></path>
+                              </svg>
+                            </span>` : ''}
+                            </label>
+                            <span id="fullNameValue">
+                                <p class="text-sm text-gray-800 dark:text-white">${data.full_name}</p>
+                                </span>
+                            </div>
+
+                            <div><label class="flex text-sm font-medium text-gray-500 dark:text-gray-400">Father Name
+                                ${data.status == 'pending' ? `<span class="ml-2 cursor-pointer" id="editFatherNameIcon" title="Edit Father Name">
+                              <svg class="w-5 h-5 text-brand-500 hover:text-white border border-blue-300 hover:bg-blue-500 rounded-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.536-6.536a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13z"></path>
+                              </svg>
+                            </span>` : ''}
+                                </label>
+                                <span id="fatherNameValue">
+                                <p class="text-sm text-gray-800 dark:text-white">${data.father_name || '-'}</p>
+                                </span>
+                            </div>
+                            <div><label class="flex text-sm font-medium text-gray-500 dark:text-gray-400">Date of Birth
+                                ${data.status == 'pending' ? `<span class="ml-2 cursor-pointer" id
+                                ="editDateOfBirthIcon" title="Edit Date of Birth">
+                                <svg class="w-5 h-5 text-brand-500 hover:text-white border border
+                                -blue-300 hover:bg-blue-500 rounded-md" fill="none" stroke="currentColor
+                                " viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15.232 5.232l3.536 3.536M
+                                9 13l6.536-6.536a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13z"></path>
+                                </svg>
+                            </span>` : ''}
+                                </label>
+                            <span id="dateOfBirthValue">
+                                <p class="text-sm text-gray-800 dark:text-white">${data.date_of_birth}</p>
+                                </span>
+                                </div>
+                            <div><label class="flex text-sm font-medium text-gray-500 dark:text-gray-400">Gender
+                                ${data.status == 'pending' ? `<span class="ml-2 cursor-pointer" id="editGenderIcon" title
+                                ="Edit Gender">
+                                <svg class="w-5 h-5 text-brand-500 hover:text-white border border-blue-300 hover:bg-blue-500 rounded-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.536-6.536a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13z"></path>
+                                </svg>
+                            </span>` : ''}
+                                </label>
+                            <span id="genderValue">
+                                <p class="text-sm text-gray-800 dark:text-white">${data.gender}</p>
+                                </span>
+                                </div>
+                            <div><label class="flex text-sm font-medium text-gray-500 dark:text-gray-400">Contact
+                                ${data.status == 'pending' ? `<span class="ml-2 cursor-pointer" id="editContactIcon" title="Edit Contact">
+                                <svg class="w-5 h-5 text-brand-500 hover:text-white border border-blue-300 hover:bg-blue-500 rounded-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.536-6.536a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13z"></path>
+                                </svg>
+                            </span>` : ''}
+                                </label>
+                            <span id="contactValue">
+                                <p class="text-sm text-gray-800 dark:text-white">${data.contact}</p>
+                                </span>
+                                </div>
+                            <div><label class="flex text-sm font-medium text-gray-500 dark:text-gray-400">Email
+                                ${data.status == 'pending' ? `<span class="ml-2 cursor-pointer" id="editEmailIcon" title="Edit Email">
+                                    <svg class="w-5 h-5 text-brand-500 hover:text-white border border
+                                    -blue-300 hover:bg-blue-500 rounded-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.536-6.536a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13z"></path>
+                                    </svg>
+                                </span>` : ''}
+                                </label>
+                            <span id="emailValue">
+                                <p class="text-sm text-gray-800 dark:text-white">${data.email || '-'}</p>
+                                </span>
+                                </div>
+                            <div><label class="flex text-sm font-medium text-gray-500 dark:text-gray-400">Aadhar Number
+                                ${data.status == 'pending' ? `<span class="ml-2 cursor-pointer" id="editAadharIcon" title="Edit Aadhar Number">
+                                    <svg class="w-5 h-5 text-brand-500 hover:text-white border border-blue-300 hover:bg-blue-500 rounded-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.536-6.536a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13z"></path>
+                                    </svg>
+                                </span>` : ''}
+                                </label>
+                            <span id="aadharValue">
+                                <p class="text-sm text-gray-800 dark:text-white">${data.adhar_number}</p>
+                                </span>
+                                </div>
+                            <div><label class="flex text-sm font-medium text-gray-500 dark:text-gray-400">PAN Number
+                                ${data.status == 'pending' ? `<span class="ml-2 cursor-pointer" id="editPanIcon" title="Edit PAN Number">
+                                    <svg class="w-5 h-5 text-brand-500 hover:text-white border border-blue-300 hover:bg-blue-500 rounded-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.536-6.536a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13z"></path>
+                                    </svg>
+                                </span>` : ''}
+                                </label>
+                                <span id="panValue">
+                                <p class="text-sm text-gray-800 dark:text-white">${data.pan_number}</p>
+                                </span>
+                                </div>
+                            <div><label class="flex text-sm font-medium text-gray-500 dark:text-gray-400">Voter Id
+                                ${data.status == 'pending' ? `<span class="ml-2 cursor-pointer" id="editVoterIcon" title="Edit Voter ID">
+                                    <svg class="w-5 h-5 text-brand-500 hover:text-white border border-blue-300 hover:bg-blue-500 rounded-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.536-6.536a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13z"></path>
+                                    </svg>
+                                </span>` : ''}
+                                </label>
+                                <span id="voterValue">
+                                <p class="text-sm text-gray-800 dark:text-white">${data.voter_number}</p>
+                                </span>
+                                </div>
+                            <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Status</label><p class="text-sm text-gray-800 dark:text-white">${data.status}</p></div>
+                            <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Submitted At</label><p class="text-sm text-gray-800 dark:text-white">${data.submitted_at ? formatDateTimeIST(data.submitted_at) : '-'}</p></div>
+                        </div>
+                    </div>
+                </div>`;
+                // Agent Information
+                if (data.agent) {
+                    html += `<div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+                    <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+                        <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Agent Information</h3>
+                    </div>
+                    <div class="p-5 space-y-4 sm:p-6">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Agent Name</label><p class="text-sm text-gray-800 dark:text-white">${data.agent.full_name || '-'}</p></div>
+                            <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Agent ID</label><p class="text-sm text-gray-800 dark:text-white">${data.agent.agent_id || '-'}</p></div>
+                            <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Contact</label><p class="text-sm text-gray-800 dark:text-white">${data.agent.phone || '-'}</p></div>
+                            <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Email</label><p class="text-sm text-gray-800 dark:text-white">${data.agent.email || '-'}</p></div>
+                        </div>
+                    </div>
+                </div>`;
+                }
+                html += `</div>`;
+                // Address Information
+                if (data.address) {
+                    // console.log(data.address);
+                    
+                    html += `<div class="mt-6 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+                    <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+                        <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Address Information</h3>
+                    </div>
+                    <div class="p-5 space-y-4 sm:p-6">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Permanent Address</h4>
+                                <hr class="w-[30%] pb-3 border-gray-300 dark:border-gray-700">
+                                <div class="space-y-1">
+                                    <p class="text-sm text-gray-800 dark:text-white">${data.address.address_line_1 || ''},</p>
+                                    ${data.address.address_line_2 ? `<p class="text-sm text-gray-800 dark:text-white">${data.address.address_line_2},</p>` : ''}
+                                    <p class="text-sm text-gray-800 dark:text-white">${data.address.landmark || ''},</p>
+                                    <p class="text-sm text-gray-800 dark:text-white">${data.address.post_office || ''} - ${data.address.post_code || ''},</p>
+                                    <p class="text-sm text-gray-800 dark:text-white">${data.address.city_or_town}, ${data.address.district}, ${data.address.state || ''}, ${data.address.country}</p>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Current Address</h4>
+                                <hr class="w-[30%] pb-3 border-gray-300 dark:border-gray-700">
+                                <div class="space-y-1">
+                                    <p class="text-sm text-gray-800 dark:text-white">${data.address.current_address_line_1 || ''},</p>
+                                    ${data.address.current_address_line_2 ? `<p class="text-sm text-gray-800 dark:text-white">${data.address.current_address_line_2},</p>` : ''}
+                                    <p class="text-sm text-gray-800 dark:text-white">${data.address.current_landmark || ''},</p>
+                                    <p class="text-sm text-gray-800 dark:text-white">${data.address.current_post_office || ''} - ${data.address.current_post_code || ''},</p>
+                                    <p class="text-sm text-gray-800 dark:text-white">${data.address.current_city_or_town}, ${data.address.current_district}, ${data.address.current_state || ''}, ${data.address.current_country}</p>
+                                </div>
+
+                                ${data.documents?.residential_proof_file ? `
+                                <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mt-4">Residential Proof</h4>
+                                <hr class="w-[30%] pb-3 border-gray-300 dark:border-gray-700">
+                                <div class="space-y-1">
+                                    <div class="grid grid-cols-2 w-[48%]">
+                                        <img src="${data.documents.residential_proof_file}" alt="Customer residential proof" class="w-16 h-16 object-cover rounded-lg border border-gray-200 dark:border-gray-700">
+                                        <a href="${data.documents.residential_proof_file}" target="_blank" class="inline-flex items-center justify-center flex-1 my-4 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition">
+                                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                            </svg>
+                                            View
+                                        </a>
+                                    </div>
+                                    <p class="text-sm text-gray-800 dark:text-white">${data.address.residential_proof_type || ''}</p>
+                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+                }
+
+                if (data.customer_account) {
+                    const account = data.customer_account;
+                    html += `<div class="mt-6 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+                        <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+                            <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Account Details</h3>
+                        </div>
+                        <div class="p-5 space-y-4 sm:p-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Account Number</label><p class="text-sm text-gray-800 dark:text-white">${account.account_number || '-'}</p></div>
+                                <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Bank Name</label><p class="text-sm text-gray-800 dark:text-white">${account.bank_name || '-'}</p></div>
+                                <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Account Type</label><p class="text-sm text-gray-800 dark:text-white">${account.account_type || '-'}</p></div>
+                                <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">IFSC Code</label><p class="text-sm text-gray-800 dark:text-white">${account.ifsc_code || '-'}</p></div>
+                                <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Created At</label><p class="text-sm text-gray-800 dark:text-white">${formatDateTimeIST(account.submitted_at)}</p></div>
+                                <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Last Updated</label><p class="text-sm text-gray-800 dark:text-white">${formatDateTimeIST(account.last_update)}</p></div>
+                                <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Agent</label><p class="text-sm text-gray-800 dark:text-white">${account.agent_name || '-'}</p></div>
+                                <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Branch</label><p class="text-sm text-gray-800 dark:text-white">${account.branch_name || '-'}</p></div>
+                            </div>
+                        </div>
+                    </div>`;
+                }
+
+                // Loan Information
+                if (data.loans && data.loans.length > 0) {
+                    html += `<div class="mt-6 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+                    <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+                        <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Loan Information</h3>
+                    </div>
+                    <div class="p-5 space-y-4 sm:p-6">
+                        ${data.loans.map(loan => `
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Loan Category</label><p class="text-sm text-gray-800 dark:text-white">${loan.loan_category.name}</p></div>
+                            <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Loan Amount</label><p class="text-sm text-gray-800 dark:text-white">₹${loan.loan_amount}</p></div>
+                            <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Tenure</label><p class="text-sm text-gray-800 dark:text-white">${loan.tenure_display}</p></div>
+                            <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Interest Rate (%)</label><p class="text-sm text-gray-800 dark:text-white">${loan.interest_rate}</p></div>
+                            <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">EMI Amount</label><p class="text-sm text-gray-800 dark:text-white">₹${loan.emi_amount}</p></div>
+                            <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Loan Purpose</label><p class="text-sm text-gray-800 dark:text-white">${loan.loan_purpose}</p></div>
+                            <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Submitted At</label><p class="text-sm text-gray-800 dark:text-white">${loan.submitted_at ? formatDateTimeIST(loan.submitted_at) : '-'}</p></div>
+                            ${data.shop ? `<div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Shop</label><p class="text-sm text-gray-800 dark:text-white">${data.shop.name}</p></div>` : ''}
+                        </div>`).join('')}
+                    </div>
+                </div>`;
+                }
+                // Documents Information
+                if (data.documents) {
+                    html += `<div class="mt-6 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+                    <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+                        <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Documents</h3>
+                    </div>
+                    <div class="p-5 space-y-6 sm:p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- ID Proof -->
+
+                            <div class="space-y-3">
+                              <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">ID Proof</h4>
+                            <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-xs text-gray-500 dark:text-gray-400">Aadhar/PAN Card (Front)</span>
+                                    <span class="text-xs ${data.documents.id_proof ? 'text-success-500 dark:text-success-500' : 'text-error-500 dark:text-error-500'}">${data.documents.id_proof ? '✓ Uploaded' : '✗ Missing'}</span>
+                                </div>
+                                <div class="flex gap-2">
+                                    ${data.documents.id_proof ? `<a href="${data.documents.id_proof}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition"><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>View Front</a>` : ''}
+                                </div>
+                            </div>
+                            </div>
+                            <!-- ID Proof Back -->
+                            ${data.documents.id_proof_back ?
+                            `<div class="space-y-3">
+                             <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">ID Proof Back</h4>
+                            <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-xs text-gray-500 dark:text-gray-400">Aadhar/PAN Card (Back)</span>
+                                    <span class="text-xs ${data.documents.id_proof_back ? 'text-success-500 dark:text-success-500' : 'text-error-500 dark:text-error-500'}">${data.documents.id_proof_back ? '✓ Uploaded' : '✗ Missing'}</span>
+                                </div>
+                                <div class="flex gap-2">
+                                    ${data.documents.id_proof_back ? `<a href="${data.documents.id_proof_back}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition"><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>View Back</a>` : ''}
+                                </div>
+                            </div>
+                            </div>` : ''}
+                            <!-- Income Proof -->
+                            ${data.documents.income_proof ?
+                            `<div class="space-y-3">
+                             <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">Income Proof</h4>
+                            <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-xs text-gray-500 dark:text-gray-400">Salary Slip/Bank Statement</span>
+                                    <span class="text-xs ${data.documents.income_proof ? 'text-success-500 dark:text-success-500' : 'text-error-500 dark:text-error-500'}">${data.documents.income_proof ? '✓ Uploaded' : '✗ Missing'}</span>
+                                </div>
+                                <div class="flex gap-2">
+                                    ${data.documents.income_proof ? `<a href="${data.documents.income_proof}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition"><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>View Document</a>` : ''}
+                                </div>
+                            </div>
+                            </div>` : ''}
+                            <!-- PAN Card -->
+                            ${data.documents.pan_card_document ?
+                            `<div class="space-y-3">
+                             <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">PAN Card</h4>
+                            <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-xs text-gray-500 dark:text-gray-400">PAN Card Document</span>
+                                    <span class="text-xs ${data.documents.pan_card_document ? 'text-success-500 dark:text-success-500' : 'text-error-500 dark:text-error-500'}">${data.documents.pan_card_document ? '✓ Uploaded' : '✗ Missing'}</span>
+                                </div>
+                                <div class="flex gap-2">
+                                    ${data.documents.pan_card_document ? `<a href="${data.documents.pan_card_document}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition"><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>View Document</a>` : ''}
+                                </div>
+                            </div>
+                            </div>` : ''}
+                            <!-- Photo -->
+                            <div class="space-y-3">
+                             <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">Photo</h4>
+                            <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-xs text-gray-500 dark:text-gray-400">Passport Size Photo</span>
+                                    <span class="text-xs ${data.documents.photo ? 'text-success-500 dark:text-success-500' : 'text-error-500 dark:text-error-500'}">${data.documents.photo ? '✓ Uploaded' : '✗ Missing'}</span>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    ${data.documents.photo ? `<img src="${data.documents.photo}" alt="Customer Photo" class="w-16 h-16 object-cover rounded-lg border border-gray-200 dark:border-gray-700">` : ''}
+                                    ${data.documents.photo ? `<a href="${data.documents.photo}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition"><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>View</a>` : ''}
+                                </div>
+                            </div>
+                            </div>
+                            <div class="space-y-3">
+                             <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">Signature</h4>
+                            <!-- Signature -->
+                            <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-xs text-gray-500 dark:text-gray-400">Digital Signature</span>
+                                    <span class="text-xs ${data.documents.signature ? 'text-success-500 dark:text-success-500' : 'text-error-500 dark:text-error-500'}">${data.documents.signature ? '✓ Uploaded' : '✗ Missing'}</span>
+                                </div>
+                                <div class="flex gap-2">
+                                    ${data.documents.signature ? `<a href="${data.documents.signature}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition"><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>View Document</a>` : ''}
+                                </div>
+                            </div>
+                            </div>
+                            
+                            <!-- Collateral -->
+                            ${data.documents.collateral ? 
+                            `<div class="space-y-3">
+                             <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">Collateral</h4>
+                            <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-xs text-gray-500 dark:text-gray-400">Property Documents</span>
+                                    <span class="text-xs ${data.documents.collateral ? 'text-success-500 dark:text-success-500' : 'text-gray-500 dark:text-gray-500'}">${data.documents.collateral ? '✓ Uploaded' : 'Optional'}</span>
+                                </div>
+                                <div class="flex gap-2">
+                                    ${data.documents.collateral ? `<a href="${data.documents.collateral}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-brand-600 transition"><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>View Document</a>` : ''}
+                                </div>
+                            </div>
+                            </div>` : ''}
+                        </div>
+                    </div>
+                </div>`;
+                }
+                content.innerHTML = html;
+                
+                // Initialize dynamic tracking with complete application data
+                updateDynamicTrackingStatus(data.status, data.submitted_at, data);
+                
+                // Modal logic for tracking
+                var btn = document.getElementById('customTrackingBtn');
+                var modal = document.getElementById('customTrackingModal');
+                var closeBtn = document.getElementById('closeCustomTrackingModal');
+                if (btn && modal && closeBtn) {
+                    btn.addEventListener('click', function () {
+                        modal.classList.remove('hidden');
+                        updateDynamicTrackingStatus(data.status, data.submitted_at, data);
+                    });
+                    closeBtn.addEventListener('click', function () {
+                        modal.classList.add('hidden');
+                    });
+                    modal.addEventListener('click', function (e) {
+                        if (e.target === modal) {
+                            modal.classList.add('hidden');
+                        }
+                    });
+                }
+
+                //--------- for edit vlues when status is pending ----------//
+                // attachInlineEditHandlers(data, showToast);
+
+                //--------- for edit vlues when status is pending ----------//
+                document.addEventListener('click', function(e) {
+                    // Full Name edit icon
+                    if (e.target.closest('#editFullNameIcon')) {
+                        const fullNameValue = document.getElementById('fullNameValue');
+                        fullNameValue.innerHTML = `
+                            <input type="text" id="editFullNameInput" class="w-full px-2 py-1 border rounded" value="${data.full_name || ''}" name="full_name">
+                            <div id="nameErrorMsg" class="text-xs text-red-500 mt-1"></div>
+                            <button class="inlineEditSaveBtn ml-2 px-2 py-1 text-xs bg-brand-500 text-white rounded"
+                                data-field="full_name" data-input="editFullNameInput" data-display="fullNameValue">Save</button>
+                            <button id="cancelFullNameBtn" class="ml-2 px-2 py-1 text-xs bg-red-500 text-white rounded">Cancel</button>
+                        `;
+                        setTimeout(() => {
+                            const input = document.getElementById('editFullNameInput');
+                            const errorMsg = document.getElementById('nameErrorMsg');
+                            function toTitleCase(str) {
+                                return str.replace(/\w\S*/g, function(txt) {
+                                    return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+                                });
+                            }
+                            input.addEventListener('input', function() {
+                                input.value = toTitleCase(input.value);
+                                if (!input.value.trim()) {
+                                    errorMsg.textContent = 'Name cannot be empty.';
+                                } else {
+                                    errorMsg.textContent = '';
+                                }
+                            });
+                            input.addEventListener('blur', function() {
+                                input.value = toTitleCase(input.value);
+                            });
+                        }, 10);
+                    }
+
+                    if (e.target.closest('#editFatherNameIcon')) {
+                        const fatherNameValue = document.getElementById('fatherNameValue');
+                        fatherNameValue.innerHTML = `
+                            <input type="text" id="editFatherNameInput" class="w-full px-2 py-1 border rounded" value="${data.father_name || ''}" name="father_name">
+                            <div id="fatherNameErrorMsg" class="text-xs text-red-500 mt-1"></div>
+                            <button class="inlineEditSaveBtn ml-2 px-2 py-1 text-xs bg-brand-500 text-white rounded"
+                                data-field="father_name" data-input="editFatherNameInput" data-display="fatherNameValue">Save</button>
+                            <button id="cancelFatherNameBtn" class="ml-2 px-2 py-1 text-xs bg-red-500 text-white rounded">Cancel</button>
+                        `;
+                        setTimeout(() => {
+                            const input = document.getElementById('editFatherNameInput');
+                            const errorMsg = document.getElementById('fatherNameErrorMsg');
+                            function toTitleCase(str) {
+                                return str.replace(/\w\S*/g, function(txt) {
+                                    return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+                                });
+                            }
+                            input.addEventListener('input', function() {
+                                input.value = toTitleCase(input.value);
+                                if (!input.value.trim()) {
+                                    errorMsg.textContent = 'Name cannot be empty.';
+                                } else {
+                                    errorMsg.textContent = '';
+                                }
+                            });
+                            input.addEventListener('blur', function() {
+                                input.value = toTitleCase(input.value);
+                            });
+                        }, 10);
+                    }
+                    if (e.target.closest('#editDateOfBirthIcon')) {
+                        const dateOfBirthValue = document.getElementById('dateOfBirthValue');
+                        let dobValue = data.date_of_birth ? new Date(data.date_of_birth).toISOString().slice(0, 10) : '';
+                        dateOfBirthValue.innerHTML = `
+                            <input type="text" id="editDobInput" class="w-full px-2 py-1 border rounded" value="${dobValue}">
+                            <button class="inlineEditSaveBtn ml-2 px-2 py-1 text-xs bg-brand-500 text-white rounded"
+                                data-field="date_of_birth" data-input="editDobInput" data-display="dateOfBirthValue">Save</button>
+                            <button id="cancelDobBtn" class="ml-2 px-2 py-1 text-xs bg-red-500 text-white rounded">Cancel</button>
+                        `;
+                        // Initialize flatpickr
+                        if (window.flatpickr) {
+                            const today = new Date();
+                            const maxDate = new Date(today.getFullYear() - 21, today.getMonth(), today.getDate());
+                            flatpickr("#editDobInput", {
+                                mode: 'single',
+                                dateFormat: 'Y-m-d',
+                                maxDate: maxDate,
+                                allowInput: true
+                            });
+                        }
+                    }
+                    if (e.target.closest('#editGenderIcon')) {
+                        const genderValue = document.getElementById('genderValue');
+                        genderValue.innerHTML = `
+                            <select id="editGenderSelect" class="w-full px-2 py-1 border rounded">
+                                <option value="male" ${data.gender.toLowerCase() === 'male' ? 'selected' : ''}>Male</option>
+                                <option value="female" ${data.gender.toLowerCase() === 'female' ? 'selected' : ''}>Female</option>
+                                <option value="other" ${data.gender.toLowerCase() === 'other' ? 'selected' : ''}>Other</option>
+                            </select>
+                            <button class="inlineEditSaveBtn ml-2 px-2 py-1 text-xs bg-brand-500 text-white rounded"
+                                data-field="gender" data-input="editGenderSelect" data-display="genderValue">Save</button>
+                            <button id="cancelGenderBtn" class="ml-2 px-2 py-1 text-xs bg-red-500 text-white rounded">Cancel</button>
+                        `;
+                    }
+                    if (e.target.closest('#editContactIcon')) {
+                        const contactValue = document.getElementById('contactValue');
+                        contactValue.innerHTML = `
+                            <input type="text" id="editContactInput" class="w-full px-2 py-1 border rounded" maxlength="10" value="${data.contact || ''}">
+                            <div id="contactErrorMsg" class="text-xs text-red-500 mt-1"></div>
+                            <button class="inlineEditSaveBtn ml-2 px-2 py-1 text-xs bg-brand-500 text-white rounded"
+                                data-field="contact" data-input="editContactInput" data-display="contactValue">Save</button>
+                            <button id="cancelContactBtn" class="ml-2 px-2 py-1 text-xs bg-red-500 text-white rounded">Cancel</button>
+                        `;
+                        setTimeout(() => {
+                            const input = document.getElementById('editContactInput');
+                            const errorMsg = document.getElementById('contactErrorMsg');
+                            input.addEventListener('input', function() {
+                                let val = input.value.replace(/\D/g, '');
+                                input.value = val;
+                                if (val.length !== 10) {
+                                    errorMsg.textContent = 'Contact number must be exactly 10 digits.';
+                                } else {
+                                    errorMsg.textContent = '';
+                                }
+                            });
+                        }, 10);
+                    }
+                    if (e.target.closest('#editEmailIcon')) {
+                        const emailValue = document.getElementById('emailValue');
+                        emailValue.innerHTML = `
+                            <input type="email" id="editEmailInput" class="w-full px-2 py-1 border rounded" value="${data.email || ''}">
+                            <div id="emailErrorMsg" class="text-xs text-red-500 mt-1"></div>
+                            <button class="inlineEditSaveBtn ml-2 px-2 py-1 text-xs bg-brand-500 text-white rounded"
+                                data-field="email" data-input="editEmailInput" data-display="emailValue">Save</button>
+                            <button id="cancelEmailBtn" class="ml-2 px-2 py-1 text-xs bg-red-500 text-white rounded">Cancel</button>
+                        `;
+                        setTimeout(() => {
+                            const input = document.getElementById('editEmailInput');
+                            const errorMsg = document.getElementById('emailErrorMsg');
+                            input.addEventListener('input', function() {
+                                const val = input.value;
+                                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                                if (val && !emailRegex.test(val)) {
+                                    errorMsg.textContent = 'Please enter a valid email address.';
+                                } else {
+                                    errorMsg.textContent = '';
+                                }
+                            });
+                        }, 10);
+                    }
+                    if (e.target.closest('#editAadharIcon')) {
+                        const aadharValue = document.getElementById('aadharValue');
+                        aadharValue.innerHTML = `
+                            <input type="text" id="editAadharInput" class="w-full px-2 py-1 border rounded" maxlength="12" value="${data.adhar_number || ''}">
+                            <div id="aadharErrorMsg" class="text-xs text-red-500 mt-1"></div>
+                            <button class="inlineEditSaveBtn ml-2 px-2 py-1 text-xs bg-brand-500 text-white rounded"
+                                data-field="adhar_number" data-input="editAadharInput" data-display="aadharValue">Save</button>
+                            <button id="cancelAadharNumberBtn" class="ml-2 px-2 py-1 text-xs bg-red-500 text-white rounded">Cancel</button>
+                        `;
+                        setTimeout(() => {
+                            const input = document.getElementById('editAadharInput');
+                            const errorMsg = document.getElementById('aadharErrorMsg');
+                            input.addEventListener('input', function() {
+                                let val = input.value.replace(/\D/g, '');
+                                input.value = val;
+                                if (val.length !== 12) {
+                                    errorMsg.textContent = 'Aadhaar number must be exactly 12 digits.';
+                                } else {
+                                    errorMsg.textContent = '';
+                                }
+                            });
+                        }, 10);
+                    }
+                    if (e.target.closest('#editPanIcon')) {
+                        const panValue = document.getElementById('panValue');
+                        panValue.innerHTML = `
+                            <input type="text" id="editPanInput" class="w-full px-2 py-1 border rounded uppercase" maxlength="10" value="${data.pan_number || ''}">
+                            <div id="panErrorMsg" class="text-xs text-red-500 mt-1"></div>
+                            <button class="inlineEditSaveBtn ml-2 px-2 py-1 text-xs bg-brand-500 text-white rounded"
+                                data-field="pan_number" data-input="editPanInput" data-display="panValue">Save</button>
+                            <button id="cancelPanNumberBtn" class="ml-2 px-2 py-1 text-xs bg-red-500 text-white rounded">Cancel</button>
+                        `;
+                        setTimeout(() => {
+                            const input = document.getElementById('editPanInput');
+                            const errorMsg = document.getElementById('panErrorMsg');
+                            input.addEventListener('input', function() {
+                                input.value = input.value.toUpperCase();
+                                const val = input.value;
+                                const panRegex = /^[A-Z]{5}\d{4}[A-Z]$/;
+                                if (val.length !== 10) {
+                                    errorMsg.textContent = 'PAN must be exactly 10 characters.';
+                                } else if (!panRegex.test(val)) {
+                                    errorMsg.textContent = 'Invalid PAN format. Format: 5 letters, 4 digits, 1 letter.';
+                                } else {
+                                    errorMsg.textContent = '';
+                                }
+                            });
+                        }, 10);
+                    }
+                    if (e.target.closest('#editVoterIcon')) {
+                        const voterValue = document.getElementById('voterValue');
+                        voterValue.innerHTML = `
+                            <input type="text" id="editVoterInput" class="w-full px-2 py-1 border rounded uppercase" maxlength="10" value="${data.voter_number || ''}">
+                            <div id="voterErrorMsg" class="text-xs text-red-500 mt-1"></div>
+                            <button class="inlineEditSaveBtn ml-2 px-2 py-1 text-xs bg-brand-500 text-white rounded"
+                                data-field="voter_number" data-input="editVoterInput" data-display="voterValue">Save</button>
+                            <button id="cancelVoterNumberBtn" class="ml-2 px-2 py-1 text-xs bg-red-500 text-white rounded">Cancel</button>
+                        `;
+                        setTimeout(() => {
+                            const input = document.getElementById('editVoterInput');
+                            const errorMsg = document.getElementById('voterErrorMsg');
+                            input.addEventListener('input', function() {
+                                input.value = input.value.toUpperCase();
+                                const val = input.value;
+                                const voterRegex = /^[A-Z]{3}\d{7}$/;
+                                if (val.length !== 10) {
+                                    errorMsg.textContent = 'Voter ID must be exactly 10 characters.';
+                                } else if (!voterRegex.test(val)) {
+                                    errorMsg.textContent = 'Invalid Voter ID format. Format: 3 letters, 7 digits.';
+                                } else {
+                                    errorMsg.textContent = '';
+                                }
+                            });
+                        }, 10);
+                    }
+                    // Generic save handler for inline edits
+                    if (e.target && e.target.classList.contains('inlineEditSaveBtn')) {
+                      const field = e.target.getAttribute('data-field');
+                      const inputId = e.target.getAttribute('data-input');
+                      const value = document.getElementById(inputId).value;
+                      const displayId = e.target.getAttribute('data-display');
+                      const payload = {};
+                      payload[field] = value;
+                      
+                          fetch(`/agent/api/edit-customer/${data.customer_id}/`, {
+                          method: 'POST',
+                          headers: {
+                              'Content-Type': 'application/json',
+                              'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                          },
+                          body: JSON.stringify(payload)
+                      })
+                      .then(resp => resp.json())
+                      .then(respData => {
+                          if (respData.success) {
+                              // After save, restore to non-editable view and re-enable edit icon
+                              if (field === 'full_name') {
+                                  document.getElementById(displayId).innerHTML = `
+                                      <p class="text-sm text-gray-800 dark:text-white">${value}</p>
+                                  `;
+                              } else if (field === 'father_name') {
+                                  document.getElementById(displayId).innerHTML = `
+                                      <p class="text-sm text-gray-800 dark:text-white">${value || '-'}</p>
+                                  `;
+                              } else if (field === 'date_of_birth') {
+                                  document.getElementById(displayId).innerHTML = `
+                                      <p class="text-sm text-gray-800 dark:text-white">${value ? value : ''}</p>
+                                  `;
+                              } else if (field === 'gender') {
+                                  document.getElementById(displayId).innerHTML = `
+                                      <p class="text-sm text-gray-800 dark:text-white">${value.charAt(0).toUpperCase() + value.slice(1)}</p>
+                                  `;
+                              } else if (field === 'contact') {
+                                  document.getElementById(displayId).innerHTML = `
+                                      <p class="text-sm text-gray-800 dark:text-white">${value}</p>
+                                  `;
+                              } else if (field === 'email') {
+                                  document.getElementById(displayId).innerHTML = `
+                                      <p class="text-sm text-gray-800 dark:text-white">${value}</p>
+                                  `;
+                              } else if (field === 'adhar_number') {
+                                  document.getElementById(displayId).innerHTML = `
+                                      <p class="text-sm text-gray-800 dark:text-white">${value}</p>
+                                  `;
+                              } else if (field === 'pan_number') {
+                                  document.getElementById(displayId).innerHTML = `
+                                      <p class="text-sm text-gray-800 dark:text-white">${value}</p>
+                                  `;
+                              } else if (field === 'voter_number') {
+                                  document.getElementById(displayId).innerHTML = `
+                                      <p class="text-sm text-gray-800 dark:text-white">${value}</p>
+                                  `;
+                              }
+                             // Show success toast
+                              showToast(field.charAt(0).toUpperCase() + field.slice(1) + ' updated!', 'success');
+                              data[field] = value; // update local data for cancel
+                            } else {
+                                showToast(respData.detail || 'Failed to update', 'error');
+                            }
+                        });
+                    }
+                    
+                    
+                    // Cancel handlers
+                    if (e.target && e.target.id === 'cancelFullNameBtn') {
+                        document.getElementById('fullNameValue').innerHTML = `<p class="text-sm text-gray-800 dark:text-white">${data.full_name}</p>`;
+                    }
+                    if (e.target && e.target.id === 'cancelFatherNameBtn') {
+                        document.getElementById('fatherNameValue').innerHTML = `<p class="text-sm text-gray-800 dark:text-white">${data.father_name || '-'}</p>`;
+                    }
+                    if (e.target && e.target.id === 'cancelDobBtn') {
+                        document.getElementById('dateOfBirthValue').innerHTML = `<p class="text-sm text-gray-800 dark:text-white">${data.date_of_birth ? data.date_of_birth : ''}</p>`;
+                    }
+                    if (e.target && e.target.id === 'cancelGenderBtn') {
+                        document.getElementById('genderValue').innerHTML = `<p class="text-sm text-gray-800 dark:text-white">${data.gender.charAt(0).toUpperCase() + data.gender.slice(1)}</p>`;
+                    }
+                    if (e.target && e.target.id === 'cancelContactBtn') {
+                        document.getElementById('contactValue').innerHTML = `<p class="text-sm text-gray-800 dark:text-white">${data.contact}</p>`;
+                    }
+                    if (e.target && e.target.id === 'cancelEmailBtn') {
+                        document.getElementById('emailValue').innerHTML = `<p class="text-sm text-gray-800 dark:text-white">${data.email}</p>`;
+                    }
+                    if (e.target && e.target.id === 'cancelAadharNumberBtn') {
+                        document.getElementById('aadharValue').innerHTML = `<p class="text-sm text-gray-800 dark:text-white">${data.adhar_number}</p>`;
+                    }
+                    if (e.target && e.target.id === 'cancelPanNumberBtn') {
+                        document.getElementById('panValue').innerHTML = `<p class="text-sm text-gray-800 dark:text-white">${data.pan_number}</p>`;
+                    }
+                    if (e.target && e.target.id === 'cancelVoterNumberBtn') {
+                        document.getElementById('voterValue').innerHTML = `<p class="text-sm text-gray-800 dark:text-white">${data.voter_number}</p>`;
+                    }
+                }); //--------- for edit vlues when status is pending ----------//
+            })
+            .catch((err) => {
+                document.getElementById('application-detail-content').innerHTML = '';
+                const errorDiv = document.getElementById('application-detail-error');
+                errorDiv.textContent = err && err.message ? err.message : 'Application not found or a network error occurred.';
+                errorDiv.classList.remove('hidden');
+            });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,195 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>{% block title %}Profile Management{% endblock %}</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{% static 'branch/images/logo/logo.svg' %}">
+
+    <!-- Alpine.js Core -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
+    <!-- Alpine.js Persist Plugin -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.14.9/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"> -->
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    {% block extra_head %}{% endblock %}
+
+    <!-- Custom CSS -->
+    <link href="{% static 'branch/css/style.css' %}" rel="stylesheet">
+    <!-- <link href="{% static 'branch/css/input.css' %}" rel="stylesheet"> -->
+    <link rel="stylesheet" href="{% static 'main/css/output.css' %}" />
+    <link rel="stylesheet" href="{% static 'main/css/chart-custom-css/chart-imp.css' %}" />
+
+    <meta name="csrf-token" content="{{ csrf_token }}">
+</head>
+
+<body x-data="{ 
+      page: '{% block page_id %}dashboard{% endblock %}', 
+      loaded: true, 
+      darkMode: false, 
+      stickyMenu: false, 
+      sidebarToggle: false, 
+      scrollTop: false
+    }" x-init="
+      darkMode = JSON.parse(localStorage.getItem('darkMode'));
+      $watch('darkMode', value => localStorage.setItem('darkMode', JSON.stringify(value)))"
+    :class="{'dark bg-gray-900': darkMode === true}">
+    <!-- ===== Preloader Start ===== -->
+    {% include 'partials/branch-preloader.html' %}
+    <!-- ===== Preloader End ===== -->
+
+    <!-- ===== Page Wrapper Start ===== -->
+    <div class="flex h-screen overflow-hidden">
+        <!-- <aside
+        class="absolute left-0 top-0 z-[600] flex h-screen w-72.5 flex-col overflow-y-hidden bg-black duration-300 ease-linear dark:bg-boxdark lg:static lg:translate-x-0"
+        :class="{'translate-x-0': sidebarToggle, '-translate-x-full': !sidebarToggle}">
+    </aside> -->
+    <!-- ===== Sidebar Start ===== -->
+    {% include 'branch/sidebar.html' %}
+
+        <!-- ===== Sidebar End ===== -->
+
+        <!-- ===== Content Area Start ===== -->
+        <div class="relative flex flex-col flex-1 overflow-x-hidden overflow-y-auto">
+            <!-- Small Device Overlay Start -->
+            {% include 'partials/branch-overlay.html' %}
+            <!-- Small Device Overlay End -->
+
+            <!-- ===== Header Start ===== -->
+            {% include 'branch/header.html' %}
+            <!-- ===== Header End ===== -->
+
+            <!-- ===== Main Content Start ===== -->
+            <main>
+                {% block content %}{% endblock %}
+            </main>
+            <!-- ===== Main Content End ===== -->
+        </div>
+        <!-- ===== Content Area End ===== -->
+    </div>
+    <!-- ===== Page Wrapper End ===== -->
+
+    <!-- Toast Notification -->
+    <div id="toast-container" class="fixed top-5 right-5 z-999999 space-y-2"></div>
+
+    {% if messages %}
+        {% for message in messages %}
+        <script>
+            const Toast = Swal.mixin({
+                toast: true,
+                position: "bottom-end",
+                showConfirmButton: false,
+                timer: 5000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                }
+            });
+            
+            // Determine the icon based on message level
+            let icon = 'info';
+            {% if message.tags %}
+                {% if 'error' in message.tags %}
+                    icon = 'error';
+                {% elif 'warning' in message.tags %}
+                    icon = 'warning';
+                {% elif 'success' in message.tags %}
+                    icon = 'success';
+                {% elif 'info' in message.tags %}
+                    icon = 'info';
+                {% endif %}
+            {% endif %}
+            
+            Toast.fire({
+                icon: icon,
+                title: '{{ message|escapejs }}',
+                background: icon === 'error' ? '#FEE2E2' : 
+                        (icon === 'warning' ? '#FEF3C7' : 
+                        (icon === 'success' ? '#D1FAE5' : '#E0F2FE')),
+                color: icon === 'error' ? '#B91C1C' : 
+                    (icon === 'warning' ? '#92400E' : 
+                    (icon === 'success' ? '#065F46' : '#1E40AF')),
+                iconColor: icon === 'error' ? '#DC2626' : 
+                        (icon === 'warning' ? '#F59E0B' : 
+                        (icon === 'success' ? '#10B981' : '#3B82F6'))
+            });
+        </script>
+        {% endfor %}
+    {% endif %}
+
+
+    <script>
+
+    window.showToast = function(message, type = 'success') {
+    const toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) return;
+
+    // Check for duplicate messages (same message and type) within the last 2 seconds
+    const existingToasts = toastContainer.querySelectorAll('div');
+    const now = Date.now();
+    const recentToasts = Array.from(existingToasts).filter(toast => {
+        const toastText = toast.querySelector('.flex-1')?.textContent;
+        const toastType = toast.className.includes('bg-success-500') ? 'success' : 'error';
+        return toastText === message && toastType === type && (now - toast.dataset.timestamp) < 2000;
+    });
+
+    // If a duplicate exists, don't show another
+    if (recentToasts.length > 0) {
+        return;
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `flex items-center gap-2 px-4 py-3 rounded shadow-lg text-white transition-opacity duration-300 ${
+        type === 'success' ? 'bg-success-500' : 'bg-error-400'
+    }`;
+    toast.dataset.timestamp = now;
+
+    // Icon
+    const icon = type === 'success'
+        ? '<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>'
+        : '';
+
+    // Dismiss button only for error
+    const dismissBtn = type === 'error'
+        ? `<button class="ml-auto text-white text-2xl hover:text-gray-300" onclick="dismissToast(this)">&times;</button>`
+        : '';
+
+    toast.innerHTML = `
+        <span class="flex items-center">${icon}</span>
+        <span class="flex-1">${message}</span> | 
+        ${dismissBtn}
+    `;
+
+    toastContainer.appendChild(toast);
+
+    // Auto-remove only success toasts
+    if (type === 'success') {
+        setTimeout(() => {
+            toast.classList.add('opacity-0');
+            setTimeout(() => {
+                toast.remove();
+            }, 500);
+        }, 5000);
+    }
+};
+
+// Dismiss function with fade-out
+function dismissToast(button) {
+    const toast = button.closest('div');
+    toast.classList.add('opacity-0');
+    setTimeout(() => toast.remove(), 500);
+}
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html> 

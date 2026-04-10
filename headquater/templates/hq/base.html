@@ -1,0 +1,184 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
+    />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>{% block title %}{% endblock %}</title>
+
+    <!-- Favicon -->
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="{% static 'hq/images/logo/logo.svg' %}"
+    />
+    {% block extra_head %}
+    {% endblock %}
+
+    <!-- Alpine.js Core -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
+    <!-- Alpine.js Persist Plugin -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.14.9/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    
+    <!-- SweetAlert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+
+    <!-- Custom CSS -->
+    {% load static %}
+    <link href="{% static 'hq/css/style.css' %}" rel="stylesheet" />
+    <!-- <link href="{% static 'hq/css/input.css' %}" rel="stylesheet"> -->
+    <link rel="stylesheet" href="{% static 'main/css/output.css' %}" />
+    <link
+      rel="stylesheet"
+      href="{% static 'main/css/chart-custom-css/chart-imp.css' %}"
+    />
+  </head>
+
+  <body
+    x-data="{ 
+      page: '{% block page_id %}dashboard{% endblock %}', 
+      loaded: true, 
+      darkMode: false, 
+      stickyMenu: false, 
+      sidebarToggle: false, 
+      scrollTop: false
+    }"
+    x-init="
+      darkMode = JSON.parse(localStorage.getItem('darkMode'));
+      $watch('darkMode', value => localStorage.setItem('darkMode', JSON.stringify(value)))"
+    :class="{'dark bg-gray-900': darkMode === true}"
+  >
+    <!-- ===== Preloader Start ===== -->
+    {% include 'partials/hq-preloader.html' %}
+    <!-- ===== Preloader End ===== -->
+
+    <!-- ===== Page Wrapper Start ===== -->
+    <div class="flex h-screen overflow-hidden">
+      <!-- ===== Sidebar Start ===== -->
+      <!-- <aside
+            class="absolute left-0 top-0 z-[600] flex h-screen w-72.5 flex-col overflow-y-hidden bg-black duration-300 ease-linear dark:bg-boxdark lg:static lg:translate-x-0"
+            :class="{'translate-x-0': sidebarToggle, '-translate-x-full': !sidebarToggle}">
+        </aside> -->
+      <!-- side bar start  -->
+      {% include 'hq/sidebar.html' %}
+      <!-- ===== Sidebar End ===== -->
+
+      <!-- ===== Content Area Start ===== -->
+      <div
+        class="relative flex flex-col flex-1 overflow-x-hidden overflow-y-auto"
+      >
+        <!-- Small Device Overlay Start -->
+        {% include 'partials/hq-overlay.html' %}
+        <!-- Small Device Overlay End -->
+
+        <!-- ===== Header Start ===== -->
+        {% include 'hq/header.html' %}
+        <!-- ===== Header End ===== -->
+
+        <!-- ===== Main Content Start ===== -->
+        <main>{% block content %}{% endblock %}</main>
+        <!-- ===== Main Content End ===== -->
+      </div>
+      <!-- ===== Content Area End ===== -->
+    </div>
+    <!-- ===== Page Wrapper End ===== -->
+
+    <!-- Toast Notification -->
+    <div
+      id="hq-toast-container"
+      class="fixed bottom-5 right-5 z-99999 space-y-2"
+    ></div>
+
+
+
+    <script>
+      window.showToast = function (message, type = "success") {
+        // console.log("showToast called", message, type);
+        const toastContainer = document.getElementById("hq-toast-container");
+        if (!toastContainer) return;
+
+        // Check for duplicate messages (same message and type) within the last 2 seconds
+        const existingToasts = toastContainer.querySelectorAll("div");
+        const now = Date.now();
+        const recentToasts = Array.from(existingToasts).filter((toast) => {
+          const toastText = toast.querySelector("span:last-child")?.textContent;
+          const toastType = toast.className.includes("bg-success-500")
+            ? "success"
+            : "error";
+          return (
+            toastText === message &&
+            toastType === type &&
+            now - toast.dataset.timestamp < 2000
+          );
+        });
+
+        // If a duplicate exists, don't show another
+        if (recentToasts.length > 0) {
+          return;
+        }
+
+        const toast = document.createElement("div");
+        toast.className = `flex items-center px-4 py-3 rounded shadow-lg text-white transition-opacity duration-300 ${
+          type === "success" ? "bg-success-500" : "bg-error-400"
+        }`;
+        toast.dataset.timestamp = now;
+        // Dismiss button only for error
+        const dismissBtn =
+          type === "error"
+            ? `<button class="ml-auto text-white text-2xl hover:text-gray-300" onclick="dismissToast(this)">&times;</button>`
+            : "";
+
+        toast.innerHTML = `
+            <span class="mr-2">
+                ${
+                  type === "success"
+                    ? '<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>'
+                    : '<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>'
+                }
+            </span>
+            <span class="flex-1">${message}</span>
+            ${dismissBtn}
+        `;
+        toastContainer.appendChild(toast);
+
+        // Auto-remove success toasts after 5 seconds
+        if (type === "success") {
+          setTimeout(() => {
+            toast.classList.add("opacity-0");
+            setTimeout(() => {
+              toast.remove();
+            }, 500);
+          }, 5000);
+        }
+      };
+
+      // Dismiss function with fade-out
+      function dismissToast(button) {
+        const toast = button.closest("div");
+        toast.classList.add("opacity-0");
+        setTimeout(() => toast.remove(), 500);
+      }
+    </script>
+
+    <script type="module" src="{% static 'dist/js/main.js' %}"></script>
+    {% block extra_js %}
+    {% endblock %}
+    {% for message in messages %}
+      {% if message.extra_tags == 'permerror' %}
+          <script>
+          window.showToast("{{ message }}", "error");
+          </script>
+      {% else %}
+          <script>
+          window.showToast("{{ message }}", "success");
+          </script>
+      {% endif %}
+    {% endfor %}
+  </body>
+</html>

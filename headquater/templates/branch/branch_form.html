@@ -1,0 +1,1213 @@
+{% load static %}
+
+<form id="branchForm" method="post" action="{% url 'hq:register_branch' %}" class="space-y-4" novalidate>
+    <!-- <div id="formErrors" class="hidden mb-4 p-4 rounded-lg bg-red-50 border-l-4 border-red-400">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                        clip-rule="evenodd" />
+                </svg>
+            </div>
+            <div class="ml-3">
+                <h3 class="text-sm font-medium text-red-800">Form Validation Error</h3>
+                <div class="mt-2 text-sm text-red-700">
+                    <ul role="list" class="list-disc pl-5 space-y-1">
+                        <li id="errorMessages"></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div> -->
+    {% csrf_token %}
+
+    <div class="">
+        
+
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-2">Branch Details</h3>
+        <hr class="my-6">
+        <div class="flex justify-between md:flex-nowrap flex-wrap md:gap-4 gap-2">
+    <div class="md:w-[49%] w-full space-y-2">
+        <!-- Branch Name -->
+        <div class="form-group">
+            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                Branch Name <span class="text-meta-1 text-error-500">*</span>
+            </label>
+            {{ form.branch_name }}
+            {% if form.branch_name.errors %}
+            <div class="text-meta-1 text-sm mt-1.5">
+                {{ form.branch_name.errors|join:", " }}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                Email <span class="text-meta-1 text-error-500">*</span>
+            </label>
+            {{ form.email }}
+            {% if form.email.errors %}
+            <div class="text-meta-1 text-sm mt-1.5">
+                {{ form.email.errors|join:", " }}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Contact Number -->
+        <div class="form-group">
+            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                Contact Number <span class="text-meta-1 text-error-500">*</span>
+            </label>
+            {{ form.contact_number }}
+            {% if form.contact_number.errors %}
+            <div class="text-meta-1 text-sm mt-1.5">
+                {{ form.contact_number.errors|join:", " }}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Address Line 1 -->
+        <div class="form-group">
+            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                Address Line 1 <span class="text-meta-1 text-error-500">*</span>
+            </label>
+            {{ form.address_line_1 }}
+            {% if form.address_line_1.errors %}
+            <div class="text-meta-1 text-sm mt-1.5">
+                {{ form.address_line_1.errors|join:", " }}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Address Line 2 -->
+        <div class="form-group">
+            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Address Line 2
+            </label>
+            {{ form.address_line_2 }}
+            {% if form.address_line_2.errors %}
+            <div class="text-meta-1 text-sm mt-1.5">
+                {{ form.address_line_2.errors|join:", " }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="md:w-[49%] w-full space-y-2">
+        <!-- Postal Code -->
+        <div class="form-group">
+            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Postal Code <span class="text-meta-1 text-error-500">*</span>
+            </label>
+            {{ form.postal_code }}
+            {% if form.postal_code.errors %}
+            <div class="text-meta-1 text-sm mt-1.5">
+                {{ form.postal_code.errors|join:", " }}
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- City -->
+        <div class="form-group">
+            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                City <span class="text-meta-1 text-error-500">*</span>
+            </label>
+            {{ form.city }}
+            {% if form.city.errors %}
+            <div class="text-meta-1 text-sm mt-1.5">
+                {{ form.city.errors|join:", " }}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- District -->
+        <div class="form-group">
+            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                District <span class="text-meta-1 text-error-500">*</span>
+            </label>
+            {{ form.district }}
+            {% if form.district.errors %}
+            <div class="text-meta-1 text-sm mt-1.5">
+                {{ form.district.errors|join:", " }}
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- State -->
+        <div class="form-group">
+            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                State <span class="text-meta-1 text-error-500">*</span>
+            </label>
+            {{ form.state }}
+            {% if form.state.errors %}
+            <div class="text-meta-1 text-sm mt-1.5">
+                {{ form.state.errors|join:", " }}
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Country -->
+        <div class="form-group">
+            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Country <span class="text-meta-1 text-error-500">*</span>
+            </label>
+            {{ form.country }}
+            {% if form.country.errors %}
+            <div class="text-meta-1 text-sm mt-1.5">
+                {{ form.country.errors|join:", " }}
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Status -->
+                <div class="form-group">
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                        <span class="mr-2 ">Status</span>
+                        {{ form.status }}<div class="text-meta-1 text-sm mt-1">{{ form.status.errors }}</div>
+                    </label>
+                    {% if form.status.errors %}
+                    <div class="text-meta-1 text-sm mt-1">
+                        {{ form.status.errors|join:", " }}
+                    </div>
+                    {% endif %}
+                </div>
+    </div>
+</div>
+    </div>
+
+    <div>
+        <div class="">
+            <!-- Branch Manager Details -->
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-2">Branch Manager Details</h3>
+            <hr class="my-6">
+            <div class="flex justify-between md:flex-nowrap flex-wrap md:gap-4 gap-2">
+                <div class="md:w-[49%] w-full  space-y-2">
+                    <div class="form-group">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">First Name <span class="text-meta-1 text-error-500">*</span></label>
+                        {{ manager_form.first_name }}<div class="text-meta-1 text-sm mt-1">{{manager_form.first_name.errors }}
+                        </div>
+                        {% if manager_form.first_name.errors %}
+                        <div class="text-meta-1 text-sm mt-1">{{ manager_form.first_name.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Last Name <span class="text-meta-1 text-error-500">*</span></label>
+                        {{ manager_form.last_name }}<div class="text-meta-1 text-sm mt-1">{{manager_form.last_name.errors }}
+                        </div>
+                        {% if manager_form.last_name.errors %}
+                        <div class="text-meta-1 text-sm mt-1">{{ manager_form.last_name.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Email <span
+                                class="text-meta-1 text-error-500">*</span></label>
+                        {{ manager_form.email }}<div class="text-meta-1 text-sm mt-1">{{ manager_form.email.errors }}
+                        </div>
+                        {% if manager_form.email.errors %}
+                        <div class="text-meta-1 text-sm mt-1">{{ manager_form.email.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Phone
+                            Number <span class="text-meta-1 text-error-500">*</span></label>
+                        {{ manager_form.phone_number }}<div class="text-meta-1 text-sm mt-1">{{manager_form.phone_number.errors}}
+                        </div>
+                        {% if manager_form.phone_number.errors %}
+                        <div class="text-meta-1 text-sm mt-1">
+                            {{ manager_form.phone_number.errors|join:", " }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                      <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Date of
+                          Birth <span
+                            class="text-meta-1 text-error-500">*</span></label>
+                      {{ manager_form.date_of_birth }}<div class="text-meta-1 text-sm mt-1">{{manager_form.date_of_birth.errors }}</div>
+                      {% if manager_form.date_of_birth.errors %}
+                      <div class="text-meta-1 text-sm mt-1">{{ manager_form.date_of_birth.errors|join:", " }}</div>
+                      {% endif %}
+                  </div>
+                </div>
+                <div class="md:w-[49%] w-full  space-y-2">
+
+                    <div class="form-group">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Gender <span class="text-meta-1 text-error-500">*</span></label>
+                        {{ manager_form.gender }}<div class="text-meta-1 text-sm mt-1">
+                            {{ manager_form.gender.errors }}
+                        </div>
+                        {% if manager_form.gender.errors %}
+                        <div class="text-meta-1 text-sm mt-1">{{ manager_form.gender.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Address <span
+                            class="text-meta-1 text-error-500">*</span></label>
+                        {{ manager_form.address }}<div class="text-meta-1 text-sm mt-1">{{ manager_form.address.errors}}</div>
+                        {% if manager_form.address.errors %}
+                        <div class="text-meta-1 text-sm mt-1">{{ manager_form.address.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Gov ID Type <span class="text-meta-1 text-error-500">*</span></label>
+                        {{ manager_form.gov_id_type }}<div class="text-meta-1 text-sm mt-1">{{manager_form.gov_id_type.errors}}</div>
+                        {% if manager_form.gov_id_type.errors %}
+                        <div class="text-meta-1 text-sm mt-1">{{ manager_form.gov_id_type.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Gov ID Number <span class="text-meta-1 text-error-500">*</span></label>
+                        {{ manager_form.gov_id_number }}<div class="text-meta-1 text-sm mt-1 text-error-500">{{manager_form.gov_id_number.errors }}</div>
+                        {% if manager_form.gov_id_number.errors %}
+                        <div class="text-meta-1 text-sm mt-1 text-error-500">{{ manager_form.gov_id_number.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+        
+                    <div class="form-group">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"><span class="mr-2 ">Status</span>
+                        {{ manager_form.is_active }}<div class="text-meta-1 text-sm mt-1">{{manager_form.is_active.errors }}
+                        </div>
+                    </label>
+                        {% if manager_form.is_active.errors %}
+                        <div class="text-meta-1 text-sm mt-1">{{ manager_form.is_active.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div>
+        <div>
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-2">Login Credentials</h3>
+            <hr class="my-6">
+            <div class="w-full flex flex-col justify-center ">
+                <div class="form-group">
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Email <span
+                            class="text-meta-1 text-error-500">*</span></label>
+                    <input type="email" id="login-email-display" class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100 text-gray-700" readonly tabindex="-1" />
+                </div>
+                <div class="form-group">
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Password <span
+                            class="text-meta-1 text-error-500">*</span></label>
+                    <div class="relative">
+                        {{ manager_form.password }}
+                        <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 password-toggle" tabindex="-1" aria-label="Show password" data-target="id_manager-password">
+                            <!-- Eye SVG icon -->
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1.5 12s4-7.5 10.5-7.5S22.5 12 22.5 12s-4 7.5-10.5 7.5S1.5 12 1.5 12z" />
+                                <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" fill="none" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="text-meta-1 text-sm mt-1">{{ manager_form.password.errors}}</div>
+                </div>
+                <div class="form-group">
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Confirm Password <span class="text-meta-1 text-error-500">*</span></label>
+                    <div class="relative">
+                        {{ manager_form.confirm_password }}
+                        <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 password-toggle" tabindex="-1" aria-label="Show password" data-target="id_manager-confirm_password">
+                            <!-- Eye SVG icon -->
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1.5 12s4-7.5 10.5-7.5S22.5 12 22.5 12s-4 7.5-10.5 7.5S1.5 12 1.5 12z" />
+                                <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" fill="none" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="text-meta-1 text-sm mt-1">{{ manager_form.confirm_password.errors }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="flex items-center justify-end space-x-4 mt-8 gap-3">
+        <button type="button" id="cancelBtn"
+            class="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:bg-boxdark dark:text-white dark:border-form-strokedark cancel-btn">
+            Cancel
+        </button>
+        <button type="submit" id="submitBtn"
+            class="inline-flex justify-center rounded-md border border-transparent bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-focus focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:bg-accent dark:hover:bg-accent-focus dark:focus:ring-accent">
+            Create Branch
+        </button>
+    </div>
+   <script>
+    // Remove the problematic global error handler that causes alerts
+    // window.addEventListener('error', function (event) {
+    //     alert('A JavaScript error occurred: ' + event.message);
+    //     console.error('Page load error:', event);
+    // });
+
+    document
+  .getElementById("branchForm")
+  .addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    // Validate form first
+    if (!validateForm()) {
+      return;
+    }
+
+    const form = this;
+    const formData = new FormData(form);
+    const submitBtn = document.getElementById("submitBtn");
+
+    // Strip spaces from Aadhaar number before submission
+    const govIdNumberInput = document.querySelector(
+      '[name="manager-gov_id_number"]'
+    );
+    if (govIdNumberInput) {
+      const govIdNumber = govIdNumberInput.value.replace(/\s/g, "");
+      formData.set("manager-gov_id_number", govIdNumber);
+    }
+
+    try {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = "Creating...";
+      showLoader(); // 🔥 show loader before request
+
+      const response = await fetch("{% url 'hq:register_branch' %}", {
+        method: "POST",
+        body: formData,
+        headers: {
+          "X-CSRFToken": document.querySelector(
+            "[name=csrfmiddlewaretoken]"
+          ).value,
+          "X-Requested-With": "XMLHttpRequest",
+        },
+      });
+
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        data = { message: "Invalid server response." };
+        console.error("JSON parse error:", jsonError);
+      }
+
+      if (response.ok && data && data.message) {
+        // ✅ Success
+        form.reset();
+        window.showToast(data.message, "success");
+
+        const successDiv = document.createElement("div");
+        successDiv.className =
+          "mb-4 p-4 rounded-lg bg-green-50 border-l-4 border-green-400";
+        successDiv.innerHTML = `
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-green-800">${data.message}</h3>
+              </div>
+            </div>
+        `;
+        form.parentNode.insertBefore(successDiv, form);
+
+        // redirect after 2s
+        setTimeout(function () {
+          hideLoader(); // hide loader before redirect
+          window.location.href = "{% url 'hq:branch_management' %}";
+        }, 2000);
+      } else {
+        // ❌ Error handling
+        document.querySelectorAll(".field-error").forEach((el) => el.remove());
+        document.querySelectorAll("input, select, textarea").forEach((input) =>
+          input.classList.remove("border-red-500")
+        );
+
+        if (data.errors) {
+          Object.entries(data.errors).forEach(([field, messages]) => {
+            let fieldElement = form.querySelector(`[name="${field}"]`);
+            if (fieldElement && messages.length > 0) {
+              showFieldError(fieldElement, messages[0]);
+            }
+          });
+
+          if (data.invalid_input) {
+            window.showToast(
+              "Duplicate entry detected. Please use different data.",
+              "error"
+            );
+          } else {
+            const firstError = Object.values(data.errors)[0][0];
+            window.showToast(firstError, "error");
+          }
+        } else if (data.message) {
+          window.showToast(data.message, "error");
+        } else {
+          window.showToast("Branch creation failed.", "error");
+        }
+
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "Create Branch";
+        hideLoader(); // hide loader on error
+      }
+    } catch (error) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = "Create Branch";
+      window.showToast("An error occurred. Please try again.", "error");
+      console.error("AJAX submission error:", error);
+      hideLoader(); // hide loader on fetch error
+    }
+  });
+
+    // Cancel button event handler
+    document
+      .getElementById("cancelBtn")
+      .addEventListener("click", function (e) {
+        e.preventDefault();
+        window.location.href = "{% url 'hq:branch_management' %}";
+      });
+
+    function validateForm() {
+      // Reset all error messages
+      // document.getElementById('formErrors').classList.add('hidden');
+      // document.getElementById('errorMessages').innerHTML = '';
+
+      // Clear all existing field errors
+      const existingErrors = document.querySelectorAll(".field-error");
+      existingErrors.forEach((error) => error.remove());
+
+      // Remove red borders from all fields
+      const allInputs = document.querySelectorAll("input, select, textarea");
+      allInputs.forEach((input) => {
+        input.classList.remove("border-red-500");
+      });
+
+      // Get form elements with correct prefixes
+      const form = document.getElementById("branchForm");
+      const branchName = form.querySelector('[name="branch-branch_name"]');
+      const branchEmail = form.querySelector('[name="branch-email"]');
+      const addressLine1 = form.querySelector('[name="branch-address_line_1"]');
+      const city = form.querySelector('[name="branch-city"]');
+      const state = form.querySelector('[name="branch-state"]');
+      const postalCode = form.querySelector('[name="branch-postal_code"]');
+      const country = form.querySelector('[name="branch-country"]');
+      const district = form.querySelector('[name="branch-district"]');
+      // const managerId = form.querySelector('[name="manager-manager_id"]');
+      const managerEmail = form.querySelector('[name="manager-email"]');
+      const managerPassword = form.querySelector('[name="manager-password"]');
+      const managerConfirmPassword = form.querySelector(
+        '[name="manager-confirm_password"]'
+      );
+      const managerFirstName = form.querySelector(
+        '[name="manager-first_name"]'
+      );
+      const managerLastName = form.querySelector('[name="manager-last_name"]');
+      const managerGender = form.querySelector('[name="manager-gender"]');
+      const managerGovIdType = form.querySelector(
+        '[name="manager-gov_id_type"]'
+      );
+      const managerGovIdNumber = form.querySelector(
+        '[name="manager-gov_id_number"]'
+      );
+      const branchContact = form.querySelector(
+        '[name="branch-contact_number"]'
+      );
+      const managerPhone = form.querySelector('[name="manager-phone_number"]');
+      const managerAddress = form.querySelector('[name="manager-address"]');
+      const managerDOB = form.querySelector('[name="manager-date_of_birth"]');
+      const phoneRegex = /^\d{10}$/;
+      const postelRegex = /^\{6}$/;
+
+      let hasErrors = false;
+
+      // Validate branch form fields
+      if (!branchName?.value?.trim()) {
+        showFieldError(branchName, "Branch Name is required");
+        hasErrors = true;
+      }
+      if (!branchEmail?.value?.trim()) {
+        showFieldError(branchEmail, "Branch Email is required");
+        hasErrors = true;
+      }
+      if (!addressLine1?.value?.trim()) {
+        showFieldError(addressLine1, "Address Line 1 is required");
+        hasErrors = true;
+      }
+      if (!city?.value?.trim()) {
+        showFieldError(city, "City is required");
+        hasErrors = true;
+      }
+      if (!state?.value?.trim()) {
+        showFieldError(state, "State is required");
+        hasErrors = true;
+      }
+      if (!district?.value?.trim()) {
+        showFieldError(district, "District is required");
+        hasErrors = true;
+      }
+      if (!postalCode?.value?.trim()) {
+        showFieldError(postalCode, "Postal Code is required");
+        hasErrors = true;
+      }
+      // if (!postalCode?.value?.trim() && !postelRegex.text(postalCode.value.trim())) {
+      //     showFieldError(postalCode, 'Enter a valid 6-digit postal code');
+      //     hasErrors = true;
+      // }
+      if (!country?.value?.trim()) {
+        showFieldError(country, "Country is required");
+        hasErrors = true;
+      }
+      if (branchContact) {
+        if (!branchContact.value.trim()) {
+          showFieldError(branchContact, "Contact Number is required");
+          hasErrors = true;
+        } else if (!phoneRegex.test(branchContact.value.trim())) {
+          showFieldError(branchContact, "Enter a valid 10-digit phone number");
+          hasErrors = true;
+        }
+      }
+
+      // Validate manager form fields
+      // if (!managerId?.value?.trim()) {
+      //   showFieldError(managerId, "Manager ID is required");
+      //   hasErrors = true;
+      // }
+      if (!managerEmail?.value?.trim()) {
+        showFieldError(managerEmail, "Manager Email is required");
+        hasErrors = true;
+      }
+      if (!managerPassword?.value?.trim()) {
+        showFieldError(managerPassword, "Manager Password is required");
+        hasErrors = true;
+      }
+      if (!managerConfirmPassword?.value?.trim()) {
+        showFieldError(managerConfirmPassword, "Confirm Password is required");
+        hasErrors = true;
+      }
+      if (
+        managerPassword &&
+        managerConfirmPassword &&
+        managerPassword.value &&
+        managerConfirmPassword.value &&
+        managerPassword.value !== managerConfirmPassword.value
+      ) {
+        showFieldError(managerConfirmPassword, "Passwords do not match");
+        hasErrors = true;
+      }
+      if (!managerFirstName?.value?.trim()) {
+        showFieldError(managerFirstName, "First Name is required");
+        hasErrors = true;
+      }
+      if (!managerLastName?.value?.trim()) {
+        showFieldError(managerLastName, "Last Name is required");
+        hasErrors = true;
+      }
+      if (!managerGender?.value) {
+        showFieldError(managerGender, "Gender is required");
+        hasErrors = true;
+      }
+      if (!managerGovIdType?.value) {
+        showFieldError(managerGovIdType, "Gov ID Type is required");
+        hasErrors = true;
+      }
+      if (!managerGovIdNumber?.value?.trim()) {
+        showFieldError(managerGovIdNumber, "Gov ID Number is required");
+        hasErrors = true;
+      }
+      if (managerPhone) {
+        if (!managerPhone.value.trim()) {
+          showFieldError(managerPhone, "Phone Number is required");
+          hasErrors = true;
+        } else if (!phoneRegex.test(managerPhone.value.trim())) {
+          showFieldError(managerPhone, "Enter a valid 10-digit phone number");
+          hasErrors = true;
+        }
+      }
+      // Manager Address validation
+      if (!managerAddress?.value?.trim()) {
+        showFieldError(managerAddress, "Address is required");
+        hasErrors = true;
+      }
+      // Manager Date of Birth validation
+      if (!managerDOB?.value?.trim()) {
+        showFieldError(managerDOB, "Date of Birth is required");
+        hasErrors = true;
+      } else {
+        // Check age is between 18 and 60
+        const dob = new Date(managerDOB.value);
+        const today = new Date();
+        let age = today.getFullYear() - dob.getFullYear();
+        const m = today.getMonth() - dob.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+          age--;
+        }
+        if (age < 18 || age > 60) {
+          showFieldError(
+            managerDOB,
+            "Manager must be between 18 and 60 years old"
+          );
+          hasErrors = true;
+        }
+      }
+
+      if (hasErrors) {
+        console.error("Client-side validation errors found");
+        return false;
+      }
+      return true;
+    }
+
+    function showFieldError(field, message) {
+      if (!field) return;
+
+      // Add red border to field
+      field.classList.add("border-red-500");
+
+      // Create error message element with red text
+      const errorDiv = document.createElement("div");
+      errorDiv.className = "text-error-500 text-sm mt-1 field-error";
+      errorDiv.textContent = message;
+
+      // Insert error message after the field
+      const fieldContainer = field.closest(".form-group");
+      if (fieldContainer) {
+        fieldContainer.appendChild(errorDiv);
+      } else {
+        field.parentNode.appendChild(errorDiv);
+      }
+    }
+
+    // Remove error message and red border for a field
+    function removeFieldError(field) {
+      if (!field) return;
+      field.classList.remove("border-red-500");
+      // Remove only the error message related to this field
+      const fieldContainer = field.closest(".form-group");
+      if (fieldContainer) {
+        const errorDivs = fieldContainer.querySelectorAll(".field-error");
+        errorDivs.forEach((div) => div.remove());
+      }
+    }
+
+    // Reset form on page load
+    document.addEventListener("DOMContentLoaded", function () {
+      const form = document.getElementById("branchForm");
+      if (form) {
+        form.reset();
+        // document.getElementById('formErrors').classList.add('hidden');
+        // document.getElementById('errorMessages').innerHTML = '';
+        const submitBtn = document.getElementById("submitBtn");
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = "Create Branch";
+        }
+      }
+
+      // Auto-fill country, city, and state based on postal code
+      const postalCodeInput = document.querySelector(
+        '[name="branch-postal_code"]'
+      );
+      const countryInput = document.querySelector('[name="branch-country"]');
+      const cityInput = document.querySelector('[name="branch-city"]');
+      const stateInput = document.querySelector('[name="branch-state"]');
+      const districtInput = document.querySelector('[name="branch-district"]');
+      // Optional: Add a loading indicator
+      let postalLoading = null;
+      if (
+        postalCodeInput &&
+        countryInput &&
+        cityInput &&
+        stateInput &&
+        districtInput
+      ) {
+        postalCodeInput.addEventListener("blur", function () {
+          const pin = postalCodeInput.value.trim();
+          if (/^\d{6}$/.test(pin)) {
+            // Show loading indicator
+            if (!postalLoading) {
+              postalLoading = document.createElement("div");
+              postalLoading.className = "text-sm text-brand-500 mt-1";
+              cityInput.value = "Fetching city...";
+              stateInput.value = "Fetching state...";
+              countryInput.value = "Fetching country...";
+              districtInput.value = "Fetching district...";
+              postalCodeInput.parentNode.appendChild(postalLoading);
+            } else {
+              postalLoading.style.display = "";
+            }
+            // Function to remove loading styles
+            const removeLoadingStyles = () => {
+              [cityInput, stateInput, countryInput, districtInput].forEach(
+                (input) => {
+                  input.classList.remove("bg-gray-500", "text-brand-500");
+                  input.style.cursor = "";
+                  input.style.fontStyle = "";
+                }
+              );
+            };
+
+            // Apply loading styles
+            [cityInput, stateInput, countryInput, districtInput].forEach(
+              (input) => {
+                input.classList.add("bg-gray-500", "text-brand-500");
+                input.style.cursor = "wait";
+                input.style.fontStyle = "italic";
+              }
+            );
+
+            fetch(`https://api.postalpincode.in/pincode/${pin}`)
+              .then((response) => response.json())
+              .then((data) => {
+                // console.log(data);
+
+                if (postalLoading) postalLoading.style.display = "none";
+                removeLoadingStyles();
+                if (
+                  data &&
+                  data[0].Status === "Success" &&
+                  data[0].PostOffice &&
+                  data[0].PostOffice.length > 0
+                ) {
+                  const postOffice = data[0].PostOffice[0];
+
+                  let block = postOffice.Block ? postOffice.Block.trim() : "";
+                  if (!block || block.toUpperCase() === "NA") {
+                    block = "";
+                  }
+                  let division = postOffice.Division
+                    ? postOffice.Division.trim()
+                    : "";
+
+                  cityInput.value = block ? block : division;
+                  stateInput.value = postOffice.State || "";
+                  countryInput.value = postOffice.Country || "India";
+                  districtInput.value = postOffice.District || "";
+
+                  // ✅ Clear errors for these fields after auto-fill
+                  [cityInput, stateInput, countryInput, districtInput].forEach(
+                    (field) => {
+                      removeFieldError(field);
+                    }
+                  );
+                } else {
+                  cityInput.value = "";
+                  stateInput.value = "";
+                  countryInput.value = "";
+                  districtInput.value = "";
+                  alert("No location found for this postal code.");
+                }
+              })
+              .catch(() => {
+                if (postalLoading) postalLoading.style.display = "none";
+                cityInput.value = "";
+                stateInput.value = "";
+                countryInput.value = "";
+                districtInput.value = "";
+                [cityInput, stateInput, countryInput, districtInput].forEach(
+                  (input) => {
+                    input.classList.remove(
+                      "bg-gray-500",
+                      "text-sm",
+                      "text-brand-500"
+                    );
+                  }
+                );
+                alert("Failed to fetch location for this postal code.");
+              });
+          }
+        });
+      }
+
+      // Government ID validation
+      const govIdTypeSelect = document.querySelector(
+        '[name="manager-gov_id_type"]'
+      );
+      const govIdNumberInput = document.querySelector(
+        '[name="manager-gov_id_number"]'
+      );
+
+      if (govIdTypeSelect && govIdNumberInput) {
+        // Set initial placeholder based on default value
+        updateGovIdPlaceholder();
+
+        govIdTypeSelect.addEventListener("change", function () {
+          updateGovIdPlaceholder();
+          validateGovIdNumber();
+        });
+
+        govIdNumberInput.addEventListener("input", function (e) {
+          const govIdType = govIdTypeSelect.value;
+
+          if (govIdType === "pan") {
+            this.value = this.value.toUpperCase();
+          } else if (govIdType === "passport") {
+            this.value = this.value.toUpperCase();
+          } else if (govIdType === "driving_license") {
+            this.value = this.value.toUpperCase();
+          } else if (govIdType === "voter_id") {
+            this.value = this.value.toUpperCase();
+          } else if (govIdType === "other") {
+            this.value = this.value.toUpperCase();
+          } else if (govIdType === "aadhar") {
+            // Get current cursor position
+            const cursorPosition = this.selectionStart;
+
+            // Remove all non-digit characters and limit to 12 digits
+            let value = this.value.replace(/\D/g, "").substring(0, 12);
+
+            // Format with spaces after every 4 digits
+            let formatted = "";
+            for (let i = 0; i < value.length; i++) {
+              if (i > 0 && i % 4 === 0) {
+                formatted += " ";
+              }
+              formatted += value[i];
+            }
+
+            // Update the input value
+            this.value = formatted;
+
+            // Restore cursor position (accounting for added spaces)
+            const addedSpaces = Math.floor(
+              Math.min(cursorPosition, value.length) / 4
+            );
+            const newPosition = Math.min(
+              cursorPosition + addedSpaces,
+              this.value.length
+            );
+            this.setSelectionRange(newPosition, newPosition);
+
+            // Update maxlength to account for spaces
+            this.maxLength = 14; // 12 digits + 2 spaces
+          }
+
+          validateGovIdNumber();
+        });
+      }
+
+      function updateGovIdPlaceholder() {
+        const govIdType = govIdTypeSelect.value;
+        let placeholder = "Enter government ID number";
+        let maxLength = "";
+
+        switch (govIdType) {
+          case "aadhar":
+            placeholder = "Enter 12-digit Aadhar number (e.g., 123456789012)";
+            maxLength = 12;
+            break;
+          case "pan":
+            placeholder = "Enter PAN number (e.g., ABCDE1234F)";
+            maxLength = 10;
+            break;
+          case "passport":
+            placeholder = "Enter passport number (8 characters)";
+            maxLength = 8;
+            break;
+          case "driving_license":
+            placeholder = "Enter driving license number (16 characters)";
+            maxLength = 16;
+            break;
+          case "voter_id":
+            placeholder = "Enter voter ID number (10 characters)";
+            maxLength = 10;
+            break;
+          case "other":
+            placeholder = "Enter government ID number";
+            maxLength = "";
+            break;
+          default:
+            placeholder = "Enter government ID number";
+            maxLength = "";
+            break;
+        }
+        govIdNumberInput.placeholder = placeholder;
+        if (maxLength) {
+          govIdNumberInput.maxLength = maxLength;
+        } else {
+          govIdNumberInput.removeAttribute("maxLength");
+        }
+      }
+
+      function validateGovIdNumber() {
+        const govIdType = govIdTypeSelect.value;
+        const govIdNumber = govIdNumberInput.value
+          .replace(/\s/g, "")
+          .toUpperCase();
+
+        // Remove any existing validation messages
+        const existingError =
+          govIdNumberInput.parentNode.querySelector(".gov-id-error");
+        if (existingError) {
+          existingError.remove();
+        }
+
+        if (!govIdType || !govIdNumber) {
+          return;
+        }
+
+        let isValid = true;
+        let errorMessage = "";
+
+        switch (govIdType) {
+          case "aadhar":
+            if (!/^\d{12}$/.test(govIdNumber)) {
+              isValid = false;
+              errorMessage = "Aadhar Card number must be exactly 12 digits.";
+            }
+            break;
+          case "pan":
+            if (!/^[A-Z]{5}\d{4}[A-Z]$/.test(govIdNumber)) {
+              isValid = false;
+              errorMessage =
+                "PAN Card format should be: ABCDE1234F (5 letters + 4 digits + 1 letter).";
+            }
+            break;
+          case "passport":
+            if (govIdNumber.length < 8 || govIdNumber.length > 9) {
+              isValid = false;
+              errorMessage = "Passport number should be 8-9 characters long.";
+            }
+            break;
+          case "driving_license":
+            if (govIdNumber.length < 15 || govIdNumber.length > 16) {
+              isValid = false;
+              errorMessage =
+                "Driving License number should be 15-16 characters long.";
+            }
+            break;
+          case "voter_id":
+            if (govIdNumber.length !== 10) {
+              isValid = false;
+              errorMessage = "Voter ID number must be exactly 10 characters.";
+            }
+            break;
+        }
+
+        if (!isValid) {
+          const errorDiv = document.createElement("div");
+          errorDiv.className =
+            "text-meta-1 text-sm mt-1 gov-id-error text-error-500";
+          errorDiv.textContent = errorMessage;
+          govIdNumberInput.parentNode.appendChild(errorDiv);
+          govIdNumberInput.classList.add("border-red-500");
+        } else {
+          govIdNumberInput.classList.remove("border-red-500");
+        }
+      }
+
+      // Auto-sync Manager Email to Login Credentials Email (display only)
+      const managerEmailInput = document.querySelector(
+        '[name="manager-email"]'
+      );
+      const loginEmailDisplay = document.getElementById("login-email-display");
+      if (managerEmailInput && loginEmailDisplay) {
+        managerEmailInput.addEventListener("input", function () {
+          loginEmailDisplay.value = managerEmailInput.value;
+        });
+      }
+
+      // Password show/hide toggle
+      document.querySelectorAll(".password-toggle").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          const targetId = btn.getAttribute("data-target");
+          const input = document.getElementById(targetId);
+          if (input) {
+            if (input.type === "password") {
+              input.type = "text";
+              btn.querySelector("svg").classList.add("text-brand-500");
+            } else {
+              input.type = "password";
+              btn.querySelector("svg").classList.remove("text-brand-500");
+            }
+          }
+        });
+      });
+
+      // --- Add input/change listeners to remove error on value entry ---
+      const requiredFieldSelectors = [
+        '[name="branch-branch_name"]',
+        '[name="branch-email"]',
+        '[name="branch-address_line_1"]',
+        '[name="branch-city"]',
+        '[name="branch-state"]',
+        '[name="branch-postal_code"]',
+        '[name="branch-country"]',
+        '[name="branch-contact_number"]',
+        '[name="manager-manager_id"]',
+        '[name="manager-email"]',
+        '[name="manager-password"]',
+        '[name="manager-confirm_password"]',
+        '[name="manager-first_name"]',
+        '[name="manager-last_name"]',
+        '[name="manager-gender"]',
+        '[name="manager-gov_id_type"]',
+        '[name="manager-gov_id_number"]',
+        '[name="manager-address"]',
+        '[name="manager-date_of_birth"]',
+        '[name="manager-phone_number"]',
+      ];
+      // Real-time validation for all required fields
+      requiredFieldSelectors.forEach((selector) => {
+        const field = document.querySelector(selector);
+        if (field) {
+          const validateField = () => {
+            removeFieldError(field);
+            // Branch fields
+            if (selector === '[name="branch-branch_name"]') {
+              if (!field.value.trim())
+                showFieldError(field, "Branch Name is required");
+            } else if (selector === '[name="branch-email"]') {
+              if (!field.value.trim()) {
+                showFieldError(field, "Branch Email is required");
+              } else if (!/^[^@]+@[^@]+\.[^@]+$/.test(field.value.trim())) {
+                showFieldError(
+                  field,
+                  "Enter a valid email address (e.g., abc@gmail.com)"
+                );
+              }
+            } else if (selector === '[name="branch-address_line_1"]') {
+              if (!field.value.trim())
+                showFieldError(field, "Address Line 1 is required");
+            } else if (selector === '[name="branch-city"]') {
+              if (!field.value.trim())
+                showFieldError(field, "City is required");
+            } else if (selector === '[name="branch-state"]') {
+              if (!field.value.trim())
+                showFieldError(field, "State is required");
+            } else if (selector === '[name="branch-postal_code"]') {
+              if (!field.value.trim()) {
+                showFieldError(field, "Postal Code is required");
+              } else if (!/^\d{6}$/.test(field.value.trim())) {
+                showFieldError(field, "Enter a valid 6-digit postal code");
+              }
+            } else if (selector === '[name="branch-country"]') {
+              if (!field.value.trim())
+                showFieldError(field, "Country is required");
+            } else if (selector === '[name="branch-contact_number"]') {
+              if (!field.value.trim()) {
+                showFieldError(field, "Contact Number is required");
+              } else if (!/^\d{10}$/.test(field.value.trim())) {
+                showFieldError(field, "Enter a valid 10-digit phone number");
+              }
+            } else if (selector === '[name="manager-manager_id"]') {
+              if (!field.value.trim())
+                showFieldError(field, "Manager ID is required");
+            } else if (selector === '[name="manager-email"]') {
+              if (!field.value.trim()) {
+                showFieldError(field, "Manager Email is required");
+              } else if (!/^[^@]+@[^@]+\.[^@]+$/.test(field.value.trim())) {
+                showFieldError(
+                  field,
+                  "Enter a valid email address (e.g., abc@gmail.com)"
+                );
+              }
+            } else if (selector === '[name="manager-password"]') {
+              if (!field.value.trim())
+                showFieldError(field, "Manager Password is required");
+            } else if (selector === '[name="manager-confirm_password"]') {
+              const passwordField = document.querySelector(
+                '[name="manager-password"]'
+              );
+              if (!field.value.trim()) {
+                showFieldError(field, "Confirm Password is required");
+              } else if (
+                passwordField &&
+                passwordField.value &&
+                field.value !== passwordField.value
+              ) {
+                showFieldError(field, "Passwords do not match");
+              }
+            } else if (selector === '[name="manager-first_name"]') {
+              if (!field.value.trim())
+                showFieldError(field, "First Name is required");
+            } else if (selector === '[name="manager-last_name"]') {
+              if (!field.value.trim())
+                showFieldError(field, "Last Name is required");
+            } else if (selector === '[name="manager-gender"]') {
+              if (!field.value) showFieldError(field, "Gender is required");
+            } else if (selector === '[name="manager-gov_id_type"]') {
+              if (!field.value)
+                showFieldError(field, "Gov ID Type is required");
+            } else if (selector === '[name="manager-gov_id_number"]') {
+              if (!field.value.trim()) {
+                showFieldError(field, "Gov ID Number is required");
+              } // Additional format validation is handled elsewhere
+            } else if (selector === '[name="manager-address"]') {
+              if (!field.value.trim())
+                showFieldError(field, "Address is required");
+            } else if (selector === '[name="manager-date_of_birth"]') {
+              if (!field.value.trim()) {
+                showFieldError(field, "Date of Birth is required");
+              } else {
+                const dob = new Date(field.value);
+                const today = new Date();
+                let age = today.getFullYear() - dob.getFullYear();
+                const m = today.getMonth() - dob.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+                  age--;
+                }
+                if (age < 18 || age > 60) {
+                  showFieldError(
+                    field,
+                    "Manager must be between 18 and 60 years old"
+                  );
+                }
+              }
+            } else if (selector === '[name="manager-phone_number"]') {
+              if (!field.value.trim()) {
+                showFieldError(field, "Phone Number is required");
+              } else if (!/^\d{10}$/.test(field.value.trim())) {
+                showFieldError(field, "Enter a valid 10-digit phone number");
+              }
+            }
+          };
+          // Use input for text fields, change for select/date fields
+          if (field.tagName === "SELECT" || field.type === "date") {
+            field.addEventListener("change", validateField);
+          } else {
+            field.addEventListener("input", validateField);
+          }
+        }
+      });
+      // For select fields, also listen to 'change' event
+      ['[name="manager-gender"]', '[name="manager-gov_id_type"]'].forEach(
+        (selector) => {
+          const field = document.querySelector(selector);
+          if (field) {
+            field.addEventListener("change", function () {
+              if (field.value && field.value.trim() !== "") {
+                removeFieldError(field);
+              }
+            });
+          }
+        }
+      );
+      // --- End input/change listeners ---
+    });
+  </script>
+
+
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="/static/main/js/main.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (window.flatpickr) {
+      const today = new Date();
+
+      // Date range for people aged between 18 and 60
+      const minDate = new Date(today.getFullYear() - 60, today.getMonth(), today.getDate()); // 60 years ago
+      const maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate()); // 18 years ago
+
+      document.querySelectorAll('.dateofbirth').forEach(function (el) {
+        flatpickr(el, {
+          mode: 'single',
+          dateFormat: 'Y-m-d',
+          minDate: minDate,
+          maxDate: maxDate,
+          allowInput: true
+        });
+      });
+    }
+  });
+</script>
+{% endblock %}
+
+</form>

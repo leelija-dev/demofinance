@@ -1,0 +1,6 @@
+# Run update_overdue_emis.py every day at 12 AM
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+# m h dom mon dow user  command
+0 0 * * *   root    /app/cronjobs/update_overdue_emis.sh >> /var/log/cron.log 2>&1

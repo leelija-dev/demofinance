@@ -1,0 +1,242 @@
+{% extends 'hq/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_id %}RoleManagement{% endblock %}
+{% load custom_filters %}
+
+{% block content %}
+
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+  <!-- Breadcrumb Start -->
+  <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <h2 class="text-title-md2 font-bold text-black dark:text-white">
+      {{ title }}
+    </h2>
+    <nav>
+      <ol class="flex items-center gap-2">
+        <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+            href="{% url 'hq:dashboard' %}">Dashboard <svg class="stroke-current" width="17" height="16"
+              viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2"
+                stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg></a></li>
+        <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+            href="{% url 'hq:role_management' %}">Role Management<svg class="stroke-current" width="17" height="16"
+              viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2"
+                stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg></a></li>
+        <li class="text-sm text-gray-800 dark:text-white/90">{{ title }}</li>
+      </ol>
+    </nav>
+  </div>
+  <!-- Breadcrumb End -->
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white dark:bg-boxdark px-4 pt-5 pb-4 mt-5 sm:p-6 sm:pb-4 flex-1 overflow-y-auto w-1/2 mx-auto rounded-2xl">
+        <!-- <h1 class="text-2xl font-bold mb-6">{{ title }}</h1> -->
+        
+        <form id="roleForm" method="post" class="space-y-6" novalidate>
+            {% csrf_token %}
+            <div class="space-y-4">
+                <div>
+                    <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Role Name
+                        <span class="text-red-500">*</span>
+                    </label>
+                    <div class="mt-1">
+                        {{ form.name }}
+                        <p id="nameClientError" class="text-red-500 text-xs italic mt-1 hidden"></p>
+                        {% if form.name.errors %}
+                        <p class="text-red-500 text-xs italic mt-1">
+                            {{ form.name.errors|join:", " }}
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div>
+                    <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Description
+                    </label>
+                    <div class="mt-1">
+                        {{ form.description }}
+                        <p id="descriptionClientError" class="text-red-500 text-xs italic mt-1 hidden"></p>
+                        {% if form.description.errors %}
+                        <p class="text-red-500 text-xs italic mt-1">
+                            {{ form.description.errors|join:", " }}
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Permissions Section -->
+                <div id="permissionsSection" class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-medium text-gray-800 mb-4">Permissions</h3>
+                    <p class="text-sm text-gray-500 mb-4">Select the permissions to assign to this role.</p>
+                    <p id="permissionsClientError" class="text-red-500 text-xs italic mb-4 hidden"></p>
+                    
+                    {% if form.permissions.errors %}
+                        <div class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
+                            {{ form.permissions.errors }}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="space-y-6">
+
+                        <!-- Debug Info - Remove this later -->
+                        <!-- <div class="p-4 mb-4 bg-yellow-50 border-l-4 border-yellow-400">
+                            <h4 class="font-bold mb-2">Debug Info:</h4>
+                            <p class="text-sm"><strong>form.permissions.value:</strong> {{ form.permissions.value|default:"None" }}</p>
+                            <p class="text-sm"><strong>form.permissions.initial:</strong> {{ form.permissions.initial|default:"None" }}</p>
+                            {% if form.instance.pk %}
+                            <p class="text-sm"><strong>form.instance.permissions.all:</strong> 
+                                {% for perm in form.instance.permissions.all %}{{ perm.id }},{% endfor %}
+                            </p>
+                            {% endif %}
+                        </div> -->
+
+                        {% for app_label, app_permissions in form.fields.permissions.choices %}
+                            <div class="border border-gray-200 rounded-lg overflow-hidden mt-4">
+                                <div class="bg-gray-100 px-4 py-2 border-b border-gray-200">
+                                    <h4 class="font-medium text-gray-800">{{ app_label|title }}</h4>
+                                </div>
+                                <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {% for perm_id, perm_name in app_permissions %}
+                                        <div class="flex items-center">
+                                            <input type="checkbox" 
+                                                name="permissions" 
+                                                value="{{ perm_id }}" 
+                                                id="perm_{{ perm_id }}"
+                                                {% if perm_id in form.permissions.value %}checked{% endif %}
+                                                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                            <label for="perm_{{ perm_id }}" class="ml-2 block text-sm text-gray-700">
+                                                {{ perm_name }}
+                                            </label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3 gap-3">
+                    <button type="button" onclick="window.history.back()" class="inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Back
+                    </button>
+                    <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-brand-500 border border-transparent rounded-md hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500">
+                        {% if 'Edit' in title %}Update{% else %}Create{% endif %} Role
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('roleForm');
+    if (!form) return;
+
+    form.noValidate = true;
+
+    const nameInput = form.querySelector('[name="name"]');
+    const descriptionInput = form.querySelector('[name="description"]');
+
+    const nameErrorEl = document.getElementById('nameClientError');
+    const descriptionErrorEl = document.getElementById('descriptionClientError');
+    const permissionsErrorEl = document.getElementById('permissionsClientError');
+
+    const setInvalidBorder = (el, invalid) => {
+      if (!el) return;
+      if (invalid) {
+        el.classList.add('focus:outline-none');
+        el.classList.add('outline-none');
+        el.classList.remove('focus:ring-blue-500');
+        el.classList.remove('focus:border-blue-500');
+        el.classList.remove('focus:ring-indigo-500');
+        el.classList.remove('focus:border-indigo-500');
+        el.classList.remove('focus:ring-brand-500');
+        el.classList.remove('focus:border-brand-500');
+        el.classList.add('border-red-500');
+        el.classList.add('ring-1');
+        el.classList.add('ring-red-500');
+        el.classList.add('focus:ring-red-500');
+        el.classList.add('focus:border-red-500');
+      } else {
+        el.classList.remove('border-red-500');
+        el.classList.remove('ring-1');
+        el.classList.remove('ring-red-500');
+        el.classList.remove('focus:ring-red-500');
+        el.classList.remove('focus:border-red-500');
+      }
+    };
+
+    const setError = (el, message) => {
+      if (!el) return;
+      if (message) {
+        el.textContent = message;
+        el.classList.remove('hidden');
+      } else {
+        el.textContent = '';
+        el.classList.add('hidden');
+      }
+    };
+
+    const getFieldValue = (fieldName) => {
+      const input = form.querySelector(`[name="${fieldName}"]`);
+      return input ? String(input.value || '').trim() : '';
+    };
+
+    const validate = () => {
+      let isValid = true;
+
+      const name = getFieldValue('name');
+      const checkedPermissions = form.querySelectorAll('input[name="permissions"]:checked').length;
+
+      setError(nameErrorEl, '');
+      setError(descriptionErrorEl, '');
+      setError(permissionsErrorEl, '');
+
+      setInvalidBorder(nameInput, false);
+      setInvalidBorder(descriptionInput, false);
+
+      if (!name) {
+        setError(nameErrorEl, 'Role name is required.');
+        setInvalidBorder(nameInput, true);
+        isValid = false;
+      }
+
+      if (checkedPermissions === 0) {
+        setError(permissionsErrorEl, 'Please select at least one permission.');
+        isValid = false;
+      }
+
+      return isValid;
+    };
+
+    form.addEventListener('submit', (e) => {
+      const ok = validate();
+      if (!ok) {
+        e.preventDefault();
+        if (window.showToast) {
+          window.showToast('Please fix the highlighted errors and try again.', 'error');
+        }
+      }
+    });
+
+    form.addEventListener('input', (e) => {
+      const target = e.target;
+      if (!target) return;
+      if (target.name === 'name' || target.name === 'description') validate();
+    });
+
+    form.addEventListener('change', (e) => {
+      const target = e.target;
+      if (!target) return;
+      if (target.name === 'permissions') validate();
+    });
+  });
+</script>
+{% endblock %}

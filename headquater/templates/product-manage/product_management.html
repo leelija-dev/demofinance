@@ -1,0 +1,514 @@
+{% extends 'hq/base.html' %}
+{% load static %}
+
+{% block title %}Product Management - Headquarters{% endblock %}
+{% block page_id %}ProductManagement{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-(--breakpoint-2xl) p-4 md:p-6">
+  <div class="flex items-center flex-col sm:flex-row justify-between mb-6">
+    <h2 class="text-title-md2 font-bold text-black dark:text-white">Product Management</h2>
+  </div>
+
+  <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] mb-10">
+    <div class="px-5 py-4 sm:px-6 sm:py-5 flex justify-between items-center">
+    <div class="">
+      <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Product Main Categories</h3>
+    </div>
+    <div class="">
+        <button type="button" id="openAddMainModalBtn" class="bg-brand-500 text-white px-4 py-2 rounded">Add Main Product</button>
+    </div>
+    </div>
+    <div class="border-t border-gray-100 p-5 sm:p-6 dark:border-gray-800">
+      <div class="max-w-full overflow-x-auto custom-scrollbar">
+        <table class="w-full min-w-[900px]">
+          <thead>
+            <tr class="border-b border-gray-100 dark:border-gray-800">
+              <th class="px-5 py-3 text-left sm:px-6"><p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">ID</p></th>
+              <th class="px-5 py-3 text-left sm:px-6"><p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Name</p></th>
+              <th class="px-5 py-3 text-left sm:px-6"><p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Loan Main Category</p></th>
+              <th class="px-5 py-3 text-left sm:px-6"><p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Loan Category</p></th>
+              <th class="px-5 py-3 text-left sm:px-6"><p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Status</p></th>
+              <th class="px-5 py-3 text-left sm:px-6"><p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Actions</p></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for main in main_categories %}
+            <tr class="border-b border-gray-100 dark:border-gray-800">
+              <td class="px-5 py-4 sm:px-6"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ main.main_category_id }}</p></td>
+              <td class="px-5 py-4 sm:px-6"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ main.name }}</p></td>
+              <td class="px-5 py-4 sm:px-6"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ main.loan_main_category.name|default:"N/A" }}</p></td>
+              <td class="px-5 py-4 sm:px-6"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ main.loan_category.name|default:"N/A" }}</p></td>
+              <td class="px-5 py-4 sm:px-6">
+                {% if main.is_active %}
+                <span class="text-success-700 bg-success-50 dark:bg-success-500/15 dark:text-success-500 inline-block rounded-full px-2 py-0.5 font-medium">Active</span>
+                {% else %}
+                <span class="text-error-700 bg-error-50 dark:bg-error-500/15 dark:text-error-500 inline-block rounded-full px-2 py-0.5 font-medium">Inactive</span>
+                {% endif %}
+              </td>
+              <td class="px-5 py-4 sm:px-6">
+                <div class="flex items-center gap-3">
+                  <a href="{% url 'hq:product_management' %}?edit_main={{ main.main_category_id }}" class="text-sm text-brand-600 hover:underline">Edit</a>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td class="px-5 py-4 sm:px-6 text-center text-red-600" colspan="6">No main categories found.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] mb-10">
+    <div  class="px-5 py-4 sm:px-6 sm:py-5 flex justify-between items-center">
+    <div class="">
+      <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Product Sub Categories</h3>
+    </div>
+    <div class="">
+        <button type="button" id="openAddSubModalBtn" class="bg-brand-500 text-white px-4 py-2 rounded">Add Product Category</button>
+    </div>
+    </div>
+    <div class="border-t border-gray-100 p-5 sm:p-6 dark:border-gray-800">
+      <div class="max-w-full overflow-x-auto custom-scrollbar">
+        <table class="w-full min-w-[900px]">
+          <thead>
+            <tr class="border-b border-gray-100 dark:border-gray-800">
+              <th class="px-5 py-3 text-left sm:px-6"><p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">ID</p></th>
+              <th class="px-5 py-3 text-left sm:px-6"><p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Main Product</p></th>
+              <th class="px-5 py-3 text-left sm:px-6"><p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Name</p></th>
+              <th class="px-5 py-3 text-left sm:px-6"><p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Status</p></th>
+              <th class="px-5 py-3 text-left sm:px-6"><p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Actions</p></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for sub in sub_categories %}
+            <tr class="border-b border-gray-100 dark:border-gray-800">
+              <td class="px-5 py-4 sm:px-6"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ sub.sub_category_id }}</p></td>
+              <td class="px-5 py-4 sm:px-6"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ sub.main_category.name }}</p></td>
+              <td class="px-5 py-4 sm:px-6"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ sub.name }}</p></td>
+              <td class="px-5 py-4 sm:px-6">
+                {% if sub.is_active %}
+                <span class="text-success-700 bg-success-50 dark:bg-success-500/15 dark:text-success-500 inline-block rounded-full px-2 py-0.5 font-medium">Active</span>
+                {% else %}
+                <span class="text-error-700 bg-error-50 dark:bg-error-500/15 dark:text-error-500 inline-block rounded-full px-2 py-0.5 font-medium">Inactive</span>
+                {% endif %}
+              </td>
+              <td class="px-5 py-4 sm:px-6">
+                <div class="flex items-center gap-3">
+                  <a href="{% url 'hq:product_management' %}?edit_sub={{ sub.sub_category_id }}" class="text-sm text-brand-600 hover:underline">Edit</a>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td class="px-5 py-4 sm:px-6 text-center text-red-600" colspan="5">No sub categories found.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] mb-10">
+    <div class="px-5 py-4 sm:px-6 sm:py-5 flex justify-between items-center">
+      <div class="">
+        <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Products</h3>
+      </div>
+      <div class="">
+        <button type="button" id="openAddProductModalBtn" class="bg-brand-500 text-white px-4 py-2 rounded">Add Product</button>
+      </div>
+    </div>
+    <div class="border-t border-gray-100 p-5 sm:p-6 dark:border-gray-800">
+      <div class="max-w-full overflow-x-auto custom-scrollbar">
+        <table class="w-full min-w-[1100px]">
+          <thead>
+            <tr class="border-b border-gray-100 dark:border-gray-800">
+              <th class="px-5 py-3 text-left sm:px-6"><p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">ID</p></th>
+              <th class="px-5 py-3 text-left sm:px-6"><p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Main Category</p></th>
+              <th class="px-5 py-3 text-left sm:px-6"><p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Sub Category</p></th>
+              <th class="px-5 py-3 text-left sm:px-6"><p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Name</p></th>
+              <th class="px-5 py-3 text-left sm:px-6"><p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Price</p></th>
+              <th class="px-5 py-3 text-left sm:px-6"><p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Status</p></th>
+              <th class="px-5 py-3 text-left sm:px-6"><p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Actions</p></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for m in products %}
+            <tr class="border-b border-gray-100 dark:border-gray-800">
+              <td class="px-5 py-4 sm:px-6"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ m.product_id }}</p></td>
+              <td class="px-5 py-4 sm:px-6"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ m.sub_category.main_category.name }}</p></td>
+              <td class="px-5 py-4 sm:px-6"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ m.sub_category.name }}</p></td>
+              <td class="px-5 py-4 sm:px-6"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ m.name }}</p></td>
+              <td class="px-5 py-4 sm:px-6"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ m.price }}</p></td>
+              <td class="px-5 py-4 sm:px-6">
+                {% if m.is_active %}
+                <span class="text-success-700 bg-success-50 dark:bg-success-500/15 dark:text-success-500 inline-block rounded-full px-2 py-0.5 font-medium">Active</span>
+                {% else %}
+                <span class="text-error-700 bg-error-50 dark:bg-error-500/15 dark:text-error-500 inline-block rounded-full px-2 py-0.5 font-medium">Inactive</span>
+                {% endif %}
+              </td>
+              <td class="px-5 py-4 sm:px-6">
+                <div class="flex items-center gap-3">
+                  <a href="{% url 'hq:product_management' %}?edit_product={{ m.product_id }}" class="text-sm text-brand-600 hover:underline">Edit</a>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td class="px-5 py-4 sm:px-6 text-center text-red-600" colspan="7">No products found.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="addMainModal" class="fixed inset-0 z-9999 hidden">
+  <div class="absolute inset-0 bg-black/50" data-modal-close="addMainModal"></div>
+  <div class="relative mx-auto mt-20 w-full max-w-2xl rounded-lg bg-white p-6 shadow-lg dark:bg-gray-900">
+    <div class="mb-4 flex items-center justify-between">
+      <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Add Main Product</h3>
+      <a href="{% url 'hq:product_management' %}" class="text-gray-500 hover:text-gray-800 dark:text-gray-300">✕</a>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="form_type" value="main_category" />
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Loan Main Category</label>
+          {{ main_category_form.loan_main_category }}
+          {% if main_category_form.loan_main_category.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ main_category_form.loan_main_category.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div>
+          <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Loan Category</label>
+          {{ main_category_form.loan_category }}
+          {% if main_category_form.loan_category.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ main_category_form.loan_category.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div class="md:col-span-2">
+          <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Name</label>
+          {{ main_category_form.name }}
+          {% if main_category_form.name.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ main_category_form.name.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div class="flex items-center gap-2">
+          {{ main_category_form.is_active }}
+          <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Active</label>
+        </div>
+      </div>
+      <div class="mt-6 flex justify-end gap-3">
+        <a href="{% url 'hq:product_management' %}" class="px-4 py-2 text-sm text-gray-700 dark:text-gray-200">Cancel</a>
+        <button type="submit" class="bg-brand-500 text-white px-4 py-2 rounded">Submit</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="addSubModal" class="fixed inset-0 z-9999 hidden">
+  <div class="absolute inset-0 bg-black/50" data-modal-close="addSubModal"></div>
+  <div class="relative mx-auto mt-20 w-full max-w-2xl rounded-lg bg-white p-6 shadow-lg dark:bg-gray-900">
+    <div class="mb-4 flex items-center justify-between">
+      <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Add Product Category</h3>
+      <a href="{% url 'hq:product_management' %}" class="text-gray-500 hover:text-gray-800 dark:text-gray-300">✕</a>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="form_type" value="sub_category" />
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="md:col-span-2">
+          <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Main Category</label>
+          {{ sub_category_form.main_category }}
+          {% if sub_category_form.main_category.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ sub_category_form.main_category.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div class="md:col-span-2">
+          <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Name</label>
+          {{ sub_category_form.name }}
+          {% if sub_category_form.name.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ sub_category_form.name.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div class="flex items-center gap-2">
+          {{ sub_category_form.is_active }}
+          <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Active</label>
+        </div>
+      </div>
+      <div class="mt-6 flex justify-end gap-3">
+        <a href="{% url 'hq:product_management' %}" class="px-4 py-2 text-sm text-gray-700 dark:text-gray-200">Cancel</a>
+        <button type="submit" class="bg-brand-500 text-white px-4 py-2 rounded">Submit</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if edit_main_id and edit_main_form %}
+<div id="mainEditModal" class="fixed inset-0 z-9999 hidden">
+  <div class="absolute inset-0 bg-black/50" data-modal-close="mainEditModal"></div>
+  <div class="relative mx-auto mt-20 w-full max-w-2xl rounded-lg bg-white p-6 shadow-lg dark:bg-gray-900">
+    <div class="mb-4 flex items-center justify-between">
+      <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Edit Main Product</h3>
+      <a href="{% url 'hq:product_management' %}" class="text-gray-500 hover:text-gray-800 dark:text-gray-300">✕</a>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="form_type" value="main_category_edit" />
+      <input type="hidden" name="edit_id" value="{{ edit_main_id }}" />
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Loan Main Category</label>
+          {{ edit_main_form.loan_main_category }}
+          {% if edit_main_form.loan_main_category.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ edit_main_form.loan_main_category.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div>
+          <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Loan Category</label>
+          {{ edit_main_form.loan_category }}
+          {% if edit_main_form.loan_category.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ edit_main_form.loan_category.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div class="md:col-span-2">
+          <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Name</label>
+          {{ edit_main_form.name }}
+          {% if edit_main_form.name.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ edit_main_form.name.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div class="flex items-center gap-2">
+          {{ edit_main_form.is_active }}
+          <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Active</label>
+        </div>
+      </div>
+      <div class="mt-6 flex justify-end gap-3">
+        <a href="{% url 'hq:product_management' %}" class="px-4 py-2 text-sm text-gray-700 dark:text-gray-200">Cancel</a>
+        <button type="submit" class="bg-brand-500 text-white px-4 py-2 rounded">Update</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<div id="addProductModal" class="fixed inset-0 z-9999 hidden">
+  <div class="absolute inset-0 bg-black/50" data-modal-close="addProductModal"></div>
+  <div class="relative mx-auto mt-20 w-full max-w-2xl rounded-lg bg-white p-6 shadow-lg dark:bg-gray-900">
+    <div class="mb-4 flex items-center justify-between">
+      <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Add Product</h3>
+      <a href="{% url 'hq:product_management' %}" class="text-gray-500 hover:text-gray-800 dark:text-gray-300">✕</a>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="form_type" value="product" />
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="md:col-span-2">
+          <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Sub Category</label>
+          {{ product_form.sub_category }}
+          {% if product_form.sub_category.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ product_form.sub_category.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div class="md:col-span-2">
+          <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Product Name</label>
+          {{ product_form.name }}
+          {% if product_form.name.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ product_form.name.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div class="md:col-span-2">
+          <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Price</label>
+          {{ product_form.price }}
+          {% if product_form.price.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ product_form.price.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div class="flex items-center gap-2">
+          {{ product_form.is_active }}
+          <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Active</label>
+        </div>
+      </div>
+      <div class="mt-6 flex justify-end gap-3">
+        <a href="{% url 'hq:product_management' %}" class="px-4 py-2 text-sm text-gray-700 dark:text-gray-200">Cancel</a>
+        <button type="submit" class="bg-brand-500 text-white px-4 py-2 rounded">Submit</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if edit_sub_id and edit_sub_form %}
+<div id="subEditModal" class="fixed inset-0 z-9999 hidden">
+  <div class="absolute inset-0 bg-black/50" data-modal-close="subEditModal"></div>
+  <div class="relative mx-auto mt-20 w-full max-w-2xl rounded-lg bg-white p-6 shadow-lg dark:bg-gray-900">
+    <div class="mb-4 flex items-center justify-between">
+      <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Edit Product Category</h3>
+      <a href="{% url 'hq:product_management' %}" class="text-gray-500 hover:text-gray-800 dark:text-gray-300">✕</a>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="form_type" value="sub_category_edit" />
+      <input type="hidden" name="edit_id" value="{{ edit_sub_id }}" />
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="md:col-span-2">
+          <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Main Category</label>
+          {{ edit_sub_form.main_category }}
+          {% if edit_sub_form.main_category.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ edit_sub_form.main_category.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div class="md:col-span-2">
+          <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Name</label>
+          {{ edit_sub_form.name }}
+          {% if edit_sub_form.name.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ edit_sub_form.name.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div class="flex items-center gap-2">
+          {{ edit_sub_form.is_active }}
+          <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Active</label>
+        </div>
+      </div>
+      <div class="mt-6 flex justify-end gap-3">
+        <a href="{% url 'hq:product_management' %}" class="px-4 py-2 text-sm text-gray-700 dark:text-gray-200">Cancel</a>
+        <button type="submit" class="bg-brand-500 text-white px-4 py-2 rounded">Update</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{% if edit_product_id and edit_product_form %}
+<div id="productEditModal" class="fixed inset-0 z-9999 hidden">
+  <div class="absolute inset-0 bg-black/50" data-modal-close="productEditModal"></div>
+  <div class="relative mx-auto mt-20 w-full max-w-2xl rounded-lg bg-white p-6 shadow-lg dark:bg-gray-900">
+    <div class="mb-4 flex items-center justify-between">
+      <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Edit Product</h3>
+      <a href="{% url 'hq:product_management' %}" class="text-gray-500 hover:text-gray-800 dark:text-gray-300">✕</a>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="form_type" value="product_edit" />
+      <input type="hidden" name="edit_id" value="{{ edit_product_id }}" />
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="md:col-span-2">
+          <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Sub Category</label>
+          {{ edit_product_form.sub_category }}
+          {% if edit_product_form.sub_category.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ edit_product_form.sub_category.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div class="md:col-span-2">
+          <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Product Name</label>
+          {{ edit_product_form.name }}
+          {% if edit_product_form.name.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ edit_product_form.name.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div class="md:col-span-2">
+          <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Price</label>
+          {{ edit_product_form.price }}
+          {% if edit_product_form.price.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ edit_product_form.price.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div class="flex items-center gap-2">
+          {{ edit_product_form.is_active }}
+          <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Active</label>
+        </div>
+      </div>
+      <div class="mt-6 flex justify-end gap-3">
+        <a href="{% url 'hq:product_management' %}" class="px-4 py-2 text-sm text-gray-700 dark:text-gray-200">Cancel</a>
+        <button type="submit" class="bg-brand-500 text-white px-4 py-2 rounded">Update</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+    function openModal(modalId) {
+        var el = document.getElementById(modalId);
+        if (el) {
+            el.classList.remove('hidden');
+        }
+    }
+
+    $('[data-modal-close]').on('click', function() {
+        var modalId = $(this).data('modal-close');
+        var el = document.getElementById(modalId);
+        if (el) {
+            el.classList.add('hidden');
+        }
+        window.location.href = "{% url 'hq:product_management' %}";
+    });
+
+    $('#openAddProductModalBtn').on('click', function() {
+        openModal('addProductModal');
+    });
+
+    $('#openAddMainModalBtn').on('click', function() {
+        openModal('addMainModal');
+    });
+
+    $('#openAddSubModalBtn').on('click', function() {
+        openModal('addSubModal');
+    });
+
+    var editMainId = "{{ edit_main_id|default:'' }}";
+    var editSubId = "{{ edit_sub_id|default:'' }}";
+    var editProductId = "{{ edit_product_id|default:'' }}";
+    var openAddMainModal = "{{ open_add_main_modal|yesno:'1,0' }}";
+    var openAddSubModal = "{{ open_add_sub_modal|yesno:'1,0' }}";
+    var openAddProductModal = "{{ open_add_product_modal|yesno:'1,0' }}";
+
+    if (editMainId) {
+        openModal('mainEditModal');
+    }
+    if (editSubId) {
+        openModal('subEditModal');
+    }
+    if (editProductId) {
+        openModal('productEditModal');
+    }
+    if (openAddProductModal === '1') {
+        openModal('addProductModal');
+    }
+    if (openAddMainModal === '1') {
+        openModal('addMainModal');
+    }
+    if (openAddSubModal === '1') {
+        openModal('addSubModal');
+    }
+
+    $('#id_loan_main_category').change(function() {
+        var mainCategoryId = $(this).val();
+        var loanCategorySelect = $('#id_loan_category');
+        loanCategorySelect.empty();
+        loanCategorySelect.append('<option value="">Select loan category</option>');
+        if (mainCategoryId) {
+            $.get('{% url "hq:loan_category_list_api" %}', {main_category_id: mainCategoryId})
+                .done(function(data) {
+                    $.each(data, function(index, item) {
+                        loanCategorySelect.append('<option value="' + item.id + '">' + item.name + '</option>');
+                    });
+                })
+                .fail(function() {
+                    alert('Failed to load loan categories');
+                });
+        }
+    });
+});
+</script>
+{% endblock %}

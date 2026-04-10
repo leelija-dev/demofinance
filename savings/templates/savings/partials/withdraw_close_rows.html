@@ -1,0 +1,65 @@
+{% for a in accounts %}
+<tr>
+    <td class="px-4 py-2">
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ a.account_id }}</p>
+    </td>
+    <td class="px-4 py-2">
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ a.application_id }}</p>
+    </td>
+    <td class="px-4 py-2">
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ a.customer.full_name }}</p>
+        <p class="text-xs text-gray-400">{{ a.customer.customer_id }}</p>
+    </td>
+    <td class="px-4 py-2">
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ a.get_product_type_display }}</p>
+    </td>
+    <td class="px-4 py-2">
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+            {% if a.agent %}
+                {{ a.agent.full_name|default:a.agent.agent_id|default:"-" }}
+            {% else %}
+                -
+            {% endif %}
+        </p>
+    </td>
+    <td class="px-4 py-2">
+        <span class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-200">
+            Approved
+        </span>
+    </td>
+    <td class="px-4 py-2">
+        <div class="flex flex-wrap gap-2">
+            <a
+                href="{% url 'branch:savings_application_detail' a.application_id %}"
+                class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
+            >
+                View
+            </a>
+            <button
+                type="button"
+                class="js-withdraw-open inline-flex items-center justify-center rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700"
+                data-account-id="{{ a.account_id }}"
+                data-application-id="{{ a.application_id }}"
+                data-customer-name="{{ a.customer.full_name }}"
+                data-payable-total="{{ a.payable_total }}"
+                data-payable-principal="{{ a.payable_principal }}"
+                data-payable-interest="{{ a.payable_interest }}"
+            >
+                Withdraw / Close
+            </button>
+        </div>
+    </td>
+</tr>
+{% empty %}
+{% if page_obj.number == 1 %}
+<tr>
+    <td class="px-4 py-8 text-center text-gray-500 dark:text-gray-400" colspan="7">No accounts available for withdraw/close</td>
+</tr>
+{% endif %}
+{% endfor %}
+
+{% if page_obj.has_next %}
+<tr id="withdrawCloseLoadMoreRow" data-next-page="{{ page_obj.next_page_number }}">
+    <td class="px-4 py-4 text-center text-sm text-gray-500 dark:text-gray-400" colspan="7">Loading…</td>
+</tr>
+{% endif %}

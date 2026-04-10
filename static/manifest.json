@@ -1,0 +1,22 @@
+{
+    "name": "Ksundaram",
+    "short_name": "Ksundaram",
+    "description": "Your app description",
+    "start_url": "/agent",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#4a90e2",
+    "orientation": "any",
+    "icons": [
+        {
+            "src": "main/images/Ksundaram-logo-big.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "main/images/Ksundaram-logo-big.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

@@ -1,0 +1,47 @@
+{% for app in rows %}
+<tr>
+    <td class="px-4 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ app.loan_ref_no }}</p></td>
+    <td class="px-4 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ app.full_name }}</p></td>
+    <td class="px-4 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">₹{{ app.loan_amount }}</p></td>
+    <td class="px-4 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ app.tenure_display }}</p></td>
+    <td class="px-4 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ app.interest_rate }}</p></td>
+    <td class="px-4 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">₹{{ app.emi_amount }}</p></td>
+    <td class="px-4 py-2">
+        {% if app.status == 'pending' %}
+            <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-orange-400 text-white">Pending</span>
+        {% elif app.status == 'document_requested' %}
+            <a href="{% url 'agent:loan_document_request' %}"><span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-error-500 text-white">Document Requested by Branch</span></a>
+        {% elif app.status == 'resubmitted' %}
+            <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-brand-500 text-white">Resubmitted – Pending Branch Review</span>
+        {% elif app.status == 'branch_resubmitted' %}
+            <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-blue-500 text-white">Branch Resubmitted</span>
+        {% elif app.status == 'branch_document_accepted' %}
+            <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-success-50 text-success-500">Branch Accepted Document</span>
+        {% elif app.status == 'branch_approved' %}
+            <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-success-500 text-white">Branch Approved – Pending HQ</span>
+        {% elif app.status == 'rejected_by_branch' %}
+            <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-error-500 text-white">Rejected by Branch</span>
+        {% elif app.status == 'document_requested_by_hq' %}
+            <a href="{% url 'agent:loan_document_request' %}"><span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-error-50 text-error-500">Document Requested by HQ</span></a>
+        {% elif app.status == 'hq_approved' %}
+            <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-success-500 text-white">Approved</span>
+        {% elif app.status == 'hq_rejected' %}
+            <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-error-500 text-white">HQ Rejected</span>
+        {% elif app.status == 'disbursed' %}
+            <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-success-50 text-success-500">Disbursed - Pending For Fund Release</span>
+        {% elif app.status == 'disbursed_fund_released' %}
+            <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-success-500 text-white">Disbursed - Fund Release</span>
+        {% elif app.status == 'success' or app.status == 'active' %}
+            <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-success-500 text-green-800">Success</span>
+        {% elif app.status == 'reject' %}
+            <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-error-500 text-red-800">Rejected</span>
+        {% else %}
+            <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-gray-200 text-gray-700">Inactive</span>
+        {% endif %}
+    </td>
+    <td class="px-4 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ app.submitted_at }}</p></td>
+    <td class="px-4 py-2">
+        <a href="/agent/application-detail/{{ app.customer_id }}/{{ app.loan_ref_no }}/" class="inline-block px-3 py-1 text-sm rounded bg-brand-500 text-white hover:bg-brand-600 transition">View</a>
+    </td>
+</tr>
+{% endfor %}

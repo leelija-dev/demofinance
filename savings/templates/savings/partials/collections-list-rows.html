@@ -1,0 +1,98 @@
+{% for c in collections %}
+<tr data-collection-type="{{ c.collection_type }}" data-is-collected="{% if c.is_collected %}1{% else %}0{% endif %}" data-collection-date="{{ c.collection_date|date:'Y-m-d' }}">
+    <td class="px-4 py-2">
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ c.collection_date }}</p>
+    </td>
+    <td class="px-4 py-2">
+        {% if c.is_expected and not c.is_collected and c.collection_type == 'rd_installment' and c.collection_date < today %}
+        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-red-100 text-red-700">Missed</span>
+        {% elif c.is_expected and not c.is_collected %}
+        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-orange-100 text-orange-700">Pending</span>
+        {% elif c.is_collected %}
+        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-green-500 text-white">Collected</span>
+        {% else %}
+        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-gray-100 text-gray-700">-</span>
+        {% endif %}
+    </td>
+    <td class="px-4 py-2">
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ c.collection_id }}</p>
+    </td>
+    <td class="px-4 py-2">
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ c.get_collection_type_display|default:c.collection_type }}</p>
+    </td>
+    <td class="px-4 py-2">
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">₹{{ c.amount }}</p>
+    </td>
+    <td class="px-4 py-2">
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ c.receipt_no|default:"-" }}</p>
+    </td>
+    <td class="px-4 py-2">
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+            {% if c.is_collected and c.collected_by_agent %}
+                {% if c.collected_by_agent.full_name %}
+                    {{ c.collected_by_agent.full_name }} ({{ c.collected_by_agent.agent_id }})
+                {% else %}
+                    {{ c.collected_by_agent.agent_id|default:"-" }}
+                {% endif %}
+            {% elif c.is_collected and c.collected_by_branch_employee %}
+                {% if c.collected_by_branch_employee.get_full_name %}
+                    {{ c.collected_by_branch_employee.get_full_name }} - ({{ c.collected_by_branch_employee.employee_id }}) branch
+                {% else %}
+                    {{ c.collected_by_branch_employee.employee_id|default:"-" }}
+                {% endif %}
+            {% elif c.agent %}
+                {% if c.agent.full_name %}
+                    {{ c.agent.full_name }} ({{ c.agent.agent_id }})
+                {% else %}
+                    {{ c.agent.agent_id|default:"-" }}
+                {% endif %}
+            {% else %}
+                -
+            {% endif %}
+        </p>
+    </td>
+    <td class="px-4 py-2">
+        {% if c.is_collected %}
+            <button type="button" disabled class="inline-flex items-center justify-center rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-200 cursor-not-allowed">
+                Collected
+            </button>
+        {% elif c.is_expected and not c.is_collected and c.collection_type == 'rd_installment' and c.collection_date < today %}
+            <button type="button" disabled class="inline-flex items-center justify-center rounded-md bg-red-200 px-4 py-2 text-sm font-medium text-red-800 cursor-not-allowed">
+                Missed
+            </button>
+        {% elif c.is_expected and not c.is_collected %}
+            {% if account.surrender_status and account.surrender_status != 'none' %}
+                <button type="button" disabled class="inline-flex items-center justify-center rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 cursor-not-allowed">
+                    Surrender Requested
+                </button>
+            {% else %}
+            <button
+                type="button"
+                disabled
+                class="js-collect-btn inline-flex items-center justify-center rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-green-600"
+                data-expected-collection-id="{{ c.collection_id }}"
+                data-collection-type="{{ c.collection_type }}"
+                data-amount="{{ c.amount }}"
+                data-collection-date="{{ c.collection_date|date:'Y-m-d' }}"
+            >
+                Collect
+            </button>
+            {% endif %}
+        {% else %}
+            <span class="text-gray-400">-</span>
+        {% endif %}
+    </td>
+</tr>
+{% empty %}
+{% if page_obj.number == 1 %}
+<tr>
+    <td class="px-4 py-8 text-center text-gray-500 dark:text-gray-400" colspan="8">No collections yet</td>
+</tr>
+{% endif %}
+{% endfor %}
+
+{% if page_obj.has_next %}
+<tr id="branchCollectionsLoadMoreRow" data-next-page="{{ page_obj.next_page_number }}">
+    <td class="px-4 py-4 text-center text-sm text-gray-500 dark:text-gray-400" colspan="8">Loading…</td>
+</tr>
+{% endif %}

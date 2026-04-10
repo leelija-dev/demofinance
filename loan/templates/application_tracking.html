@@ -1,0 +1,35 @@
+{% load static %}
+
+{% block content %}
+<div class="p-6">
+  <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90 mb-4 text-center">Application Tracking</h3>
+  
+  <!-- Dynamic Progress Bar Container -->
+  <div id="dynamic-tracking-container" class="flex items-center w-full max-w-xs mx-auto mb-6">
+    <!-- This will be populated by JavaScript -->
+  </div>
+  
+  <!-- Complete Application History Section -->
+  <div class="mt-8 border-t border-gray-100 dark:border-gray-700 pt-6 custom-scrollbar overflow-y-auto h-[calc(100vh-186px)]">
+    <!-- Agent History -->
+    <div id="history-agent" class="mb-6">
+      <!-- Agent actions will be populated by JavaScript with category styling -->
+    </div>
+    
+    <!-- Branch History -->
+    <div id="history-branch" class="mb-6">
+      <!-- Branch actions will be populated by JavaScript with category styling -->
+    </div>
+    
+    <!-- HQ History -->
+    <div id="history-hq" class="mb-6">
+      <!-- HQ actions will be populated by JavaScript with category styling -->
+    </div>
+    
+    <!-- System History -->
+    <div id="history-system" class="mb-6">
+      <!-- System actions will be populated by JavaScript with category styling -->
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,420 @@
+{% extends 'branch/base.html' %}
+
+{% block title %}Customer Details{% endblock %}
+{% block page_id %}customer_list{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+  <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <h2 class="text-title-md2 font-bold text-black dark:text-white">Customer Details</h2>
+      <p class="text-sm text-gray-500 dark:text-gray-400">{{ customer.customer_id }}</p>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <a href="{% url 'branch:customer_list' %}" class="inline-flex items-center justify-center rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
+        Back
+      </a>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <div class="rounded-2xl border border-stroke bg-white px-6 pt-6 pb-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+      <h3 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Profile</h3>
+
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <div class="text-xs text-gray-500 dark:text-gray-400">Full Name</div>
+          <div class="text-sm font-medium text-gray-900 dark:text-white">{{ customer.full_name }}</div>
+        </div>
+        <div>
+          <div class="text-xs text-gray-500 dark:text-gray-400">Father Name</div>
+          <div class="text-sm font-medium text-gray-900 dark:text-white">{{ customer.father_name|default:'-' }}</div>
+        </div>
+        <div>
+          <div class="text-xs text-gray-500 dark:text-gray-400">DOB</div>
+          <div class="text-sm font-medium text-gray-900 dark:text-white">{{ customer.date_of_birth|date:'d-m-Y' }}</div>
+        </div>
+        <div>
+          <div class="text-xs text-gray-500 dark:text-gray-400">Gender</div>
+          <div class="text-sm font-medium text-gray-900 dark:text-white">{{ customer.gender }}</div>
+        </div>
+        <div>
+          <div class="text-xs text-gray-500 dark:text-gray-400">Contact</div>
+          <div class="text-sm font-medium text-gray-900 dark:text-white">{{ customer.contact }}</div>
+        </div>
+        <div>
+          <div class="text-xs text-gray-500 dark:text-gray-400">Email</div>
+          <div class="text-sm font-medium text-gray-900 dark:text-white">{{ customer.email|default:'-' }}</div>
+        </div>
+        <div>
+          <div class="text-xs text-gray-500 dark:text-gray-400">Aadhaar</div>
+          <div class="text-sm font-medium text-gray-900 dark:text-white">{{ customer.adhar_number }}</div>
+        </div>
+        <div>
+          <div class="text-xs text-gray-500 dark:text-gray-400">PAN</div>
+          <div class="text-sm font-medium text-gray-900 dark:text-white">{{ customer.pan_number }}</div>
+        </div>
+        <div>
+          <div class="text-xs text-gray-500 dark:text-gray-400">Voter</div>
+          <div class="text-sm font-medium text-gray-900 dark:text-white">{{ customer.voter_number|default:'-' }}</div>
+        </div>
+        <div>
+          <div class="text-xs text-gray-500 dark:text-gray-400">Submitted</div>
+          <div class="text-sm font-medium text-gray-900 dark:text-white">{{ customer.submitted_at|date:'d-m-Y' }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rounded-2xl border border-stroke bg-white px-6 pt-6 pb-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+      <h3 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Address & Account</h3>
+
+      <div class="grid grid-cols-1 gap-6">
+        <div>
+          <div class="mb-2 text-sm font-semibold text-gray-900 dark:text-white">Address</div>
+          {% if customer.address %}
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">Address Line 1</div>
+              <div class="text-sm font-medium text-gray-900 dark:text-white">{{ customer.address.address_line_1 }}</div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">Address Line 2</div>
+              <div class="text-sm font-medium text-gray-900 dark:text-white">{{ customer.address.address_line_2|default:'-' }}</div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">City/Town</div>
+              <div class="text-sm font-medium text-gray-900 dark:text-white">{{ customer.address.city_or_town }}</div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">District</div>
+              <div class="text-sm font-medium text-gray-900 dark:text-white">{{ customer.address.district }}</div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">State</div>
+              <div class="text-sm font-medium text-gray-900 dark:text-white">{{ customer.address.state }}</div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">Post Code</div>
+              <div class="text-sm font-medium text-gray-900 dark:text-white">{{ customer.address.post_code }}</div>
+            </div>
+          </div>
+          {% else %}
+          <div class="text-sm text-gray-500 dark:text-gray-400">No address available</div>
+          {% endif %}
+        </div>
+
+        <div>
+          <div class="mb-2 text-sm font-semibold text-gray-900 dark:text-white">Bank Account</div>
+          {% if customer.account %}
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">Account Number</div>
+              <div class="text-sm font-medium text-gray-900 dark:text-white">{{ customer.account.account_number|default:'-' }}</div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">Bank</div>
+              <div class="text-sm font-medium text-gray-900 dark:text-white">{{ customer.account.bank_name|default:'-' }}</div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">IFSC</div>
+              <div class="text-sm font-medium text-gray-900 dark:text-white">{{ customer.account.ifsc_code|default:'-' }}</div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">Type</div>
+              <div class="text-sm font-medium text-gray-900 dark:text-white">{{ customer.account.account_type|default:'-' }}</div>
+            </div>
+          </div>
+          {% else %}
+          <div class="text-sm text-gray-500 dark:text-gray-400">No account available</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <div class="rounded-2xl border border-stroke bg-white px-6 pt-6 pb-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+      <h3 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Loan Applications</h3>
+
+      <div class="custom-scrollbar max-w-full overflow-x-auto">
+        <table class="min-w-full">
+          <thead class="border-y border-gray-100 py-3 dark:border-gray-800">
+            <tr class="text-left">
+              <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6">
+                <p class="font-bold text-gray-500 text-theme-sm dark:text-gray-400">Loan Ref</p>
+              </th>
+              <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6">
+                <p class="font-bold text-gray-500 text-theme-sm dark:text-gray-400">Status</p>
+              </th>
+              <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6">
+                <p class="font-bold text-gray-500 text-theme-sm dark:text-gray-400">Submitted</p>
+              </th>
+              <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6">
+                <p class="font-bold text-gray-500 text-theme-sm dark:text-gray-400">Action</p>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for loan in loan_applications %}
+            <tr class="border-b border-stroke dark:border-strokedark {% if loan.has_approved_close_request %}bg-red-200 dark:bg-red-900/30{% endif %}">
+              <td class="pl-1 py-2">
+                <p class="text-gray-700 text-theme-sm dark:text-gray-200">{{ loan.loan_ref_no }}</p>
+              </td>
+              <td class="py-2">
+                <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                  {% if loan.has_approved_close_request %}Closed{% else %}{{ loan.status }}{% endif %}
+                </p>
+              </td>
+              <td class="py-2">
+                <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ loan.submitted_at|date:'d-m-Y' }}</p>
+              </td>
+              <td class="py-2">
+                <button type="button" data-open-dialog="loan-dialog-{{ loan.loan_ref_no }}" class="inline-flex items-center justify-center rounded-md bg-brand-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-600">
+                  View
+                </button>
+
+                <dialog id="loan-dialog-{{ loan.loan_ref_no }}" class="w-full max-w-2xl rounded-xl border border-stroke bg-white p-0 shadow-2xl dark:border-strokedark dark:bg-boxdark">
+                  <div class="flex items-center justify-between border-b border-stroke px-5 py-4 dark:border-strokedark">
+                    <div>
+                      <div class="text-base font-semibold text-gray-900 dark:text-white">Loan Details</div>
+                      <div class="text-xs text-gray-500 dark:text-gray-400">{{ loan.loan_ref_no }}</div>
+                    </div>
+                    <button type="button" data-close-dialog class="inline-flex items-center justify-center rounded-md bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">Close</button>
+                  </div>
+
+                  <div class="px-5 py-4">
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Loan Ref</div>
+                        <div class="text-sm font-medium text-gray-900 dark:text-white">{{ loan.loan_ref_no }}</div>
+                      </div>
+                      <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Loan Amount</div>
+                        <div class="text-sm font-medium text-gray-900 dark:text-white">{{ loan.loan_amount|default:'-' }}</div>
+                      </div>
+                      <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Status</div>
+                        <div class="text-sm font-medium text-gray-900 dark:text-white">
+                          {% if loan.has_approved_close_request %}Closed{% else %}{{ loan.status }}{% endif %}
+                        </div>
+                      </div>
+                      <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">EMI Amount</div>
+                        <div class="text-sm font-medium text-gray-900 dark:text-white">{{ loan.emi_amount|default:'-' }}</div>
+                      </div>
+                      <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Disbursed Total</div>
+                        <div class="text-sm font-medium text-gray-900 dark:text-white">{{ loan.disbursed_total|default:'-' }}</div>
+                      </div>
+                      <!-- <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Branch</div>
+                        <div class="text-sm font-medium text-gray-900 dark:text-white">{{ loan.branch|default:'-' }}</div>
+                      </div> -->
+                      <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Submitted</div>
+                        <div class="text-sm font-medium text-gray-900 dark:text-white">{{ loan.submitted_at|date:'d-m-Y' }}</div>
+                      </div>
+                      <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Approved</div>
+                        <div class="text-sm font-medium text-gray-900 dark:text-white">{% if loan.approved_at %}{{ loan.approved_at|date:'d-m-Y' }}{% else %}-{% endif %}</div>
+                      </div>
+                      <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Disbursed</div>
+                        <div class="text-sm font-medium text-gray-900 dark:text-white">{% if loan.disbursed_at %}{{ loan.disbursed_at|date:'d-m-Y' }}{% else %}-{% endif %}</div>
+                      </div>
+                      {% if loan.has_approved_close_request and loan.close_approved_at %}
+                      <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Close Approved Date</div>
+                        <div class="text-sm font-medium text-gray-900 dark:text-white">{{ loan.close_approved_at|date:'d-m-Y' }}</div>
+                      </div>
+                      {% endif %}
+                      {% if loan.rejection_reason %}
+                      <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Rejection Reason</div>
+                        <div class="text-sm font-medium text-gray-900 dark:text-white">{{ loan.rejection_reason|default:'-' }}</div>
+                      </div>
+                      {% endif %}
+                      <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Agent</div>
+                        <div class="text-sm font-medium text-gray-900 dark:text-white">{{ loan.agent|default:'-' }}</div>
+                      </div>
+
+                    </div>
+                  </div>
+                </dialog>
+              </td>
+            </tr>
+            {% empty %}
+            <tr class="border-b border-stroke dark:border-strokedark">
+              <td colspan="4" class="py-6 text-center">
+                <p class="text-gray-500 text-theme-sm dark:text-gray-400">No loan applications</p>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="rounded-2xl border border-stroke bg-white px-6 pt-6 pb-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+      <h3 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Savings Accounts</h3>
+
+      <div class="custom-scrollbar max-w-full overflow-x-auto">
+        <table class="min-w-full">
+          <thead class="border-y border-gray-100 py-3 dark:border-gray-800">
+            <tr class="text-left">
+              <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6">
+                <p class="font-bold text-gray-500 text-theme-sm dark:text-gray-400">Application ID</p>
+              </th>
+              <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6">
+                <p class="font-bold text-gray-500 text-theme-sm dark:text-gray-400">Type</p>
+              </th>
+              <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6">
+                <p class="font-bold text-gray-500 text-theme-sm dark:text-gray-400">Status</p>
+              </th>
+              <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6">
+                <p class="font-bold text-gray-500 text-theme-sm dark:text-gray-400">Submitted</p>
+              </th>
+              <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6">
+                <p class="font-bold text-gray-500 text-theme-sm dark:text-gray-400">Action</p>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for acc in savings_accounts %}
+            <tr class="border-b border-stroke dark:border-strokedark">
+              <td class="py-3">
+                <p class="text-gray-700 text-theme-sm dark:text-gray-200">{{ acc.application_id }}</p>
+              </td>
+              <td class="py-3">
+                <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ acc.product_type }}</p>
+              </td>
+              <td class="py-3">
+                <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ acc.status }}</p>
+              </td>
+              <td class="py-3">
+                <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ acc.submitted_at|date:'d-m-Y' }}</p>
+              </td>
+              <td class="py-3">
+                <button type="button" data-open-dialog="savings-dialog-{{ acc.application_id }}" class="inline-flex items-center justify-center rounded-md bg-brand-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-600">
+                  View
+                </button>
+
+                <dialog id="savings-dialog-{{ acc.application_id }}" class="w-full max-w-2xl rounded-xl border border-stroke bg-white p-0 shadow-2xl dark:border-strokedark dark:bg-boxdark">
+                  <div class="flex items-center justify-between border-b border-stroke px-5 py-4 dark:border-strokedark">
+                    <div>
+                      <div class="text-base font-semibold text-gray-900 dark:text-white">Savings Details</div>
+                      <div class="text-xs text-gray-500 dark:text-gray-400">{{ acc.account_id|default:acc.application_id }}</div>
+                    </div>
+                    <button type="button" data-close-dialog class="inline-flex items-center justify-center rounded-md bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">Close</button>
+                  </div>
+
+                  <div class="px-5 py-4">
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Account ID</div>
+                        <div class="text-sm font-medium text-gray-900 dark:text-white">{{ acc.account_id|default:acc.application_id }}</div>
+                      </div>
+                      <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Type</div>
+                        <div class="text-sm font-medium text-gray-900 dark:text-white">{{ acc.product_type }}</div>
+                      </div>
+                      <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Status</div>
+                        <div class="text-sm font-medium text-gray-900 dark:text-white">{{ acc.status }}</div>
+                      </div>
+                      <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Tenure</div>
+                        <div class="text-sm font-medium text-gray-900 dark:text-white">{{ acc.tenure|default:'-' }}</div>
+                      </div>
+                      <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Installment Amount</div>
+                        <div class="text-sm font-medium text-gray-900 dark:text-white">{{ acc.installment_amount|default:'-' }}</div>
+                      </div>
+                      <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Interest Rate</div>
+                        <div class="text-sm font-medium text-gray-900 dark:text-white">{{ acc.interest_rate|default:'-' }}</div>
+                      </div>
+                      <!-- <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Branch</div>
+                        <div class="text-sm font-medium text-gray-900 dark:text-white">{{ acc.branch|default:'-' }}</div>
+                      </div> -->
+                      <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Submitted</div>
+                        <div class="text-sm font-medium text-gray-900 dark:text-white">{{ acc.submitted_at|date:'d-m-Y' }}</div>
+                      </div>
+                      <!-- <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Maturity Date</div>
+                        <div class="text-sm font-medium text-gray-900 dark:text-white">{% if acc.maturity_date %}{{ acc.maturity_date|date:'d-m-Y' }}{% else %}-{% endif %}</div>
+                      </div> -->
+                      <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Agent</div>
+                        <div class="text-sm font-medium text-gray-900 dark:text-white">{{ acc.agent|default:'-' }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </dialog>
+              </td>
+            </tr>
+            {% empty %}
+            <tr class="border-b border-stroke dark:border-strokedark">
+              <td colspan="5" class="py-6 text-center">
+                <p class="text-gray-500 text-theme-sm dark:text-gray-400">No savings accounts</p>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  dialog[open] {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+  }
+
+  dialog::backdrop {
+    background: rgba(0, 0, 0, 0.45);
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('[data-open-dialog]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const dialogId = btn.getAttribute('data-open-dialog');
+        const dialog = document.getElementById(dialogId);
+        if (dialog && typeof dialog.showModal === 'function') {
+          dialog.showModal();
+        }
+      });
+    });
+
+    document.querySelectorAll('dialog').forEach(function (dialog) {
+      dialog.addEventListener('click', function (e) {
+        const rect = dialog.getBoundingClientRect();
+        const inDialog = (
+          rect.top <= e.clientY && e.clientY <= rect.top + rect.height &&
+          rect.left <= e.clientX && e.clientX <= rect.left + rect.width
+        );
+        if (!inDialog) {
+          dialog.close();
+        }
+      });
+
+      dialog.querySelectorAll('[data-close-dialog]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          dialog.close();
+        });
+      });
+    });
+  });
+</script>
+{% endblock %}

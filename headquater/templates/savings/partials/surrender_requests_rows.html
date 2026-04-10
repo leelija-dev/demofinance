@@ -1,0 +1,52 @@
+{% for a in accounts %}
+<tr class="border-t">
+    <td class="px-4 py-2">
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ a.application_id }}</p>
+    </td>
+    <td class="px-4 py-2">
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ a.account_id|default:'-' }}</p>
+    </td>
+    <td class="px-4 py-2">
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ a.customer.full_name }}</p>
+        <p class="text-xs text-gray-400">{{ a.customer.customer_id }}</p>
+    </td>
+    <td class="px-4 py-2">
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ a.branch.branch_name|default:"-" }}</p>
+    </td>
+    <td class="px-4 py-2">
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ a.agent.full_name|default:"-" }}</p>
+    </td>
+    <td class="px-4 py-2">
+        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-orange-100 text-orange-700">{{ a.get_surrender_status_display|default:a.surrender_status }}</span>
+    </td>
+    <td class="px-4 py-2">
+        <div class="flex flex-wrap items-center gap-2">
+            <a href="{% url 'hq:hq_savings_surrender_account_detail' a.application_id %}" class="inline-flex items-center justify-center rounded-md bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 transition">View</a>
+
+            <form method="post" action="{% url 'hq:hq_savings_surrender_decision' a.application_id %}">
+                {% csrf_token %}
+                <input type="hidden" name="decision" value="approve" />
+                <button type="submit" class="inline-flex items-center justify-center rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 transition">Approve</button>
+            </form>
+
+            <!-- <form method="post" action="{% url 'hq:hq_savings_surrender_decision' a.application_id %}">
+                {% csrf_token %}
+                <input type="hidden" name="decision" value="reject" />
+                <button type="submit" class="inline-flex items-center justify-center rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition">Reject</button>
+            </form> -->
+        </div>
+    </td>
+</tr>
+{% empty %}
+{% if page_obj.number == 1 %}
+<tr>
+    <td class="px-4 py-8 text-center text-gray-500 dark:text-gray-400" colspan="7">No surrender requests pending HQ decision</td>
+</tr>
+{% endif %}
+{% endfor %}
+
+{% if page_obj.has_next %}
+<tr id="hqSurrenderRequestsLoadMoreRow" data-next-page="{{ page_obj.next_page_number }}">
+    <td class="px-4 py-4 text-center text-sm text-gray-500 dark:text-gray-400" colspan="7">Loading…</td>
+</tr>
+{% endif %}

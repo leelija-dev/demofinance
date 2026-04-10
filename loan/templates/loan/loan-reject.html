@@ -1,0 +1,83 @@
+{% extends "agent/base.html" %}
+{% load static %}
+{% block title %}Loan Application Reject{% endblock %}
+
+{% block page_id %}loanRejectedApplications{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+    <!-- Breadcrumb Start -->
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 class="text-title-md2 font-bold text-black dark:text-white">
+            Loan Application Reject
+        </h2>
+        <nav>
+            <ol class="flex items-center gap-2">
+                <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+                        href="{% url 'agent:dashboard' %}">Dashboard <svg class="stroke-current" width="17" height="16"
+                            viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                            </path>
+                        </svg></a></li>
+                <li class="text-sm text-gray-800 dark:text-white/90">Loan Application Reject</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div id="rejected-applications-content"></div>
+    <div id="no-rejected-applications-message" class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] p-5 text-center text-gray-500 dark:text-gray-400 hidden">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-red-600">No Rejected Applications</h3>
+        <p class="mt-1 text-sm text-red-600">There are no rejected applications for your customers.</p>
+    </div>
+</div>
+
+
+<script>
+
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/agent/api/rejected-applications/')
+        .then(response => response.json())
+        .then(data => {
+            const content = document.getElementById('rejected-applications-content');
+            const noMsg = document.getElementById('no-rejected-applications-message');
+            content.innerHTML = '';
+            if (!data.length) {
+                noMsg.classList.remove('hidden');
+                return;
+            } else {
+                noMsg.classList.add('hidden');
+            }
+            data.forEach(customer => {
+                // console.log(customer);
+                
+                let html = `<div class="mb-6 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+                    <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-medium text-gray-800 dark:text-white/90">${customer.customer.full_name}</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Customer ID: ${customer.customer.customer_id}</p>
+                                <p class="text-sm text-red-600 dark:text-red-400 font-semibold mt-2">
+                                    Status: ${customer.status_display || customer.status}
+                                </p>
+                                ${customer.rejection_reason? `<p class="text-sm text-gray-700 dark:text-gray-300 mt-1"><strong>Reason:</strong> ${customer.rejection_reason}</p>` : ''}
+                            </div>
+                            <a href="/agent/application-detail/${customer.customer.customer_id}/" 
+                               class="inline-flex items-center px-3 py-1 text-sm font-medium text-brand-500 bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 rounded-md hover:bg-brand-100 dark:hover:bg-brand-900/30 transition">
+                                View Application
+                                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>`;
+                content.innerHTML += html;
+            });
+        });
+});
+</script>
+{% endblock %}

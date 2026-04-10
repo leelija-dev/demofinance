@@ -1,0 +1,96 @@
+pipeline {
+    agent any
+
+    environment {
+        DEPLOY_USER = 'deploy'
+        VPS_HOST = '82.29.160.85'
+        PROJECT_DIR = '/home/deploy/projectdir/sundaram'
+        VENV_DIR = '/home/deploy/venv_dir/sundaramvenv'
+    }
+
+    stages {
+
+        stage('Test SSH Connection') {
+            steps {
+                sh """
+                    ssh ${DEPLOY_USER}@${VPS_HOST} "echo '✅ SSH connection to \$(hostname) as \$(whoami) works.'"
+                """
+            }
+        }
+
+        stage('Deploy Code') {
+            steps {
+                // sshagent (credentials: ['sundaram-vps']) {
+                //     sh """
+                //         ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${VPS_HOST} '
+                //             set -e
+
+                //             echo "[DEPLOY] Pulling latest code..."
+                //             cd ${PROJECT_DIR}
+                //             git fetch origin
+                //             git reset --hard origin/main
+
+                //             echo "[DEPLOY] Activating virtualenv and installing requirements..."
+                //             source ${VENV_DIR}/bin/activate
+                //             pip install -r requirements.txt
+
+                //             echo "[DEPLOY] Applying migrations..."
+                //             python manage.py migrate
+
+                //             echo "[DEPLOY] Collecting static files..."
+                //             python manage.py collectstatic --noinput
+
+                //             echo "[DEPLOY] Restarting Gunicorn..."
+                //             sudo systemctl restart gunicorn.service
+
+                //             echo "[DEPLOY] Checking Gunicorn status..."
+                //             systemctl status gunicorn.service | head -20
+
+                //             echo "[DEPLOY] Deployment finished successfully ✅"
+                //         '
+                //     """
+                // }
+                sshagent (credentials: ['sundaram-vps']) {
+                    sh """
+                        ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${VPS_HOST} '
+                            set -e
+
+                            echo "[DEPLOY] Pulling latest code..."
+                            cd ${PROJECT_DIR}
+                            git fetch origin
+                            git reset --hard origin/main
+
+                            echo "[DEPLOY] Building and restarting Docker stack..."
+                            ENV=prod docker compose -f docker-compose.yml down
+                            ENV=prod docker compose -f docker-compose.yml build --pull
+                            ENV=prod docker compose -f docker-compose.yml up -d
+
+                            echo "[DEPLOY] Waiting for services to settle..."
+                            sleep 10
+
+                            echo "[DEPLOY] Checking container status..."
+                            ENV=prod docker compose -f docker-compose.yml ps
+
+                            echo "[DEPLOY] Deployment finished successfully ✅"
+                        '
+                    """
+                }
+            }
+        }
+
+        stage('Post-deploy Check') {
+            steps {
+                sshagent (credentials: ['sundaram-vps']) {
+                    sh """
+                        ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${VPS_HOST} '
+                            set -e
+                            echo "[CHECK] Current branch: " \$(cd ${PROJECT_DIR} && git rev-parse --abbrev-ref HEAD)
+                            echo "[CHECK] Virtualenv exists?"
+                            ls -ld ${VENV_DIR} || echo "Missing venv!"
+                        '
+                    """
+                }
+            }
+        }
+    }
+}

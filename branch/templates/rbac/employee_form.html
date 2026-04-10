@@ -1,0 +1,279 @@
+{% extends 'branch/base.html' %}
+{% load custom_filters %}
+{% block title %} {{ title }} {% endblock %}
+{% block content %}
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+    <!-- Breadcrumb Start -->
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 class="text-title-md2 font-bold text-black dark:text-white">
+            {{ title }}
+        </h2>
+        <nav>
+            <ol class="flex items-center gap-2">
+                <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+                        href="{% url 'branch:dashboard' %}">Dashboard <svg class="stroke-current" width="17" height="16"
+                            viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2"
+                                stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg></a></li>
+                <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+                        href="{% url 'branch:employee_list' %}">Employee<svg class="stroke-current" width="17" height="16"
+                            viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2"
+                                stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg></a></li>
+                <li class="text-sm text-gray-800 dark:text-white/90">{{ title }}</li>
+            </ol>
+        </nav>
+    </div>
+    <!-- Breadcrumb End -->
+
+
+
+    <div
+        class="rounded-2xl border border-stroke bg-white px-6 pt-8 pb-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-8">
+
+        <form id="employee-form" method="post" class="space-y-6" enctype="multipart/form-data" novalidate data-edit-mode="{{ form.instance.pk|yesno:'true,false' }}">
+            {% csrf_token %}
+
+            <!-- Personal Information -->
+            <div class="space-y-4">
+                <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Employee Information</h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Column 1 Starts -->
+                    <div>
+                        <!-- First Name -->
+                        <div class="mb-2">
+                            <label for="{{ form.first_name.id_for_label }}"
+                                class="block text-sm font-medium text-gray-700">
+                                First Name <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.first_name.errors|join:", " }}</p>
+                            {% endif %}
+                        </div>
+                        <!-- Last Name -->
+                        <div class="mb-2">
+                            <label for="{{ form.last_name.id_for_label }}"
+                                class="block text-sm font-medium text-gray-700">
+                                Last Name <span class="text-red-500">*</span>
+                            </label>
+                            <div class="mt-1">
+                                {{ form.last_name }}
+                                {% if form.last_name.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.last_name.errors|join:", " }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-2">
+                            <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Email <span class="text-red-500">*</span>
+                            </label>
+                            <div class="mt-1">
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.email.errors|join:", " }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Phone Number -->
+                        <div class="mb-2">
+                            <label for="{{ form.phone_number.id_for_label }}"
+                                class="block text-sm font-medium text-gray-700">
+                                Phone Number <span class="text-red-500">*</span>
+                            </label>
+                            <div class="mt-1">
+                                {{ form.phone_number }}
+                                {% if form.phone_number.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.phone_number.errors|join:", " }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Date of Birth -->
+                        <div class="mb-2">
+                            <label for="{{ form.date_of_birth.id_for_label }}"
+                                class="block text-sm font-medium text-gray-700">
+                                Date of Birth
+                            </label>
+                            <div class="mt-1">
+                                {{ form.date_of_birth }}
+                                {% if form.date_of_birth.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.date_of_birth.errors|join:", " }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-2">
+                            <label for="{{ form.gender.id_for_label }}"
+                                class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Gender
+                                <span class="text-meta-1 text-error-500">*</span></label>
+                            <div class="mt-1">
+                                {{ form.gender }}
+                                {% if form.gender.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.gender.errors|join:", " }}</p>
+                                {% endif %}
+                            </div>
+                            {% if form.gender.errors %}
+                            <div class="text-meta-1 text-sm mt-1">{{ form.gender.errors|join:", " }}</div>
+                            {% endif %}
+                        </div>
+
+                    </div>
+                    <!-- Column 1 Ends -->
+
+                    <!-- Column 2 Starts -->
+                    <div>
+                        <!-- Role -->
+                        <div class="mb-2">
+                            <label for="{{ form.role.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Role <span class="text-red-500">*</span>
+                            </label>
+                            <div class="mt-1">
+                                {{ form.role }}
+                                {% if form.role.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.role.errors|join:", " }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+
+                        <div class="mb-2">
+                            <label for="{{ form.address.id_for_label }}"
+                                class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Address</label>
+                            <div class="mt-1">
+                                {{ form.address }}
+                                {% if form.address.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.address.errors|join:", " }}</p>
+                                {% endif %}
+                            </div>
+                            {% if form.address.errors %}
+                            <div class="text-meta-1 text-sm mt-1">{{ form.address.errors|join:", " }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-2">
+                            <label for="{{ form.gov_id_type.id_for_label }}"
+                                class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Gov ID Type
+                                <span class="text-meta-1 text-error-500">*</span></label>
+                            <div class="mt-1">
+                                {{ form.gov_id_type }}
+                                {% if form.gov_id_type.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.gov_id_type.errors|join:", " }}</p>
+                                {% endif %}
+                            </div>
+                            {% if form.gov_id_type.errors %}
+                            <div class="text-meta-1 text-sm mt-1">{{ form.gov_id_type.errors|join:", " }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-2">
+                            <label for="{{ form.gov_id_number.id_for_label }}"
+                                class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Gov ID
+                                Number <span class="text-meta-1 text-error-500">*</span></label>
+                            <div class="mt-1">
+                                {{ form.gov_id_number }}
+                                {% if form.gov_id_number.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.gov_id_number.errors|join:", " }}</p>
+                                {% endif %}
+                            </div>
+                            {% if form.gov_id_number.errors %}
+                            <div class="text-meta-1 text-sm mt-1 text-error-500">{{
+                                form.gov_id_number.errors|join:", " }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Status -->
+                        <div class="mb-2">
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"><span
+                                    class="mr-2 ">Status</span>
+                                {{ form.is_active }}
+                                {% if form.is_active.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.is_active.errors|join:", " }}</p>
+                                {% endif %}
+                                <div class="text-meta-1 text-sm mt-1">
+                                    {{form.is_active.errors }}
+                                </div>
+                            </label>
+
+                            {% if form.is_active.errors %}
+                            <div class="text-meta-1 text-sm mt-1">{{ form.is_active.errors|join:", " }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <!-- Column 2 Ends -->
+                </div>
+
+                <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Password</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="{{ form.password.id_for_label }}" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Password</label>
+                        <div class="relative">
+                            {{ form.password }}
+                            <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center password-toggle" data-target="password" tabindex="-1" style="height: 44px;">
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </button>
+                        </div>
+
+                        {% if form.instance.pk %}
+                        <p class="mt-1 text-xs text-gray-500">Leave blank to keep the existing password.</p>
+                        {% endif %}
+                        
+                        {% if form.password.errors %}
+                          <p class="mt-1 text-sm text-red-600">
+                            {{ form.password.errors|join:", " }}
+                          </p>
+                        {% endif %}
+                    </div>
+                
+                    <div>
+                        <label for="{{ form.confirm_password.id_for_label }}" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Confirm Password</label>
+                        <div class="relative">
+                            {{ form.confirm_password }}
+                            <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center password-toggle" data-target="confirm_password" tabindex="-1" style="height: 44px;">
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </button>
+                        </div>
+
+                        {% if form.instance.pk %}
+                        <p class="mt-1 text-xs text-gray-500">Leave both password fields blank to keep the existing password.</p>
+                        {% endif %}
+
+                        {% if form.confirm_password.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.confirm_password.errors|join:", " }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Form Actions -->
+            <div class="pt-6 border-t border-gray-200 flex justify-end space-x-3">
+                <a href="{% url 'branch:employee_list' %}"
+                    class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Cancel
+                </a>
+                <button type="submit"
+                    class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    {% if form.instance.pk %}Update{% else %}Create{% endif %} Employee
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/main/js/main.js"></script>
+<script src="/static/branch/js/employeeFormValidation.js"></script>
+{% endblock %}

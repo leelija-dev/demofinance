@@ -1,0 +1,368 @@
+{% extends "branch/base.html" %}
+{% load static %}
+{% block title %}Upcoming EMI{% endblock %}
+
+{% block page_id %}upcomingEMIPayments{% endblock %}
+
+{% block content %}
+
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+    <!-- Breadcrumb Start -->
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 class="text-title-md2 font-bold text-black dark:text-white">
+           Upcoming EMI
+        </h2>
+        <nav>
+            <ol class="flex items-center gap-2">
+                <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+                        href="{% url 'branch:dashboard' %}">Dashboard <svg class="stroke-current" width="17" height="16"
+                            viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                            </path>
+                        </svg></a></li>
+                <li class="text-sm text-gray-800 dark:text-white/90">Upcoming EMI</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        <div class="grid grid-cols-2 gap-4 p-5 space-y-6 border-t border-gray-100 dark:border-gray-800 sm:p-6">
+            <div>
+                <div class="relative w-full max-w-md">
+                    <div class="relative">
+                        <input type="text" 
+                               id="loanSearch" 
+                               placeholder="Search by Loan No" 
+                               class="w-full p-2 pl-3 pr-10 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               autocomplete="off">
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div id="loanSuggestions" class="hidden absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                        <!-- Suggestions will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+            <div></div>
+        </div>
+        <div class="p-5 space-y-6 border-t border-gray-100 dark:border-gray-800 sm:p-6">
+            <!-- Upcoming EMI Table -->
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <!-- <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Customer
+                                </th> -->
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Loan Ref
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Installment Date
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    EMI Amount
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Principal
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Interest
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Status
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Overdue Days
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Late Fee
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Paid Date
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Assign Agent
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Action
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="upcoming-emi-tbody" class="bg-white divide-y divide-gray-200">
+                            {% if upcoming_emis_page and upcoming_emis_page.object_list %}
+                                {% for emi in upcoming_emis_page.object_list %}
+                                    {% with emi_id_str=emi.id|stringformat:'s' %}
+                                    {% with element_id=emi.loan_ref_no|add:'-'|add:emi_id_str %}
+                                    <tr data-id="{{ emi.id }}" data-loan-ref="{{ emi.loan_ref_no }}">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900">{{ emi.loan_ref_no|default:'-' }}</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900">{{ emi.installment_date|default:'-' }}</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900">₹{{ emi.installment_amount|default:'0.00' }}</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900">₹{{ emi.principal_amount|default:'0.00' }}</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900">₹{{ emi.interest_amount|default:'0.00' }}</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if emi.status|lower == 'upcoming' %}bg-blue-100 text-blue-800{% elif emi.status|lower == 'due' %}bg-yellow-100 text-yellow-800{% elif emi.status|lower == 'overdue' %}bg-red-100 text-red-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                                                {{ emi.status|default:'Upcoming' }}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900">{{ emi.overdue_days|default:'0' }}</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900">₹{{ emi.late_fee|default:'0.00' }}</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900">{% if emi.paid_date %}{{ emi.paid_date }}{% else %}Not Paid{% endif %}</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap w-full">
+                                            <div class="flex items-center space-x-2">
+                                                <div id="agent-display-{{ element_id }}" class="hidden"></div>
+                                                <select id="agent-select-{{ element_id }}"
+                                                        class="block min-w-[150px] w-auto p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
+                                                        onchange="toggleSaveButton('{{ element_id }}', this.value)">
+                                                    <option value="">Select Agent</option>
+                                                    {% for agent in branch_agents %}
+                                                        <option value="{{ agent.agent_id }}" {% if emi.assigned_agent_id == agent.agent_id %}selected{% endif %}>{{ agent.full_name }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                                <button id="save-btn-{{ element_id }}"
+                                                        onclick="saveAgentAssignment('{{ element_id }}', this.previousElementSibling.value, this)"
+                                                        class="px-3 py-1 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 hidden">
+                                                    Save
+                                                </button>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <a href="{% url 'branch:emi_schedule' %}?loan_ref_no={{ emi.loan_ref_no }}" 
+                                               class="text-indigo-600 hover:text-indigo-900">
+                                                View EMI Schedule
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endwith %}
+                                    {% endwith %}
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="11" class="px-6 py-8 text-center text-gray-500">
+                                        No upcoming EMIs found.
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+                <div id="no-upcoming-emis" class="hidden p-6 text-center text-red-600">
+                    No upcoming EMIs found.
+                </div>
+
+            <div class="flex items-center justify-between pt-4">
+                <div class="text-sm text-gray-600">
+                    {% if upcoming_emis_page %}
+                        Page {{ upcoming_emis_page.number }} of {{ upcoming_emis_page.paginator.num_pages }}
+                    {% endif %}
+                </div>
+                {% if upcoming_emis_page and upcoming_emis_page.paginator.num_pages > 1 %}
+                    <div class="inline-flex gap-2">
+                        {% if upcoming_emis_page.has_previous %}
+                            <a class="px-3 py-1 text-sm border rounded-md" href="?page={{ upcoming_emis_page.previous_page_number }}">Previous</a>
+                        {% else %}
+                            <span class="px-3 py-1 text-sm border rounded-md text-gray-400">Previous</span>
+                        {% endif %}
+                        {% for p in upcoming_page_links %}
+                            {% if p == '…' or p == '...' %}
+                                <span class="px-3 py-1 text-sm border rounded-md text-gray-400">{{ p }}</span>
+                            {% elif p == upcoming_emis_page.number %}
+                                <span class="px-3 py-1 text-sm border rounded-md bg-blue-500 text-white">{{ p }}</span>
+                            {% else %}
+                                <a class="px-3 py-1 text-sm border rounded-md" href="?page={{ p }}">{{ p }}</a>
+                            {% endif %}
+                        {% endfor %}
+                        {% if upcoming_emis_page.has_next %}
+                            <a class="px-3 py-1 text-sm border rounded-md" href="?page={{ upcoming_emis_page.next_page_number }}">Next</a>
+                        {% else %}
+                            <span class="px-3 py-1 text-sm border rounded-md text-gray-400">Next</span>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div id="no-applications-message" class="hidden text-center text-gray-500 py-8">Loading upcoming EMI data...</div>
+        </div>
+    </div> 
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        window.UPCOMING_EMI_SERVER_RENDERED = true;
+
+        // Format currency
+        const formatCurrency = (amount) => {
+            if (amount === undefined || amount === null) return '₹0.00';
+            return '₹' + parseFloat(amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        };
+
+        // Keep selects always visible in Upcoming EMI (no auto-switch to read-only display)
+
+        // Get status badge class based on status
+        const getStatusBadgeClass = (status) => {
+            switch(status.toLowerCase()) {
+                case 'upcoming':
+                    return 'bg-blue-100 text-blue-800';
+                case 'due':
+                    return 'bg-yellow-100 text-yellow-800';
+                case 'overdue':
+                    return 'bg-red-100 text-red-800';
+                default:
+                    return 'bg-gray-100 text-gray-800';
+            }
+        };
+
+        // Update the UI with EMI data
+        const updateUpcomingEMI = (response) => {
+            const tbody = document.getElementById('upcoming-emi-tbody');
+            const noEmisElement = document.getElementById('no-upcoming-emis');
+            
+            // Clear existing rows
+            tbody.innerHTML = '';
+            
+            // Check if we got an error response
+            if (response.detail) {
+                noEmisElement.textContent = response.detail;
+                noEmisElement.classList.remove('hidden');
+                return;
+            }
+            
+            // Make sure data is an array
+            const data = Array.isArray(response) ? response : [response];
+            // console.log('fjdajdfaf', data);
+            
+            
+            if (data.length === 0) {
+                noEmisElement.classList.remove('hidden');
+                return;
+            }
+            
+            // Hide no EMIs message
+            noEmisElement.classList.add('hidden');
+            
+            // Process each EMI and add to table
+            data.forEach(emi => {
+                const row = document.createElement('tr');
+                // Ensure we have unique identifiers for controls and API payload
+                const elementId = `${emi.loan_ref_no}-${emi.id}`;
+                const dueDate = formatDate(emi.installment_date);
+                const dueTime = emi.installment_time || '00:00';
+                const status = emi.status || 'Upcoming';
+                // Determine assigned agent name (if any)
+                const assignedName = (Array.isArray(emi.assigned_agent) && emi.assigned_agent.find(a => a.agent_id === emi.assigned_agent_id)?.full_name) || null;
+                
+                // Attach identifiers to row for later use in saving
+                row.setAttribute('data-id', emi.id || '');
+                row.setAttribute('data-loan-ref', emi.loan_ref_no || '');
+
+                row.innerHTML = `
+                    
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${emi.loan_ref_no || '-'}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${dueDate}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${formatCurrency(emi.installment_amount)}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${formatCurrency(emi.principal_amount)}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${formatCurrency(emi.interest_amount)}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(status)}">
+                            ${status}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${emi.overdue_days !== undefined ? emi.overdue_days : '0'}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${emi.late_fee !== undefined ? formatCurrency(emi.late_fee) : '₹0.00'}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${emi.paid_date ? formatDate(emi.paid_date) : 'Not Paid'}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap w-full">
+                        <div class="flex items-center space-x-2">
+                            <div id="agent-display-${elementId}" class="hidden"></div>
+                            <select id="agent-select-${elementId}"
+                                    class="block min-w-[150px] w-auto p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
+                                    onchange="toggleSaveButton('${elementId}', this.value)">
+                                <option value="">Select Agent</option>
+                                ${emi.assigned_agent && emi.assigned_agent.length > 0 ? 
+                                    emi.assigned_agent.map(agent => 
+                                        `<option value="${agent.agent_id}" ${emi.assigned_agent_id === agent.agent_id ? 'selected' : ''}>${agent.full_name}</option>`
+                                    ).join('') : ''
+                                }
+                            </select>
+                            <button id="save-btn-${elementId}"
+                                    onclick="saveAgentAssignment('${elementId}', this.previousElementSibling.value, this)"
+                                    class="px-3 py-1 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 hidden">
+                                Save
+                            </button>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <a href="{% url 'branch:emi_schedule' %}?loan_ref_no=${emi.loan_ref_no}" 
+                           class="text-indigo-600 hover:text-indigo-900">
+                            View EMI Schedule
+                        </a>
+                    </td>  
+                `;
+                
+                tbody.appendChild(row);
+            });
+        };
+
+        if (!window.UPCOMING_EMI_SERVER_RENDERED) {
+            // Fetch upcoming EMI data
+            fetch('{% url "branch:api_upcoming_emi" %}')
+                .then(response => response.json())
+                .then(data => {
+                    // Hide loading message
+                    document.getElementById('no-applications-message').classList.add('hidden');
+                    // console.log('Upcoming EMI data:', data);
+                    updateUpcomingEMI(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching upcoming EMI data:', error);
+                    document.getElementById('no-applications-message').classList.remove('hidden');
+                    document.getElementById('no-applications-message').textContent = 'Error loading upcoming EMI data. Please try again later.';
+                });
+        }
+    });
+
+    window.EMI_PAYMENT_CONFIG = {
+    assignAgentUrl: "{% url 'branch:assign_agent_to_emi' %}"
+  };
+</script>
+
+{% block extra_js %}
+<script src="{% static 'branch/js/emi-payment.js' %}"></script>
+{% endblock %}
+
+{% endblock %}

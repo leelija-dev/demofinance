@@ -1,0 +1,1402 @@
+{% extends "branch/base.html" %}
+
+{% load static %}
+
+{% block title %}SavingsApplicationDetail{% endblock %}
+
+
+
+{% block page_id %}SavingsApplicationDetail{% endblock %}
+
+
+
+{% block content %}
+
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+
+        <h2 class="text-title-md2 font-bold text-black dark:text-white">Application Detail</h2>
+
+        <nav>
+
+            <ol class="flex items-center gap-2">
+
+                <li>
+
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400" href="{% url 'branch:dashboard' %}">
+
+                        Dashboard
+
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+
+                        </svg>
+
+                    </a>
+
+                </li>
+
+                <li>
+
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400" href="{% url 'branch:pending_savings_applications' %}">
+
+                        Pending Savings Applications
+
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+
+                        </svg>
+
+                    </a>
+
+                </li>
+
+                <li class="text-sm text-gray-800 dark:text-white/90">Application Detail</li>
+
+            </ol>
+
+        </nav>
+
+    </div>
+
+
+
+    <div id="documentReviewModal" class="fixed inset-0 z-9999 bg-gray-400/50 backdrop-blur-[32px] hidden">
+
+        <div class="absolute inset-0 bg-black bg-opacity-50"></div>
+
+        <div class="flex items-center justify-center min-h-screen p-4">
+
+            <div class="relative bg-white dark:bg-gray-800 rounded">
+
+                <div class="p-6">
+
+                    <div class="flex items-center justify-between mb-4">
+
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Review Document</h3>
+
+                        <button type="button" onclick="closeDocumentReviewModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+
+                            </svg>
+
+                        </button>
+
+                    </div>
+
+
+
+                    <form id="documentReviewForm">
+
+                        <input type="hidden" id="reviewDocumentRequestId" value="">
+
+                        <div class="space-y-4">
+
+                            <div>
+
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Document Type</label>
+
+                                <input type="text" id="reviewDocumentType" readonly class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white">
+
+                            </div>
+
+
+
+                            <div>
+
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Review Decision</label>
+
+                                <select id="reviewDecision" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+
+                                    <option value="">Select a decision</option>
+
+                                    <option value="approved">✅ Approve Document</option>
+
+                                    <option value="request_again">🔄 Request Again</option>
+
+                                </select>
+
+                            </div>
+
+
+
+                            <div>
+
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Review Comments (Optional)</label>
+
+                                <textarea id="reviewComment" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500" placeholder="Please provide your review comments..."></textarea>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <div class="flex gap-3 mt-6">
+
+                            <button type="button" onclick="closeDocumentReviewModal()" class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition">Cancel</button>
+
+                            <button type="submit" class="flex-1 px-4 py-2 text-sm font-medium text-white bg-brand-500 border border-transparent rounded-md hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 transition">Submit Review</button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div id="documentRequestModal" class="fixed inset-0 z-9999 bg-gray-400/50 backdrop-blur-[32px] hidden">
+        <div class="absolute inset-0 bg-black bg-opacity-50"></div>
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Request Document</h3>
+                        <button type="button" onclick="closeDocumentRequestModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <form id="documentRequestForm" method="post" action="">
+                        {% csrf_token %}
+                        <input type="hidden" id="documentTypeValue" name="document_type" value="">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Document Type</label>
+                                <input type="text" id="documentType" name="documentType" readonly class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Reason for Request</label>
+                                <select id="requestReason" name="requestReason" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+                                    <option value="">Select a reason</option>
+                                    <option value="missing">Document Missing</option>
+                                    <option value="blurred">Document Blurred/Unclear</option>
+                                    <option value="wrong_file">Wrong Document Uploaded</option>
+                                    <option value="expired">Document Expired</option>
+                                    <option value="incomplete">Document Incomplete</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Additional Comments (Optional)</label>
+                                <textarea id="requestComment" name="requestComment" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500" placeholder="Please provide any additional details..."></textarea>
+                            </div>
+                        </div>
+                        <div class="flex gap-3 mt-6">
+                            <button type="button" onclick="closeDocumentRequestModal()" class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition">Cancel</button>
+                            <button type="submit" class="flex-1 px-4 py-2 text-sm font-medium text-white bg-error-500 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition">Send Request</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+
+        <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+
+            <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+
+                <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Customer Information</h3>
+
+            </div>
+
+            <div class="p-5 space-y-4 sm:p-6">
+
+                <div class="grid grid-cols-2 gap-4">
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Customer ID</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.customer_id }}</p>
+
+                    </div>
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Full Name</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.full_name }}</p>
+
+                    </div>
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Contact</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.contact }}</p>
+
+                    </div>
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Email</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.email|default:"-" }}</p>
+
+                    </div>
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Aadhaar Number</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.adhar_number }}</p>
+
+                    </div>
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">PAN Number</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.pan_number }}</p>
+
+                    </div>
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Status</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.get_status_display }}</p>
+
+                    </div>
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Submitted At</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.submitted_at }}</p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] {% if application.agent %}lg:col-span-2{% endif %}">
+
+            <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+
+                <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Nominee Details</h3>
+
+            </div>
+
+            <div class="p-5 space-y-4 sm:p-6">
+
+                <div class="grid grid-cols-2 gap-4">
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Nominee Name</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.nominee_name|default:"-" }}</p>
+
+                    </div>
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Relationship</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.nominee_relationship|default:"-" }}</p>
+
+                    </div>
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Nominee KYC Type</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">{% if application.nominee_kyc_type %}{{ application.get_nominee_kyc_type_display }}{% else %}-{% endif %}</p>
+
+                    </div>
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Nominee KYC Number</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.nominee_kyc_number|default:"-" }}</p>
+
+                    </div>
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Nominee KYC Document</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">
+                            {% if application.nominee_kyc_document %}
+                                <a href="{{ application.nominee_kyc_document.url }}" target="_blank" class="text-brand-500 hover:underline">View</a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        {% if application.agent %}
+
+        <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+
+            <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+
+                <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Agent Information</h3>
+
+            </div>
+
+            <div class="p-5 space-y-4 sm:p-6">
+
+                <div class="grid grid-cols-2 gap-4">
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Agent</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.agent }}</p>
+
+                    </div>
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Agent ID</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.agent.agent_id|default:"-" }}</p>
+
+                    </div>
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Contact</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.agent.contact|default:"-" }}</p>
+
+                    </div>
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Branch</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.agent.branch|default:"-" }}</p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        {% endif %}
+
+
+
+        <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] {% if application.agent %}lg:col-span-2{% endif %}">
+
+            <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+
+                <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Savings Information</h3>
+
+            </div>
+
+            <div class="p-5 space-y-4 sm:p-6">
+
+                <div class="grid grid-cols-2 gap-4">
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Application ID</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.application_id }}</p>
+
+                    </div>
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Product Type</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.get_product_type_display }}</p>
+
+                    </div>
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Product ID</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.product_id|default:"-" }}</p>
+
+                    </div>
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Installment Amount</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">₹{{ application.installment_amount|default:"-" }}</p>
+
+                    </div>
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Interest Rate (%)</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.interest_rate|default:"-" }}{% if application.interest_rate %}%{% endif %}</p>
+
+                    </div>
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Tenure</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">
+
+                            {{ application.tenure }}
+
+                            {% if application.tenure_unit %}
+
+                            (
+
+                            {% if application.tenure_unit == 'days' %}daily{% elif application.tenure_unit == 'weeks' %}weekly{% elif application.tenure_unit == 'months' %}monthly{% elif application.tenure_unit == 'years' %}yearly{% else %}{{ application.tenure_unit }}{% endif %}
+
+                            )
+
+                            {% endif %}
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="mt-6 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+
+        <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+
+            <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Address Information</h3>
+
+        </div>
+
+        <div class="p-5 space-y-4 sm:p-6">
+
+            {% if application.customer.address %}
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                    <div>
+
+                        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Permanent Address</h4>
+
+                        <hr class="w-[30%] pb-3 border-gray-300 dark:border-gray-700">
+
+                        <div class="space-y-1">
+
+                            <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.address.address_line_1 }},</p>
+
+                            {% if application.customer.address.address_line_2 %}
+
+                            <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.address.address_line_2 }},</p>
+
+                            {% endif %}
+
+                            <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.address.landmark|default:"" }},</p>
+
+                            <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.address.post_office|default:"" }} - {{ application.customer.address.post_code }},</p>
+
+                            <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.address.city_or_town }}, {{ application.customer.address.district }}, {{ application.customer.address.state }}, {{ application.customer.address.country }}</p>
+
+                        </div>
+
+                    </div>
+
+                    <div>
+
+                        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Current Address</h4>
+
+                        <hr class="w-[30%] pb-3 border-gray-300 dark:border-gray-700">
+
+                        <div class="space-y-1">
+
+                            <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.address.current_address_line_1 }},</p>
+
+                            {% if application.customer.address.current_address_line_2 %}
+
+                            <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.address.current_address_line_2 }},</p>
+
+                            {% endif %}
+
+                            <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.address.current_landmark|default:"" }},</p>
+
+                            <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.address.current_post_office|default:"" }} - {{ application.customer.address.current_post_code }},</p>
+
+                            <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.address.current_city_or_town }}, {{ application.customer.address.current_district }}, {{ application.customer.address.current_state }}, {{ application.customer.address.current_country }}</p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            {% else %}
+
+                <p class="text-sm text-gray-600 dark:text-gray-400">No address available.</p>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+
+    {% if pending_review_requests %}
+
+    <div class="mt-6 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+
+        <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+
+            <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Re-uploaded Documents - Pending Review</h3>
+
+        </div>
+
+        <div class="p-5 space-y-4 sm:p-6">
+
+            {% for req in pending_review_requests %}
+
+            <div class="border border-blue-200 dark:border-blue-800 rounded-lg p-4 bg-blue-50 dark:bg-blue-900/20">
+
+                <div class="flex items-start justify-between">
+
+                    <div class="flex-1">
+
+                        <div class="flex items-center gap-2 mb-2">
+
+                            <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">Pending Review</span>
+
+                            <span class="text-sm text-gray-600 dark:text-gray-400">{{ req.requested_at|date:"Y-m-d H:i" }}</span>
+
+                        </div>
+
+                        <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-1">{{ req.document_label }}</h4>
+
+                        <div class="flex gap-2">
+
+                            <a href="{{ req.file_url }}" target="_blank" class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-brand-500 bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 rounded-md hover:bg-brand-100 dark:hover:bg-brand-900/30 transition">View Document</a>
+
+                            <button type="button" onclick="openDocumentReviewModal('{{ req.id }}', '{{ req.document_label|escapejs }}')" class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-brand-500 border border-transparent rounded-md hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 transition">Review Document</button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            {% empty %}
+
+            <div class="rounded-lg p-4 text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20 border border-gray-200 dark:border-gray-700">No re-uploaded documents pending review.</div>
+
+            {% endfor %}
+
+        </div>
+
+        {% if pending_upload_requests %}
+
+        <div class="p-5 border-t border-gray-100 dark:border-gray-800 sm:p-6">
+
+            <h4 class="text-sm font-medium text-gray-800 dark:text-white/90 mb-3">Requested Documents - Pending Upload</h4>
+
+            <div class="space-y-3">
+
+                {% for req in pending_upload_requests %}
+
+                <div class="border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 bg-yellow-50 dark:bg-yellow-900/20">
+
+                    <div class="flex items-start justify-between">
+
+                        <div class="flex-1">
+
+                            <div class="flex items-center gap-2 mb-2">
+
+                                <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">Pending Upload</span>
+
+                                <span class="text-sm text-gray-600 dark:text-gray-400">{{ req.requested_at|date:"Y-m-d H:i" }}</span>
+
+                            </div>
+
+                            <h4 class="text-sm font-medium text-gray-900 dark:text-white">{{ req.document_label }}</h4>
+
+                            <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Agent/Branch must upload this document before review.</p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+    {% endif %}
+
+    <div class="mt-6 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+
+        <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+
+            <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Documents</h3>
+
+        </div>
+
+        <div class="p-5 space-y-6 sm:p-6">
+
+            {% if documents %}
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+
+                        <div class="flex items-center justify-between mb-2">
+
+                            <span class="text-xs text-gray-500 dark:text-gray-400">ID Proof (Front)</span>
+
+                            {% if 'id_proof' in pending_requested_doc_types %}
+                            <span class="text-xs text-error-500 dark:text-error-500">Requested</span>
+                            {% else %}
+                            <span class="text-xs text-success-500 dark:text-success-500">✓ Uploaded</span>
+                            {% endif %}
+
+                        </div>
+
+                        <div class="flex gap-2">
+
+                            <a href="{{ documents.id_proof.url }}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition">View</a>
+
+                            {% if application.agent and not application.account_id %}
+                            <button type="button" name="request_doc" value="id_proof" data-document-type="id_proof" {% if 'id_proof' in pending_requested_doc_types %}disabled{% endif %} class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-brand-500 dark:bg-error-900/20 border border-brand-500 dark:border-gray-800 rounded-md hover:bg-error-100 dark:hover:bg-error-900/30 transition disabled:opacity-50 disabled:cursor-not-allowed">{% if 'id_proof' in pending_requested_doc_types %}Requested{% else %}Request Document{% endif %}</button>
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+
+
+                    {% if documents.id_proof_back %}
+
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+
+                        <div class="flex items-center justify-between mb-2">
+
+                            <span class="text-xs text-gray-500 dark:text-gray-400">ID Proof (Back)</span>
+
+                            {% if 'id_proof_back' in pending_requested_doc_types %}
+                            <span class="text-xs text-error-500 dark:text-error-500">Requested</span>
+                            {% else %}
+                            <span class="text-xs text-success-500 dark:text-success-500">✓ Uploaded</span>
+                            {% endif %}
+
+                        </div>
+
+                        <div class="flex gap-2">
+
+                            <a href="{{ documents.id_proof_back.url }}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition">View</a>
+
+                            {% if application.agent and not application.account_id %}
+                            <button type="button" name="request_doc" value="id_proof_back" data-document-type="id_proof_back" {% if 'id_proof_back' in pending_requested_doc_types %}disabled{% endif %} class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-brand-500 dark:bg-error-900/20 border border-brand-500 dark:border-gray-800 rounded-md hover:bg-error-100 dark:hover:bg-error-900/30 transition disabled:opacity-50 disabled:cursor-not-allowed">{% if 'id_proof_back' in pending_requested_doc_types %}Requested{% else %}Request Document{% endif %}</button>
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                    {% endif %}
+
+
+
+                    {% if documents.pan_card_document %}
+
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+
+                        <div class="flex items-center justify-between mb-2">
+
+                            <span class="text-xs text-gray-500 dark:text-gray-400">PAN Card</span>
+
+                            {% if 'pan_card_document' in pending_requested_doc_types %}
+                            <span class="text-xs text-error-500 dark:text-error-500">Requested</span>
+                            {% else %}
+                            <span class="text-xs text-success-500 dark:text-success-500">✓ Uploaded</span>
+                            {% endif %}
+
+                        </div>
+
+                        <div class="flex gap-2">
+
+                            <a href="{{ documents.pan_card_document.url }}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition">View</a>
+
+                            {% if application.agent and not application.account_id %}
+                            <button type="button" name="request_doc" value="pan_card_document" data-document-type="pan_card_document" {% if 'pan_card_document' in pending_requested_doc_types %}disabled{% endif %} class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-brand-500 dark:bg-error-900/20 border border-brand-500 dark:border-gray-800 rounded-md hover:bg-error-100 dark:hover:bg-error-900/30 transition disabled:opacity-50 disabled:cursor-not-allowed">{% if 'pan_card_document' in pending_requested_doc_types %}Requested{% else %}Request Document{% endif %}</button>
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                    {% endif %}
+
+
+
+                    {% if documents.income_proof %}
+
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+
+                        <div class="flex items-center justify-between mb-2">
+
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Income Proof</span>
+
+                            {% if 'income_proof' in pending_requested_doc_types %}
+                            <span class="text-xs text-error-500 dark:text-error-500">Requested</span>
+                            {% else %}
+                            <span class="text-xs text-success-500 dark:text-success-500">✓ Uploaded</span>
+                            {% endif %}
+
+                        </div>
+
+                        <div class="flex gap-2">
+
+                            <a href="{{ documents.income_proof.url }}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition">View</a>
+
+                            {% if application.agent and not application.account_id %}
+                            <button type="button" name="request_doc" value="income_proof" data-document-type="income_proof" {% if 'income_proof' in pending_requested_doc_types %}disabled{% endif %} class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-brand-500 dark:bg-error-900/20 border border-brand-500 dark:border-gray-800 rounded-md hover:bg-error-100 dark:hover:bg-error-900/30 transition disabled:opacity-50 disabled:cursor-not-allowed">{% if 'income_proof' in pending_requested_doc_types %}Requested{% else %}Request Document{% endif %}</button>
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                    {% endif %}
+
+
+
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+
+                        <div class="flex items-center justify-between mb-2">
+
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Photo</span>
+
+                            {% if 'photo' in pending_requested_doc_types %}
+                            <span class="text-xs text-error-500 dark:text-error-500">Requested</span>
+                            {% elif documents.photo %}
+                            <span class="text-xs text-success-500 dark:text-success-500">✓ Uploaded</span>
+                            {% else %}
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Not uploaded</span>
+                            {% endif %}
+
+                        </div>
+
+                        <div class="flex items-center space-x-3">
+
+                            {% if documents.photo %}
+                            <img src="{{ documents.photo.url }}" alt="Customer Photo" class="w-16 h-16 object-cover rounded-lg border border-gray-200 dark:border-gray-700">
+
+                            <a href="{{ documents.photo.url }}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition">View</a>
+                            {% endif %}
+
+                            {% if documents.photo and application.agent and not application.account_id %}
+                            <button type="button" name="request_doc" value="photo" data-document-type="photo" {% if 'photo' in pending_requested_doc_types %}disabled{% endif %} class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-brand-500 dark:bg-error-900/20 border border-brand-500 dark:border-gray-800 rounded-md hover:bg-error-100 dark:hover:bg-error-900/30 transition disabled:opacity-50 disabled:cursor-not-allowed">{% if 'photo' in pending_requested_doc_types %}Requested{% else %}Request Document{% endif %}</button>
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+
+                        <div class="flex items-center justify-between mb-2">
+
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Signature</span>
+
+                            {% if 'signature' in pending_requested_doc_types %}
+                            <span class="text-xs text-error-500 dark:text-error-500">Requested</span>
+                            {% elif documents.signature %}
+                            <span class="text-xs text-success-500 dark:text-success-500">✓ Uploaded</span>
+                            {% else %}
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Not uploaded</span>
+                            {% endif %}
+
+                        </div>
+
+                        <div class="flex gap-2">
+
+                            {% if documents.signature %}
+                            <a href="{{ documents.signature.url }}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition">View</a>
+                            {% endif %}
+
+                            {% if documents.signature and application.agent and not application.account_id %}
+                            <button type="button" name="request_doc" value="signature" data-document-type="signature" {% if 'signature' in pending_requested_doc_types %}disabled{% endif %} class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-brand-500 dark:bg-error-900/20 border border-brand-500 dark:border-gray-800 rounded-md hover:bg-error-100 dark:hover:bg-error-900/30 transition disabled:opacity-50 disabled:cursor-not-allowed">{% if 'signature' in pending_requested_doc_types %}Requested{% else %}Request Document{% endif %}</button>
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+
+
+                    {% if documents.collateral %}
+
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+
+                        <div class="flex items-center justify-between mb-2">
+
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Collateral</span>
+
+                            {% if 'collateral' in pending_requested_doc_types %}
+                            <span class="text-xs text-error-500 dark:text-error-500">Requested</span>
+                            {% else %}
+                            <span class="text-xs text-success-500 dark:text-success-500">✓ Uploaded</span>
+                            {% endif %}
+
+                        </div>
+
+                        <div class="flex gap-2">
+
+                            <a href="{{ documents.collateral.url }}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition">View</a>
+
+                            {% if application.agent and not application.account_id %}
+                            <button type="button" name="request_doc" value="collateral" data-document-type="collateral" {% if 'collateral' in pending_requested_doc_types %}disabled{% endif %} class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-brand-500 dark:bg-error-900/20 border border-brand-500 dark:border-gray-800 rounded-md hover:bg-error-100 dark:hover:bg-error-900/30 transition disabled:opacity-50 disabled:cursor-not-allowed">{% if 'collateral' in pending_requested_doc_types %}Requested{% else %}Request Document{% endif %}</button>
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                    {% endif %}
+
+
+
+                    {% if documents.residential_proof_file %}
+
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+
+                        <div class="flex items-center justify-between mb-2">
+
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Residential Proof</span>
+
+                            {% if 'residential_proof_file' in pending_requested_doc_types %}
+                            <span class="text-xs text-error-500 dark:text-error-500">Requested</span>
+                            {% else %}
+                            <span class="text-xs text-success-500 dark:text-success-500">✓ Uploaded</span>
+                            {% endif %}
+
+                        </div>
+
+                        <div class="flex gap-2">
+
+                            <a href="{{ documents.residential_proof_file.url }}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition">View</a>
+
+                            {% if application.agent and not application.account_id %}
+                            <button type="button" name="request_doc" value="residential_proof_file" data-document-type="residential_proof_file" {% if 'residential_proof_file' in pending_requested_doc_types %}disabled{% endif %} class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-brand-500 dark:bg-error-900/20 border border-brand-500 dark:border-gray-800 rounded-md hover:bg-error-100 dark:hover:bg-error-900/30 transition disabled:opacity-50 disabled:cursor-not-allowed">{% if 'residential_proof_file' in pending_requested_doc_types %}Requested{% else %}Request Document{% endif %}</button>
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                    {% endif %}
+
+                </div>
+
+            {% else %}
+
+                <p class="text-sm text-gray-600 dark:text-gray-400">No documents found for this application.</p>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+
+    <div class="flex items-center justify-end gap-3 mt-6">
+
+        {% if application.account_id %}
+
+        <a href="{% url 'branch:savings_collections_list' application.application_id %}" class="inline-flex items-center justify-center rounded-md bg-brand-500 px-6 py-2 text-sm font-medium text-white hover:bg-brand-600 transition">Collections</a>
+
+        {% endif %}
+
+        {% if application.status == 'pending' or application.status == 'branch_resubmitted' or application.status == 'branch_document_accepted' %}
+
+        <form id="approveSavingsApplicationForm" method="post" action="{% url 'branch:approve_savings_application' application.application_id %}">
+
+            {% csrf_token %}
+
+            <button type="submit" class="inline-flex items-center justify-center rounded-md bg-success-500 px-6 py-2 text-sm font-medium text-white hover:bg-green-700 transition">Approve Application</button>
+
+        </form>
+
+        <button id="rejectApplicationBtn" type="button" class="inline-flex items-center justify-center rounded-md bg-error-500 px-6 py-2 text-sm font-medium text-white hover:bg-red-700 transition">Reject Application</button>
+
+        {% endif %}
+
+        <a href="{% url 'branch:dashboard' %}" class="inline-flex items-center justify-center rounded-md bg-gray-500 px-6 py-2 text-sm font-medium text-white hover:bg-gray-700 transition">Back to dashboard</a>
+
+    </div>
+
+
+
+    <div id="rejectApplicationModal" class="fixed inset-0 z-99999 bg-gray-400/50 backdrop-blur-[32px] hidden">
+
+        <div class="absolute inset-0 bg-black bg-opacity-50"></div>
+
+        <div class="flex items-center justify-center min-h-screen p-4">
+
+            <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+
+                <div class="p-6">
+
+                    <div class="flex items-center justify-between mb-4">
+
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Reject Application</h3>
+
+                        <button id="closeRejectModal" type="button" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+
+                            </svg>
+
+                        </button>
+
+                    </div>
+
+
+
+                    <form method="post" action="{% url 'branch:reject_savings_application' application.application_id %}">
+
+                        {% csrf_token %}
+
+                        <div class="space-y-4">
+
+                            <div>
+
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Reason for Rejection</label>
+
+                                <textarea name="reason" rows="3" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500" placeholder="Please provide the reason for rejection..."></textarea>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <div class="flex gap-3 mt-6">
+
+                            <button id="cancelRejectBtn" type="button" class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition">Cancel</button>
+
+                            <button type="submit" class="flex-1 px-4 py-2 text-sm font-medium text-white bg-error-500 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition">Submit & Reject</button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <script>
+
+        (function () {
+
+            const btn = document.getElementById('rejectApplicationBtn');
+
+            const modal = document.getElementById('rejectApplicationModal');
+
+            const closeBtn = document.getElementById('closeRejectModal');
+
+            const cancelBtn = document.getElementById('cancelRejectBtn');
+
+
+
+            function openModal() {
+
+                if (modal) modal.classList.remove('hidden');
+
+            }
+
+            function closeModal() {
+
+                if (modal) modal.classList.add('hidden');
+
+            }
+
+
+
+            if (btn) btn.addEventListener('click', openModal);
+
+            if (closeBtn) closeBtn.addEventListener('click', closeModal);
+
+            if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+
+        })();
+
+    </script>
+
+    <script>
+        (function () {
+            const approveForm = document.getElementById('approveSavingsApplicationForm');
+            if (approveForm) {
+                approveForm.addEventListener('submit', async function (e) {
+                    e.preventDefault();
+
+                    const csrfInput = approveForm.querySelector('[name=csrfmiddlewaretoken]');
+                    const csrfToken = csrfInput ? csrfInput.value : '';
+
+                    try {
+                        const response = await fetch(approveForm.action, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': csrfToken,
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            credentials: 'same-origin'
+                        });
+
+                        const data = await response.json();
+                        if (response.ok && data.success) {
+                            if (typeof showToast === 'function') {
+                                showToast(data.message || 'Approved successfully.', 'success');
+                            }
+                            const redirectUrl = data.redirect_url || "{% url 'branch:pending_savings_applications' %}";
+                            window.location.href = redirectUrl;
+                            return;
+                        }
+
+                        if (typeof showToast === 'function') {
+                            showToast((data && data.message) ? data.message : 'Failed to approve.', 'error');
+                        } else {
+                            alert((data && data.message) ? data.message : 'Failed to approve.');
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        if (typeof showToast === 'function') {
+                            showToast('Network error.', 'error');
+                        } else {
+                            alert('Network error.');
+                        }
+                    }
+                });
+            }
+
+            const rejectModal = document.getElementById('rejectApplicationModal');
+            const rejectForm = rejectModal ? rejectModal.querySelector('form[action*="reject"]') : null;
+            const closeRejectModalBtn = document.getElementById('closeRejectModal');
+            const cancelRejectBtn = document.getElementById('cancelRejectBtn');
+
+            const closeRejectModal = () => {
+                if (rejectModal) rejectModal.classList.add('hidden');
+            };
+
+            if (rejectForm) {
+                rejectForm.addEventListener('submit', async function (e) {
+                    e.preventDefault();
+
+                    const formData = new FormData(rejectForm);
+                    const csrfInput = rejectForm.querySelector('[name=csrfmiddlewaretoken]');
+                    const csrfToken = csrfInput ? csrfInput.value : '';
+
+                    try {
+                        const response = await fetch(rejectForm.action, {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-CSRFToken': csrfToken,
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            credentials: 'same-origin'
+                        });
+
+                        const data = await response.json();
+                        if (response.ok && data.success) {
+                            if (typeof showToast === 'function') {
+                                showToast(data.message || 'Rejected successfully.', 'success');
+                            }
+                            closeRejectModal();
+                            const redirectUrl = data.redirect_url || "{% url 'branch:pending_savings_applications' %}";
+                            window.location.href = redirectUrl;
+                            return;
+                        }
+
+                        if (typeof showToast === 'function') {
+                            showToast((data && data.message) ? data.message : 'Failed to reject.', 'error');
+                        } else {
+                            alert((data && data.message) ? data.message : 'Failed to reject.');
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        if (typeof showToast === 'function') {
+                            showToast('Network error.', 'error');
+                        } else {
+                            alert('Network error.');
+                        }
+                    }
+                });
+            }
+
+            if (closeRejectModalBtn) closeRejectModalBtn.addEventListener('click', closeRejectModal);
+            if (cancelRejectBtn) cancelRejectBtn.addEventListener('click', closeRejectModal);
+        })();
+    </script>
+
+    {% if application.agent %}
+    <script>
+        let currentDocumentType = '';
+        function openDocumentRequestModal(documentType, documentLabel) {
+            currentDocumentType = documentType;
+            var docTypeInput = document.getElementById('documentType');
+            if (docTypeInput) {
+                docTypeInput.value = documentLabel;
+            }
+            var docTypeValueInput = document.getElementById('documentTypeValue');
+            if (docTypeValueInput) {
+                docTypeValueInput.value = documentType;
+            }
+            document.getElementById('documentRequestModal').classList.remove('hidden');
+        }
+        function closeDocumentRequestModal() {
+            document.getElementById('documentRequestModal').classList.add('hidden');
+            document.getElementById('documentRequestForm').reset();
+        }
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('button[name="request_doc"]').forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (btn.disabled) {
+                        return;
+                    }
+                    const docType = btn.getAttribute('data-document-type');
+                    let label = docType;
+                    if (docType === 'id_proof') label = 'ID Proof (Front)';
+                    else if (docType === 'id_proof_back') label = 'ID Proof (Back)';
+                    else if (docType === 'income_proof') label = 'Income Proof';
+                    else if (docType === 'photo') label = 'Photo';
+                    else if (docType === 'signature') label = 'Signature';
+                    else if (docType === 'pan_card_document') label = 'PAN Card';
+                    else if (docType === 'collateral') label = 'Collateral';
+                    else if (docType === 'residential_proof_file') label = 'Residential Proof';
+                    else label = docType;
+                    openDocumentRequestModal(docType, label);
+                });
+            });
+
+            var docRequestForm = document.getElementById('documentRequestForm');
+            if (docRequestForm) {
+                docRequestForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const reason = document.getElementById('requestReason').value;
+                    const comment = document.getElementById('requestComment').value;
+                    const applicationId = "{{ application.application_id }}";
+                    const csrfToken = document.querySelector('#documentRequestForm [name=csrfmiddlewaretoken]').value;
+                    if (!currentDocumentType || !reason) {
+                        if (typeof showToast === 'function') {
+                            showToast('Please select a document type and reason.', 'error');
+                        } else {
+                            alert('Please select a document type and reason.');
+                        }
+                        return;
+                    }
+                    fetch('{% url "branch:api_savings_document_request" %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrfToken
+                        },
+                        body: JSON.stringify({
+                            application_id: applicationId,
+                            document_type: currentDocumentType,
+                            reason: reason,
+                            comment: comment
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            if (typeof showToast === 'function') {
+                                showToast('Document request sent successfully!', 'success');
+                            } else {
+                                alert('Document request sent successfully!');
+                            }
+
+                            const requestedBtn = document.querySelector('button[name="request_doc"][data-document-type="' + currentDocumentType + '"]');
+                            if (requestedBtn) {
+                                requestedBtn.disabled = true;
+                                requestedBtn.textContent = 'Requested';
+                            }
+
+                            closeDocumentRequestModal();
+                        } else {
+                            if (typeof showToast === 'function') {
+                                showToast('Error: ' + (data.error || 'Unknown error'), 'error');
+                            } else {
+                                alert('Error: ' + (data.error || 'Unknown error'));
+                            }
+                        }
+                    })
+                    .catch(err => {
+                        if (typeof showToast === 'function') {
+                            showToast('Error: ' + err, 'error');
+                        } else {
+                            alert('Error: ' + err);
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+    {% endif %}
+
+    <script>
+        var documentReviewForm = document.getElementById('documentReviewForm');
+        if (documentReviewForm) {
+            documentReviewForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                var decisionEl = document.getElementById('reviewDecision');
+                var commentEl = document.getElementById('reviewComment');
+                var requestIdEl = document.getElementById('reviewDocumentRequestId');
+                if (!decisionEl || !requestIdEl) {
+                    return;
+                }
+                const decision = decisionEl.value;
+                const comment = commentEl ? commentEl.value : '';
+                const documentRequestId = requestIdEl.value;
+                if (!decision) {
+                    if (typeof showToast === 'function') {
+                        showToast('Please select a review decision.', 'error');
+                    } else {
+                        alert('Please select a review decision.');
+                    }
+                    return;
+                }
+
+                const csrfTokenEl = document.querySelector('input[name=csrfmiddlewaretoken]');
+                const csrfToken = csrfTokenEl ? csrfTokenEl.value : '';
+
+                fetch('{% url "branch:api_savings_document_review" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({
+                        document_request_id: documentRequestId,
+                        decision: decision,
+                        review_comment: comment
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (typeof showToast === 'function') {
+                            showToast('Document review submitted successfully!', 'success');
+                        }
+                        closeDocumentReviewModal();
+                        window.location.reload();
+                    } else {
+                        if (typeof showToast === 'function') {
+                            showToast('Error: ' + (data.detail || 'Unable to submit review'), 'error');
+                        } else {
+                            alert('Error: ' + (data.detail || 'Unable to submit review'));
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    if (typeof showToast === 'function') {
+                        showToast('An error occurred while submitting the review.', 'error');
+                    } else {
+                        alert('An error occurred while submitting the review.');
+                    }
+                });
+            });
+        }
+
+        function openDocumentReviewModal(documentRequestId, documentLabel) {
+            var docTypeInput = document.getElementById('reviewDocumentType');
+            if (docTypeInput) {
+                docTypeInput.value = documentLabel;
+            }
+            var reqIdInput = document.getElementById('reviewDocumentRequestId');
+            if (reqIdInput) {
+                reqIdInput.value = documentRequestId;
+            }
+            var modal = document.getElementById('documentReviewModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+            }
+        }
+
+        function closeDocumentReviewModal() {
+            var modal = document.getElementById('documentReviewModal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+            var form = document.getElementById('documentReviewForm');
+            if (form) {
+                form.reset();
+            }
+            var reqIdInput = document.getElementById('reviewDocumentRequestId');
+            if (reqIdInput) {
+                reqIdInput.value = '';
+            }
+        }
+    </script>
+
+</div>
+
+{% endblock %}

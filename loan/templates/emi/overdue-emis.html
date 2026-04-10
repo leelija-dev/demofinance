@@ -1,0 +1,976 @@
+{% extends "agent/base.html" %}
+{% load static %}
+{% block title %}Overdue EMIs{% endblock %}
+
+{% block page_id %}overdueEmis{% endblock %}
+
+{% block content %}
+
+<!-- Add this style in the head section -->
+<style>
+    .details-row {
+        display: none;
+    }
+    .details-row.expanded {
+        display: table-row;
+    }
+</style>
+
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+    <!-- Breadcrumb Start -->
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 class="text-title-md2 font-bold text-black dark:text-white">
+            Overdue EMIs
+        </h2>
+        <nav>
+            <ol class="flex items-center gap-2">
+                <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+                        href="{% url 'agent:dashboard' %}">Dashboard <svg class="stroke-current" width="17" height="16"
+                            viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                            </path>
+                        </svg></a></li>
+                <li class="text-sm text-gray-800 dark:text-white/90">Overdue EMIs</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        <div class="flex flex-wrap gap-4 p-5 border-t border-gray-100 dark:border-gray-800 sm:p-6">
+            <!-- Loan Search -->
+            <div class="flex-1 min-w-[200px]">
+                <div class="relative w-full">
+                    <div class="relative">
+                        <input type="text" id="loanSearch" placeholder="Search by Loan Number"
+                            class="w-full p-2 pl-3 pr-10 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            autocomplete="off">
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                            <!-- Clear button (initially hidden) -->
+                            <button id="clearSearchBtn" type="button" 
+                                class="hidden absolute right-3 text-red-400 hover:text-red-600 focus:outline-none pointer-events-auto">
+                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" 
+                                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" 
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                            <svg id="searchIcon" class="h-5 w-5 text-gray-400 pointer-events-none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                                fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div id="loanSuggestions"
+                        class="hidden absolute z-10 w-64 mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Date Filter -->
+            <div class="flex-1 min-w-[150px]">
+                <input type="text" id="dateFilter" placeholder="Filter by Date"
+                       class="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                       style="appearance: none; -webkit-appearance: none; -moz-appearance: textfield;">
+            </div>
+
+            <!-- Status Filter
+            <div class="flex-1 min-w-[150px]">
+                <select id="statusFilter"
+                        class="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">All EMIs</option>
+                    <option value="pending">Pending Collection</option>
+                    <option value="collected">Collected</option>
+                </select>
+            </div> -->
+
+            <!-- Clear Filters Button -->
+            <div class="flex-shrink-0">
+                <button id="clearFiltersBtn" type="button"
+                        class="px-3 py-2 text-sm bg-red-500 text-white rounded-md hover:bg-gray-600 focus:outline-none">
+                    Clear Filters
+                </button>
+            </div>
+        </div>
+        <div class="p-5 space-y-6 border-t border-gray-100 dark:border-gray-800 sm:p-6 overflow-auto">
+            <div class="">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Assigned ID
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Loan No
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Customer Name
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Branch
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                EMI Amount
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Installment Date
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Days Overdue
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Action
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="emi-collect-tbody" class="bg-white divide-y divide-gray-200">
+                        {% include "emi/partials/overdue-emi-rows.html" with rows=rows %}
+                    </tbody>
+                </table>
+            </div>
+            <div id="no-emi-collect" class="hidden p-6 text-center text-red-500">
+                No Overdue EMIs Collection Found
+            </div>
+            <div id="overdue-scroll-loading" class="hidden p-3 text-center text-gray-500 text-sm">
+                Loading...
+            </div>
+            <div id="overdue-scroll-sentinel" class="h-8" data-next-page="{% if next_page_number %}{{ next_page_number }}{% endif %}" data-has-next="{% if has_next %}1{% else %}0{% endif %}"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm Modal -->
+<div id="confirm-modal" class="fixed inset-0 z-99999 hidden">
+    <div class="absolute inset-0 bg-black/50"></div>
+    <div id="confirm-panel" class="absolute w-[320px] rounded-lg bg-white p-5 shadow-xl border border-gray-200">
+        <button id="confirm-cancel" type="button"
+            class="absolute right-5 top-5 text-sm font-medium text-gray-400 transition hover:text-gray-600 focus:outline-none">
+            Cancel
+        </button>
+        <h3 class="text-lg font-semibold text-gray-800 pr-12">Confirm</h3>
+        <p id="confirm-modal-text" class="mt-2 text-sm text-gray-600">Confirm to mark this EMI as collected?</p>
+        
+        <!-- Overdue Penalty Input (initially hidden) -->
+        <div id="penalty-container" class="mt-3 hidden">
+            <div class="flex items-center justify-between">
+                <label for="penalty-amount" class="block text-sm font-medium text-red-600">Overdue Penalty</label>
+                <span id="overdue-days" class="text-xs text-red-500"></span>
+            </div>
+            <input id="penalty-amount" type="number" step="0.01" inputmode="decimal"
+                   class="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                   placeholder="0.00" value="0" />
+            <p id="penalty-amount-error" class="hidden mt-1 text-xs text-red-600"></p>
+        </div>
+
+        <!-- Main EMI Amount -->
+        <div class="mt-2">
+            <label for="confirm-amount" class="block text-sm text-gray-700">Enter Collected amount</label>
+            <input id="confirm-amount" type="number" step="0.01" inputmode="decimal"
+                   class="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                   placeholder="0.00" value="0" />
+            <p id="confirm-amount-error" class="hidden mt-1 text-xs text-red-600"></p>
+        </div>
+        
+        <!-- Total Amount Display -->
+        <!-- <div id="total-container" class="mt-3 pt-2 border-t border-gray-100 hidden">
+            <div class="flex justify-between font-medium">
+                <span>Total Amount:</span>
+                <span id="total-amount" class="text-brand-600">0.00</span>
+            </div>
+        </div> -->
+
+        <div class="mt-6 flex items-center justify-between">
+            <button id="confirm-reject" type="button"
+                class="px-4 py-2 rounded border border-red-500 text-sm font-medium text-red-600 transition hover:bg-red-50">
+                Reject
+            </button>
+            <button id="confirm-ok" type="button"
+                class="px-4 py-2 rounded bg-brand-500 text-sm text-white hover:bg-brand-600">Collected</button>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Modal -->
+<div id="reject-modal" class="fixed inset-0 z-99999 hidden">
+    <div class="absolute inset-0 bg-black/50"></div>
+    <div id="reject-panel" class="absolute w-[360px] rounded-lg bg-white p-6 shadow-xl border border-gray-200">
+        <button id="reject-cancel" type="button"
+            class="absolute right-6 top-6 text-sm font-medium text-gray-400 transition hover:text-gray-600 focus:outline-none">
+            Cancel
+        </button>
+        <h3 class="text-lg font-semibold text-gray-800 pr-12">Reject EMI Collection</h3>
+        <p class="mt-2 text-sm text-gray-600">Provide a reason for rejecting this EMI collection.</p>
+        <div class="mt-4">
+            <label for="reject-reason" class="block text-sm font-medium text-gray-700">Reject Reason</label>
+            <textarea id="reject-reason" rows="4"
+                class="mt-2 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                placeholder="Enter the rejection reason"></textarea>
+            <p id="reject-reason-error" class="hidden mt-1 text-xs text-red-600"></p>
+        </div>
+        <div class="mt-6 flex justify-end gap-3">
+            <button id="reject-submit" type="button"
+                class="px-4 py-2 rounded bg-red-500 text-sm font-medium text-white transition hover:bg-red-600">
+                Submit
+            </button>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="{% static 'loan/js/infinite-scroll.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const emiTableBody = document.getElementById('emi-collect-tbody');
+    const noEmiMessage = document.getElementById('no-emi-collect');
+    const apiUrl = '{{ api_url }}';
+
+    // Infinite scroll init (shared module)
+    if (window.LoanInfiniteScroll && typeof window.LoanInfiniteScroll.create === 'function') {
+        window.LoanInfiniteScroll.create({
+            containerSelector: '#emi-collect-tbody',
+            sentinelSelector: '#overdue-scroll-sentinel',
+            noDataSelector: '#no-emi-collect',
+            loadingSelector: '#overdue-scroll-loading',
+            buildUrl: (page) => `/agent/api/overdue-emis-page/?page=${encodeURIComponent(page)}`,
+            afterAppend: () => {
+                try {
+                    const btns = Array.from(document.querySelectorAll('.details-row .close-details-btn'));
+                    btns.forEach(b => {
+                        if (b.dataset.bound === '1') return;
+                        b.dataset.bound = '1';
+                        b.addEventListener('click', function() {
+                            const detailsRow = b.closest('tr');
+                            if (!detailsRow) return;
+                            detailsRow.classList.remove('expanded');
+                            detailsRow.style.display = 'none';
+                            const parentRow = detailsRow.previousElementSibling;
+                            const viewBtn = parentRow ? parentRow.querySelector('.view-emi-btn') : null;
+                            if (viewBtn && !viewBtn.hasAttribute('disabled')) viewBtn.textContent = 'View';
+                        });
+                    });
+                } catch (e) { /* noop */ }
+
+                // Re-apply filters on newly appended rows
+                try { if (typeof applyFilters === 'function') applyFilters(); } catch (e) { /* noop */ }
+            }
+        });
+    }
+
+    // Add this after your existing loadOverdueEMIs function
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.view-emi-btn')) {
+            const button = e.target.closest('.view-emi-btn');
+            const row = button.closest('tr');
+            const detailsRow = row.nextElementSibling;
+
+            // If already collected (from LS or status sync), keep disabled and do nothing
+            if (button.hasAttribute('disabled')) return;
+            
+            // Close all other open details
+            document.querySelectorAll('.details-row').forEach(r => {
+                if (!r.contains(button)) {
+                    r.classList.remove('expanded');
+                    const b = r.previousElementSibling?.querySelector('.view-emi-btn');
+                    if (b && !b.hasAttribute('disabled')) b.textContent = 'View';
+                }
+            });
+
+            // Toggle current details
+            if (detailsRow && detailsRow.classList.contains('details-row')) {
+                detailsRow.classList.toggle('expanded');
+                // Explicitly control visibility to avoid CSS dependency
+                if (detailsRow.classList.contains('expanded')) {
+                    detailsRow.style.display = 'table-row';
+                } else {
+                    detailsRow.style.display = 'none';
+                }
+                if (!button.hasAttribute('disabled')) {
+                    button.textContent = detailsRow.classList.contains('expanded') ? 'Close' : 'View';
+                }
+            }
+        }
+    });
+
+    // Re-apply filters shortly after first render
+    setTimeout(() => { if (typeof applyFilters === 'function') applyFilters(); }, 300);
+
+    // ===== Filtering: loan number + date =====
+    const tableBody = document.getElementById('emi-collect-tbody');
+    const loanNoInput = document.getElementById('loanSearch');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+    const searchIcon = document.getElementById('searchIcon');
+    const dateInput = document.getElementById('dateFilter');
+    const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+    let currentLoanFilter = '';
+    let currentDateFilter = '';
+
+    function applyFilters() {
+        if (!tableBody) return;
+        const mainRows = Array.from(tableBody.querySelectorAll('tr')).filter(r => !r.classList.contains('details-row'));
+        let visible = 0;
+        mainRows.forEach(row => {
+            const loanText = (row.querySelector('td:nth-child(2)')?.textContent || '').toLowerCase();
+            const dateText = (row.querySelector('td:nth-child(6)')?.textContent || '').trim();
+            const loanOk = !currentLoanFilter || loanText.includes(currentLoanFilter);
+            const dateOk = !currentDateFilter || dateText === currentDateFilter;
+            const show = loanOk && dateOk;
+            row.style.display = show ? '' : 'none';
+
+            const detailsRow = row.nextElementSibling;
+            if (detailsRow && detailsRow.classList.contains('details-row')) {
+                if (!show) {
+                    detailsRow.style.display = 'none';
+                    detailsRow.classList.remove('expanded');
+                } else {
+                    detailsRow.style.display = detailsRow.classList.contains('expanded') ? 'table-row' : 'none';
+                }
+            }
+            if (show) visible++;
+        });
+        if (noEmiMessage) {
+            if (visible > 0) {
+                noEmiMessage.classList.add('hidden');
+            } else {
+                noEmiMessage.classList.remove('hidden');
+            }
+        }
+    }
+
+    // Initialize date picker to match displayed cell format (DD Mon YYYY)
+    if (typeof flatpickr !== 'undefined' && dateInput) {
+        const isMobile = window.innerWidth < 768;
+        flatpickr('#dateFilter', {
+            dateFormat: 'd M Y',
+            allowInput: true,
+            placeholder: 'Select Date',
+            clickOpens: true,
+            disableMobile: true,
+            position: isMobile ? 'auto center' : 'auto left',
+            positionElement: isMobile ? document.body : undefined,
+            static: false,
+            mobile: true,
+            onOpen: function(selectedDates, dateStr, instance) {
+                if (isMobile) {
+                    instance.calendarContainer.style.position = 'fixed';
+                    instance.calendarContainer.style.top = '50%';
+                    instance.calendarContainer.style.left = '50%';
+                    instance.calendarContainer.style.transform = 'translate(-0%, -160%)';
+                    instance.calendarContainer.style.zIndex = '99999';
+                    instance.calendarContainer.style.width = '90vw';
+                    instance.calendarContainer.style.maxWidth = '320px';
+                } else {
+                    instance.calendarContainer.style.zIndex = '99999';
+                }
+            },
+            onReady: function(selectedDates, dateStr, instance) {
+                const handleResize = function() {
+                    if (window.innerWidth < 768 && instance.isOpen) {
+                        instance.close();
+                        setTimeout(() => instance.open(), 10);
+                    }
+                };
+                window.addEventListener('resize', handleResize);
+                instance.config.onDestroy = function() {
+                    window.removeEventListener('resize', handleResize);
+                };
+            }
+        });
+    } else if (!window.flatpickr) {
+        console.warn('flatpickr is not loaded on this page. Include flatpickr JS/CSS in base.html to enable the date picker.');
+    }
+
+    if (dateInput) {
+        dateInput.addEventListener('change', function() {
+            currentDateFilter = (dateInput.value || '').trim();
+            applyFilters();
+        });
+    }
+
+    if (loanNoInput) {
+        loanNoInput.addEventListener('input', function() {
+            currentLoanFilter = (loanNoInput.value || '').trim().toLowerCase();
+            if (clearSearchBtn) {
+                if (currentLoanFilter) {
+                    clearSearchBtn.classList.remove('hidden');
+                    if (searchIcon) searchIcon.classList.add('hidden');
+                } else {
+                    clearSearchBtn.classList.add('hidden');
+                    if (searchIcon) searchIcon.classList.remove('hidden');
+                }
+            }
+            applyFilters();
+        });
+    }
+
+    if (clearSearchBtn) {
+        clearSearchBtn.addEventListener('click', function() {
+            if (loanNoInput) loanNoInput.value = '';
+            currentLoanFilter = '';
+            clearSearchBtn.classList.add('hidden');
+            if (searchIcon) searchIcon.classList.remove('hidden');
+            applyFilters();
+        });
+    }
+
+    if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener('click', function() {
+            if (loanNoInput) loanNoInput.value = '';
+            if (dateInput) dateInput.value = '';
+            currentLoanFilter = '';
+            currentDateFilter = '';
+            if (clearSearchBtn) clearSearchBtn.classList.add('hidden');
+            if (searchIcon) searchIcon.classList.remove('hidden');
+            applyFilters();
+        });
+    }
+
+    // ===== Helpers (same behavior as emi-collection) =====
+    function getCSRFToken() {
+        const name = 'csrftoken=';
+        const decodedCookie = decodeURIComponent(document.cookie);
+        const ca = decodedCookie.split(';');
+        for (let i = 0; i < ca.length; i++) {
+            let c = ca[i].trim();
+            if (c.indexOf(name) === 0) return c.substring(name.length, c.length);
+        }
+        return '';
+    }
+    function toTwoDecimals(value) {
+        const n = Number(value);
+        if (isNaN(n)) return '0.00';
+        return (Math.round(n * 100) / 100).toFixed(2);
+    }
+    const toFixed2 = (v) => {
+        const n = (typeof v === 'string') ? Number(v.replace(/,/g, '')) : Number(v);
+        return Number.isFinite(n) ? n.toFixed(2) : (0).toFixed(2);
+    };
+
+    // ===== Modal helpers (ported) =====
+    const confirmModal = document.getElementById('confirm-modal');
+    const confirmPanel = document.getElementById('confirm-panel');
+    const confirmText = document.getElementById('confirm-modal-text');
+    const confirmOk = document.getElementById('confirm-ok');
+    const confirmCancel = document.getElementById('confirm-cancel');
+    const confirmReject = document.getElementById('confirm-reject');
+    const penaltyAmount = document.getElementById('penalty-amount');
+    const penaltyAmountError = document.getElementById('penalty-amount-error');
+    const confirmAmount = document.getElementById('confirm-amount');
+    const confirmAmountError = document.getElementById('confirm-amount-error');
+    const rejectModal = document.getElementById('reject-modal');
+    const rejectPanel = document.getElementById('reject-panel');
+    const rejectCancel = document.getElementById('reject-cancel');
+    const rejectReason = document.getElementById('reject-reason');
+    const rejectReasonError = document.getElementById('reject-reason-error');
+    const rejectSubmit = document.getElementById('reject-submit');
+    let confirmCallback = null;
+    let rejectContext = null;
+
+    function openConfirm(message, onConfirm, anchorEl, onReject) {
+        confirmText.textContent = message || 'Are you sure?';
+        confirmCallback = onConfirm;
+        rejectContext = (typeof onReject === 'function') ? { callback: onReject } : null;
+        confirmModal.classList.remove('hidden');
+        try {
+            if (confirmPanel) {
+                const isMobile = window.innerWidth < 768;
+                if (!anchorEl || isMobile) {
+                    confirmPanel.style.position = 'fixed';
+                    confirmPanel.style.top = '50%';
+                    confirmPanel.style.left = '50%';
+                    confirmPanel.style.transform = 'translate(-50%, -50%)';
+                    confirmPanel.style.visibility = 'visible';
+                    confirmPanel.style.width = 'min(92vw, 360px)';
+                    return;
+                }
+                const rect = anchorEl.getBoundingClientRect();
+                confirmPanel.style.visibility = 'hidden';
+                confirmPanel.style.transform = '';
+                confirmPanel.style.position = 'absolute';
+                confirmPanel.style.top = '0px';
+                confirmPanel.style.left = '0px';
+                confirmPanel.style.width = '';
+                const panelWidth = confirmPanel.offsetWidth || 320;
+                const panelHeight = confirmPanel.offsetHeight || 160;
+                const margin = 8;
+                let top = rect.bottom + margin + window.scrollY;
+                let left = rect.left + window.scrollX;
+                const baseW = 1024;
+                const step = 256;
+                const perStep = 16;
+                const buckets = Math.max(0, Math.floor((window.innerWidth - baseW) / step));
+                const shift = buckets * perStep;
+                left = (left - 120) - shift;
+                const maxLeft = window.scrollX + window.innerWidth - panelWidth - 16;
+                left = Math.max(window.scrollX + 16, Math.min(left, maxLeft));
+                const bottomOverflow = top + panelHeight - (window.scrollY + window.innerHeight);
+                if (bottomOverflow > 0) top = rect.top - panelHeight - margin + window.scrollY;
+                confirmPanel.style.top = `${top}px`;
+                confirmPanel.style.left = `${left}px`;
+                confirmPanel.style.visibility = 'visible';
+            }
+        } catch (e) {
+            confirmPanel.style.position = 'fixed';
+            confirmPanel.style.top = '50%';
+            confirmPanel.style.left = '50%';
+            confirmPanel.style.transform = 'translate(-50%, -50%)';
+            confirmPanel.style.width = 'min(92vw, 360px)';
+            confirmPanel.style.visibility = 'visible';
+        }
+    }
+    function closeConfirm(options = {}) {
+        const { preserveRejectContext = false } = options;
+        confirmModal.classList.add('hidden');
+        confirmCallback = null;
+        if (!preserveRejectContext) rejectContext = null;
+    }
+    function openRejectModal() {
+        if (!rejectModal) return;
+        rejectModal.classList.remove('hidden');
+        if (rejectPanel) {
+            rejectPanel.style.position = 'fixed';
+            rejectPanel.style.top = '50%';
+            rejectPanel.style.left = '50%';
+            rejectPanel.style.transform = 'translate(-50%, -50%)';
+            rejectPanel.style.width = 'min(92vw, 400px)';
+        }
+        if (rejectReason) {
+            rejectReason.value = '';
+            window.requestAnimationFrame(() => rejectReason.focus());
+        }
+        if (rejectReasonError) {
+            rejectReasonError.classList.add('hidden');
+            rejectReasonError.textContent = '';
+        }
+    }
+    function closeRejectModal() {
+        if (!rejectModal) return;
+        rejectModal.classList.add('hidden');
+        if (rejectReason) rejectReason.value = '';
+        if (rejectReasonError) rejectReasonError.classList.add('hidden');
+        rejectContext = null;
+    }
+    if (confirmOk) {
+        confirmOk.addEventListener('click', async () => {
+            const penaltyContainerEl = document.getElementById('penalty-container');
+            const penaltySectionVisible = !!(penaltyContainerEl && !penaltyContainerEl.classList.contains('hidden'));
+            const penaltyIsMandatory = penaltySectionVisible && penaltyAmount && penaltyAmount.disabled === true;
+            const penaltyValRaw = (penaltyAmount?.value ?? '').toString().trim();
+            const chargeAmount = Number(penaltyValRaw || '0');
+            if (penaltySectionVisible) {
+                if (penaltyIsMandatory) {
+                    if (!Number.isFinite(chargeAmount) || chargeAmount <= 0) {
+                        if (penaltyAmountError) {
+                            penaltyAmountError.textContent = 'Penalty is mandatory for overdue EMI.';
+                            penaltyAmountError.classList.remove('hidden');
+                        }
+                        penaltyAmount?.focus();
+                        return;
+                    }
+                } else {
+                    if (penaltyValRaw === '') {
+                        if (penaltyAmountError) {
+                            penaltyAmountError.textContent = 'Please enter penalty amount (enter 0 if none).';
+                            penaltyAmountError.classList.remove('hidden');
+                        }
+                        penaltyAmount?.focus();
+                        return;
+                    }
+                }
+            }
+            if (penaltyAmountError) penaltyAmountError.classList.add('hidden');
+
+            const val = (confirmAmount?.value || '').trim();
+            const num = Number(val);
+            if (!val || isNaN(num) || num <= 0) {
+                if (confirmAmountError) {
+                    confirmAmountError.textContent = 'Please enter a valid collected amount greater than 0.';
+                    confirmAmountError.classList.remove('hidden');
+                }
+                confirmAmount?.focus();
+                return;
+            }
+            if (confirmAmountError) confirmAmountError.classList.add('hidden');
+
+            let shouldClose = true;
+            if (typeof confirmCallback === 'function') {
+                try {
+                    const res = await confirmCallback(val, chargeAmount);
+                    if (res === false) shouldClose = false;
+                } catch {
+                    shouldClose = false;
+                }
+            }
+            if (shouldClose) closeConfirm();
+        });
+    }
+    if (confirmCancel) confirmCancel.addEventListener('click', () => closeConfirm());
+    if (confirmModal) confirmModal.addEventListener('click', (e) => { if (e.target === confirmModal) closeConfirm(); });
+    if (confirmReject) {
+        confirmReject.addEventListener('click', () => {
+            const hasReject = !!rejectContext;
+            closeConfirm({ preserveRejectContext: hasReject });
+            if (hasReject) openRejectModal();
+        });
+    }
+    if (rejectCancel) rejectCancel.addEventListener('click', closeRejectModal);
+    if (rejectModal) {
+        rejectModal.addEventListener('click', (e) => { if (e.target === rejectModal) closeRejectModal(); });
+    }
+    if (rejectReason) {
+        rejectReason.addEventListener('input', () => {
+            if (rejectReasonError && !rejectReasonError.classList.contains('hidden')) {
+                rejectReasonError.classList.add('hidden');
+            }
+        });
+    }
+    if (rejectSubmit) {
+        rejectSubmit.addEventListener('click', async () => {
+            const reason = (rejectReason?.value || '').trim();
+            if (!reason) {
+                if (rejectReasonError) {
+                    rejectReasonError.textContent = 'Please provide a rejection reason.';
+                    rejectReasonError.classList.remove('hidden');
+                }
+                rejectReason?.focus();
+                return;
+            }
+            let shouldClose = true;
+            if (rejectContext?.callback) {
+                try {
+                    const result = await rejectContext.callback(reason);
+                    if (result === false) shouldClose = false;
+                } catch (err) {
+                    console.error('Reject handler failed:', err);
+                    shouldClose = false;
+                }
+            } else {
+                window.showToast && window.showToast('Rejection recorded.', 'info');
+            }
+            if (shouldClose) closeRejectModal();
+        });
+    }
+
+    // ===== Fetch totals like emi-collection =====
+    async function fetchEmiSchedules(loanRefNo) {
+        try {
+            const response = await fetch(`/agent/api/emi-statement/?loan_ref_no=${loanRefNo}`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            if (!data || !Array.isArray(data.schedules)) throw new Error('Invalid EMI schedule format');
+            const totalEmiAmount = data.schedules.reduce((sum, schedule) => {
+                const val = typeof schedule.installment_amount === 'string' ? parseFloat(schedule.installment_amount) : Number(schedule.installment_amount || 0);
+                return sum + (Number.isFinite(val) ? val : 0);
+            }, 0);
+            window.TOTAL_EMI_AMOUNT = totalEmiAmount;
+        } catch (error) {
+            console.error('Failed to fetch EMI schedules:', error);
+            window.TOTAL_EMI_AMOUNT = 0;
+        }
+    }
+
+    // ===== Delegate click for .btn-collect (same flow) =====
+    const tbody = document.getElementById('emi-collect-tbody');
+    if (tbody) {
+        tbody.addEventListener('click', async function (e) {
+            const btn = e.target.closest('.btn-collect');
+            if (!btn) return;
+            e.preventDefault();
+            if (btn.disabled) return;
+
+            const loanRefNo = btn.dataset.loanRefNo;
+            const emiId = btn.dataset.emiId;
+            const isReschedule = btn.dataset.isReschedule === '1';
+
+            const assignmentId = btn.dataset.assignmentId;
+            const amountReceived = parseFloat(btn.dataset.installmentAmount || '0');
+            const principalReceived = parseFloat(btn.dataset.principalAmount || '0');
+            const interestReceived = parseFloat(btn.dataset.interestAmount || '0');
+
+            if (loanRefNo && !isReschedule) {
+
+                await fetchEmiSchedules(loanRefNo);
+                try {
+                    const [onlyDataRes, remainingRes, paidRes] = await Promise.all([
+                        fetch(`/branch/api/emi-collect-only-data/${encodeURIComponent(loanRefNo)}/`),
+                        fetch(`/agent/api/loan-emi-remaining/${encodeURIComponent(loanRefNo)}/`),
+                        fetch(`/agent/api/loan-emi-collected/${encodeURIComponent(loanRefNo)}/`),
+                    ]);
+                    const onlyData = await onlyDataRes.json();
+                    const totalCollected = (onlyData || []).reduce((sum, item) => {
+                        const amt = parseFloat(item.amount_received);
+                        return sum + (Number.isFinite(amt) ? amt : 0);
+                    }, 0);
+                    window.TOTAL_COLLECTED = Number(toTwoDecimals(totalCollected));
+
+                    const rem = await remainingRes.json();
+                    window.REMAINING_EMI_DATA = rem || {};
+
+                    const paidData = await paidRes.json();
+                    const items = Array.isArray(paidData?.results) ? paidData.results : Array.isArray(paidData) ? paidData : [];
+                    const singleInstallmentAmount = items[0]?.installment_amount ?? 0;
+                    const toNum = v => {
+                        const n = typeof v === 'string' ? parseFloat(v) : (typeof v === 'number' ? v : 0);
+                        return Number.isFinite(n) ? n : 0;
+                    };
+                    const sumBy = (arr, key) => arr.reduce((acc, it) => acc + toNum(it?.[key]), 0);
+                    const paidEmiSum = sumBy(items, 'installment_amount');
+                    const paidPrincipalSum = sumBy(items, 'principal_amount');
+                    const paidInterestSum = sumBy(items, 'interest_amount');
+                    window.PAID_EMI_SUM_BY_LOAN = {
+                        loanRefNo,
+                        total_installment_amount: paidEmiSum,
+                        total_principal_amount: paidPrincipalSum,
+                        total_interest_amount: paidInterestSum,
+                        single_installment_amount: singleInstallmentAmount,
+                    };
+                } catch (err) {
+                    console.error('Failed to refresh aggregates for overdue collect', err);
+                }
+            }
+
+            // Late-fee info and penalty UI
+            let confirmMsg = 'Confirm to mark this EMI as collected?';
+            try {
+                const penaltyContainer = document.getElementById('penalty-container');
+                const overdueDays = document.getElementById('overdue-days');
+
+                // For rescheduled EMIs, always treat as overdue from this list
+                // and use the dedicated reschedule late-fee API. We always show
+                // the penalty input; backend will not be called for loan-level
+                // validations that only make sense for original schedules.
+                if (isReschedule) {
+                    penaltyContainer && penaltyContainer.classList.remove('hidden');
+                    if (overdueDays) overdueDays.textContent = '';
+
+                    try {
+                        const res = await fetch(`/agent/api/reschedule-emi-late-fee/${encodeURIComponent(emiId)}/`);
+                        if (res.ok) {
+                            const info = await res.json();
+                            const lateFee = Number(info?.late_fee || 0);
+                            const days = Number(info?.overdue_days || 0);
+                            if (overdueDays && Number.isFinite(days) && days > 0) {
+                                overdueDays.textContent = `for ${days} days`;
+                            }
+                            if (penaltyAmount) {
+                                // For rescheduled EMIs we always allow editing; just prefill if > 0
+                                penaltyAmount.disabled = false;
+                                if (Number.isFinite(lateFee) && lateFee > 0) {
+                                    penaltyAmount.value = toFixed2(lateFee);
+                                }
+                            }
+                            if (penaltyAmountError) {
+                                penaltyAmountError.classList.add('hidden');
+                                penaltyAmountError.textContent = '';
+                            }
+                        }
+                    } catch (e) {
+                        // On any error, keep penalty visible but editable with no prefill
+                        if (penaltyAmount) {
+                            penaltyAmount.disabled = false;
+                        }
+                        if (penaltyAmountError) {
+                            penaltyAmountError.classList.add('hidden');
+                            penaltyAmountError.textContent = '';
+                        }
+                    }
+                } else {
+                    // Original EMI: use existing late-fee API and behavior
+                    const res = await fetch(`/agent/api/emi-late-fee/${encodeURIComponent(emiId)}/`);
+                    if (res.ok) {
+                        const info = await res.json();
+                        const isOverdue = !!info?.is_overdue;
+                        const lateFee = Number(info?.late_fee || 0);
+                        const days = Number(info?.overdue_days || 0);
+                        if (isOverdue) {
+                            penaltyContainer && penaltyContainer.classList.remove('hidden');
+                            overdueDays && (overdueDays.textContent = `for ${days} days`);
+                            if (lateFee > 0) {
+                                if (penaltyAmount) {
+                                    penaltyAmount.value = toFixed2(lateFee);
+                                    penaltyAmount.disabled = true;
+                                }
+                                penaltyAmountError && penaltyAmountError.classList.remove('hidden');
+                                if (penaltyAmountError) penaltyAmountError.textContent = 'Penalty is mandatory!';
+                            } else {
+                                if (penaltyAmount) penaltyAmount.disabled = false;
+                                penaltyAmountError && penaltyAmountError.classList.add('hidden');
+                                if (penaltyAmountError) penaltyAmountError.textContent = '';
+                            }
+                        }
+                        if (isOverdue && lateFee > 0) {
+                            const emiAmountNum = Number(btn.dataset.installmentAmount || '0');
+                            confirmMsg = `This EMI is overdue${days ? ` by ${days} day(s)` : ''}. Penalty: ₹${lateFee.toFixed(2)} Applied.`;
+                            btn.dataset.prefillAmount = emiAmountNum.toFixed(2);
+                            btn.dataset.requiredExact = '1';
+                            btn.dataset.requiredAmount = emiAmountNum.toFixed(2);
+                            if (confirmAmount) confirmAmount.value = emiAmountNum.toFixed(2);
+                        } else {
+                            delete btn.dataset.prefillAmount;
+                            delete btn.dataset.requiredExact;
+                            delete btn.dataset.requiredAmount;
+                        }
+                    }
+                }
+            } catch (_) {}
+
+            openConfirm(confirmMsg, async (collectedAmount, collectedPenalty) => {
+                const originalBtnHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.textContent = 'Collecting...';
+
+                if (confirmAmount) confirmAmount.value = toFixed2(confirmAmount.value);
+
+                const amount = toTwoDecimals(collectedAmount);
+                const amountNum = Number(amount);
+                const totalEmi = Number(toTwoDecimals(window.TOTAL_EMI_AMOUNT || 0));
+                const singleInstallmentAmount = Number(toTwoDecimals(window.PAID_EMI_SUM_BY_LOAN?.single_installment_amount || 0));
+                const totalPaid = Number(toTwoDecimals(window.PAID_EMI_SUM_BY_LOAN?.total_installment_amount || 0));
+                const remainingBalance = Number(toTwoDecimals(window.REMAINING_EMI_DATA?.remaining_balance || 0));
+                const totalCollected = Number(toTwoDecimals(window.TOTAL_COLLECTED || 0));
+                const dueAmount = Number(toTwoDecimals(Math.max(0, totalEmi - totalPaid)));
+                const lastInstallmentAmount = Number(toTwoDecimals(singleInstallmentAmount - remainingBalance || 0));
+                const totalCollectedPlusRemaining = Number(toTwoDecimals(totalEmi - totalCollected));
+                const maxPayable = Number(toTwoDecimals((dueAmount - remainingBalance)));
+
+                const requiredExact = (btn.dataset && btn.dataset.requiredExact === '1');
+                const requiredAmount = Number(btn.dataset?.requiredAmount || '0');
+                if (requiredExact) {
+                    const epsilon = 0.01;
+                    if (Math.abs(amountNum - requiredAmount) > epsilon) {
+                        btn.disabled = false;
+                        btn.innerHTML = originalBtnHtml || 'Collect';
+                        if (confirmAmountError) {
+                            confirmAmountError.textContent = `This EMI is overdue. You must collect ₹${toFixed2(requiredAmount)} (EMI) + Penalty.`;
+                            confirmAmountError.classList.remove('hidden');
+                        }
+                        if (confirmAmount) confirmAmount.focus();
+                        return false;
+                    }
+                }
+
+                if (!Number.isFinite(amountNum) || amountNum <= 0) {
+                    btn.disabled = false; btn.innerHTML = originalBtnHtml || 'Collect';
+                    window.showToast && showToast('Please enter a valid collected amount greater than 0.', 'error');
+                    return;
+                }
+                if (!(amountNum <= Number(totalEmi))) {
+                    btn.disabled = false; btn.innerHTML = originalBtnHtml || 'Collect';
+                    window.showToast && showToast(`Collected amount must be less than total EMI amount (₹${toFixed2(totalEmi)}).`, 'error');
+                    return;
+                }
+                if (!(amountNum <= Number(dueAmount))) {
+                    btn.disabled = false; btn.innerHTML = originalBtnHtml || 'Collect';
+                    window.showToast && showToast(`Collected amount must be less than Due amount.  (₹${toFixed2(dueAmount)})`, 'error');
+                    return;
+                }
+                if (amountNum > Number(totalCollectedPlusRemaining)) {
+                    btn.disabled = false; btn.innerHTML = originalBtnHtml || 'Collect';
+                    window.showToast && showToast(`Collected amount must be less than total collected amount.  (₹${toFixed2(totalCollectedPlusRemaining)})`, 'error');
+                    return;
+                }
+                if (amountNum > Number(maxPayable)) {
+                    btn.disabled = false; btn.innerHTML = originalBtnHtml || 'Collect';
+                    window.showToast && showToast(`Max you can collect now (final EMI) is ₹${toFixed2(maxPayable)}. Your existing extra collected amount ₹${toFixed2(remainingBalance)}.`, 'error');
+                    return;
+                }
+
+                const installmentAmount = amountReceived;
+                const principalAmount = principalReceived;
+                const interestAmount = interestReceived;
+                const fullInstallment = Math.floor(collectedAmount / installmentAmount);
+                const balance = collectedAmount % installmentAmount;
+                const fullprincipal = fullInstallment * principalAmount;
+                const fullinterest = fullInstallment * interestAmount;
+                const balancePrincipal = balance * (principalAmount / installmentAmount);
+                const balanceInterest = balance * (interestAmount / installmentAmount);
+                const totalPrincipal = +(fullprincipal + balancePrincipal).toFixed(2);
+                const totalInterest = +(fullinterest + balanceInterest).toFixed(2);
+
+                try {
+                    const res = await fetch('/agent/api/emi-collected/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
+                        body: JSON.stringify({
+                            assignment_id: assignmentId,
+                            amount_received: toTwoDecimals(collectedAmount),
+                            principal_received: toTwoDecimals(totalPrincipal),
+                            interest_received: toTwoDecimals(totalInterest),
+                            penalty_received: toTwoDecimals(collectedPenalty),
+                            payment_mode: 'Cash'
+                        })
+                    });
+                    const json = await res.json();
+                    if (res.ok && json.success) {
+                        // Update collect button state
+                        btn.textContent = 'Collected';
+                        btn.disabled = true;
+                        btn.classList.remove('bg-green-600','hover:bg-green-800');
+                        btn.classList.add('cursor-not-allowed','bg-green-100','border','border-green-500','text-green-700');
+
+                        // Disable and collapse details row
+                        const detailsRow = btn.closest('tr');
+                        if (detailsRow) {
+                            detailsRow.classList.remove('expanded');
+                            detailsRow.classList.add('bg-green-50','opacity-60','pointer-events-none');
+                            // Also disable any inputs inside (defensive)
+                            detailsRow.querySelectorAll('button, input, select, textarea, a').forEach(el => {
+                                el.setAttribute('disabled', 'disabled');
+                                el.classList.add('cursor-not-allowed');
+                            });
+                        }
+
+                        // Disable the parent list row's View button
+                        const parentRow = detailsRow ? detailsRow.previousElementSibling : null;
+                        if (parentRow) {
+                            parentRow.classList.add('bg-green-50');
+                            const viewBtn = parentRow.querySelector('.view-emi-btn');
+                            if (viewBtn) {
+                                viewBtn.textContent = 'Collected';
+                                viewBtn.setAttribute('disabled', 'disabled');
+                                viewBtn.classList.remove('bg-brand-500','hover:bg-brand-600');
+                                viewBtn.classList.add('cursor-not-allowed','bg-green-100','border','border-green-500','text-green-700');
+                            }
+                        }
+
+                        // Update local cache
+                        const ls = localStorage.getItem('collectedAssignments');
+                        const collectedLocal = new Set(ls ? JSON.parse(ls) : []);
+                        collectedLocal.add(String(assignmentId));
+                        localStorage.setItem('collectedAssignments', JSON.stringify(Array.from(collectedLocal)));
+
+                        window.showToast && showToast('EMI collected successfully', 'success');
+                    } else {
+                        btn.disabled = false;
+                        btn.textContent = 'Collect';
+                        window.showToast && showToast(json.message || 'Failed to save collection', 'error');
+                    }
+                } catch (err) {
+                    btn.disabled = false;
+                    btn.textContent = 'Collect';
+                    window.showToast && showToast('Network error while saving collection', 'error');
+                }
+            }, btn, async (reason) => {
+                if (!reason?.trim()) {
+                    window.showToast && window.showToast('Rejection reason is required.', 'error');
+                    return false;
+                }
+                window.showToast && window.showToast('EMI collection rejected.', 'info');
+                return true;
+            });
+        });
+    }
+});
+</script>
+{% endblock %}
+
+{% endblock %}

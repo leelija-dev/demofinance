@@ -1,0 +1,388 @@
+<!-- previousCash_deposite_modal.html -->
+<div id="previous-collect-modal" class="fixed inset-0 z-[9999] hidden flex items-center justify-center">
+  <div class="absolute inset-0 bg-black/50 z-10" onclick="window.closePreviousCollectModal()"></div>
+  <div class="relative z-20 w-[95%] max-w-7xl max-h-[90vh] overflow-auto rounded-xl bg-white dark:bg-gray-900 shadow-2xl border border-gray-200 dark:border-gray-700 mx-auto">
+    <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Previous Receives From Credit Officer</h3>
+      <button type="button" class="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800" onclick="window.closePreviousCollectModal()">
+        <svg class="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="p-4">
+      <div class="space-y-4">
+        <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4 overflow-x-auto">
+          <div class="flex items-center justify-between mb-2 gap-2">
+            <h4 class="text-sm font-semibold text-left w-full lg:w-64">Previous money deposit</h4>
+            <p id="modal-no-deposits" class="hidden text-red-500 text-center w-full lg:w-64"></p>
+            <!-- Deposit Selection -->
+            <div id="modal-deposit-selection" class="w-full lg:w-64 hidden">
+              <!-- <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Deposit:</label> -->
+              <select id="modal-deposit-select" class="w-full px-3 py-2 border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Select a deposit</option>
+              </select>
+            </div>
+            <div class="w-full lg:w-64 flex items-center relative">
+                <input id="modal-selectedDate" type="text"
+                    class="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Select date" readonly />
+                <div class="absolute inset-y-0 left-0 flex items-center pointer-events-none pl-3">
+                    <svg class="fill-gray-700 dark:fill-gray-400" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path fill-rule="evenodd" clip-rule="evenodd" d="M6.66683 1.54199C7.08104 1.54199 7.41683 1.87778 7.41683 2.29199V3.00033H12.5835V2.29199C12.5835 1.87778 12.9193 1.54199 13.3335 1.54199C13.7477 1.54199 14.0835 1.87778 14.0835 2.29199V3.00033L15.4168 3.00033C16.5214 3.00033 17.4168 3.89576 17.4168 5.00033V7.50033V15.8337C17.4168 16.9382 16.5214 17.8337 15.4168 17.8337H4.5835C3.47893 17.8337 2.5835 16.9382 2.5835 15.8337V7.50033V5.00033C2.5835 3.89576 3.47893 3.00033 4.5835 3.00033L5.91683 3.00033V2.29199C5.91683 1.87778 6.25262 1.54199 6.66683 1.54199ZM6.66683 4.50033H4.5835C4.30735 4.50033 4.0835 4.72418 4.0835 5.00033V6.75033H15.9168V5.00033C15.9168 4.72418 15.693 4.50033 15.4168 4.50033H13.3335H6.66683ZM15.9168 8.25033H4.0835V15.8337C4.0835 16.1098 4.30735 16.3337 4.5835 16.3337H15.4168C15.693 16.3337 15.9168 16.1098 15.9168 15.8337V8.25033Z"></path>
+                    </svg>
+                </div>
+            </div>
+          </div>
+
+          <!-- Deposit Selection
+          <div id="modal-deposit-selection" class="mb-4 hidden">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Deposit:</label>
+            <select id="modal-deposit-select" class="w-full px-3 py-2 border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">Select a deposit</option>
+            </select>
+          </div> -->
+
+          <!-- Denominations Table -->
+          <table class="min-w-full text-sm text-center">
+            <thead>
+              <tr class="bg-gray-50 dark:bg-gray-800">
+                <th class="border border-gray-200 dark:border-gray-700 px-2 py-1">Value</th>
+                <th class="border border-gray-200 dark:border-gray-700 px-2 py-1">No</th>
+                <th class="border border-gray-200 dark:border-gray-700 px-2 py-1">Total</th>
+                <th class="border border-gray-200 dark:border-gray-700 px-2 py-1">Coin</th>
+                <th class="border border-gray-200 dark:border-gray-700 px-2 py-1">Cash</th>
+              </tr>
+            </thead>
+            <tbody id="modal-deposit-rows">
+              <tr>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p>500</p></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p class="qty">0</p></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1 text-right"><span class="row-total">0.00</span></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p class="coin">0</p></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p class="cash">0</p></td>
+              </tr>
+              <tr>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p>200</p></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p class="qty">0</p></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1 text-right"><span class="row-total">0.00</span></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p class="coin">0</p></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p class="cash">0</p></td>
+              </tr>
+              <tr>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p>100</p></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p class="qty">0</p></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1 text-right"><span class="row-total">0.00</span></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p class="coin">0</p></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p class="cash">0</p></td>
+              </tr>
+              <tr>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p>50</p></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p class="qty">0</p></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1 text-right"><span class="row-total">0.00</span></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p class="coin">0</p></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p class="cash">0</p></td>
+              </tr>
+              <tr>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p>20</p></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p class="qty">0</p></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1 text-right"><span class="row-total">0.00</span></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p class="coin">0</p></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p class="cash">0</p></td>
+              </tr>
+              <tr>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p>10</p></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p class="qty">0</p></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1 text-right"><span class="row-total">0.00</span></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p class="coin">0</p></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p class="cash">0</p></td>
+              </tr>
+              <tr>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p>5</p></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p class="qty">0</p></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1 text-right"><span class="row-total">0.00</span></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p class="coin">0</p></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p class="cash">0</p></td>
+              </tr>
+              <tr>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p>2</p></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p class="qty">0</p></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1 text-right"><span class="row-total">0.00</span></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p class="coin">0</p></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p class="cash">0</p></td>
+              </tr>
+              <tr>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p>1</p></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p class="qty">0</p></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1 text-right"><span class="row-total">0.00</span></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p class="coin">0</p></td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1"><p class="cash">0</p></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Summary -->
+          <div class="mt-3 grid grid-cols-1 md:grid-cols-5 gap-3">
+            <div class="rounded border border-gray-200 dark:border-gray-700 p-2 text-sm">
+              <div class="text-gray-600 dark:text-gray-400">Subtotal</div>
+              <div class="text-lg font-semibold text-gray-900 dark:text-white" id="modal-subtotal-amount">0.00</div>
+            </div>
+            <div class="rounded border border-gray-200 dark:border-gray-700 p-2 text-sm">
+              <div class="text-gray-600 dark:text-gray-400">Total Coin</div>
+              <div class="text-lg font-semibold text-gray-900 dark:text-white" id="modal-coin-total">0.00</div>
+            </div>
+            <div class="rounded border border-gray-200 dark:border-gray-700 p-2 text-sm">
+              <div class="text-gray-600 dark:text-gray-400">Total Cash</div>
+              <div class="text-lg font-semibold text-gray-900 dark:text-white" id="modal-cash-total">0.00</div>
+            </div>
+            <div class="rounded border border-gray-200 dark:border-gray-700 p-2 text-sm">
+              <label class="block text-gray-600 dark:text-gray-400">Online deposited</label>
+              <p id="modal-online-deposited" class="text-gray-900 dark:text-white">0.00</p>
+            </div>
+            <div class="rounded border border-gray-200 dark:border-gray-700 p-2 text-sm">
+              <div class="text-gray-600 dark:text-gray-400">Grand Total</div>
+              <div class="text-lg font-semibold text-gray-900 dark:text-white" id="modal-grand-total">0.00</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category Totals -->
+        <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4 overflow-x-auto">
+          <h4 class="text-sm font-semibold mb-2 text-gray-900 dark:text-white">Category totals</h4>
+          <table class="min-w-full text-sm">
+            <thead>
+              <tr class="bg-gray-50 dark:bg-gray-800">
+                <th class="text-left border border-gray-200 dark:border-gray-700 px-2 py-1 text-gray-900 dark:text-white">Category</th>
+                <th class="text-right border border-gray-200 dark:border-gray-700 px-2 py-1 text-gray-900 dark:text-white">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td class="border border-gray-200 dark:border-gray-700 px-2 py-1 text-gray-900 dark:text-white">Daily loan</td><td class="border border-gray-200 dark:border-gray-700 px-2 py-1 text-right"><span id="modal-amt-daily">0.00</span></td></tr>
+              <tr><td class="border border-gray-200 dark:border-gray-700 px-2 py-1 text-gray-900 dark:text-white">Weekly loan</td><td class="border border-gray-200 dark:border-gray-700 px-2 py-1 text-right"><span id="modal-amt-weekly">0.00</span></td></tr>
+              <tr><td class="border border-gray-200 dark:border-gray-700 px-2 py-1 text-gray-900 dark:text-white">Saving deposit</td><td class="border border-gray-200 dark:border-gray-700 px-2 py-1 text-right"><span id="modal-amt-saving">0.00</span></td></tr>
+              <tr><td class="border border-gray-200 dark:border-gray-700 px-2 py-1 text-gray-900 dark:text-white">Others (if any)</td><td class="border border-gray-200 dark:border-gray-700 px-2 py-1 text-right"><span id="modal-amt-others">0.00</span></td></tr>
+              <tr class="bg-gray-50 dark:bg-gray-800 font-semibold">
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1 text-gray-900 dark:text-white">Total</td>
+                <td class="border border-gray-200 dark:border-gray-700 px-2 py-1 text-right"><span id="modal-categories-total">0.00</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="flex items-center justify-end gap-3">
+          <button type="button" class="px-4 py-2 text-sm rounded border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800" onclick="window.closePreviousCollectModal()">Cancel</button>
+          <!-- <button type="button" class="px-4 py-2 text-sm rounded bg-indigo-600 text-white hover:bg-indigo-700" onclick="window.print()">Print</button> -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCRIPT AT END -->
+<script>
+  // Format currency
+  function formatCurrency(value) {
+    if (!value) return '0.00';
+    const num = parseFloat(value);
+    return isNaN(num) ? '0.00' : num.toFixed(2);
+  }
+
+  // Wait for modal to be in DOM
+  function waitForModal() {
+    return new Promise(resolve => {
+      const modal = document.getElementById('previous-collect-modal');
+      if (modal && modal.querySelector('#modal-subtotal-amount')) {
+        resolve();
+      } else {
+        const observer = new MutationObserver(() => {
+          if (document.getElementById('previous-collect-modal')?.querySelector('#modal-subtotal-amount')) {
+            observer.disconnect();
+            resolve();
+          }
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+      }
+    });
+  }
+
+  // Global open function
+  window.openPreviousCollectModal = async function () {
+    const modal = document.getElementById('previous-collect-modal');
+    if (!modal) return console.error('Modal not found');
+    modal.classList.remove('hidden');
+
+    // Wait for DOM
+    await waitForModal();
+
+    // Now safe to access elements
+    initializeDatePicker();
+    const today = new Date().toISOString().split('T')[0];
+    const input = document.getElementById('modal-selectedDate');
+    if (input) input.value = today;
+    loadPreviousReceives(today);
+  };
+
+  window.closePreviousCollectModal = function () {
+    const modal = document.getElementById('previous-collect-modal');
+    if (modal) modal.classList.add('hidden');
+  };
+
+  function initializeDatePicker() {
+    const input = document.getElementById('modal-selectedDate');
+    if (!input || typeof flatpickr === 'undefined') return;
+    flatpickr(input, {
+      dateFormat: "Y-m-d",
+      maxDate: new Date(),
+      onChange: (dates, dateStr) => dateStr && loadPreviousReceives(dateStr)
+    });
+  }
+
+  function loadPreviousReceives(date) {
+    const url = `/branch/api/agent/{{ agent.agent_id }}/deposit/previous/?date=${date}`;
+    // console.log('Fetching:', url);
+    resetAll();
+    fetch(url)
+      .then(r => r.ok ? r.json() : Promise.reject(`HTTP ${r.status}`))
+      .then(data => {
+        // console.log('Full API Response:', data);
+        if (data.success && data.deposits?.length > 0) {
+          // console.log('Deposits found:', data.deposits);
+          updateModalWithDeposits(data.deposits);
+        } else {
+          showNoDeposits('No deposits found');
+        }
+      })
+      .catch(err => {
+        console.error('Fetch error:', err);
+        showNoDeposits('Failed to load');
+      });
+  }
+
+  function showNoDeposits(msg) {
+    const el = document.getElementById('modal-no-deposits');
+    const sel = document.getElementById('modal-deposit-selection');
+    if (el) { el.classList.remove('hidden'); el.textContent = msg; }
+    if (sel) sel.classList.add('hidden');
+  }
+
+  function resetAll() {
+    // Only run if elements exist
+    if (!document.getElementById('modal-subtotal-amount')) return;
+    resetDenominationsTable();
+    resetSummaryTotals();
+    resetCategoryTotals();
+  }
+
+  function resetDenominationsTable() {
+    document.querySelectorAll('#modal-deposit-rows tr').forEach(row => {
+      const qty = row.querySelector('.qty');
+      const total = row.querySelector('.row-total');
+      const coin = row.querySelector('.coin');
+      const cash = row.querySelector('.cash');
+      if (qty) qty.textContent = '0';
+      if (total) total.textContent = '0.00';
+      if (coin) coin.textContent = '0';
+      if (cash) cash.textContent = '0';
+    });
+  }
+
+  function resetSummaryTotals() {
+    ['subtotal-amount', 'coin-total', 'cash-total', 'online-deposited', 'grand-total'].forEach(id => {
+      const el = document.getElementById('modal-' + id);
+      if (el) el.textContent = '0.00';
+    });
+  }
+
+  function resetCategoryTotals() {
+    ['amt-daily', 'amt-weekly', 'amt-saving', 'amt-others', 'categories-total'].forEach(id => {
+      const el = document.getElementById('modal-' + id);
+      if (el) el.textContent = '0.00';
+    });
+  }
+
+  function updateModalWithDeposits(deposits) {
+    const select = document.getElementById('modal-deposit-select');
+    const container = document.getElementById('modal-deposit-selection');
+    const noDep = document.getElementById('modal-no-deposits');
+    if (noDep) noDep.classList.add('hidden');
+    if (select) select.innerHTML = '<option value="">Select deposit</option>';
+
+    if (deposits.length === 1) {
+      if (container) container.classList.add('hidden');
+      updateDepositData(deposits[0]);
+    } else {
+      if (container) container.classList.remove('hidden');
+      deposits.forEach((d, i) => {
+        const opt = document.createElement('option');
+        opt.value = i;
+        const time = new Date(d.received_at).toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' });
+        opt.textContent = `${d.deposit_id} - ₹${d.grand_total} (${time})`;
+        select.appendChild(opt);
+      });
+      updateDepositData(deposits[0]);
+      select.onchange = () => {
+        const idx = parseInt(select.value);
+        if (!isNaN(idx)) updateDepositData(deposits[idx]);
+      };
+    }
+  }
+
+  function updateDepositData(deposit) {
+    updateDenominationsTable(deposit.denominations || []);
+    updateSummaryTotals(deposit);
+    updateCategoryTotals(deposit);
+  }
+
+  function updateDenominationsTable(denoms) {
+    resetDenominationsTable();
+    denoms.forEach(d => {
+      const row = Array.from(document.querySelectorAll('#modal-deposit-rows tr')).find(r =>
+        parseInt(r.cells[0].querySelector('p')?.textContent) === d.value
+      );
+      if (row) {
+        const qty = row.querySelector('.qty');
+        const total = row.querySelector('.row-total');
+        const coin = row.querySelector('.coin');
+        const cash = row.querySelector('.cash');
+        if (qty) qty.textContent = d.qty || 0;
+        if (total) total.textContent = formatCurrency(d.line_total);
+        if (coin) coin.textContent = d.coin || 0;
+        if (cash) cash.textContent = d.cash || 0;
+      }
+    });
+  }
+
+  function updateSummaryTotals(deposit) {
+    const set = (id, key) => {
+      const el = document.getElementById('modal-' + id);
+      if (el) {
+        el.textContent = formatCurrency(deposit[key]);
+        // console.log(`Updated #modal-${id} → ${el.textContent}`);
+      }
+    };
+    set('subtotal-amount', 'subtotal_amount');
+    set('coin-total', 'coin_total');
+    set('cash-total', 'cash_total');
+    set('online-deposited', 'online_amount');
+    set('grand-total', 'grand_total');
+  }
+
+  function updateCategoryTotals(deposit) {
+    const set = (id, key) => {
+      const el = document.getElementById('modal-' + id);
+      if (el) el.textContent = formatCurrency(parseFloat(deposit[key]) || 0);
+    };
+    set('amt-daily', 'daily_amount');
+    set('amt-weekly', 'weekly_amount');
+    set('amt-saving', 'saving_amount');
+    set('amt-others', 'others_amount');
+    const total = ['daily_amount', 'weekly_amount', 'saving_amount', 'others_amount']
+      .reduce((sum, k) => sum + (parseFloat(deposit[k]) || 0), 0);
+    const el = document.getElementById('modal-categories-total');
+    if (el) el.textContent = formatCurrency(total);
+  }
+
+  // ESC key
+  document.addEventListener('keydown', e => e.key === 'Escape' && window.closePreviousCollectModal());
+</script>

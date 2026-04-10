@@ -1,0 +1,132 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HQ Admin Login</title>
+    <!-- Load Tailwind CSS -->
+    <link rel="stylesheet" href="{% static 'dist/css/tailwind.css' %}?v=1.0.0">
+    <link rel="stylesheet" href="{% static 'main/css/output.css' %}" />
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+    </style>
+    <!-- Debug information -->
+    {% if debug %}
+    <script>
+    //   console.log('Debug mode is ON');
+    //   console.log('Static URL:', '{{ STATIC_URL }}');
+    </script>
+    {% endif %}
+    
+</head>
+
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    {% block content %}
+    <div class="w-full max-w-md bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-2xl font-bold text-center mb-6">Headquarter Login</h2>
+
+        {% if form.errors %}
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <div class="mb-4 px-4 py-3 rounded text-sm text-white bg-red-500">
+                        {{ error }}
+                    </div>
+                {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+                <div class="mb-4 px-4 py-3 rounded text-sm text-white bg-red-500">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post" class="space-y-5">
+            {% if request.GET.next %}
+                <input type="hidden" name="next" value="{{ request.GET.next }}">
+            {% endif %}
+            {% csrf_token %}
+            <div>
+                <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+                <input type="text" id="username" name="username" required
+                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                {% if form.username.errors %}
+                    <div class="text-red-500 text-sm">{{ form.username.errors }}</div>
+                {% endif %}
+            </div>
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                <input type="password" id="password" name="password" required
+                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                {% if form.password.errors %}
+                    <div class="text-red-500 text-sm">{{ form.password.errors }}</div>
+                {% endif %}
+            </div>
+            <button type="submit"
+                class="w-full py-3 px-4 bg-blue-600 text-white font-semibold border-0 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                Login
+            </button>
+        </form>
+    </div>
+    {% endblock %}
+
+    <!-- Toast container for login page -->
+    <div
+      id="hq-toast-container"
+      class="fixed bottom-5 right-5 z-50 space-y-2"
+    ></div>
+
+    <script>
+      window.showToast = function (message, type = "success") {
+        const toastContainer = document.getElementById("hq-toast-container");
+        if (!toastContainer) return;
+
+        const toast = document.createElement("div");
+        toast.className = `flex items-center px-4 py-3 rounded shadow-lg text-white transition-opacity duration-300 ${
+          type === "success" ? "bg-green-500" : "bg-red-500"
+        }`;
+
+        const dismissBtn =
+          type === "error"
+            ? `<button class="ml-auto text-white text-2xl hover:text-gray-300" onclick="(function(btn){ const t = btn.closest('div'); t.classList.add('opacity-0'); setTimeout(()=>t.remove(), 500); })(this)">&times;</button>`
+            : "";
+
+        toast.innerHTML = `
+            <span class="mr-2">
+                ${
+                  type === "success"
+                    ? '<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>'
+                    : '<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>'
+                }
+            </span>
+            <span class="flex-1">${message}</span>
+            ${dismissBtn}
+        `;
+        toastContainer.appendChild(toast);
+
+        if (type === "success") {
+          setTimeout(() => {
+            toast.classList.add("opacity-0");
+            setTimeout(() => {
+              toast.remove();
+            }, 500);
+          }, 5000);
+        }
+      };
+    </script>
+
+    {# Render any Django messages as toasts on the login page (e.g., logout success) #}
+    {% if messages %}
+        {% for message in messages %}
+            <script>
+                window.showToast("{{ message|escapejs }}", "success");
+            </script>
+        {% endfor %}
+    {% endif %}
+
+</body>
+
+</html>

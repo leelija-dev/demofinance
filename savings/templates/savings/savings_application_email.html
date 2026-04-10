@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Savings Notification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f8f8f8;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: auto;
+            max-width: 100%;
+            margin: auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 32px 24px;
+        }
+        .header {
+            text-align: left;
+            background: #fff;
+            color: #005baa;
+            border-radius: 8px 8px 0 0;
+            padding: 16px 0 12px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .header img {
+            width: 50px;
+            height: 50px;
+            margin-right: 10px;
+        }
+        .header h2 {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .footer {
+            margin-top: 32px;
+            text-align: center;
+            color: #888;
+            font-size: 13px;
+            border-top: 1px solid #5f6061;
+            padding-top: 16px;
+        }
+        .info-table {
+            width: 80%;
+            margin-top: 10px;
+            border-collapse: collapse;
+        }
+        .info-table thead tr {
+            background-color: #005baa;
+            color: #fff;
+            border-bottom: 1px solid #5f6061;
+        }
+        .info-table th, .info-table td {
+            padding: 8px;
+            text-align: left;
+        }
+        .info-table th {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        {% if logo_base64 %}
+        <img
+              src="{{ logo_base64 }}"
+              style="width: 50px; height: 50px; margin-right: 10px;"
+              alt="Logo"
+            />
+        {% else %}
+        <div style="width: 50px; height: 50px; background-color: #005baa; border-radius: 4px; margin-right: 10px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">S</div>
+        {% endif %}
+        <h2>SUNDARAM</h2>
+    </div>
+
+    {% if purpose_flag == 'savings_hq_approved' %}
+    <div style="font-size:15px;letter-spacing:1px;">{{ sub_header|default:'Savings Account Approved Successfully' }} - {{ account_id|default:application_id }}</div>
+
+    <div>
+        <table class="info-table">
+            <thead>
+                <tr>
+                    <th>Application ID:</th>
+                    <th>Account ID:</th>
+                    <th>Customer Name:</th>
+                    <th>Contact Number:</th>
+                    <th>Product:</th>
+                    <th>Installment:</th>
+                    <th>Interest:</th>
+                    <th>Tenure:</th>
+                    <th>Approved On:</th>
+                    <th>Maturity Date:</th>
+                    <th>Maturity Amount:</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ application_id|default:'N/A' }}</td>
+                    <td>{{ account_id|default:'N/A' }}</td>
+                    <td>{{ customer_name|default:'N/A' }}</td>
+                    <td>{{ customer_contact|default:'N/A' }}</td>
+                    <td>{{ product_type|default:'N/A' }}{% if product_id %} ({{ product_id }}){% endif %}</td>
+                    <td>₹ {{ installment_amount|default_if_none:'N/A' }}</td>
+                    <td>{{ interest_rate|default_if_none:'N/A' }}{% if interest_rate %}%{% endif %}</td>
+                    <td>{{ tenure|default:'N/A' }}{% if tenure_unit %} {{ tenure_unit }}{% endif %}</td>
+                    <td>{% if hq_approved_at %}{{ hq_approved_at|date:"d/m/Y" }}{% else %}N/A{% endif %}</td>
+                    <td>{% if maturity_date %}{{ maturity_date|date:"d/m/Y" }}{% else %}N/A{% endif %}</td>
+                    <td>₹ {{ maturity_amount|default_if_none:'N/A' }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <div class="footer">
+        This is an automated notification from Sundaram Savings Management System.
+    </div>
+</div>
+</body>
+</html>

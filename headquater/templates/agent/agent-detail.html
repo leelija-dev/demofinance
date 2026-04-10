@@ -1,0 +1,455 @@
+{% extends 'hq/base.html' %}
+{% load static %}
+
+{% block title %}Agent Detail{% endblock %}
+
+{% block page_id %}AgentManagement{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+  <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <h2 class="text-title-md2 font-bold text-black dark:text-white">
+      Agent Detail
+    </h2>
+    <nav>
+      <ol class="flex items-center gap-2">
+        <li>
+          <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400" href="{% url 'hq:dashboard' %}">
+            Dashboard
+            <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </a>
+        </li>
+        <li>
+          <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400" href="{% url 'hq:hq_agent_list' %}">
+            Agents
+            <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </a>
+        </li>
+        <li class="text-sm text-gray-800 dark:text-white/90">Agent Detail</li>
+      </ol>
+    </nav>
+  </div>
+
+  <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
+    <div class="flex flex-col gap-4 border-b border-gray-100 p-5 dark:border-gray-800 sm:flex-row sm:items-start sm:justify-between sm:p-6">
+      <div class="flex items-start gap-4">
+        <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-50 text-gray-700 dark:bg-gray-800 dark:text-gray-200">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-7 w-7">
+            <path fill-rule="evenodd" d="M12 2.25a4.5 4.5 0 00-4.5 4.5v.75A4.5 4.5 0 0012 12a4.5 4.5 0 004.5-4.5v-.75A4.5 4.5 0 0012 2.25zm-3 4.5a3 3 0 116 0v.75a3 3 0 11-6 0v-.75z" clip-rule="evenodd" />
+            <path d="M4.5 20.25a7.5 7.5 0 0115 0 .75.75 0 01-1.5 0 6 6 0 00-12 0 .75.75 0 01-1.5 0z" />
+          </svg>
+        </div>
+
+        <div>
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="text-lg font-semibold text-gray-900 dark:text-white/90">{{ agent.full_name }}</div>
+            <span class="inline-flex items-center rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-200">{{ agent.status }}</span>
+          </div>
+          <div class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ agent.agent_id }}</div>
+        </div>
+      </div>
+
+      <div class="sm:mt-0">
+        <a href="{% url 'hq:hq_agent_list' %}" class="inline-flex items-center justify-center rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-300 transition dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600">Back</a>
+      </div>
+    </div>
+
+    <div class="p-5 sm:p-6">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="flex items-start gap-3 rounded-xl bg-gray-50 p-4 dark:bg-gray-800/60">
+          <div class="mt-0.5 text-gray-500 dark:text-gray-300">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
+              <path d="M3.75 21h16.5a.75.75 0 000-1.5H19.5V8.25A2.25 2.25 0 0017.25 6H14.5V4.5A2.25 2.25 0 0012.25 2.25h-.5A2.25 2.25 0 009.5 4.5V6H6.75A2.25 2.25 0 004.5 8.25V19.5h-.75a.75.75 0 000 1.5z" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Branch</div>
+            <div class="mt-1 text-sm font-medium text-gray-900 dark:text-white/90">{{ agent.branch.branch_name }}</div>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-3 rounded-xl bg-gray-50 p-4 dark:bg-gray-800/60">
+          <div class="mt-0.5 text-gray-500 dark:text-gray-300">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
+              <path d="M1.5 8.67v8.58A2.25 2.25 0 003.75 19.5h16.5A2.25 2.25 0 0022.5 17.25V8.67l-8.51 5.62a3.75 3.75 0 01-3.98 0L1.5 8.67z" />
+              <path d="M22.5 6.908V6.75A2.25 2.25 0 0020.25 4.5H3.75A2.25 2.25 0 001.5 6.75v.158l9.34 6.18a2.25 2.25 0 002.32 0l9.34-6.18z" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Email</div>
+            <div class="mt-1 text-sm font-medium text-gray-900 dark:text-white/90">{{ agent.email }}</div>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-3 rounded-xl bg-gray-50 p-4 dark:bg-gray-800/60">
+          <div class="mt-0.5 text-gray-500 dark:text-gray-300">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
+              <path fill-rule="evenodd" d="M2.25 6.75A4.5 4.5 0 016.75 2.25h.5A4.5 4.5 0 0111.75 6.75v.5a4.5 4.5 0 01-1.32 3.182l-.06.06 3.51 3.51.06-.06a4.5 4.5 0 013.182-1.32h.5a4.5 4.5 0 014.5 4.5v.5a4.5 4.5 0 01-4.5 4.5h-.5a17.25 17.25 0 01-17.25-17.25v-.5z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Phone</div>
+            <div class="mt-1 text-sm font-medium text-gray-900 dark:text-white/90">{{ agent.phone }}</div>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-3 rounded-xl bg-gray-50 p-4 dark:bg-gray-800/60">
+          <div class="mt-0.5 text-gray-500 dark:text-gray-300">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
+              <path fill-rule="evenodd" d="M12 2.25c4.556 0 8.25 3.694 8.25 8.25 0 4.264-3.84 8.38-7.031 11.12a1.875 1.875 0 01-2.438 0C7.59 18.88 3.75 14.764 3.75 10.5c0-4.556 3.694-8.25 8.25-8.25zm0 5.25a3 3 0 100 6 3 3 0 000-6z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Area</div>
+            <div class="mt-1 text-sm font-medium text-gray-900 dark:text-white/90">{{ agent.area }}</div>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-3 rounded-xl bg-gray-50 p-4 dark:bg-gray-800/60">
+          <div class="mt-0.5 text-gray-500 dark:text-gray-300">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
+              <path fill-rule="evenodd" d="M6.75 2.25A2.25 2.25 0 004.5 4.5v15A2.25 2.25 0 006.75 21.75h10.5A2.25 2.25 0 0019.5 19.5v-15A2.25 2.25 0 0017.25 2.25H6.75zm0 1.5h10.5a.75.75 0 01.75.75V7.5h-12V4.5a.75.75 0 01.75-.75z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Created</div>
+            <div class="mt-1 text-sm font-medium text-gray-900 dark:text-white/90">{{ agent.created_at }}</div>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-3 rounded-xl bg-gray-50 p-4 dark:bg-gray-800/60">
+          <div class="mt-0.5 text-gray-500 dark:text-gray-300">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
+              <path d="M12 6.75a.75.75 0 01.75.75v4.19l2.53 2.53a.75.75 0 11-1.06 1.06l-2.75-2.75a.75.75 0 01-.22-.53V7.5a.75.75 0 01.75-.75z" />
+              <path fill-rule="evenodd" d="M12 2.25c5.385 0 9.75 4.365 9.75 9.75S17.385 21.75 12 21.75 2.25 17.385 2.25 12 6.615 2.25 12 2.25zm0 1.5a8.25 8.25 0 100 16.5 8.25 8.25 0 000-16.5z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Updated</div>
+            <div class="mt-1 text-sm font-medium text-gray-900 dark:text-white/90">{{ agent.updated_at }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="py-5 sm:py-6">
+      <form method="get" class="mb-4">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div class="grid w-full grid-cols-1 gap-3 sm:max-w-2xl sm:grid-cols-2">
+            <div>
+              <label for="agentDetailFromDate" class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">From</label>
+              <input
+                id="agentDetailFromDate"
+                type="text"
+                name="from_date"
+                value="{{ from_date|default:'' }}"
+                placeholder="YYYY-MM-DD"
+                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-gray-400 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              />
+            </div>
+            <div>
+              <label for="agentDetailToDate" class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">To</label>
+              <input
+                id="agentDetailToDate"
+                type="text"
+                name="to_date"
+                value="{{ to_date|default:'' }}"
+                placeholder="YYYY-MM-DD"
+                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-gray-400 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              />
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button type="submit" class="inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-900">Apply</button>
+            <a href="{% url 'hq:hq_agent_detail' agent.agent_id %}" class="inline-flex items-center justify-center rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-300 transition dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600">Clear</a>
+          </div>
+        </div>
+      </form>
+      <div class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+        <div class="group rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:shadow-md dark:border-gray-800 dark:bg-white/[0.03]">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-start gap-3">
+              <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-200">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6">
+                  <path d="M3 6a3 3 0 013-3h12a3 3 0 013 3v2a3 3 0 01-3 3H6a3 3 0 01-3-3V6z" />
+                  <path d="M3 13a3 3 0 013-3h12a3 3 0 013 3v5a3 3 0 01-3 3H6a3 3 0 01-3-3v-5z" />
+                </svg>
+              </div>
+              <div>
+                <div class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Loans</div>
+                <div class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white/90">{{ loans_assigned_count }}</div>
+              </div>
+            </div>
+            <div class="rounded-xl bg-gray-50 px-3 py-1 text-xs font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-200">Assigned</div>
+          </div>
+          <div class="mt-4 space-y-2">
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-gray-600 dark:text-gray-300">Active (Disbursed)</span>
+              <span class="font-semibold text-gray-900 dark:text-white/90">{{ loans_active_count }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="group rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:shadow-md dark:border-gray-800 dark:bg-white/[0.03]">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-start gap-3">
+              <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6">
+                  <path fill-rule="evenodd" d="M12 2a.75.75 0 01.75.75V4.5h1.5a.75.75 0 010 1.5h-1.5v1.02c1.98.194 3.75 1.248 4.83 2.83a.75.75 0 11-1.24.848c-.86-1.258-2.25-2.06-3.59-2.226V18h1.5a.75.75 0 010 1.5h-1.5v1.75a.75.75 0 01-1.5 0V19.5H9.75a.75.75 0 010-1.5h1.5v-2.8c-1.58-.26-2.9-1.19-2.9-3.12 0-1.82 1.12-2.86 2.9-3.08V6H9.75a.75.75 0 010-1.5h1.5V2.75A.75.75 0 0112 2zm-.75 7.55c-.96.16-1.4.64-1.4 1.53 0 .98.48 1.42 1.4 1.6V9.55zm1.5 6.2V12.9c1.18.16 1.62.66 1.62 1.56 0 .95-.52 1.46-1.62 1.29z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div>
+                <div class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">EMI Collected</div>
+                <div class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white/90">₹{{ emi_collections_amount|floatformat:2 }}</div>
+              </div>
+            </div>
+            <div class="rounded-xl bg-gray-50 px-3 py-1 text-xs font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-200">{{ emi_collections_count }} Txn</div>
+          </div>
+          <div class="mt-4 space-y-2">
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-gray-600 dark:text-gray-300">Pending Verify</span>
+              <span class="font-semibold text-gray-900 dark:text-white/90">₹{{ emi_pending_verify_amount|floatformat:2 }}</span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-gray-600 dark:text-gray-300">Pending Verify Count</span>
+              <span class="font-semibold text-gray-900 dark:text-white/90">{{ emi_pending_verify_count }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="group rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:shadow-md dark:border-gray-800 dark:bg-white/[0.03]">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-start gap-3">
+              <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-200">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6">
+                  <path fill-rule="evenodd" d="M12 6.75a.75.75 0 01.75.75v3.69l2.03 2.03a.75.75 0 11-1.06 1.06l-2.25-2.25a.75.75 0 01-.22-.53V7.5a.75.75 0 01.75-.75z" clip-rule="evenodd" />
+                  <path fill-rule="evenodd" d="M12 2.25c5.385 0 9.75 4.365 9.75 9.75S17.385 21.75 12 21.75 2.25 17.385 2.25 12 6.615 2.25 12 2.25zm0 1.5a8.25 8.25 0 100 16.5 8.25 8.25 0 000-16.5z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div>
+                <div class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Assigned EMIs</div>
+                <div class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white/90">{{ assigned_pending_emi_count }}</div>
+              </div>
+            </div>
+            <div class="rounded-xl bg-gray-50 px-3 py-1 text-xs font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-200">Pending</div>
+          </div>
+          <div class="mt-4 space-y-2">
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-gray-600 dark:text-gray-300">Pending Amount</span>
+              <span class="font-semibold text-gray-900 dark:text-white/90">₹{{ assigned_pending_emi_amount|floatformat:2 }}</span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-gray-600 dark:text-gray-300">Overdue Count</span>
+              <span class="font-semibold text-gray-900 dark:text-white/90">{{ assigned_overdue_emi_count }}</span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-gray-600 dark:text-gray-300">Overdue Amount</span>
+              <span class="font-semibold text-gray-900 dark:text-white/90">₹{{ assigned_overdue_emi_amount|floatformat:2 }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="group rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:shadow-md dark:border-gray-800 dark:bg-white/[0.03]">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-start gap-3">
+              <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-50 text-violet-700 dark:bg-violet-900/30 dark:text-violet-200">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6">
+                  <path d="M12 1.5a.75.75 0 01.75.75V3h1.5a.75.75 0 010 1.5h-1.5v1.02c2.48.24 4.5 1.91 4.5 4.48 0 2.03-1.37 3.38-3.75 3.9V18h1.5a.75.75 0 010 1.5h-1.5v.75a.75.75 0 01-1.5 0v-.75H9.75a.75.75 0 010-1.5h1.5v-3.93c-2.2-.44-3.75-1.76-3.75-4.02 0-2.52 1.99-4.19 3.75-4.43V4.5H9.75a.75.75 0 010-1.5h1.5V2.25A.75.75 0 0112 1.5z" />
+                </svg>
+              </div>
+              <div>
+                <div class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Savings Accounts</div>
+                <div class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white/90">{{ savings_total_count }}</div>
+              </div>
+            </div>
+            <div class="rounded-xl bg-gray-50 px-3 py-1 text-xs font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-200">RD/FD</div>
+          </div>
+          <div class="mt-4 space-y-2">
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-gray-600 dark:text-gray-300">RD</span>
+              <span class="font-semibold text-gray-900 dark:text-white/90">{{ savings_rd_count }}</span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-gray-600 dark:text-gray-300">FD</span>
+              <span class="font-semibold text-gray-900 dark:text-white/90">{{ savings_fd_count }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div class="flex items-start gap-3">
+            <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-rose-50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-200">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6">
+                <path fill-rule="evenodd" d="M6.75 2.25A2.25 2.25 0 004.5 4.5v15A2.25 2.25 0 006.75 21.75h10.5A2.25 2.25 0 0019.5 19.5v-15A2.25 2.25 0 0017.25 2.25H6.75zm0 1.5h10.5a.75.75 0 01.75.75v15a.75.75 0 01-.75.75H6.75a.75.75 0 01-.75-.75v-15a.75.75 0 01.75-.75z" clip-rule="evenodd" />
+                <path d="M8.25 7.5a.75.75 0 000 1.5h7.5a.75.75 0 000-1.5h-7.5zM8.25 11.25a.75.75 0 000 1.5h7.5a.75.75 0 000-1.5h-7.5zM8.25 15a.75.75 0 000 1.5H12a.75.75 0 000-1.5H8.25z" />
+              </svg>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Overall Due EMIs</div>
+              <div class="mt-1 text-base font-semibold text-gray-900 dark:text-white/90">Agent Loans</div>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div class="rounded-xl bg-gray-50 px-3 py-2 dark:bg-gray-800">
+              <div class="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400">Due</div>
+              <div class="text-sm font-semibold text-gray-900 dark:text-white/90">{{ emi_due_count }}</div>
+            </div>
+            <div class="rounded-xl bg-gray-50 px-3 py-2 dark:bg-gray-800">
+              <div class="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400">Due Amount</div>
+              <div class="text-sm font-semibold text-gray-900 dark:text-white/90">₹{{ emi_due_amount|floatformat:2 }}</div>
+            </div>
+            <div class="rounded-xl bg-gray-50 px-3 py-2 dark:bg-gray-800">
+              <div class="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400">Overdue</div>
+              <div class="text-sm font-semibold text-gray-900 dark:text-white/90">{{ emi_overdue_count }}</div>
+            </div>
+            <div class="rounded-xl bg-gray-50 px-3 py-2 dark:bg-gray-800">
+              <div class="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400">Overdue Amount</div>
+              <div class="text-sm font-semibold text-gray-900 dark:text-white/90">₹{{ emi_overdue_amount|floatformat:2 }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
+        <div class="flex flex-col gap-3 border-b border-gray-100 p-5 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
+          <div class="flex items-start gap-3">
+            <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-200">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6">
+                <path d="M11.25 2.25a.75.75 0 01.75.75v.75h.75a.75.75 0 010 1.5H12v.75a.75.75 0 01-1.5 0V5.25H9.75a.75.75 0 010-1.5h.75V3a.75.75 0 01.75-.75z" />
+                <path fill-rule="evenodd" d="M6 6.75A2.25 2.25 0 018.25 4.5h7.5A2.25 2.25 0 0118 6.75v12A2.25 2.25 0 0115.75 21h-7.5A2.25 2.25 0 016 18.75v-12zm2.25-.75a.75.75 0 00-.75.75v12a.75.75 0 00.75.75h7.5a.75.75 0 00.75-.75v-12a.75.75 0 00-.75-.75h-7.5z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Savings Assignments</div>
+              <div class="mt-1 text-base font-semibold text-gray-900 dark:text-white/90">Active Accounts</div>
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="inline-flex items-center rounded-full bg-gray-50 px-3 py-1 text-xs font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-200">Active: {{ savings_assigned_active_count }}</span>
+            <span class="inline-flex items-center rounded-full bg-gray-50 px-3 py-1 text-xs font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-200">RD: {{ savings_assigned_rd_count }}</span>
+            <span class="inline-flex items-center rounded-full bg-gray-50 px-3 py-1 text-xs font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-200">FD: {{ savings_assigned_fd_count }}</span>
+          </div>
+        </div>
+
+        <div class="custom-scrollbar overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
+            <thead class="bg-gray-50 dark:bg-gray-900">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Application ID</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Account ID</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Customer</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Type</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
+                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Collected</th>
+                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Interest</th>
+                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Total</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Submitted</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-800 dark:bg-transparent">
+              {% for acc in recent_savings_assigned_accounts %}
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-900/40">
+                  <td class="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900 dark:text-white/90">{{ acc.application_id }}</td>
+                  <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-200">{{ acc.account_id|default:'-' }}</td>
+                  <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-200">{{ acc.customer.full_name }}</td>
+                  <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-200">{{ acc.product_type|upper }}</td>
+                  <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-200">{{ acc.status }}</td>
+                  <td class="whitespace-nowrap px-4 py-3 text-right text-sm font-medium text-gray-900 dark:text-white/90">₹{{ acc.collected_amount|default:0|floatformat:2 }}</td>
+                  <td class="whitespace-nowrap px-4 py-3 text-right text-sm text-gray-700 dark:text-gray-200">₹{{ acc.interest_amount|default:0|floatformat:2 }}</td>
+                  <td class="whitespace-nowrap px-4 py-3 text-right text-sm font-semibold text-gray-900 dark:text-white/90">₹{{ acc.total_with_interest|default:0|floatformat:2 }}</td>
+                  <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-200">{{ acc.submitted_at }}</td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="9" class="px-4 py-6 text-sm text-gray-500 dark:text-gray-400">No active savings assignments found.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        {% if savings_page_obj %}
+          <div class="flex flex-col gap-3 border-t border-gray-100 p-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
+            <div class="text-sm text-gray-600 dark:text-gray-300">
+              Showing
+              <span class="font-semibold text-gray-900 dark:text-white/90">{{ savings_page_obj.start_index }}</span>
+              to
+              <span class="font-semibold text-gray-900 dark:text-white/90">{{ savings_page_obj.end_index }}</span>
+              of
+              <span class="font-semibold text-gray-900 dark:text-white/90">{{ savings_page_obj.paginator.count }}</span>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+              {% if savings_page_obj.has_previous %}
+                <a
+                  class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
+                  href="?{% if savings_query_string %}{{ savings_query_string }}&{% endif %}s_page={{ savings_page_obj.previous_page_number }}"
+                >
+                  Prev
+                </a>
+              {% else %}
+                <span class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm font-medium text-gray-400 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-600">
+                  Prev
+                </span>
+              {% endif %}
+
+              {% for p in savings_page_links %}
+                {% if p == '…' %}
+                  <span class="px-2 text-sm text-gray-500 dark:text-gray-400">{{ p }}</span>
+                {% else %}
+                  <a
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-md border text-sm font-medium transition {% if p == savings_page_obj.number %}border-blue-600 bg-blue-600 text-white{% else %}border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800{% endif %}"
+                    href="?{% if savings_query_string %}{{ savings_query_string }}&{% endif %}s_page={{ p }}"
+                  >
+                    {{ p }}
+                  </a>
+                {% endif %}
+              {% endfor %}
+
+              {% if savings_page_obj.has_next %}
+                <a
+                  class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
+                  href="?{% if savings_query_string %}{{ savings_query_string }}&{% endif %}s_page={{ savings_page_obj.next_page_number }}"
+                >
+                  Next
+                </a>
+              {% else %}
+                <span class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm font-medium text-gray-400 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-600">
+                  Next
+                </span>
+              {% endif %}
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  window.addEventListener('DOMContentLoaded', function () {
+    if (typeof flatpickr === 'undefined') return;
+    const fromEl = document.getElementById('agentDetailFromDate');
+    const toEl = document.getElementById('agentDetailToDate');
+    if (fromEl) {
+      flatpickr(fromEl, {
+        dateFormat: 'Y-m-d',
+        allowInput: true,
+      });
+    }
+    if (toEl) {
+      flatpickr(toEl, {
+        dateFormat: 'Y-m-d',
+        allowInput: true,
+      });
+    }
+  });
+</script>
+{% endblock %}

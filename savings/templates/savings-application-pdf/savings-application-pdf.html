@@ -1,0 +1,152 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Savings Application Summary</title>
+<style>
+  .container {
+    max-width: 900px;
+    margin: 2rem auto;
+    background: #fff;
+    padding: 40px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    box-shadow: 0px 6px 20px rgba(0,0,0,0.08);
+    position: relative;
+  }
+
+  .header {
+    text-align: left;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .header img {
+    height: 120px;
+  }
+
+  .header h2 {
+    color: #030368;
+    font-weight: 700;
+    margin: 5px 0;
+    font-size: 24px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .header p {
+    font-size: 14px;
+    margin: 2px 0;
+    color: #444;
+  }
+
+  .section-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #030368;
+    border-bottom: 2px solid #030368;
+    margin: 30px 0 15px;
+    padding-bottom: 5px;
+  }
+
+  .details {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+
+  .details th, .details td {
+    text-align: left;
+    padding: 10px 12px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+  }
+
+  .details th {
+    background: #f9fbfd;
+    font-weight: 600;
+    width: 35%;
+    color: #34495e;
+  }
+
+  .footer {
+    margin-top: 25px;
+    font-size: 12px;
+    color: #666;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+  <div class="">
+    <div class="header">
+      <div class="header-left-block">
+        <h2>SUNDARAM (K.S.S.F)</h2>
+        <p>Human Development Is Our Aim</p>
+        <p><b>Phone:</b> +91 33 2526 1030</p>
+        <p><b>Address:</b> Kolkata - 700128, West Bengal</p>
+        <p><b>Email:</b> kssfsundaram@gmail.com</p>
+      </div>
+      <div>
+        {% if logo_base64 %}
+          <img src="{{ logo_base64 }}" alt="Company Logo" />
+        {% else %}
+          <img src="{% static 'main/images/company-logo.png' %}" alt="Company Logo" />
+        {% endif %}
+      </div>
+    </div>
+    <p class="generated-head">Generated on {{ savings_application.submitted_at|date:"d/m/Y"|default:"N/A" }}</p>
+    
+    <div>
+    <h3 class="sub-head-loan"><i>Savings Application Summary</i></h3>
+    <div class="section-title">Customer Details</div>
+    <table class="details">
+      <tr><th>Customer ID</th><td>{{ customer.customer_id }}</td></tr>
+      <tr><th>Full Name</th><td>{{ customer.full_name }}</td></tr>
+      <tr><th>Contact</th><td>{{ customer.contact }}</td></tr>
+      <tr><th>Email</th><td>{{ customer.email|default:"-" }}</td></tr>
+      <tr><th>Aadhaar</th><td>{{ customer.adhar_number }}</td></tr>
+      <tr><th>PAN</th><td>{{ customer.pan_number }}</td></tr>
+    </table>
+
+    <div class="section-title">Savings Product Details</div>
+    <table class="details">
+      <tr><th>Product Type</th><td>{{ savings_application.get_product_type_display|default:savings_application.product_type }}</td></tr>
+      <tr><th>Product ID</th><td>{{ savings_application.product_id|default:"-" }}</td></tr>
+      <tr><th>Installment / Deposit Amount</th><td>₹{{ savings_application.installment_amount|default:"-" }}</td></tr>
+      <tr><th>Interest Rate</th><td>{% if savings_application.interest_rate %}{{ savings_application.interest_rate }}%{% else %}-{% endif %}</td></tr>
+      <tr><th>Tenure</th><td>{{ savings_application.tenure|default:"-" }}{% if tenure_unit %} ({{ tenure_unit }}){% endif %}</td></tr>
+      <tr><th>Status</th><td>{{ savings_application.status }}</td></tr>
+    </table>
+
+    <div class="section-title">Nominee Details</div>
+    <table class="details">
+      <tr><th>Nominee Name</th><td>{{ savings_application.nominee_name|default:"-" }}</td></tr>
+      <tr><th>Relationship</th><td>{{ savings_application.nominee_relationship|default:"-" }}</td></tr>
+      <tr><th>KYC Type</th><td>{{ savings_application.nominee_kyc_type|default:"-" }}</td></tr>
+      <tr><th>KYC Number</th><td>{{ savings_application.nominee_kyc_number|default:"-" }}</td></tr>
+    </table>
+
+    <!-- <div class="section-title">Address</div>
+    <table class="details">
+      <tr><th>Address Line 1</th><td>{{ address.address_line_1|default:"-" }}</td></tr>
+      <tr><th>Address Line 2</th><td>{{ address.address_line_2|default:"-" }}</td></tr>
+      <tr><th>Landmark</th><td>{{ address.landmark|default:"-" }}</td></tr>
+      <tr><th>Post Office</th><td>{{ address.post_office|default:"-" }}</td></tr>
+      <tr><th>City/Town</th><td>{{ address.city_or_town|default:"-" }}</td></tr>
+      <tr><th>District</th><td>{{ address.district|default:"-" }}</td></tr>
+      <tr><th>State</th><td>{{ address.state|default:"-" }}</td></tr>
+      <tr><th>Post Code</th><td>{{ address.post_code|default:"-" }}</td></tr>
+    </table> -->
+
+    <div class="footer">
+      This is a system generated summary of the savings application.
+    </div>
+    </div>
+  </div>
+</body>
+</html>

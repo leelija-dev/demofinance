@@ -1,0 +1,203 @@
+{% load static %}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Disbursement Report</title>
+   <style>
+    
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        
+        margin-bottom: 8px;
+    }
+    .header-left {
+        font-size: 14px;
+    }
+    .header-left h2 {
+       color: #030368;
+  font-weight: 700;
+    margin: 5px 0;
+    font-size: 24px;
+ 
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    }
+    .header-left p {
+        margin: 3px 0;
+        font-size: 13px;
+        color: #555;
+    }
+    .header-right img {
+       height: 120px;
+    }
+    h3.section-title {
+       font-size: 18px;
+  font-weight: 600;
+  color: #030368;
+  border-bottom: 2px solid #030368;
+  margin: 30px 0 15px;
+    margin-top: 30px;
+  padding-bottom: 5px;
+       
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 15px;
+    }
+    table td {
+        border: 1px solid #ccc;
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+    table td.label {
+        background: #f8f9fa;
+        font-weight: bold;
+        width: 35%;
+    }
+    .status {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: bold;
+        color: #fff;
+        background: #27ae60;
+    }
+    .footer {
+        margin-top: 30px;
+        font-size: 12px;
+        color: #777;
+        text-align: center;
+        border-top: 1px dashed #bbb;
+        padding-top: 12px;
+    }
+    .sub-head-loan{
+    text-align: center;
+    margin: 0 !important;
+  }
+  .sub-head-loan i{
+    font-size: 20px;
+  color: #030368;
+  border-bottom: 1px solid #030368;
+  padding-bottom: 3px;
+  }
+
+ .generated-head{
+  position: absolute;
+  top: 7px;
+  right: 20%;
+  color: #b5b5b5;
+  font-size: 15px;
+  margin: 0 !important;
+  font-style: italic;
+  }
+</style>
+</head>
+<body>
+<div class="">
+    
+
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <h2>SUNDARAM (K.S.S.F)</h2>
+            <p>Human Development Is Our Aim</p>
+            <p><b>Phone:</b> +91 33 2526 1030</p>
+            <p><b>Address:</b> Kolkata - 700128, West Bengal</p>
+            <p><b>Email:</b> kssfsundaram@gmail.com</p>
+        </div>
+        <div class="header-right">
+            {% if logo_base64 %}
+            <img src="{{ logo_base64 }}" alt="Company Logo">
+            {% else %}
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==" alt="Company Logo">
+            {% endif %}
+        </div>
+    </div>
+    <p class="generated-head">Generated on: {{ generated_date }}</p>
+
+    <!-- Title -->
+    <h3 class="sub-head-loan"><i>Loan Disbursement Report</i></h3>
+
+    <!-- Loan Information -->
+    <h3 class="section-title" style="margin-top: 10px !important;">Loan Information</h3>
+    <table>
+        <tr>
+            <td class="label">Loan Number</td>
+            <td>{{ loan_application.loan_ref_no }}</td>
+        </tr>
+        <tr>
+            <td class="label">Disbursed Date</td>
+            <td>{{ loan_application.disbursed_at|date:"F d, Y" }}</td>
+        </tr>
+        <tr>
+            <td class="label">Status</td>
+            <td><span class="status">Fund Released</span></td>
+        </tr>
+    </table>
+
+    <!-- Customer & Agent -->
+    <h3 class="section-title">Customer & Agent Details</h3>
+    <table>
+        <tr>
+            <td class="label">Customer Name</td>
+            <td>{{ customer.full_name|default:"N/A" }}</td>
+        </tr>
+        <tr>
+            <td class="label">Customer ID</td>
+            <td>{{ customer.customer_id|default:"N/A" }}</td>
+        </tr>
+        <tr>
+            <td class="label">Agent Name</td>
+            <td>{{ agent.full_name|default:"N/A" }}</td>
+        </tr>
+        <tr>
+            <td class="label">Agent ID</td>
+            <td>{{ agent.agent_id|default:"N/A" }}</td>
+        </tr>
+    </table>
+
+    <!-- Loan Terms -->
+     {% if loan %}
+    <h3 class="section-title">Loan Terms</h3>
+    <table>
+        <tr>
+            <td class="label">Loan Amount</td>
+            <td>₹{{ loan.loan_amount }}</td>
+        </tr>
+        <tr>
+            <td class="label">Tenure</td>
+            <td>{{ loan.tenure.display_name|default:"N/A" }}</td>
+        </tr>
+        <tr>
+            <td class="label">Interest Rate</td>
+            <td>{{ loan.interest_rate.rate_of_interest|default:"N/A" }}%</td>
+        </tr>
+        <tr>
+            <td class="label">EMI Amount</td>
+            <td>₹{{ loan.emi_amount }}</td>
+        </tr>
+        <tr>
+            <td class="label">Loan Category</td>
+            <td>{{ loan.loan_category.name|default:"N/A" }}</td>
+        </tr>
+    </table>
+    {% endif %}
+
+    <!-- Footer -->
+    <div class="footer">
+        This summary is system-generated and does not require signature.  
+        Please contact your branch for further processing.
+    </div>
+
+</div>
+
+</body>
+</html> 

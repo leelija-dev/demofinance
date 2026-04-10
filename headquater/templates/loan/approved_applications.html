@@ -1,0 +1,49 @@
+{% extends 'hq/base.html' %}
+{% load static %}
+{% block title %}Approved Applications{% endblock %}
+{% block page_id %}approvedApplications{% endblock %}
+{% block content %}
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 class="text-title-md2 font-bold text-black dark:text-white">Approved Applications</h2>
+        <nav>
+            <ol class="flex items-center gap-2">
+                <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400" href="{% url 'hq:dashboard' %}">Dashboard <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path></svg></a></li>
+                <li class="text-sm text-gray-800 dark:text-white/90">Approved Applications</li>
+            </ol>
+        </nav>
+    </div>
+    <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        <div class="p-5 space-y-6 border-t border-gray-100 dark:border-gray-800 sm:p-6">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead>
+                        <tr>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Loan Ref No</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Customer Name</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Branch</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Agent Name</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                        {% for app in loan_applications %}
+                        <tr class="border-t">
+                            <td class="px-4 py-2">{{ app.loan_ref_no }}</td>
+                            <td class="px-4 py-2">{{ app.customer.full_name }}</td>
+                            <td class="px-4 py-2">{{ app.branch.branch_name }}</td>
+                            <td class="px-4 py-2">{{ app.agent.full_name }}</td>
+                            <td class="px-4 py-2">{{ app.get_status_display }}</td>
+                            <td class="px-4 py-2"><a href="{% url 'hq:hq_loan_detail' app.loan_ref_no %}" class="inline-block px-3 py-1 text-sm rounded bg-brand-500 text-white hover:bg-brand-600 transition">View</a></td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6" class="text-center py-4">No approved applications found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

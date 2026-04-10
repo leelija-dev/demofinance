@@ -1,0 +1,270 @@
+{% extends "branch/base.html" %}
+{% load static %}
+
+{% block title %}Edit Agent{% endblock %}
+
+{% block page_id %}agent_edit{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+    <!-- Breadcrumb Start -->
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 class="text-title-md2 font-bold text-black dark:text-white">
+            Edit Agent
+        </h2>
+        <nav>
+            <ol class="flex items-center gap-2">
+                <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+                        href="{% url 'branch:dashboard' %}">Dashboard <svg class="stroke-current" width="17" height="16"
+                            viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                            </path>
+                        </svg></a></li>
+                <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+                        href="{% url 'branch:agent' %}">Agents <svg class="stroke-current" width="17" height="16"
+                            viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                            </path>
+                        </svg></a></li>
+                <li class="text-sm text-gray-800 dark:text-white/90">Edit Agent</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- Form -->
+    <div class="rounded-2xl border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark md:p-6 xl:p-9">
+        <form id="editAgentForm" class="space-y-4" enctype="multipart/form-data" autocomplete="off">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div class="space-y-6">
+                <!-- Full Name -->
+                <div>
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Full Name</label>
+                    <input type="text" name="full_name" required value=""
+                        class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30">
+                    <div class="error-message mt-1 text-sm text-error-500"></div>
+                </div>
+
+                <!-- Email
+                <div>
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Email</label>
+                    <input type="email" name="email" required value=""
+                        class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30">
+                    <div class="error-message mt-1 text-sm text-error-500"></div>
+                </div> -->
+
+                <!-- Phone -->
+                <div>
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Phone</label>
+                    <input type="tel" name="phone" required value=""
+                        class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30">
+                    <div class="error-message mt-1 text-sm text-error-500"></div>
+                </div>
+
+                <!-- Area -->
+                <div>
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Area</label>
+                    <input type="text" name="area" required value=""
+                        class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30">
+                    <div class="error-message mt-1 text-sm text-error-500"></div>
+                </div>
+                </div> 
+
+                <div class="space-y-6">
+
+                <!-- Status -->
+                <div>
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Status</label>
+                    <select name="status" required
+                        class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                    <div class="error-message mt-1 text-sm text-error-500"></div>
+                </div>
+
+                <!-- ID Proof -->
+                <div>
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">ID Proof (leave blank to keep current)</label>
+                    <input type="file" name="id_proof"
+                        class="focus:border-ring-brand-300 shadow-theme-xs focus:file:ring-brand-300 h-11 w-full overflow-hidden rounded-lg border border-gray-300 bg-transparent text-sm text-gray-500 transition-colors file:mr-5 file:border-collapse file:cursor-pointer file:rounded-l-lg file:border-0 file:border-r file:border-solid file:border-gray-200 file:bg-gray-50 file:py-3 file:pr-3 file:pl-3.5 file:text-sm file:text-gray-700 placeholder:text-gray-400 hover:file:bg-gray-100 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:text-white/90 dark:file:border-gray-800 dark:file:bg-white/[0.03] dark:file:text-gray-400 dark:placeholder:text-gray-400">
+                    <div class="error-message mt-1 text-sm text-error-500"></div>
+                </div>
+
+                <!-- Photo -->
+                <div>
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Photo (leave blank to keep current)</label>
+                    <input type="file" name="photo" accept="image/*"
+                        class="focus:border-ring-brand-300 shadow-theme-xs focus:file:ring-brand-300 h-11 w-full overflow-hidden rounded-lg border border-gray-300 bg-transparent text-sm text-gray-500 transition-colors file:mr-5 file:border-collapse file:cursor-pointer file:rounded-l-lg file:border-0 file:border-r file:border-solid file:border-gray-200 file:bg-gray-50 file:py-3 file:pr-3 file:pl-3.5 file:text-sm file:text-gray-700 placeholder:text-gray-400 hover:file:bg-gray-100 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:text-white/90 dark:file:border-gray-800 dark:file:bg-white/[0.03] dark:file:text-gray-400 dark:placeholder:text-gray-400">
+                    <div id="current-photo-preview" class="mt-2"></div>
+                    <div class="error-message mt-1 text-sm text-error-500"></div>
+                </div>
+                </div>
+            </div>
+
+            <div>
+                <div class=" py-4">
+                    <h3 class="text-base font-bold text-gray-800 dark:text-white/90">
+                        Login Credentials
+                    </h3>
+                </div>
+                    <hr class="pb-6">
+                <!-- Email -->
+                <div>
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Email</label>
+                    <input type="email" name="email" required value="" readonly
+                        class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30">
+                    <div class="error-message mt-1 text-sm text-error-500"></div>
+                </div>
+                <!-- Password -->
+                <div>
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Password (leave blank to keep current)</label>
+                    <div class="relative">
+                        <input type="password" name="password" value="" autocomplete="new-password"
+                            class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 pr-12 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30">
+                        <button type="button" class="absolute inset-y-0 right-3 flex items-center password-toggle" data-target="password" tabindex="-1" style="height: 44px;">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="error-message mt-1 text-sm text-error-500"></div>
+                </div>
+                <!-- Confirm Password -->
+                <div class="relative flex flex-col">
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Confirm Password</label>
+                    <div class="relative">
+                        <input type="password" name="confirm_password" value="" autocomplete="new-password"
+                            class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 pr-12 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30">
+                        <button type="button" class="absolute inset-y-0 right-3 flex items-center password-toggle" data-target="confirm_password" tabindex="-1" style="height: 44px;">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="error-message mt-1 text-sm text-error-500"></div>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex justify-end gap-4">
+                <a href="{% url 'branch:agent' %}"
+                    class="rounded-lg border border-stroke py-2 px-6 font-medium text-black hover:shadow-1 dark:border-strokedark dark:text-white">
+                    Cancel
+                </a>
+                <button type="submit"
+                    class="inline-flex items-center gap-2 px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600">
+                    Update Agent
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'agent/js/agentFormValidation.js' %}"></script>
+<script>
+function getAgentIdFromUrl() {
+    const match = window.location.pathname.match(/\/agent\/edit\/([^/]+)\//);
+    return match ? match[1] : null;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const agentId = getAgentIdFromUrl();
+    if (!agentId) return;
+    fetch(`/branch/api/agent/list/`)
+        .then(response => response.json())
+        .then(data => {
+            const agent = data.find(a => String(a.agent_id) === String(agentId));
+            if (!agent) return;
+            document.querySelector('[name="full_name"]').value = agent.full_name || '';
+            document.querySelector('[name="email"]').value = agent.email || '';
+            document.querySelector('[name="phone"]').value = agent.phone || '';
+            document.querySelector('[name="area"]').value = agent.area || '';
+            document.querySelector('[name="status"]').value = agent.status || 'active';
+            if (agent.photo) {
+                document.getElementById('current-photo-preview').innerHTML = `<img src="${agent.photo}" alt="Current photo" class="h-20 w-20 rounded-full object-cover">`;
+            }
+        });
+    const form = document.getElementById('editAgentForm');
+    window.agentFormValidation.setupAgentFormRealtimeValidation(form, true);
+    window.agentFormValidation.setupPasswordVisibilityToggle(form);
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        form.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+        form.querySelectorAll('input, select').forEach(el => el.classList.remove('border-danger'));
+        const submitButton = form.querySelector('button[type="submit"]');
+        const originalText = submitButton.textContent;
+        if (!window.agentFormValidation.validateAgentForm(form, true)) {
+            submitButton.disabled = false;
+            submitButton.textContent = originalText;
+            return;
+        }
+        const formData = new FormData(form);
+        // Do not allow branch to update login email (username)
+        formData.delete('email');
+        const password = form.querySelector('[name="password"]').value;
+        const confirmPassword = form.querySelector('[name="confirm_password"]').value;
+        if (password || confirmPassword) {
+            if (password !== confirmPassword) {
+                const confirmInput = form.querySelector('[name="confirm_password"]');
+                window.agentFormValidation.showError(confirmInput, 'Passwords do not match.');
+                submitButton.disabled = false;
+                submitButton.textContent = originalText;
+                return;
+            }
+        }
+        if (!formData.get('photo') || !formData.get('photo').size) formData.delete('photo');
+        if (!formData.get('id_proof') || !formData.get('id_proof').size) formData.delete('id_proof');
+        if (!formData.get('password')) formData.delete('password');
+        formData.delete('confirm_password');
+        submitButton.disabled = true;
+        submitButton.textContent = 'Updating...';
+        const agentId = getAgentIdFromUrl();
+        fetch(`/branch/api/agent/update/${agentId}/`, {
+            method: 'PUT',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw new Error(JSON.stringify(data));
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            window.showToast(data.message || 'Agent updated successfully!', 'success');
+            setTimeout(() => {
+                window.location.href = '/branch/agent/';
+            }, 2000);
+        })
+        .catch(error => {
+            try {
+                const errors = JSON.parse(error.message);
+                Object.entries(errors).forEach(([field, messages]) => {
+                    const input = document.querySelector(`[name="${field}"]`);
+                    if (input) {
+                        window.agentFormValidation.showError(input, Array.isArray(messages) ? messages.join(', ') : messages);
+                    }
+                });
+            } catch (e) {
+                alert('An error occurred while updating the agent. Please try again.');
+            }
+        })
+        .finally(() => {
+            submitButton.disabled = false;
+            submitButton.textContent = originalText;
+        });
+    });
+});
+</script>
+{% endblock %} 

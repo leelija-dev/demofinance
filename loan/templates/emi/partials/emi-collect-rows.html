@@ -1,0 +1,39 @@
+{% for collectEMI in rows %}
+<tr>
+    <td class="px-6 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ collectEMI.assignment_id }}</p></td>
+    <td class="px-6 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ collectEMI.loan_ref_no|default_if_none:"" }}</p></td>
+    <td class="px-6 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ collectEMI.customer_name|default_if_none:"" }}</p></td>
+    <td class="px-6 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ collectEMI.branch_name|default_if_none:"" }}</p></td>
+    <td class="px-6 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ collectEMI.installment_date|default_if_none:"" }}</p></td>
+    <td class="px-6 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ collectEMI.principal_amount }}</p></td>
+    <td class="px-6 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ collectEMI.interest_amount }}</p></td>
+    <td class="px-6 py-2"><p class="text-blue-700 font-semibold text-theme-sm dark:text-blue-400">₹{{ collectEMI.installment_amount }}</p></td>
+    <td class="px-6 py-2">
+        <div class="flex items-center gap-2">
+            <a href="#" class="btn-collect inline-block px-3 py-1 text-sm rounded bg-brand-500 text-white hover:bg-brand-600"
+                data-assignment-id="{{ collectEMI.assignment_id }}"
+                data-emi-id="{% if collectEMI.emi %}{{ collectEMI.emi }}{% else %}{{ collectEMI.reschedule_emi }}{% endif %}"
+                data-installment-amount="{{ collectEMI.installment_amount }}"
+                data-principal-amount="{{ collectEMI.principal_amount }}"
+                data-interest-amount="{{ collectEMI.interest_amount }}"
+                data-loan-ref-no="{{ collectEMI.loan_ref_no|default_if_none:"" }}"
+                data-can-collect="{% if collectEMI.can_collect %}1{% else %}0{% endif %}"
+                data-is-reschedule="{% if collectEMI.reschedule_emi %}1{% else %}0{% endif %}">Collect</a>
+            <button type="button" class="btn-view-current-emi inline-flex items-center justify-center h-8 w-8 rounded border border-gray-300 text-gray-600 hover:text-gray-800 hover:border-gray-400"
+                data-assignment-id="{{ collectEMI.assignment_id }}"
+                data-loan-ref-no="{{ collectEMI.loan_ref_no|default_if_none:"" }}"
+                data-installment-date="{{ collectEMI.installment_date|default_if_none:"" }}"
+                data-installment-amount="{{ collectEMI.installment_amount }}"
+                data-principal-amount="{{ collectEMI.principal_amount }}"
+                data-interest-amount="{{ collectEMI.interest_amount }}"
+                data-is-reschedule="{% if collectEMI.reschedule_emi %}1{% else %}0{% endif %}"
+                aria-label="View Current EMI">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+            </button>
+        </div>
+    </td>
+</tr>
+{% endfor %}

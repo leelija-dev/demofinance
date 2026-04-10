@@ -1,0 +1,172 @@
+{% extends "hq/base.html" %}
+{% load static %}
+{% block title %}EMI Schedule{% endblock %}
+
+{% block page_id %}HqEmiSchedule{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+  <!-- Breadcrumb -->
+  <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <h2 class="text-title-md2 font-bold text-black dark:text-white">EMI Schedule</h2>
+    <nav>
+      <ol class="flex items-center gap-2">
+        <li>
+          <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400" href="{% url 'hq:dashboard' %}">
+            Dashboard
+            <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </a>
+        </li>
+        <li class="text-sm text-gray-800 dark:text-white/90">EMI Schedule</li>
+      </ol>
+    </nav>
+  </div>
+
+  <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+    <div class="grid grid-cols-2 gap-4 px-5 pt-5 pb-0 border-t border-gray-100 dark:border-gray-800 sm:px-6 sm:pt-6">
+      <div class="flex items-center">
+        <h3 class="text-lg font-semibold">Loan: <span class="text-gray-600">#{{ loan.loan_ref_no }}</span></h3>
+      </div>
+      <div class="flex items-center justify-end gap-2">
+        <a href="{% url 'hq:emi_loan_list' %}" class="inline-flex items-center px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-md hover:bg-gray-700">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            Back</a>
+      </div>
+    </div>
+
+    <!-- KPI Row for this loan -->
+    <div class="p-5 sm:p-6">
+      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        <!-- Total Installments -->
+        <div class="group relative overflow-hidden rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md">
+          <div class="flex items-center gap-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/></svg>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500">Total Installments</div>
+              <div class="mt-0.5 text-2xl font-semibold">{{ total_installments }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Unpaid Installments -->
+        <div class="group relative overflow-hidden rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md">
+          <div class="flex items-center gap-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-amber-50 text-amber-600">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500">Unpaid Installments</div>
+              <div class="mt-0.5 text-2xl font-semibold">{{ unpaid_installments }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Total Amount -->
+        <div class="group relative overflow-hidden rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md">
+          <div class="flex items-center gap-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                <span class="text-lg font-bold">₹</span>
+                <!-- <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg> -->
+            </div>
+            <div>
+              <div class="text-xs text-gray-500">Total Amount</div>
+              <div class="mt-0.5 text-2xl font-semibold">₹ {{ total_amount|floatformat:2 }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Collected Amount -->
+        <div class="group relative overflow-hidden rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md">
+          <div class="flex items-center gap-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-green-50 text-green-600">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 6 9 17l-5-5"/></svg>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500">Collected Amount</div>
+              <div class="mt-0.5 text-2xl font-semibold">₹ {{ collected_amount|floatformat:2 }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Customer -->
+        <div class="group relative overflow-hidden rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md">
+          <div class="flex items-center gap-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-sky-50 text-sky-600">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500">Customer</div>
+              <div class="mt-0.5 text-base font-semibold">{{ loan.customer.full_name|default:"N/A" }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-5 space-y-6 border-t border-gray-100 dark:border-gray-800 sm:p-6">
+      <!-- Filters: All, Upcoming, Due, Overdue -->
+      <div class="flex flex-wrap gap-2 mb-3">
+        <a href="?" class="px-3 py-1.5 rounded-md border text-sm {% if status == 'all' %}bg-blue-600 text-white border-blue-600{% else %}bg-white text-gray-700 border-gray-300 hover:bg-gray-50{% endif %}">
+          All <span class="ml-1 text-xs ">({{ schedule_counts.all }})</span>
+        </a>
+        <a href="?status=upcoming" class="px-3 py-1.5 rounded-md border text-sm {% if status == 'upcoming' %}bg-blue-600 text-white border-blue-600{% else %}bg-white text-gray-700 border-gray-300 hover:bg-gray-50{% endif %}">
+          Upcoming <span class="ml-1 text-xs ">({{ schedule_counts.upcoming }})</span>
+        </a>
+        <a href="?status=due" class="px-3 py-1.5 rounded-md border text-sm {% if status == 'due' %}bg-blue-600 text-white border-blue-600{% else %}bg-white text-gray-700 border-gray-300 hover:bg-gray-50{% endif %}">
+          Due Today <span class="ml-1 text-xs ">({{ schedule_counts.due }})</span>
+        </a>
+        <a href="?status=overdue" class="px-3 py-1.5 rounded-md border text-sm {% if status == 'overdue' %}bg-blue-600 text-white border-blue-600{% else %}bg-white text-gray-700 border-gray-300 hover:bg-gray-50{% endif %}">
+          Overdue <span class="ml-1 text-xs ">({{ schedule_counts.overdue }})</span>
+        </a>
+      </div>
+      <div class="custom-scrollbar overflow-x-auto">
+        <div class="overflow-x-auto bg-white rounded-lg">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Installment Date</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">EMI Amount</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Principal</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interest</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Overdue Days</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Late Fee</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paid Date</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              {% for s in schedules %}
+              <tr class="{% if s.paid %}bg-green-50{% elif s.is_overdue %}bg-red-50{% endif %}">
+                <td class="px-6 py-3 text-sm text-gray-900">{{ s.installment_date|date:"Y-m-d" }}</td>
+                <td class="px-6 py-3 text-sm text-gray-900">₹ {{ s.installment_amount|floatformat:2 }}</td>
+                <td class="px-6 py-3 text-sm text-gray-900">₹ {{ s.principal_amount|floatformat:2 }}</td>
+                <td class="px-6 py-3 text-sm text-gray-900">₹ {{ s.interest_amount|floatformat:2 }}</td>
+                <td class="px-6 py-3 text-sm">
+                  <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                    {% if s.paid %}bg-green-100 text-green-800{% elif s.is_overdue %}bg-red-100 text-red-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                    {% if s.paid %}Collected{% elif s.is_overdue %}Overdue{% else %}Pending{% endif %}
+                  </span>
+                </td>
+                <td class="px-6 py-3 text-sm {% if s.is_overdue and s.overdue_days %}text-red-600 font-medium{% else %}text-gray-900{% endif %}">{{ s.overdue_days|default:0 }}</td>
+                <td class="px-6 py-3 text-sm text-gray-900">₹ {{ s.late_fee|floatformat:2 }}</td>
+                <td class="px-6 py-3 text-sm text-gray-900">{% if s.paid_date %}{{ s.paid_date|date:"Y-m-d" }}{% else %}-{% endif %}</td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="8" class="px-6 py-8 text-center text-gray-500">No EMI schedules found for this loan.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

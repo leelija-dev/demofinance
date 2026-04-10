@@ -1,0 +1,1104 @@
+{% extends 'hq/base.html' %}
+{% load static %}
+
+{% block title %}Loan Management - Headquarters{% endblock %}
+{% block page_id %}LoanManagement{% endblock %}
+
+
+{% block content %}
+<div class="mx-auto max-w-(--breakpoint-2xl) p-4 md:p-6">
+  <div class="flex items-center flex-col sm:flex-row justify-between mb-6">
+    <h2 class="text-title-md2 font-bold text-black dark:text-white">Loan Management</h2>
+    <div class="flex justify-end">
+      <a href="?manage_main_categories=1{% if selected_main_category_id %}&main_category={{ selected_main_category_id }}{% endif %}"
+        class="bg-brand-500 text-white px-4 py-2 rounded">Manage Main Categories</a>
+    </div>
+  </div>
+
+  <div class="mb-4">
+    <div class="flex flex-wrap gap-2">
+      <a href="{% url 'hq:loan_management' %}" class="loan-main-pill inline-flex items-center rounded-full border border-gray-200 px-4 py-2 text-sm font-medium {% if not selected_main_category_id %}bg-brand-500 text-white dark:border-gray-700{% else %}bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800{% endif %}">All</a>
+      {% for main_category in active_main_categories %}
+      <a href="{% url 'hq:loan_management' %}?main_category={{ main_category.main_category_id }}" class="loan-main-pill inline-flex items-center rounded-full border border-gray-200 px-4 py-2 text-sm font-medium {% if selected_main_category_id == main_category.main_category_id %}bg-brand-500 text-white dark:border-gray-700{% else %}bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800{% endif %}">{{ main_category.name }}</a>
+      {% endfor %}
+    </div>
+  </div>
+  <!-- Categories Section -->
+  <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] mb-10">
+    <div class="px-5 py-4 sm:px-6 sm:py-5 flex justify-between">
+      <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Loan Categories</h3>
+      {% if selected_main_category_id %}
+      <a href="?add=1{% if selected_main_category_id %}&main_category={{ selected_main_category_id }}{% endif %}" class="bg-brand-500 text-white px-4 py-2 rounded">Add Category</a>
+      {% endif %}
+    </div>
+    <div class="border-t border-gray-100 p-5 sm:p-6 dark:border-gray-800">
+      <div class="overflow-hidden bg-white dark:border-gray-800 dark:bg-white[0.03] ">
+        <div class="max-w-full overflow-x-auto custom-scrollbar">
+          <table class="w-full min-w-[1102px]">
+            <thead>
+              <tr class="border-b border-gray-100 dark:border-gray-800">
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">ID</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Main Category</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Name</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Status</p>
+                </th>
+                {% if selected_main_category_id %}
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Actions</p>
+                </th>
+                {% endif %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for category in categories %}
+              <tr class="border-b border-gray-100 dark:border-gray-800 loan-category-row" data-main-category="{% if category.main_category %}{{ category.main_category.main_category_id }}{% endif %}">
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ category.category_id }}</p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ category.main_category.name|default:"-" }}</p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ category.name }}</p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                    {% if category.is_active %}
+                    <span
+                      class="text-success-700 bg-success-50 dark:bg-success-500/15 dark:text-success-500 inline-block rounded-full px-2 py-0.5 font-medium">Active</span>
+                    {% else %}
+                    <span
+                      class="text-error-700 bg-error-50 dark:bg-error-500/15 dark:text-error-500 inline-block rounded-full px-2 py-0.5 font-medium">Inactive</span>
+                    {% endif %}
+                  </p>
+                </td>
+                {% if selected_main_category_id %}
+                <td class="px-5 py-4 sm:px-6">
+                  <a href="?edit={{ category.category_id }}{% if selected_main_category_id %}&main_category={{ selected_main_category_id }}{% endif %}" class="text-brand-500">Edit</a>
+                </td>
+                {% endif %}
+              </tr>
+              {% empty %}
+              <tr>
+                <td class="px-5 py-4 sm:px-6 text-center text-red-600" colspan="5">No categories found.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interest Rates Section -->
+  <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] mb-10">
+    <div class="px-5 py-4 sm:px-6 sm:py-5 flex justify-between">
+      <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Interest Rates</h3>
+      {% if selected_main_category_id %}
+      <a href="?add_interest=1{% if selected_main_category_id %}&main_category={{ selected_main_category_id }}{% endif %}" class="bg-brand-500 text-white px-4 py-2 rounded">Add Interest Rate</a>
+      {% endif %}
+    </div>
+    <div class="border-t border-gray-100 p-5 sm:p-6 dark:border-gray-800">
+      <div class="overflow-hidden bg-white dark:border-gray-800 dark:bg-white[0.03] ">
+        <div class="max-w-full overflow-x-auto custom-scrollbar">
+          <table class="w-full min-w-[1102px]">
+            <thead>
+              <tr class="border-b border-gray-100 dark:border-gray-800">
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">ID</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Rate (%)</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Description</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Status</p>
+                </th>
+                {% if selected_main_category_id %}
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Actions</p>
+                </th>
+                {% endif %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for interest in interests %}
+              <tr class="border-b border-gray-100 dark:border-gray-800">
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ interest.interest_id }}</p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ interest.rate_of_interest }}</p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ interest.description|default:"-" }}</p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                    {% if interest.is_active %}
+                    <span
+                      class="text-success-700 bg-success-50 dark:bg-success-500/15 dark:text-success-500 inline-block rounded-full px-2 py-0.5 font-medium">Active</span>
+                    {% else %}
+                    <span
+                      class="text-error-700 bg-error-50 dark:bg-error-500/15 dark:text-error-500 inline-block rounded-full px-2 py-0.5 font-medium">Inactive</span>
+                    {% endif %}
+                  </p>
+                </td>
+                {% if selected_main_category_id %}
+                <td class="px-5 py-4 sm:px-6">
+                  <a href="?edit_interest={{ interest.interest_id }}{% if selected_main_category_id %}&main_category={{ selected_main_category_id }}{% endif %}" class="text-brand-500">Edit</a>
+                </td>
+                {% endif %}
+              </tr>
+              {% empty %}
+              <tr>
+                <td class="px-5 py-4 sm:px-6 text-center text-red-600" colspan="5">No interest rates found.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tenures Section -->
+  <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] mb-10">
+    <div class="px-5 py-4 sm:px-6 sm:py-5 flex justify-between">
+      <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Loan Tenures</h3>
+      {% if selected_main_category_id %}
+      <a href="?add_tenure=1{% if selected_main_category_id %}&main_category={{ selected_main_category_id }}{% endif %}" class="bg-brand-500 text-white px-4 py-2 rounded">Add Tenure</a>
+      {% endif %}
+    </div>
+    <div class="border-t border-gray-100 p-5 sm:p-6 dark:border-gray-800">
+      <div class="overflow-hidden bg-white dark:border-gray-800 dark:bg-white[0.03] ">
+        <div class="max-w-full overflow-x-auto custom-scrollbar">
+          <table class="w-full min-w-[1102px]">
+            <thead>
+              <tr class="border-b border-gray-100 dark:border-gray-800">
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">ID</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Duration</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Interest Rate</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Status</p>
+                </th>
+                {% if selected_main_category_id %}
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Actions</p>
+                </th>
+                {% endif %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for tenure in tenures %}
+              <tr class="border-b border-gray-100 dark:border-gray-800">
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ tenure.tenure_id }}</p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ tenure.value }} {{ tenure.unit }}</p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ tenure.interest_rate.rate_of_interest }}%</p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                    {% if tenure.is_active %}
+                    <span
+                      class="text-success-700 bg-success-50 dark:bg-success-500/15 dark:text-success-500 inline-block rounded-full px-2 py-0.5 font-medium">Active</span>
+                    {% else %}
+                    <span
+                      class="text-error-700 bg-error-50 dark:bg-error-500/15 dark:text-error-500 inline-block rounded-full px-2 py-0.5 font-medium">Inactive</span>
+                    {% endif %}
+                  </p>
+                </td>
+                {% if selected_main_category_id %}
+                <td class="px-5 py-4 sm:px-6">
+                  <a href="?edit_tenure={{ tenure.tenure_id }}{% if selected_main_category_id %}&main_category={{ selected_main_category_id }}{% endif %}" class="text-brand-500">Edit</a>
+                </td>
+                {% endif %}
+              </tr>
+              {% empty %}
+              <tr>
+                <td class="px-5 py-4 sm:px-6 text-center text-red-600" colspan="5">No tenures found.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Deduction Master Section -->
+  <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] mb-10">
+    <div class="px-5 py-4 sm:px-6 sm:py-5 flex justify-between">
+      <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Deduction Master</h3>
+      {% if selected_main_category_id %}
+      <a href="?add_deduction=1{% if selected_main_category_id %}&main_category={{ selected_main_category_id }}{% endif %}" class="bg-brand-500 text-white px-4 py-2 rounded">Add Deduction</a>
+      {% endif %}
+    </div>
+    <div class="border-t border-gray-100 p-5 sm:p-6 dark:border-gray-800">
+      <div class="overflow-hidden bg-white dark:border-gray-800 dark:bg-white[0.03]">
+        <div class="max-w-full overflow-x-auto custom-scrollbar">
+          <table class="w-full min-w-[1102px]">
+            <thead>
+              <tr class="border-b border-gray-100 dark:border-gray-800">
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">ID</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Name</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Type</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Value</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Description</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Status</p>
+                </th>
+                {% if selected_main_category_id %}
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Actions</p>
+                </th>
+                {% endif %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for deduction in deductions %}
+              <tr class="border-b border-gray-100 dark:border-gray-800">
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ deduction.deduction_id|default:"N/A" }}</p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ deduction.deduction_name|default:"N/A" }}</p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ deduction.deduction_type|default:"N/A" }}</p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                    {% if deduction.deduction_value %}
+                    {% if deduction.deduction_type == 'percentage' %}
+                    {{ deduction.deduction_value }}%
+                    {% else %}
+                    {{ deduction.deduction_value }}
+                    {% endif %}
+                    {% else %}
+                    N/A
+                    {% endif %}
+                  </p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ deduction.deduction_description|default:"N/A" }}</p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                    {% if deduction.is_active %}
+                    <span
+                      class="text-success-700 bg-success-50 dark:bg-success-500/15 dark:text-success-500 inline-block rounded-full px-2 py-0.5 font-medium">Active</span>
+                    {% else %}
+                    <span
+                      class="text-error-700 bg-error-50 dark:bg-error-500/15 dark:text-error-500 inline-block rounded-full px-2 py-0.5 font-medium">Inactive</span>
+                    {% endif %}
+                  </p>
+                </td>
+                {% if selected_main_category_id %}
+                <td class="px-5 py-4 sm:px-6">
+                  <a href="?edit_deduction={{ deduction.deduction_id }}{% if selected_main_category_id %}&main_category={{ selected_main_category_id }}{% endif %}" class="text-brand-500">Edit</a>
+                </td>
+                {% endif %}
+              </tr>
+              {% empty %}
+              <tr>
+                <td class="px-5 py-4 sm:px-6 text-center text-red-600" colspan="7">No deductions found.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Late Fee Settings Section -->
+  <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] mb-10">
+    <div class="px-5 py-4 sm:px-6 sm:py-5 flex justify-between">
+      <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Late Fee Settings</h3>
+      {% if selected_main_category_id %}
+      <a href="?add_late_fee=1{% if selected_main_category_id %}&main_category={{ selected_main_category_id }}{% endif %}" class="bg-brand-500 text-white px-4 py-2 rounded">Add Late Fee</a>
+      {% endif %}
+    </div>
+    <div class="border-t border-gray-100 p-5 sm:p-6 dark:border-gray-800">
+      <div class="overflow-hidden bg-white dark:border-gray-800 dark:bg-white[0.03]">
+        <div class="max-w-full overflow-x-auto custom-scrollbar">
+          <table class="w-full min-w-[800px]">
+            <thead>
+              <tr class="border-b border-gray-100 dark:border-gray-800">
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Type</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Value</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Frequency</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Grace Period</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Status</p>
+                </th>
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Created At</p>
+                </th>
+                {% if selected_main_category_id %}
+                <th class="px-5 py-3 text-left sm:px-6">
+                  <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Actions</p>
+                </th>
+                {% endif %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for lf in late_fees %}
+              <tr class="border-b border-gray-100 dark:border-gray-800">
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ lf.fee_type|title }}</p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                    {% if lf.fee_type == 'percentage' %}
+                    {{ lf.fee_value }}%
+                    {% else %}
+                    {{ lf.fee_value }}
+                    {% endif %}
+                  </p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ lf.frequency|title }}</p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ lf.grace_days }}</p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                    {% if lf.is_active %}
+                    <span
+                      class="text-success-700 bg-success-50 dark:bg-success-500/15 dark:text-success-500 inline-block rounded-full px-2 py-0.5 font-medium">Active</span>
+                    {% else %}
+                    <span
+                      class="text-error-700 bg-error-50 dark:bg-error-500/15 dark:text-error-500 inline-block rounded-full px-2 py-0.5 font-medium">Inactive</span>
+                    {% endif %}
+                  </p>
+                </td>
+                <td class="px-5 py-4 sm:px-6">
+                  <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ lf.created_at|date:'Y-m-d H:i' }}</p>
+                </td>
+                {% if selected_main_category_id %}
+                <td class="px-5 py-4 sm:px-6">
+                  <a href="?edit_late_fee={{ lf.id }}{% if selected_main_category_id %}&main_category={{ selected_main_category_id }}{% endif %}" class="text-brand-500">Edit</a>
+                </td>
+                {% endif %}
+              </tr>
+              {% empty %}
+              <tr>
+                <td class="px-5 py-4 sm:px-6 text-center text-red-600" colspan="7">No late fee settings found.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if show_main_category_list_modal %}
+<div id="mainCategoryListModal"
+  class="fixed inset-0 z-99999 flex items-center justify-center bg-black bg-opacity-40 bg-gray-400/50 backdrop-blur-[32px]">
+  <div class="bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-4xl p-6 relative">
+    <a href="{% url 'hq:loan_management' %}{% if selected_main_category_id %}?main_category={{ selected_main_category_id }}{% endif %}"
+      class="absolute top-2 right-4 text-red-400 hover:text-red-700 text-3xl">&times;</a>
+
+    <div class="flex items-center justify-between mb-4 mr-6">
+      <h3 class="text-lg font-semibold dark:text-gray-400">Loan Main Categories</h3>
+      <div class="flex gap-2">
+        <a href="?assign_unmapped=1&manage_main_categories=1{% if selected_main_category_id %}&main_category={{ selected_main_category_id }}{% endif %}"
+          class="bg-gray-600 text-white px-4 py-2 rounded">Assign Unmapped</a>
+        <a href="?add_main_category=1&manage_main_categories=1{% if selected_main_category_id %}&main_category={{ selected_main_category_id }}{% endif %}"
+          class="bg-brand-500 text-white px-4 py-2 rounded">Add</a>
+      </div>
+    </div>
+
+    <div class="max-w-full overflow-x-auto custom-scrollbar">
+      <table class="w-full min-w-[800px]">
+        <thead>
+          <tr class="border-b border-gray-100 dark:border-gray-800">
+            <th class="px-5 py-3 text-left sm:px-6">
+              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">ID</p>
+            </th>
+            <th class="px-5 py-3 text-left sm:px-6">
+              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Name</p>
+            </th>
+            <th class="px-5 py-3 text-left sm:px-6">
+              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Status</p>
+            </th>
+            <th class="px-5 py-3 text-left sm:px-6">
+              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Actions</p>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for main_category in main_categories %}
+          <tr class="border-b border-gray-100 dark:border-gray-800">
+            <td class="px-5 py-4 sm:px-6">
+              <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ main_category.main_category_id }}</p>
+            </td>
+            <td class="px-5 py-4 sm:px-6">
+              <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ main_category.name }}</p>
+            </td>
+            <td class="px-5 py-4 sm:px-6">
+              <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                {% if main_category.is_active %}
+                <span
+                  class="text-success-700 bg-success-50 dark:bg-success-500/15 dark:text-success-500 inline-block rounded-full px-2 py-0.5 font-medium">Active</span>
+                {% else %}
+                <span
+                  class="text-error-700 bg-error-50 dark:bg-error-500/15 dark:text-error-500 inline-block rounded-full px-2 py-0.5 font-medium">Inactive</span>
+                {% endif %}
+              </p>
+            </td>
+            <td class="px-5 py-4 sm:px-6">
+              <a href="?edit_main_category={{ main_category.main_category_id }}&manage_main_categories=1{% if selected_main_category_id %}&main_category={{ selected_main_category_id }}{% endif %}"
+                class="text-brand-500">Edit</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td class="px-5 py-4 sm:px-6 text-center text-red-600" colspan="4">No main categories found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% if show_assign_unmapped_modal %}
+<div id="assignUnmappedModal"
+  class="fixed inset-0 z-99999 flex items-center justify-center bg-black bg-opacity-40 bg-gray-400/50 backdrop-blur-[32px]">
+  <div class="bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-4xl p-6 relative">
+    <a href="{% url 'hq:loan_management' %}?manage_main_categories=1{% if selected_main_category_id %}&main_category={{ selected_main_category_id }}{% endif %}"
+      class="absolute top-2 right-4 text-red-400 hover:text-red-700 text-3xl">&times;</a>
+
+    <h3 class="text-lg font-semibold mb-4 dark:text-gray-400">Assign Unmapped Items to Main Category</h3>
+
+    <form method="post" action="{% url 'hq:loan_management' %}">
+      {% csrf_token %}
+      <input type="hidden" name="form_type" value="assign_unmapped">
+      <input type="hidden" name="manage_main_categories" value="1">
+      {% if selected_main_category_id %}
+      <input type="hidden" name="selected_main_category" value="{{ selected_main_category_id }}">
+      {% endif %}
+
+      <div class="mb-4">
+        <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Target Main Category</label>
+        <select name="target_main_category_id" class="w-full rounded border border-gray-300 px-3 py-2 dark:bg-gray-800 dark:text-gray-200">
+          <option value="">-- Select Main Category --</option>
+          {% for mc in main_categories %}
+          <option value="{{ mc.main_category_id }}" {% if unmapped_target_main_category and unmapped_target_main_category.main_category_id == mc.main_category_id %}selected{% endif %}>{{ mc.name }}{% if not mc.is_active %} (Inactive){% endif %}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2">
+        <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+          <h4 class="font-medium text-gray-800 dark:text-gray-200 mb-2">Loan Categories (Unmapped)</h4>
+          {% for c in unmapped_categories %}
+          <label class="flex items-center gap-2 py-1">
+            <input type="checkbox" name="category_ids" value="{{ c.category_id }}">
+            <span class="text-sm text-gray-700 dark:text-gray-300">{{ c.name }}{% if not c.is_active %} (Inactive){% endif %}</span>
+          </label>
+          {% empty %}
+          <div class="text-sm text-gray-500 dark:text-gray-400">No unmapped categories.</div>
+          {% endfor %}
+        </div>
+
+        <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+          <h4 class="font-medium text-gray-800 dark:text-gray-200 mb-2">Interest Rates (Unmapped)</h4>
+          {% for i in unmapped_interests %}
+          <label class="flex items-center gap-2 py-1">
+            <input type="checkbox" name="interest_ids" value="{{ i.interest_id }}">
+            <span class="text-sm text-gray-700 dark:text-gray-300">{{ i.rate_of_interest }}{% if i.description %} - {{ i.description }}{% endif %}{% if not i.is_active %} (Inactive){% endif %}</span>
+          </label>
+          {% empty %}
+          <div class="text-sm text-gray-500 dark:text-gray-400">No unmapped interest rates.</div>
+          {% endfor %}
+        </div>
+
+        <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+          <h4 class="font-medium text-gray-800 dark:text-gray-200 mb-2">Deductions (Unmapped)</h4>
+          {% for d in unmapped_deductions %}
+          <label class="flex items-center gap-2 py-1">
+            <input type="checkbox" name="deduction_ids" value="{{ d.deduction_id }}">
+            <span class="text-sm text-gray-700 dark:text-gray-300">{{ d.deduction_name }}{% if not d.is_active %} (Inactive){% endif %}</span>
+          </label>
+          {% empty %}
+          <div class="text-sm text-gray-500 dark:text-gray-400">No unmapped deductions.</div>
+          {% endfor %}
+        </div>
+
+        <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+          <h4 class="font-medium text-gray-800 dark:text-gray-200 mb-2">Late Fee Settings (Unmapped)</h4>
+          {% for lf in unmapped_late_fees %}
+          <label class="flex items-center gap-2 py-1">
+            <input type="checkbox" name="late_fee_ids" value="{{ lf.id }}">
+            <span class="text-sm text-gray-700 dark:text-gray-300">{{ lf.fee_type|title }} - {{ lf.fee_value }} ({{ lf.frequency|title }}){% if not lf.is_active %} (Inactive){% endif %}</span>
+          </label>
+          {% empty %}
+          <div class="text-sm text-gray-500 dark:text-gray-400">No unmapped late fee settings.</div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="flex gap-2 justify-end mt-4">
+        <a href="{% url 'hq:loan_management' %}?manage_main_categories=1{% if selected_main_category_id %}&main_category={{ selected_main_category_id }}{% endif %}"
+          class="bg-gray-300 text-gray-800 px-4 py-2 rounded">Cancel</a>
+        <button type="submit" class="bg-brand-500 text-white px-4 py-2 rounded">Assign Selected</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{% if show_main_category_modal %}
+<div id="mainCategoryModal"
+  class="fixed inset-0 z-99999 flex items-center justify-center bg-black bg-opacity-40 bg-gray-400/50 backdrop-blur-[32px]">
+  <div class="bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-md p-6 relative">
+    <a href="{% url 'hq:loan_management' %}{% if manage_main_categories %}?manage_main_categories=1{% if selected_main_category_id %}&main_category={{ selected_main_category_id }}{% endif %}{% else %}{% if selected_main_category_id %}?main_category={{ selected_main_category_id }}{% endif %}{% endif %}"
+      class="absolute top-2 right-4 text-gray-400 hover:text-gray-700 text-2xl">&times;</a>
+    <h3 class="text-lg font-semibold mb-4 dark:text-gray-400">{{ main_category_modal_title }}</h3>
+    <form method="post" action="{% url 'hq:loan_management' %}">
+      {% csrf_token %}
+      <input type="hidden" name="form_type" value="main_category">
+      {% if manage_main_categories %}
+      <input type="hidden" name="manage_main_categories" value="1">
+      {% endif %}
+      {% if selected_main_category_id %}
+      <input type="hidden" name="selected_main_category" value="{{ selected_main_category_id }}">
+      {% endif %}
+      {% if edit_main_category_id %}
+      <input type="hidden" name="main_category_id" value="{{ edit_main_category_id }}">
+      {% endif %}
+      <div class="mb-4">
+        <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Main Category Name</label>
+        {{ main_category_form.name }}
+        {% for error in main_category_form.name.errors %}
+        <div class="text-red-600 text-xs">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="flex justify-between">
+      <div class="mb-4 flex items-center">
+        {{ main_category_form.is_active }}
+        <label for="id_is_active"
+          class="ml-2 text-sm font-medium px-2 py-0.5 rounded-full
+          {% if main_category_form.is_active.value or not edit_main_category_id %}
+            text-success-700 bg-success-50 dark:bg-success-500/15 dark:text-success-500
+          {% else %}
+            text-error-700 bg-error-50 dark:bg-error-500/15 dark:text-error-500
+          {% endif %}"
+          id="id_is_active_label">
+          {% if main_category_form.is_active.value or not edit_main_category_id %}Active{% else %}Inactive{% endif %}
+        </label>
+        {% for error in main_category_form.is_active.errors %}
+        <div class="text-red-600 text-xs">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="mb-4 flex items-center">
+        {{ main_category_form.is_shop_active }}
+        <label for="id_is_shop_active" class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">Shop Active</label>
+        {% for error in main_category_form.is_shop_active.errors %}
+        <div class="text-red-600 text-xs">{{ error }}</div>
+        {% endfor %}
+      </div>
+      </div>
+      <div class="flex gap-2 justify-between">
+        <a href="{% url 'hq:loan_management' %}{% if manage_main_categories %}?manage_main_categories=1{% if selected_main_category_id %}&main_category={{ selected_main_category_id }}{% endif %}{% else %}{% if selected_main_category_id %}?main_category={{ selected_main_category_id }}{% endif %}{% endif %}" class="bg-gray-300 text-gray-800 px-4 py-2 rounded">Cancel</a>
+        <button type="submit" class="bg-brand-500 text-white px-4 py-2 rounded">{{ main_category_modal_action }}</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const checkbox = document.querySelector('#id_is_active');
+    const label = document.querySelector('#id_is_active_label');
+    if (checkbox && label) {
+      checkbox.addEventListener('change', function () {
+        if (this.checked) {
+          label.textContent = 'Active';
+          label.classList.remove('text-error-700', 'bg-error-50', 'dark:bg-error-500/15', 'dark:text-error-500');
+          label.classList.add('text-success-700', 'bg-success-50', 'dark:bg-success-500/15', 'dark:text-success-500');
+        } else {
+          label.textContent = 'Inactive';
+          label.classList.remove('text-success-700', 'bg-success-50', 'dark:bg-success-500/15', 'dark:text-success-500');
+          label.classList.add('text-error-700', 'bg-error-50', 'dark:bg-error-500/15', 'dark:text-error-500');
+        }
+      });
+    }
+  });
+</script>
+{% endif %}
+
+{% if show_modal %}
+<div id="categoryModal"
+  class="fixed inset-0 z-99999 flex items-center justify-center bg-black bg-opacity-40 bg-gray-400/50 backdrop-blur-[32px]">
+  <div class="bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-md p-6 relative">
+    <a href="{% url 'hq:loan_management' %}{% if selected_main_category_id %}?main_category={{ selected_main_category_id }}{% endif %}"
+      class="absolute top-2 right-4 text-gray-400 hover:text-gray-700 text-2xl">&times;</a>
+    <h3 class="text-lg font-semibold mb-4 dark:text-gray-400">{{ modal_title }}</h3>
+    <form method="post" action="{% url 'hq:loan_management' %}">
+      {% csrf_token %}
+      <input type="hidden" name="form_type" value="category">
+      {% if selected_main_category_id %}
+      <input type="hidden" name="selected_main_category" value="{{ selected_main_category_id }}">
+      {% endif %}
+      {% if edit_category_id %}
+      <input type="hidden" name="category_id" value="{{ edit_category_id }}">
+      {% endif %}
+      <div class="mb-4">
+        <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Main Category</label>
+        {{ form.main_category }}
+        {% for error in form.main_category.errors %}
+        <div class="text-red-600 text-xs">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="mb-4">
+        <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Category Name</label>
+        {{ form.name }}
+        {% for error in form.name.errors %}
+        <div class="text-red-600 text-xs">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="mb-4 flex items-center">
+        {{ form.is_active }}
+        <label for="id_is_active"
+          class="ml-2 text-sm font-medium px-2 py-0.5 rounded-full
+          {% if form.is_active.value or not edit_category_id %}
+            text-success-700 bg-success-50 dark:bg-success-500/15 dark:text-success-500
+          {% else %}
+            text-error-700 bg-error-50 dark:bg-error-500/15 dark:text-error-500
+          {% endif %}"
+          id="id_is_active_label">
+          {% if form.is_active.value or not edit_category_id %}Active{% else %}Inactive{% endif %}
+        </label>
+        {% for error in form.is_active.errors %}
+        <div class="text-red-600 text-xs">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="flex gap-2 justify-between">
+        <a href="{% url 'hq:loan_management' %}{% if selected_main_category_id %}?main_category={{ selected_main_category_id }}{% endif %}" class="bg-gray-300 text-gray-800 px-4 py-2 rounded">Cancel</a>
+        <button type="submit" class="bg-brand-500 text-white px-4 py-2 rounded">{{ modal_action }}</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const checkbox = document.querySelector('#id_is_active');
+    const label = document.querySelector('#id_is_active_label');
+    if (checkbox && label) {
+      checkbox.addEventListener('change', function () {
+        if (this.checked) {
+          label.textContent = 'Active';
+          label.classList.remove('text-error-700', 'bg-error-50', 'dark:bg-error-500/15', 'dark:text-error-500');
+          label.classList.add('text-success-700', 'bg-success-50', 'dark:bg-success-500/15', 'dark:text-success-500');
+        } else {
+          label.textContent = 'Inactive';
+          label.classList.remove('text-success-700', 'bg-success-50', 'dark:bg-success-500/15', 'dark:text-success-500');
+          label.classList.add('text-error-700', 'bg-error-50', 'dark:bg-error-500/15', 'dark:text-error-500');
+        }
+      });
+    }
+  });
+</script>
+{% endif %}
+
+{% if show_interest_modal %}
+<div id="interestModal"
+  class="fixed inset-0 z-99999 flex items-center justify-center bg-black bg-opacity-40 bg-gray-400/50 backdrop-blur-[32px]">
+  <div class="bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-md p-6 relative">
+    <a href="{% url 'hq:loan_management' %}{% if selected_main_category_id %}?main_category={{ selected_main_category_id }}{% endif %}"
+      class="absolute top-2 right-4 text-gray-400 hover:text-gray-700 text-2xl">&times;</a>
+    <h3 class="text-lg font-semibold mb-4 dark:text-gray-400">{{ interest_modal_title }}</h3>
+    <form method="post" action="{% url 'hq:loan_management' %}">
+      {% csrf_token %}
+      {% if selected_main_category_id %}
+      <input type="hidden" name="selected_main_category" value="{{ selected_main_category_id }}">
+      {% endif %}
+      {% if edit_interest_id %}
+      <input type="hidden" name="interest_id" value="{{ edit_interest_id }}">
+      {% endif %}
+      <div class="mb-4">
+        <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Interest Rate (%)</label>
+        {{ interest_form.rate_of_interest }}
+        {% for error in interest_form.rate_of_interest.errors %}
+        <div class="text-red-600 text-xs">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="mb-4">
+        <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Description</label>
+        {{ interest_form.description }}
+        {% for error in interest_form.description.errors %}
+        <div class="text-red-600 text-xs">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="mb-4 flex items-center">
+        {{ interest_form.is_active }}
+        <label for="id_is_active"
+          class="ml-2 text-sm font-medium px-2 py-0.5 rounded-full
+          {% if interest_form.is_active.value or not edit_interest_id %}
+            text-success-700 bg-success-50 dark:bg-success-500/15 dark:text-success-500
+          {% else %}
+            text-error-700 bg-error-50 dark:bg-error-500/15 dark:text-error-500
+          {% endif %}"
+          id="id_is_active_label">
+          {% if interest_form.is_active.value or not edit_interest_id %}Active{% else %}Inactive{% endif %}
+        </label>
+        {% for error in interest_form.is_active.errors %}
+        <div class="text-red-600 text-xs">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="flex gap-2 justify-between">
+        <a href="{% url 'hq:loan_management' %}{% if selected_main_category_id %}?main_category={{ selected_main_category_id }}{% endif %}" class="bg-gray-300 text-gray-800 px-4 py-2 rounded">Cancel</a>
+        <button type="submit" class="bg-brand-500 text-white px-4 py-2 rounded">{{ interest_modal_action }}</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const checkbox = document.querySelector('#id_is_active');
+    const label = document.querySelector('#id_is_active_label');
+    if (checkbox && label) {
+      checkbox.addEventListener('change', function () {
+        if (this.checked) {
+          label.textContent = 'Active';
+          label.classList.remove('text-error-700', 'bg-error-50', 'dark:bg-error-500/15', 'dark:text-error-500');
+          label.classList.add('text-success-700', 'bg-success-50', 'dark:bg-success-500/15', 'dark:text-success-500');
+        } else {
+          label.textContent = 'Inactive';
+          label.classList.remove('text-success-700', 'bg-success-50', 'dark:bg-success-500/15', 'dark:text-success-500');
+          label.classList.add('text-error-700', 'bg-error-50', 'dark:bg-error-500/15', 'dark:text-error-500');
+        }
+      });
+    }
+  });
+</script>
+{% endif %}
+
+{% if show_tenure_modal %}
+<div id="tenureModal"
+  class="fixed inset-0 z-99999 flex items-center justify-center bg-black bg-opacity-40 bg-gray-400/50 backdrop-blur-[32px]">
+  <div class="bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-md p-6 relative">
+    <a href="{% url 'hq:loan_management' %}{% if selected_main_category_id %}?main_category={{ selected_main_category_id }}{% endif %}"
+      class="absolute top-2 right-4 text-gray-400 hover:text-gray-700 text-2xl">&times;</a>
+    <h3 class="text-lg font-semibold mb-4 dark:text-gray-400">{{ tenure_modal_title }}</h3>
+    <form method="post" action="{% url 'hq:loan_management' %}">
+      {% csrf_token %}
+      {% if selected_main_category_id %}
+      <input type="hidden" name="selected_main_category" value="{{ selected_main_category_id }}">
+      {% endif %}
+      {% if edit_tenure_id %}
+      <input type="hidden" name="tenure_id" value="{{ edit_tenure_id }}">
+      {% endif %}
+      <div class="mb-4">
+        <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Interest Rate</label>
+        {{ tenure_form.interest_rate }}
+        {% for error in tenure_form.interest_rate.errors %}
+        <div class="text-red-600 text-xs">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="mb-4 flex gap-2">
+        <div class="w-1/2">
+          <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Value</label>
+          {{ tenure_form.value }}
+          {% for error in tenure_form.value.errors %}
+          <div class="text-red-600 text-xs">{{ error }}</div>
+          {% endfor %}
+        </div>
+        <div class="w-1/2">
+          <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Unit</label>
+          {{ tenure_form.unit }}
+          {% for error in tenure_form.unit.errors %}
+          <div class="text-red-600 text-xs">{{ error }}</div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="mb-4 flex items-center">
+        {{ tenure_form.is_active }}
+        <label for="id_is_active"
+          class="ml-2 text-sm font-medium px-2 py-0.5 rounded-full
+          {% if tenure_form.is_active.value or not edit_tenure_id %}
+            text-success-700 bg-success-50 dark:bg-success-500/15 dark:text-success-500
+          {% else %}
+            text-error-700 bg-error-50 dark:bg-error-500/15 dark:text-error-500
+          {% endif %}"
+          id="id_is_active_label">
+          {% if tenure_form.is_active.value or not edit_tenure_id %}Active{% else %}Inactive{% endif %}
+        </label>
+        {% for error in tenure_form.is_active.errors %}
+        <div class="text-red-600 text-xs">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="flex gap-2 justify-between">
+        <a href="{% url 'hq:loan_management' %}{% if selected_main_category_id %}?main_category={{ selected_main_category_id }}{% endif %}" class="bg-gray-300 text-gray-800 px-4 py-2 rounded">Cancel</a>
+        <button type="submit" class="bg-brand-500 text-white px-4 py-2 rounded">{{ tenure_modal_action }}</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const checkbox = document.querySelector('#id_is_active');
+    const label = document.querySelector('#id_is_active_label');
+    if (checkbox && label) {
+      checkbox.addEventListener('change', function () {
+        if (this.checked) {
+          label.textContent = 'Active';
+          label.classList.remove('text-error-700', 'bg-error-50', 'dark:bg-error-500/15', 'dark:text-error-500');
+          label.classList.add('text-success-700', 'bg-success-50', 'dark:bg-success-500/15', 'dark:text-success-500');
+        } else {
+          label.textContent = 'Inactive';
+          label.classList.remove('text-success-700', 'bg-success-50', 'dark:bg-success-500/15', 'dark:text-success-500');
+          label.classList.add('text-error-700', 'bg-error-50', 'dark:bg-error-500/15', 'dark:text-error-500');
+        }
+      });
+    }
+  });
+</script>
+{% endif %}
+
+{% if show_deduction_modal %}
+<div id="deductionModal"
+  class="fixed inset-0 z-99999 flex items-center justify-center bg-black bg-opacity-40 bg-gray-400/50 backdrop-blur-[32px]">
+  <div class="bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-md p-6 relative">
+    <a href="{% url 'hq:loan_management' %}{% if selected_main_category_id %}?main_category={{ selected_main_category_id }}{% endif %}"
+      class="absolute top-2 right-4 text-gray-400 hover:text-gray-700 text-2xl">×</a>
+    <h3 class="text-lg font-semibold mb-4 dark:text-gray-400">{{ deduction_modal_title }}</h3>
+    <form method="post" action="{% url 'hq:loan_management' %}">
+      {% csrf_token %}
+      {% if selected_main_category_id %}
+      <input type="hidden" name="selected_main_category" value="{{ selected_main_category_id }}">
+      {% endif %}
+      {% if edit_deduction_id %}
+      <input type="hidden" name="deduction_id" value="{{ edit_deduction_id }}">
+      {% endif %}
+      <div class="mb-4">
+        <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Deduction Name</label>
+        {{ deduction_form.deduction_name }}
+        {% for error in deduction_form.deduction_name.errors %}
+        <div class="text-red-600 text-xs">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="mb-4">
+        <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Deduction Type</label>
+        {{ deduction_form.deduction_type }}
+        {% for error in deduction_form.deduction_type.errors %}
+        <div class="text-red-600 text-xs">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="mb-4">
+        <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Deduction Value</label>
+        {{ deduction_form.deduction_value }}
+        {% for error in deduction_form.deduction_value.errors %}
+        <div class="text-red-600 text-xs">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="mb-4">
+        <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Description (optional)</label>
+        {{ deduction_form.deduction_description }}
+        {% for error in deduction_form.deduction_description.errors %}
+        <div class="text-red-600 text-xs">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="mb-4 flex items-center">
+        {{ deduction_form.is_active }}
+        <label for="id_is_active"
+          class="ml-2 text-sm font-medium px-2 py-0.5 rounded-full
+          {% if deduction_form.is_active.value or not edit_deduction_id %}
+            text-success-700 bg-success-50 dark:bg-success-500/15 dark:text-success-500
+          {% else %}
+            text-error-700 bg-error-50 dark:bg-error-500/15 dark:text-error-500
+          {% endif %}"
+          id="is_active_label">
+          {% if deduction_form.is_active.value or not edit_deduction_id %}Active{% else %}Inactive{% endif %}
+        </label>
+        {% for error in deduction_form.is_active.errors %}
+        <div class="text-red-600 text-xs">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="flex gap-2 justify-between">
+        <a href="{% url 'hq:loan_management' %}{% if selected_main_category_id %}?main_category={{ selected_main_category_id }}{% endif %}" class="bg-gray-300 text-gray-800 px-4 py-2 rounded">Cancel</a>
+        <button type="submit" class="bg-brand-500 text-white px-4 py-2 rounded">{{ deduction_modal_action }}</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const checkbox = document.querySelector('#id_is_active');
+    const label = document.querySelector('#is_active_label');
+    if (checkbox && label) {
+      checkbox.addEventListener('change', function () {
+        if (this.checked) {
+          label.textContent = 'Active';
+          label.classList.remove('text-error-700', 'bg-error-50', 'dark:bg-error-500/15', 'dark:text-error-500');
+          label.classList.add('text-success-700', 'bg-success-50', 'dark:bg-success-500/15', 'dark:text-success-500');
+        } else {
+          label.textContent = 'Inactive';
+          label.classList.remove('text-success-700', 'bg-success-50', 'dark:bg-success-500/15', 'dark:text-success-500');
+          label.classList.add('text-error-700', 'bg-error-50', 'dark:bg-error-500/15', 'dark:text-error-500');
+        }
+      });
+    }
+  });
+</script>
+{% endif %}
+
+{% if show_late_fee_modal %}
+<div id="lateFeeModal"
+  class="fixed inset-0 z-99999 flex items-center justify-center bg-black bg-opacity-40 bg-gray-400/50 backdrop-blur-[32px]">
+  <div class="bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-md p-6 relative">
+    <a href="{% url 'hq:loan_management' %}{% if selected_main_category_id %}?main_category={{ selected_main_category_id }}{% endif %}"
+      class="absolute top-2 right-4 text-gray-400 hover:text-gray-700 text-2xl">&times;</a>
+    <h3 class="text-lg font-semibold mb-4 dark:text-gray-400">{{ late_fee_modal_title }}</h3>
+    <form method="post" action="{% url 'hq:loan_management' %}">
+      {% csrf_token %}
+      {% if selected_main_category_id %}
+      <input type="hidden" name="selected_main_category" value="{{ selected_main_category_id }}">
+      {% endif %}
+      {% if edit_late_fee_id %}
+      <input type="hidden" name="late_fee_id" value="{{ edit_late_fee_id }}" />
+      {% endif %}
+      <div class="mb-4">
+        <label for="id_late_fee_type" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Fee Type</label>
+        <select id="id_late_fee_type" name="late_fee_type" class="w-full rounded border border-gray-300 p-2 text-sm dark:bg-gray-800 dark:text-gray-100">
+          <option value="percentage" {% if late_fee_to_edit %}{% if late_fee_to_edit.fee_type == 'percentage' %}selected{% endif %}{% else %}selected{% endif %}>Percentage</option>
+          <option value="amount" {% if late_fee_to_edit and late_fee_to_edit.fee_type == 'amount' %}selected{% endif %}>Fixed Amount</option>
+        </select>
+      </div>
+      <div class="mb-4">
+        <label for="id_late_fee_value" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Late Fee Value</label>
+        <input id="id_late_fee_value" type="number" name="late_fee_value" step="0.01" min="0"
+               class="w-full rounded border border-gray-300 p-2 text-sm dark:bg-gray-800 dark:text-gray-100"
+               value="{% if late_fee_to_edit %}{{ late_fee_to_edit.fee_value }}{% endif %}" required />
+        <p class="text-xs text-gray-500 mt-1">If type is Percentage, enter percent value (e.g., 2.5 for 2.5%).</p>
+      </div>
+      <div class="mb-4">
+        <label for="id_late_fee_frequency" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Frequency</label>
+        <select id="id_late_fee_frequency" name="late_fee_frequency" class="w-full rounded border border-gray-300 p-2 text-sm dark:bg-gray-800 dark:text-gray-100">
+          <option value="daily" {% if late_fee_to_edit and late_fee_to_edit.frequency == 'daily' %}selected{% endif %}>Daily</option>
+          <option value="weekly" {% if late_fee_to_edit and late_fee_to_edit.frequency == 'weekly' %}selected{% endif %}>Weekly</option>
+          <option value="monthly" {% if late_fee_to_edit %}{% if late_fee_to_edit.frequency == 'monthly' %}selected{% endif %}{% else %}selected{% endif %}>Monthly</option>
+        </select>
+      </div>
+      <div class="mb-4">
+        <label id="grace_label" for="id_late_fee_grace_days" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">
+          Grace {% if late_fee_to_edit %}{% if late_fee_to_edit.frequency == 'weekly' %}Weeks{% elif late_fee_to_edit.frequency == 'monthly' %}Months{% else %}Days{% endif %}{% else %}Days{% endif %}
+        </label>
+         <input id="id_late_fee_grace_days" type="number" name="late_fee_grace_days" min="0"
+                class="w-full rounded border border-gray-300 p-2 text-sm dark:bg-gray-800 dark:text-gray-100"
+                value="{% if late_fee_to_edit %}{{ late_fee_to_edit.grace_days }}{% endif %}" required />
+       </div>
+      <div class="mb-4 flex items-center">
+        <input id="id_late_fee_is_active" type="checkbox" name="late_fee_is_active" class="mr-2"
+               {% if late_fee_to_edit %}{% if late_fee_to_edit.is_active %}checked{% endif %}{% else %}checked{% endif %} />
+        <label for="id_late_fee_is_active" class="text-sm font-medium px-2 py-0.5 rounded-full
+          {% if late_fee_to_edit %}
+            {% if late_fee_to_edit.is_active %}
+              text-success-700 bg-success-50 dark:bg-success-500/15 dark:text-success-500
+            {% else %}
+              text-error-700 bg-error-50 dark:bg-error-500/15 dark:text-error-500
+            {% endif %}
+          {% else %}
+            text-success-700 bg-success-50 dark:bg-success-500/15 dark:text-success-500
+          {% endif %}">
+          {% if late_fee_to_edit %}{% if late_fee_to_edit.is_active %}Active{% else %}Inactive{% endif %}{% else %}Active{% endif %}
+        </label>
+      </div>
+      <div class="flex gap-2 justify-between">
+        <a href="{% url 'hq:loan_management' %}{% if selected_main_category_id %}?main_category={{ selected_main_category_id }}{% endif %}" class="bg-gray-300 text-gray-800 px-4 py-2 rounded">Cancel</a>
+        <button type="submit" class="bg-brand-500 text-white px-4 py-2 rounded">{{ late_fee_modal_action }}</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const checkbox = document.querySelector('#id_late_fee_is_active');
+    const label = document.querySelector('label[for="id_late_fee_is_active"]');
+    const freqSelect = document.querySelector('select[name="late_fee_frequency"]');
+    const graceLabel = document.getElementById('grace_label');
+     if (checkbox && label) {
+       checkbox.addEventListener('change', function () {
+         if (this.checked) {
+           label.textContent = 'Active';
+           label.classList.remove('text-error-700', 'bg-error-50', 'dark:bg-error-500/15', 'dark:text-error-500');
+           label.classList.add('text-success-700', 'bg-success-50', 'dark:bg-success-500/15', 'dark:text-success-500');
+         } else {
+           label.textContent = 'Inactive';
+           label.classList.remove('text-success-700', 'bg-success-50', 'dark:bg-success-500/15', 'dark:text-success-500');
+           label.classList.add('text-error-700', 'bg-error-50', 'dark:bg-error-500/15', 'dark:text-error-500');
+         }
+       });
+     }
+
+    // Update Grace label unit based on frequency selection
+    function updateGraceUnit() {
+      if (!freqSelect || !graceLabel) return;
+      const v = freqSelect.value;
+      let unit = 'Days';
+      if (v === 'weekly') unit = 'Weeks';
+      else if (v === 'monthly') unit = 'Months';
+      graceLabel.textContent = `Grace ${unit}`;
+    }
+    if (freqSelect && graceLabel) {
+      updateGraceUnit();
+      freqSelect.addEventListener('change', updateGraceUnit);
+    }
+   });
+ </script>
+{% endif %}
+
+{% if messages %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var toasts = JSON.parse('[{% for message in messages %}{"msg": "{{ message|escapejs }}", "type": "{{ message.tags|default:"success" }}"}{% if not forloop.last %},{% endif %}{% endfor %}]');
+    toasts.forEach(function (t) { showToast(t.msg, t.type); });
+  });
+</script>
+{% endif %}
+{% endblock %}

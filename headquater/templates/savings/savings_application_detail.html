@@ -1,0 +1,495 @@
+{% extends 'hq/base.html' %}
+{% load static %}
+{% block title %}SavingsApplicationDetail{% endblock %}
+
+{% block page_id %}hqSavingsApplicationDetail{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 class="text-title-md2 font-bold text-black dark:text-white">Savings Application Detail</h2>
+        <nav>
+            <ol class="flex items-center gap-2">
+                <li>
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400" href="{% url 'hq:dashboard' %}">
+                        Dashboard
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                    </a>
+                </li>
+                <li>
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400" href="{% url 'hq:hq_savings_branch_approved' %}">
+                        Branch Approved Savings Applications
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                    </a>
+                </li>
+                <li class="text-sm text-gray-800 dark:text-white/90">Application Detail</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+            <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+                <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Customer Information</h3>
+            </div>
+            <div class="p-5 space-y-4 sm:p-6">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Customer ID</label>
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.customer_id }}</p>
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Full Name</label>
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.full_name }}</p>
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Contact</label>
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.contact|default:'-' }}</p>
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Email</label>
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.email|default:"-" }}</p>
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Aadhaar Number</label>
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.adhar_number|default:"-" }}</p>
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">PAN Number</label>
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.pan_number|default:"-" }}</p>
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Status</label>
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.get_status_display|default:application.status }}</p>
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Submitted At</label>
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.submitted_at|default:"-" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+            <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+                <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Savings Information</h3>
+            </div>
+            <div class="p-5 space-y-4 sm:p-6">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Application ID</label>
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.application_id }}</p>
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Product Type</label>
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.get_product_type_display }}</p>
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Product ID</label>
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.product_id|default:"-" }}</p>
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Installment Amount</label>
+                        <p class="text-sm text-gray-800 dark:text-white">₹{{ application.installment_amount|default:"-" }}</p>
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Interest Rate (%)</label>
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.interest_rate|default:"-" }}{% if application.interest_rate %}%{% endif %}</p>
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Tenure</label>
+                        <p class="text-sm text-gray-800 dark:text-white">
+                            {{ application.tenure }}
+                            {% if application.tenure_unit %}
+                            (
+                            {% if application.tenure_unit == 'days' %}daily{% elif application.tenure_unit == 'weeks' %}weekly{% elif application.tenure_unit == 'months' %}monthly{% elif application.tenure_unit == 'years' %}yearly{% else %}{{ application.tenure_unit }}{% endif %}
+                            )
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Branch</label>
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.branch.branch_name|default:"-" }}</p>
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Agent</label>
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.agent.full_name|default:"-" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-6 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+            <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Address Information</h3>
+        </div>
+        <div class="p-5 space-y-4 sm:p-6">
+            {% if application.customer.address %}
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Permanent Address</h4>
+                        <hr class="w-[30%] pb-3 border-gray-300 dark:border-gray-700">
+                        <div class="space-y-1">
+                            <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.address.address_line_1|default:"-" }},</p>
+                            {% if application.customer.address.address_line_2 %}
+                            <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.address.address_line_2 }},</p>
+                            {% endif %}
+                            <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.address.landmark|default:"" }},</p>
+                            <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.address.post_office|default:"" }} - {{ application.customer.address.post_code|default:"" }},</p>
+                            <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.address.city_or_town|default:"" }}, {{ application.customer.address.district|default:"" }}, {{ application.customer.address.state|default:"" }}, {{ application.customer.address.country|default:"" }}</p>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Current Address</h4>
+                        <hr class="w-[30%] pb-3 border-gray-300 dark:border-gray-700">
+                        <div class="space-y-1">
+                            <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.address.current_address_line_1|default:"-" }},</p>
+                            {% if application.customer.address.current_address_line_2 %}
+                            <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.address.current_address_line_2 }},</p>
+                            {% endif %}
+                            <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.address.current_landmark|default:"" }},</p>
+                            <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.address.current_post_office|default:"" }} - {{ application.customer.address.current_post_code|default:"" }},</p>
+                            <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.address.current_city_or_town|default:"" }}, {{ application.customer.address.current_district|default:"" }}, {{ application.customer.address.current_state|default:"" }}, {{ application.customer.address.current_country|default:"" }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <p class="text-sm text-gray-600 dark:text-gray-400">No address available.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] mt-6">
+        <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+            <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Documents</h3>
+        </div>
+        <div class="p-5 space-y-6 sm:p-6">
+            {% if documents %}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% if documents.id_proof %}
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs text-gray-500 dark:text-gray-400">ID Proof (Front)</span>
+                            {% if 'id_proof' in pending_requested_doc_types %}
+                            <span class="text-xs text-error-500 dark:text-error-500">Requested</span>
+                            {% else %}
+                            <span class="text-xs text-success-500 dark:text-success-500">✓ Uploaded</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex gap-2">
+                            <a href="{{ documents.id_proof.url }}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition">View</a>
+                            {% if not hide_request_document %}
+                            <button type="button" name="request_doc" value="id_proof" data-document-type="id_proof" {% if 'id_proof' in pending_requested_doc_types %}disabled{% endif %} class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-brand-500 dark:bg-error-900/20 border border-brand-500 dark:border-gray-800 rounded-md hover:bg-error-100 dark:hover:bg-error-900/30 transition disabled:opacity-50 disabled:cursor-not-allowed">{% if 'id_proof' in pending_requested_doc_types %}Requested{% else %}Request Document{% endif %}</button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if documents.id_proof_back %}
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs text-gray-500 dark:text-gray-400">ID Proof (Back)</span>
+                            {% if 'id_proof_back' in pending_requested_doc_types %}
+                            <span class="text-xs text-error-500 dark:text-error-500">Requested</span>
+                            {% else %}
+                            <span class="text-xs text-success-500 dark:text-success-500">✓ Uploaded</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex gap-2">
+                            <a href="{{ documents.id_proof_back.url }}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition">View</a>
+                            {% if not hide_request_document %}
+                            <button type="button" name="request_doc" value="id_proof_back" data-document-type="id_proof_back" {% if 'id_proof_back' in pending_requested_doc_types %}disabled{% endif %} class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-brand-500 dark:bg-error-900/20 border border-brand-500 dark:border-gray-800 rounded-md hover:bg-error-100 dark:hover:bg-error-900/30 transition disabled:opacity-50 disabled:cursor-not-allowed">{% if 'id_proof_back' in pending_requested_doc_types %}Requested{% else %}Request Document{% endif %}</button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if documents.pan_card_document %}
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs text-gray-500 dark:text-gray-400">PAN Card</span>
+                            {% if 'pan_card_document' in pending_requested_doc_types %}
+                            <span class="text-xs text-error-500 dark:text-error-500">Requested</span>
+                            {% else %}
+                            <span class="text-xs text-success-500 dark:text-success-500">✓ Uploaded</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex gap-2">
+                            <a href="{{ documents.pan_card_document.url }}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition">View</a>
+                            {% if not hide_request_document %}
+                            <button type="button" name="request_doc" value="pan_card_document" data-document-type="pan_card_document" {% if 'pan_card_document' in pending_requested_doc_types %}disabled{% endif %} class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-brand-500 dark:bg-error-900/20 border border-brand-500 dark:border-gray-800 rounded-md hover:bg-error-100 dark:hover:bg-error-900/30 transition disabled:opacity-50 disabled:cursor-not-allowed">{% if 'pan_card_document' in pending_requested_doc_types %}Requested{% else %}Request Document{% endif %}</button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if documents.income_proof %}
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Income Proof</span>
+                            {% if 'income_proof' in pending_requested_doc_types %}
+                            <span class="text-xs text-error-500 dark:text-error-500">Requested</span>
+                            {% else %}
+                            <span class="text-xs text-success-500 dark:text-success-500">✓ Uploaded</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex gap-2">
+                            <a href="{{ documents.income_proof.url }}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition">View</a>
+                            {% if not hide_request_document %}
+                            <button type="button" name="request_doc" value="income_proof" data-document-type="income_proof" {% if 'income_proof' in pending_requested_doc_types %}disabled{% endif %} class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-brand-500 dark:bg-error-900/20 border border-brand-500 dark:border-gray-800 rounded-md hover:bg-error-100 dark:hover:bg-error-900/30 transition disabled:opacity-50 disabled:cursor-not-allowed">{% if 'income_proof' in pending_requested_doc_types %}Requested{% else %}Request Document{% endif %}</button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if documents.photo %}
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Photo</span>
+                            {% if 'photo' in pending_requested_doc_types %}
+                            <span class="text-xs text-error-500 dark:text-error-500">Requested</span>
+                            {% else %}
+                            <span class="text-xs text-success-500 dark:text-success-500">✓ Uploaded</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <img src="{{ documents.photo.url }}" alt="Customer Photo" class="w-16 h-16 object-cover rounded-lg border border-gray-200 dark:border-gray-700">
+                            <a href="{{ documents.photo.url }}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition">View</a>
+                            {% if not hide_request_document %}
+                            <button type="button" name="request_doc" value="photo" data-document-type="photo" {% if 'photo' in pending_requested_doc_types %}disabled{% endif %} class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-brand-500 dark:bg-error-900/20 border border-brand-500 dark:border-gray-800 rounded-md hover:bg-error-100 dark:hover:bg-error-900/30 transition disabled:opacity-50 disabled:cursor-not-allowed">{% if 'photo' in pending_requested_doc_types %}Requested{% else %}Request Document{% endif %}</button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if documents.signature %}
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Signature</span>
+                            {% if 'signature' in pending_requested_doc_types %}
+                            <span class="text-xs text-error-500 dark:text-error-500">Requested</span>
+                            {% else %}
+                            <span class="text-xs text-success-500 dark:text-success-500">✓ Uploaded</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex gap-2">
+                            <a href="{{ documents.signature.url }}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition">View</a>
+                            {% if not hide_request_document %}
+                            <button type="button" name="request_doc" value="signature" data-document-type="signature" {% if 'signature' in pending_requested_doc_types %}disabled{% endif %} class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-brand-500 dark:bg-error-900/20 border border-brand-500 dark:border-gray-800 rounded-md hover:bg-error-100 dark:hover:bg-error-900/30 transition disabled:opacity-50 disabled:cursor-not-allowed">{% if 'signature' in pending_requested_doc_types %}Requested{% else %}Request Document{% endif %}</button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if documents.collateral %}
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Collateral</span>
+                            {% if 'collateral' in pending_requested_doc_types %}
+                            <span class="text-xs text-error-500 dark:text-error-500">Requested</span>
+                            {% else %}
+                            <span class="text-xs text-success-500 dark:text-success-500">✓ Uploaded</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex gap-2">
+                            <a href="{{ documents.collateral.url }}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition">View</a>
+                            {% if not hide_request_document %}
+                            <button type="button" name="request_doc" value="collateral" data-document-type="collateral" {% if 'collateral' in pending_requested_doc_types %}disabled{% endif %} class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-brand-500 dark:bg-error-900/20 border border-brand-500 dark:border-gray-800 rounded-md hover:bg-error-100 dark:hover:bg-error-900/30 transition disabled:opacity-50 disabled:cursor-not-allowed">{% if 'collateral' in pending_requested_doc_types %}Requested{% else %}Request Document{% endif %}</button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if documents.residential_proof_file %}
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Residential Proof</span>
+                            {% if 'residential_proof_file' in pending_requested_doc_types %}
+                            <span class="text-xs text-error-500 dark:text-error-500">Requested</span>
+                            {% else %}
+                            <span class="text-xs text-success-500 dark:text-success-500">✓ Uploaded</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex gap-2">
+                            <a href="{{ documents.residential_proof_file.url }}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition">View</a>
+                            {% if not hide_request_document %}
+                            <button type="button" name="request_doc" value="residential_proof_file" data-document-type="residential_proof_file" {% if 'residential_proof_file' in pending_requested_doc_types %}disabled{% endif %} class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-brand-500 dark:bg-error-900/20 border border-brand-500 dark:border-gray-800 rounded-md hover:bg-error-100 dark:hover:bg-error-900/30 transition disabled:opacity-50 disabled:cursor-not-allowed">{% if 'residential_proof_file' in pending_requested_doc_types %}Requested{% else %}Request Document{% endif %}</button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            {% else %}
+                <p class="text-sm text-gray-600 dark:text-gray-400">No documents found for this application.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div id="documentRequestModal" class="fixed inset-0 z-9999 bg-gray-400/50 backdrop-blur-[32px] hidden">
+        <div class="absolute inset-0 bg-black bg-opacity-50"></div>
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Request Document</h3>
+                        <button type="button" onclick="closeDocumentRequestModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <form id="documentRequestForm" method="post" action="">
+                        {% csrf_token %}
+                        <input type="hidden" id="documentTypeValue" name="document_type" value="">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Document Type</label>
+                                <input type="text" id="documentType" name="documentType" readonly class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Reason for Request</label>
+                                <select id="requestReason" name="requestReason" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+                                    <option value="">Select a reason</option>
+                                    <option value="missing">Document Missing</option>
+                                    <option value="blurred">Document Blurred/Unclear</option>
+                                    <option value="wrong_file">Wrong Document Uploaded</option>
+                                    <option value="expired">Document Expired</option>
+                                    <option value="incomplete">Document Incomplete</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Additional Comments (Optional)</label>
+                                <textarea id="requestComment" name="requestComment" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500" placeholder="Please provide any additional details..."></textarea>
+                            </div>
+                        </div>
+                        <div class="flex gap-3 mt-6">
+                            <button type="button" onclick="closeDocumentRequestModal()" class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition">Cancel</button>
+                            <button type="submit" class="flex-1 px-4 py-2 text-sm font-medium text-white bg-error-500 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition">Send Request</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex items-center justify-end gap-3 mt-6">
+        {% if application.status == 'branch_approved' or application.status == 'branch_resubmitted' %}
+        <form method="post" action="{% url 'hq:hq_approve_savings_application' application.application_id %}">
+            {% csrf_token %}
+            <button type="submit" class="inline-flex items-center justify-center rounded-md bg-success-500 px-6 py-2 text-sm font-medium text-white hover:bg-green-700 transition">Approve Application</button>
+        </form>
+        {% endif %}
+        <a href="{{ back_url }}" class="inline-flex items-center justify-center rounded-md bg-gray-500 px-6 py-2 text-sm font-medium text-white hover:bg-gray-700 transition">Back</a>
+    </div>
+</div>
+
+<script>
+let currentDocumentType = '';
+function openDocumentRequestModal(documentType, documentLabel) {
+    currentDocumentType = documentType;
+    var docTypeInput = document.getElementById('documentType');
+    if (docTypeInput) {
+        docTypeInput.value = documentLabel;
+    }
+    var docTypeValueInput = document.getElementById('documentTypeValue');
+    if (docTypeValueInput) {
+        docTypeValueInput.value = documentType;
+    }
+    document.getElementById('documentRequestModal').classList.remove('hidden');
+}
+function closeDocumentRequestModal() {
+    document.getElementById('documentRequestModal').classList.add('hidden');
+    document.getElementById('documentRequestForm').reset();
+}
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('button[name="request_doc"]').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (btn.disabled) {
+                return;
+            }
+            const docType = btn.value;
+            let label = '';
+            if (docType === 'id_proof') label = 'ID Proof (Front)';
+            else if (docType === 'id_proof_back') label = 'ID Proof (Back)';
+            else if (docType === 'income_proof') label = 'Income Proof';
+            else if (docType === 'photo') label = 'Photo';
+            else if (docType === 'signature') label = 'Signature';
+            else if (docType === 'collateral') label = 'Collateral';
+            else if (docType === 'residential_proof_file') label = 'Residential Proof';
+            else label = docType;
+            openDocumentRequestModal(docType, label);
+        });
+    });
+
+    var docRequestForm = document.getElementById('documentRequestForm');
+    if (docRequestForm) {
+        docRequestForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const reason = document.getElementById('requestReason').value;
+            const comment = document.getElementById('requestComment').value;
+            const applicationId = "{{ application.application_id }}";
+            const csrfToken = document.querySelector('#documentRequestForm [name=csrfmiddlewaretoken]').value;
+            if (!currentDocumentType || !reason) {
+                if (typeof showToast === 'function') {
+                    showToast('Please select a document type and reason.', 'error');
+                } else {
+                    alert('Please select a document type and reason.');
+                }
+                return;
+            }
+            fetch('{% url "hq:hq_savings_document_request_api" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    application_id: applicationId,
+                    document_type: currentDocumentType,
+                    reason: reason,
+                    comment: comment
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (typeof showToast === 'function') {
+                        showToast('Document request sent successfully!', 'success');
+                    } else {
+                        alert('Document request sent successfully!');
+                    }
+
+                    const requestedBtn = document.querySelector('button[name="request_doc"][data-document-type="' + currentDocumentType + '"]');
+                    if (requestedBtn) {
+                        requestedBtn.disabled = true;
+                        requestedBtn.textContent = 'Requested';
+                    }
+
+                    closeDocumentRequestModal();
+                } else {
+                    if (typeof showToast === 'function') {
+                        showToast('Error: ' + (data.error || 'Unknown error'), 'error');
+                    } else {
+                        alert('Error: ' + (data.error || 'Unknown error'));
+                    }
+                }
+            })
+            .catch(err => {
+                if (typeof showToast === 'function') {
+                    showToast('Error: ' + err, 'error');
+                } else {
+                    alert('Error: ' + err);
+                }
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,102 @@
+<div class="bg-white dark:bg-boxdark px-4 pt-5 pb-4 sm:p-6 sm:pb-4 flex-1 overflow-y-auto">
+    <form method="post" action="" class="space-y-4" id="edit-user-form">
+      {% csrf_token %}
+      
+      <!-- Username -->
+      <div>
+        <label for="edit_username" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Username *
+        </label>
+        <input type="text" name="username" id="edit_username" required
+          class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:bg-boxdark dark:border-strokedark dark:text-white">
+        <div class="error-message text-red-500 text-xs mt-1"></div>
+      </div>
+
+      <!-- Email -->
+      <div>
+        <label for="edit_email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Email *
+        </label>
+        <input type="email" name="email" id="edit_email" required
+          class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:bg-boxdark dark:border-strokedark dark:text-white">
+        <div class="error-message text-red-500 text-xs mt-1"></div>
+      </div>
+
+      <!-- Phone Number -->
+      <div>
+        <label for="edit_phone_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Phone Number
+        </label>
+        <input type="text" name="phone_number" id="edit_phone_number"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:bg-boxdark dark:border-strokedark dark:text-white">
+        <div class="error-message text-red-500 text-xs mt-1"></div>
+      </div>
+
+      <!-- Address -->
+      <div>
+        <label for="edit_address" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Address
+        </label>
+        <textarea name="address" id="edit_address" rows="3"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:bg-boxdark dark:border-strokedark dark:text-white"></textarea>
+        <div class="error-message text-red-500 text-xs mt-1"></div>
+      </div>
+
+      <!-- Role -->
+      <div>
+        <label for="edit_role" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Role *
+        </label>
+        <select name="role" id="edit_role" required
+          class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:bg-boxdark dark:border-strokedark dark:text-white">
+          <option value="">Select a role</option>
+          {% for role in roles %}
+          <option value="{{ role.id }}">{{ role.name }}</option>
+          {% endfor %}
+        </select>
+        <div class="error-message text-red-500 text-xs mt-1"></div>
+      </div>
+
+      <!-- Is Active -->
+      <div>
+        <label class="flex items-center">
+          <input type="checkbox" name="is_active" id="edit_is_active"
+            class="rounded border-gray-300 text-brand-500 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-strokedark dark:bg-boxdark">
+          <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">Active</span>
+        </label>
+        <div class="error-message text-red-500 text-xs mt-1"></div>
+      </div>
+
+      <!-- Password 1 (Optional for editing) -->
+      <div>
+        <label for="edit_password1" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Password (leave blank to keep current)
+        </label>
+        <input type="password" name="password1" id="edit_password1"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:bg-boxdark dark:border-strokedark dark:text-white">
+        <div class="error-message text-red-500 text-xs mt-1"></div>
+      </div>
+
+      <!-- Password 2 (Optional for editing) -->
+      <div>
+        <label for="edit_password2" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Confirm Password (leave blank to keep current)
+        </label>
+        <input type="password" name="password2" id="edit_password2"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:bg-boxdark dark:border-strokedark dark:text-white">
+        <div class="error-message text-red-500 text-xs mt-1"></div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="flex items-center justify-end gap-3 pt-4">
+        <button type="button" @click="toggleEditUserModal()"
+          class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:bg-boxdark dark:border-strokedark dark:text-white">
+          Cancel
+        </button>
+        <button type="submit"
+          class="px-4 py-2 text-sm font-medium text-white bg-brand-500 border border-transparent rounded-md hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500">
+          Update User
+        </button>
+      </div>
+    </form>
+  </div> 

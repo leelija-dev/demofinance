@@ -1,0 +1,931 @@
+{% extends 'hq/base.html' %}
+{% block title %}Applications Detail{% endblock %}
+
+{% block page_id %}loanApplications{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+    <!-- Breadcrumb Start -->
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 class="text-title-md2 font-bold text-black dark:text-white">
+            Application Detail
+        </h2>
+        <nav>
+            <ol class="flex items-center gap-2">
+                <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+                        href="{% url 'hq:dashboard' %}">Dashboard <svg class="stroke-current" width="17" height="16"
+                            viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                            </path>
+                        </svg></a></li>
+                <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+                        href="{% url 'hq:hq_loan_list' %}">Loan Applications <svg class="stroke-current" width="17" height="16"
+                            viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                            </path>
+                        </svg></a></li>
+                <li class="text-sm text-gray-800 dark:text-white/90">Application Detail</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <!-- Customer Information -->
+        <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+            <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+                <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Customer Information</h3>
+            </div>
+            <div class="p-5 space-y-4 sm:p-6">
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Full Name</label><p class="text-sm text-gray-800 dark:text-white">{{ app.customer.full_name }}</p></div>
+                    <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Date of Birth</label><p class="text-sm text-gray-800 dark:text-white">{{ app.customer.date_of_birth }}</p></div>
+                    <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Gender</label><p class="text-sm text-gray-800 dark:text-white">{{ app.customer.gender }}</p></div>
+                    <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Contact</label><p class="text-sm text-gray-800 dark:text-white">{{ app.customer.contact }}</p></div>
+                    <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Email</label><p class="text-sm text-gray-800 dark:text-white">{{ app.customer.email|default:'-' }}</p></div>
+                    <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Aadhar Number</label><p class="text-sm text-gray-800 dark:text-white">{{ app.customer.adhar_number }}</p></div>
+                    <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">PAN Number</label><p class="text-sm text-gray-800 dark:text-white">{{ app.customer.pan_number }}</p></div>
+                    <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Status</label>
+                        {% if app.status == 'pending' %}
+                            <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-orange-400 text-white">Pending</span>
+                        {% elif app.status == 'document_requested' %}
+                            <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-error-500 text-white">Document Requested – Action Needed</span>
+                        {% elif app.status == 'resubmitted' %}
+                            <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-brand-500 text-white">Resubmitted – Pending Branch Review</span>
+                        {% elif app.status == 'branch_document_accepted' %}
+                            <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-success-50 text-success-500">Branch Accepted Document</span>
+                        {% elif app.status == 'branch_resubmitted' %}
+                            <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-success-50 text-success-500">Re-uploaded – Pending Branch Approve</span>
+                        {% elif app.status == 'branch_approved' %}
+                            <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-success-500 text-white">Branch Approved – Pending HQ</span>
+                        {% elif app.status == 'hq_document_accepted' %}
+                            <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-success-50 text-success-500">HQ Accepted Document</span>
+                        {% elif app.status == 'hq_resubmitted' %}
+                            <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-brand-50 text-brand-500">HQ Requested Resubmission</span>
+                        {% elif app.status == 'rejected_by_branch' %}
+                            <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-error-500 text-white">Rejected by Branch</span>
+                        {% elif app.status == 'document_requested_by_hq' %}
+                            <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-error-50 text-error-500">Document Requested</span>
+                        {% elif app.status == 'hq_approved' %}
+                            <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-success-500 text-white">Approved</span>
+                        {% elif app.status == 'hq_rejected' %}
+                            <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-error-500 text-white">Rejected</span>
+                        {% elif app.status == 'disbursed' %}
+                            <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-success-500 text-white">Disbursed</span>
+                        {% elif app.status == 'success' or app.status == 'active' %}
+                            <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-success-500 text-green-800">Success</span>
+                        {% elif app.status == 'reject' %}
+                            <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-error-500 text-red-800">Rejected</span>
+                        {% else %}
+                            <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-gray-200 text-gray-700">Inactive</span>
+                        {% endif %}
+                    </div>
+                    <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Submitted At</label><p class="text-sm text-gray-800 dark:text-white">{{ app.submitted_at|date:'Y-m-d H:i' }}</p></div>
+                </div>
+            </div>
+        </div>
+        <!-- Agent Information -->
+         {% if app.agent %}
+        <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+            <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+                <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Agent Information</h3>
+            </div>
+            <div class="p-5 space-y-4 sm:p-6">
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Agent Name</label><p class="text-sm text-gray-800 dark:text-white">{{ app.agent.full_name }}</p></div>
+                    <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Agent ID</label><p class="text-sm text-gray-800 dark:text-white">{{ app.agent.agent_id }}</p></div>
+                    <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Contact</label><p class="text-sm text-gray-800 dark:text-white">{{ app.agent.phone|default:'-' }}</p></div>
+                    <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Email</label><p class="text-sm text-gray-800 dark:text-white">{{ app.agent.email|default:'-' }}</p></div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        <!-- Address Information -->
+        {% if app.customer.address %}
+        <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] {% if not app.agent %}order-3{% endif %}">
+            <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+                <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Address Information</h3>
+            </div>
+            <div class="p-5 space-y-4 sm:p-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Permanent Address</h4>
+                        <hr class="w-[30%] pb-3 border-gray-300 dark:border-gray-700">
+                        <div class="space-y-1">
+                            <p class="text-sm text-gray-800 dark:text-white">{{ app.customer.address.address_line_1 }},</p>
+                            {% if app.customer.address.address_line_2 %}<p class="text-sm text-gray-800 dark:text-white">{{ app.customer.address.address_line_2 }},</p>{% endif %}
+                            <p class="text-sm text-gray-800 dark:text-white">{{ app.customer.address.landmark }},</p>
+                            <p class="text-sm text-gray-800 dark:text-white">{{ app.customer.address.post_office }} - {{ app.customer.address.post_code }},</p>
+                            <p class="text-sm text-gray-800 dark:text-white">{{ app.customer.address.city_or_town }}, {{app.customer.address.district}}, {{ app.customer.address.state }}, {{app.customer.address.country}}</p>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Current Address</h4>
+                        <div class="space-y-1">
+                            <hr class="w-[30%] pb-3 border-gray-300 dark:border-gray-700">
+                            <p class="text-sm text-gray-800 dark:text-white">{{ app.customer.address.current_address_line_1 }},</p>
+                            {% if app.customer.address.current_address_line_2 %}<p class="text-sm text-gray-800 dark:text-white">{{ app.customer.address.current_address_line_2 }},</p>{% endif %}
+                            <p class="text-sm text-gray-800 dark:text-white">{{ app.customer.address.current_landmark }},</p>
+                            <p class="text-sm text-gray-800 dark:text-white">{{ app.customer.address.current_post_office }} - {{ app.customer.address.current_post_code }},</p>
+                            <p class="text-sm text-gray-800 dark:text-white">{{ app.customer.address.current_city_or_town }}, {{app.customer.address.current_district}}, {{ app.customer.address.current_state }}, {{app.customer.address.current_country}}</p>
+                        </div>
+
+                        {% if documents.residential_proof_file %}
+                        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mt-4">Residential Proof</h4>
+                        <hr class="w-[30%] pb-3 border-gray-300 dark:border-gray-700">
+                        <div class="space-y-1">
+                            <div class="grid grid-cols-2 gap-2">
+                            <div class="grid grid-cols-2">
+                                <img src="/media/{{ documents.residential_proof_file }}" alt="Customer residential proof" class="w-16 h-16 object-cover rounded-lg border border-gray-200 dark:border-gray-700">
+                                <a href="/media/{{ documents.residential_proof_file }}" target="_blank" class="inline-flex items-center justify-center flex-1 my-4 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition"><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>View</a>
+                            </div>
+                            <div class="my-4">
+                                <form method="post" action="" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" name="request_doc" value="residential_proof_file" class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium {% if requested_docs and 'residential_proof_file' in requested_docs %}text-error-500 bg-error-50{% else %}text-white bg-brand-500{% endif %} dark:bg-error-900/20 border border-brand-500 dark:border-gray-800 rounded-md hover:bg-error-100 dark:hover:bg-error-900/30 transition" {% if requested_docs and 'residential_proof_file' in requested_docs %}disabled{% endif %}>Request Document</button>
+                                </form>
+                            </div>    
+                            </div>
+                            <p class="text-sm text-gray-800 dark:text-white">{{app.customer.address.residential_proof_type}}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Branch Information -->
+        <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] {% if not app.agent %}order-2{% endif %}">
+            <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+                <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Branch Information</h3>
+            </div>
+            <div class="p-5 space-y-4 sm:p-6">
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Branch Name</label><p class="text-sm text-gray-800 dark:text-white">{{ app.branch.branch_name }}</p></div>
+                    <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Branch ID</label><p class="text-sm text-gray-800 dark:text-white">{{ app.branch.branch_id }}</p></div>
+                    <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Address</label><p class="text-sm text-gray-800 dark:text-white">{{ app.branch.address_line_1 }}{% if app.branch.address_line_2 %}, {{ app.branch.address_line_2 }}{% endif %}, {{ app.branch.state }} - {{ app.branch.post_code }}</p></div>
+                    <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Contact</label><p class="text-sm text-gray-800 dark:text-white">{{ app.branch.contact_number }}</p></div>
+                    <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Email</label><p class="text-sm text-gray-800 dark:text-white">{{ app.branch.email }}</p></div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    
+    
+    <!-- Loan Information -->
+    <div class="mt-6 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+            <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Loan Information</h3>
+        </div>
+        <div class="p-5 space-y-4 sm:p-6">
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Loan Ref No</label><p class="text-sm text-gray-800 dark:text-white">{{ app.loan_ref_no }}</p></div>
+                <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Loan Category</label><p class="text-sm text-gray-800 dark:text-white">{{ app.loan_details.first.loan_category|default:'-' }}</p></div>
+                <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Loan Amount</label><p class="text-sm text-gray-800 dark:text-white">₹{{ app.loan_details.first.loan_amount|default:'-' }}</p></div>
+                <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Tenure </label><p class="text-sm text-gray-800 dark:text-white">{{ app.loan_details.first.tenure.value|default:'-' }} {{ app.loan_details.first.tenure.unit|default:'-' }}</p></div>
+                <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Interest Rate (%)</label><p class="text-sm text-gray-800 dark:text-white">{{ app.loan_details.first.interest_rate.rate_of_interest|floatformat:0|default:'-' }}</p></div>
+                <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">EMI Amount</label><p class="text-sm text-gray-800 dark:text-white">₹{{ app.loan_details.first.emi_amount|default:'-' }}</p></div>
+                <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Loan Purpose</label><p class="text-sm text-gray-800 dark:text-white">{{ app.loan_details.first.loan_purpose|default:'-' }}</p></div>
+                {% if app.shop %}<div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Shop</label><p class="text-sm text-gray-800 dark:text-white">{{ app.shop.name|default:'-' }}</p></div>{% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if customer_account %}
+    <div class="mt-6 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+            <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Account Details</h3>
+        </div>
+        <div class="p-5 space-y-4 sm:p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Account Number</label><p class="text-sm text-gray-800 dark:text-white">{{ customer_account.account_number }}</p></div>
+                <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Bank Name</label><p class="text-sm text-gray-800 dark:text-white">{{ customer_account.bank_name }}</p></div>
+                <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Account Type</label><p class="text-sm text-gray-800 dark:text-white">{{ customer_account.get_account_type_display }}</p></div>
+                <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">IFSC Code</label><p class="text-sm text-gray-800 dark:text-white">{{ customer_account.ifsc_code }}</p></div>
+                <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Created At</label><p class="text-sm text-gray-800 dark:text-white">{{ customer_account.submitted_at|date:'Y-m-d H:i' }}</p></div>
+                <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Last Updated</label><p class="text-sm text-gray-800 dark:text-white">{{ customer_account.last_update|date:'Y-m-d H:i' }}</p></div>
+                <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Agent</label><p class="text-sm text-gray-800 dark:text-white">{{ customer_account.agent.full_name|default:'-' }}</p></div>
+                <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Branch</label><p class="text-sm text-gray-800 dark:text-white">{{ customer_account.branch.branch_name|default:'-' }}</p></div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Documents Information -->
+    {% if documents %}
+    <div class="mt-6 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+            <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Documents</h3>
+        </div>
+        <div class="p-5 space-y-6 sm:p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- ID Proof -->
+                <div class="space-y-3">
+                    <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">ID Proof</h4>
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Aadhar/PAN Card</span>
+                            <span class="text-xs {% if documents.id_proof %}text-success-500 dark:text-success-500{% else %}text-error-500 dark:text-error-500{% endif %}">{% if documents.id_proof %}✓ Uploaded{% else %}✗ Missing{% endif %}</span>
+                        </div>
+                        <div class="flex gap-2">
+                            {% if documents.id_proof %}
+                                <a href="/media/{{ documents.id_proof }}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> View Document</a>
+                            {% endif %}
+                            {% if not from_loan_close_requests %}
+                            <form method="post" action="" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" name="request_doc" value="id_proof" class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium {% if requested_docs and 'id_proof' in requested_docs %}text-gray-500 bg-gray-100{% else %}text-white bg-brand-500{% endif %} dark:bg-error-900/20 border border-brand-500 dark:border-gray-800 rounded-md hover:bg-error-100 dark:hover:bg-error-900/30 transition" {% if requested_docs and 'id_proof' in requested_docs %}disabled{% endif %} title="{% if requested_docs and 'id_proof' in requested_docs %}Document already requested{% endif %}">Request Document</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <!-- ID Proof Back -->
+                {% if documents.id_proof_back %}
+                <div class="space-y-3">
+                    <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">ID Proof Back</h4>
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Aadhar/PAN Card (Back)</span>
+                            <span class="text-xs {% if documents.id_proof_back %}text-success-500 dark:text-success-500{% else %}text-error-500 dark:text-error-500{% endif %}">{% if documents.id_proof_back %}✓ Uploaded{% else %}✗ Missing{% endif %}</span>
+                        </div>
+                        <div class="flex gap-2">
+                            {% if documents.id_proof_back %}
+                                <a href="/media/{{ documents.id_proof_back }}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> View Document</a>
+                            {% endif %}
+                            {% if not from_loan_close_requests %}
+                            <form method="post" action="" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" name="request_doc" value="id_proof_back" class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium {% if requested_docs and 'id_proof_back' in requested_docs %}text-gray-500 bg-gray-100{% else %}text-white bg-brand-500{% endif %} dark:bg-error-900/20 border border-brand-500 dark:border-gray-800 rounded-md hover:bg-error-100 dark:hover:bg-error-900/30 transition" {% if requested_docs and 'id_proof_back' in requested_docs %}disabled{% endif %} title="{% if requested_docs and 'id_proof_back' in requested_docs %}Document already requested{% endif %}">Request Document</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                <!-- Income Proof -->
+                {% if documents.income_proof %}
+                <div class="space-y-3">
+                    <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">Income Proof</h4>
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Salary Slip/Bank Statement</span>
+                            <span class="text-xs {% if documents.income_proof %}text-success-500 dark:text-success-500{% else %}text-error-500 dark:text-error-500{% endif %}">{% if documents.income_proof %}✓ Uploaded{% else %}✗ Missing{% endif %}</span>
+                        </div>
+                        <div class="flex gap-2">
+                            {% if documents.income_proof %}
+                                <a href="/media/{{ documents.income_proof }}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition"><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> View Document</a>
+                            {% endif %}
+                            {% if not from_loan_close_requests %}
+                            <form method="post" action="" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" name="request_doc" value="income_proof" class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium {% if requested_docs and 'income_proof' in requested_docs %}text-gray-500 bg-gray-100{% else %}text-white bg-brand-500{% endif %} dark:bg-error-900/20 border border-brand-500 dark:border-gray-800 rounded-md hover:bg-error-100 dark:hover:bg-error-900/30 transition" {% if requested_docs and 'income_proof' in requested_docs %}disabled{% endif %} title="{% if requested_docs and 'income_proof' in requested_docs %}Document already requested{% endif %}">Request Document</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                <!-- PAN Card -->
+                {% if documents.pan_card_document %}
+                <div class="space-y-3">
+                    <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">PAN Card</h4>
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs text-gray-500 dark:text-gray-400">PAN Card Document</span>
+                            <span class="text-xs {% if documents.pan_card_document %}text-success-500 dark:text-success-500{% else %}text-error-500 dark:text-error-500{% endif %}">{% if documents.pan_card_document %}✓ Uploaded{% else %}✗ Missing{% endif %}</span>
+                        </div>
+                        <div class="flex gap-2">
+                            {% if documents.pan_card_document %}
+                                <a href="/media/{{ documents.pan_card_document }}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition"> 
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> View Document</a>
+                            {% endif %}
+                            {% if not from_loan_close_requests %}
+                            <form method="post" action="" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" name="request_doc" value="pan_card_document" class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium {% if requested_docs and 'pan_card_document' in requested_docs %}text-gray-500 bg-gray-100{% else %}text-white bg-brand-500{% endif %} dark:bg-error-900/20 border border-brand-500 dark:border-gray-800 rounded-md hover:bg-error-100 dark:hover:bg-error-900/30 transition" {% if requested_docs and 'pan_card_document' in requested_docs %}disabled{% endif %} title="{% if requested_docs and 'pan_card_document' in requested_docs %}Document already requested{% endif %}">Request Document</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                <!-- Photo -->
+                <div class="space-y-3">
+                    <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">Photo</h4>
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Passport Size Photo</span>
+                            <span class="text-xs {% if documents.photo %}text-success-500 dark:text-success-500{% else %}text-error-500 dark:text-error-500{% endif %}">{% if documents.photo %}✓ Uploaded{% else %}✗ Missing{% endif %}</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            {% if documents.photo %}
+                                <img src="/media/{{ documents.photo }}" alt="Customer Photo" class="w-16 h-16 object-cover rounded-lg border border-gray-200 dark:border-gray-700">
+                                <a href="/media/{{ documents.photo }}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition"><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> View</a>
+                            {% endif %}
+                            {% if not from_loan_close_requests %}
+                            <form method="post" action="" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" name="request_doc" value="photo" class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium {% if requested_docs and 'photo' in requested_docs %}text-gray-500 bg-gray-100{% else %}text-white bg-brand-500{% endif %} dark:bg-error-900/20 border border-brand-500 dark:border-gray-800 rounded-md hover:bg-error-100 dark:hover:bg-error-900/30 transition" {% if requested_docs and 'photo' in requested_docs %}disabled{% endif %} title="{% if requested_docs and 'photo' in requested_docs %}Document already requested{% endif %}">Request Document</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <!-- Signature -->
+                <div class="space-y-3">
+                    <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">Signature</h4>
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Digital Signature</span>
+                            <span class="text-xs {% if documents.signature %}text-success-500 dark:text-success-500{% else %}text-error-500 dark:text-error-500{% endif %}">{% if documents.signature %}✓ Uploaded{% else %}✗ Missing{% endif %}</span>
+                        </div>
+                        <div class="flex gap-2">
+                            {% if documents.signature %}
+                                <a href="/media/{{ documents.signature }}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition"><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> View Document</a>
+                            {% endif %}
+                            {% if not from_loan_close_requests %}
+                            <form method="post" action="" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" name="request_doc" value="signature" class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium {% if requested_docs and 'signature' in requested_docs %}text-gray-500 bg-gray-100{% else %}text-white bg-brand-500{% endif %} dark:bg-error-900/20 border border-brand-500 dark:border-gray-800 rounded-md hover:bg-error-100 dark:hover:bg-error-900/30 transition" {% if requested_docs and 'signature' in requested_docs %}disabled{% endif %} title="{% if requested_docs and 'signature' in requested_docs %}Document already requested{% endif %}">Request Document</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <!-- Collateral -->
+                {% if documents.collateral %}
+                <div class="space-y-3">
+                    <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">Collateral</h4>
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Property Documents</span>
+                            <span class="text-xs {% if documents.collateral %}text-success-500 dark:text-success-500{% else %}text-gray-500 dark:text-gray-500{% endif %}">{% if documents.collateral %}✓ Uploaded{% else %}Optional{% endif %}</span>
+                        </div>
+                        <div class="flex gap-2">
+                            {% if documents.collateral %}
+                                <a href="/media/{{ documents.collateral }}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition"><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> View Document</a>
+                            {% endif %}
+                            {% if not from_loan_close_requests %}
+                            <form method="post" action="" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" name="request_doc" value="collateral" class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium {% if requested_docs and 'collateral' in requested_docs %}text-gray-500 bg-gray-100{% else %}text-white bg-brand-500{% endif %} dark:bg-error-900/20 border border-brand-500 dark:border-gray-800 rounded-md hover:bg-error-100 dark:hover:bg-error-900/30 transition" {% if requested_docs and 'collateral' in requested_docs %}disabled{% endif %} title="{% if requested_docs and 'collateral' in requested_docs %}Document already requested{% endif %}">Request Document</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Pending Document Requests Section -->
+    {% if document_requests %}
+        {% with pending_requests=document_requests|dictsort:"requested_at" %}
+            {% for request in pending_requests %}
+                {% if not request.is_resolved %}
+                    <div class="mt-6 rounded-2xl border border-yellow-400 bg-yellow-50 dark:border-yellow-700 dark:bg-yellow-900/20">
+                        <div class="p-5 border-b border-yellow-200 dark:border-yellow-800 sm:p-6">
+                            <h3 class="text-base font-medium text-yellow-800 dark:text-yellow-200">Pending Document Requests</h3>
+                        </div>
+                        <div class="p-5 space-y-4 sm:p-6">
+                            <div class="border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 bg-yellow-100 dark:bg-yellow-900/30">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex-1">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-yellow-200 text-yellow-800 dark:bg-yellow-800/50 dark:text-yellow-200">
+                                                Pending Request
+                                            </span>
+                                            <span class="text-sm text-yellow-700 dark:text-yellow-300">{{ request.requested_at|date:'Y-m-d H:i' }}</span>
+                                        </div>
+                                        <h4 class="text-sm font-medium text-yellow-900 dark:text-yellow-100 mb-1">
+                                            {{ request.get_document_type_display }}
+                                        </h4>
+                                        <p class="text-sm text-yellow-700 dark:text-yellow-300 mb-2">
+                                            <strong>Requested by:</strong> 
+                                            {% if request.requested_by_hq %}
+                                                HQ ({{ request.requested_by_hq.get_full_name }})
+                                            {% else %}
+                                                Branch ({{ request.requested_by.get_full_name }})
+                                            {% endif %}
+                                        </p>
+                                        <p class="text-sm text-yellow-700 dark:text-yellow-300 mb-2">
+                                            <strong>Reason:</strong> {{ request.get_reason_display }}
+                                        </p>
+                                        {% if request.comment %}
+                                            <p class="text-sm text-yellow-700 dark:text-yellow-300 mb-2">
+                                                <strong>Comment:</strong> {{ request.comment }}
+                                            </p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+                            {% endfor %}
+        {% endwith %}
+    {% endif %}
+
+    <!-- Re-uploaded Documents - Pending Review (Branch uploads only) -->
+    {% if app.status == 'branch_approved' %}
+    {% if branch_reuploads %}
+      <div class="mt-6 rounded-2xl border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20">
+        <div class="p-5 border-b border-blue-200 dark:border-blue-800">
+          <h3 class="text-base font-medium text-blue-800 dark:text-blue-200">Re-uploaded Documents - Pending Review (Branch)</h3>
+        </div>
+        <div class="p-5 space-y-4">
+          {% for reupload in branch_reuploads %}
+            <div class="border border-blue-100 dark:border-blue-700 rounded-lg p-4 bg-white dark:bg-gray-900/10">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">Pending Review</span>
+                <span class="text-xs text-gray-600 dark:text-gray-400">{{ reupload.uploaded_at|date:'Y-m-d H:i' }}</span>
+              </div>
+              <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-1">{{ reupload.get_document_type_display }}</h4>
+              {% if reupload.agent_note %}<p class="text-xs text-gray-600 dark:text-gray-400 mb-2"><strong>Branch Note:</strong> {{ reupload.agent_note }}</p>{% endif %}
+              <div class="flex gap-2 mt-2">
+                {% if reupload.uploaded_file %}
+                  <a href="/media/{{ reupload.uploaded_file }}" target="_blank" class="inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-brand-500 bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 rounded-md hover:bg-brand-100 dark:hover:bg-brand-900/30 transition">View Document</a>
+                {% endif %}
+                <button onclick="openDocumentReviewModal('{{ reupload.id }}', '{{ reupload.get_document_type_display }}')" class="inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-white bg-brand-500 border border-transparent rounded-md hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 transition">Review Document</button>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+    {% endif %}
+
+    <!-- Document Review History (Branch and HQ) -->
+    {% if not app.agent and document_reviews %}
+      <div class="mt-6 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+          <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Document Review History</h3>
+        </div>
+        <div class="p-5 space-y-4 sm:p-6">
+          {% for review in document_reviews %}
+            <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4
+                {% if review.decision == 'approved' %}
+                    bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800
+                {% elif review.decision == 'rejected' or review.decision == 'request_again' %}
+                    bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800
+                {% elif review.decision == 'reject_application' %}
+                    bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800
+                {% else %}
+                    bg-gray-50 dark:bg-gray-900/20
+                {% endif %}">
+              <div class="flex items-start justify-between">
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="inline-block px-2 py-1 text-xs font-semibold rounded
+                        {% if review.decision == 'approved' %}
+                            bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800
+                        {% elif review.decision == 'rejected' or review.decision == 'request_again' %}
+                            bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800
+                        {% elif review.decision == 'reject_application' %}
+                            bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800
+                        {% else %}
+                            bg-gray-50 dark:bg-gray-900/20
+                        {% endif %}">
+                      {{ review.decision|cut:"_"|upper }}
+                    </span>
+                    <span class="text-sm text-gray-600 dark:text-gray-400">{{ review.reviewed_at|date:'Y-m-d H:i' }}</span>
+                  </div>
+                  <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-1">
+                    {{ review.document_reupload.document_type|default_if_none:''|cut:"_"|upper }}
+                  </h4>
+                  <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                    <strong>Reviewed by:</strong>
+                    {% if review.reviewed_by %}
+                      Branch ({{ review.reviewed_by }})
+                    {% else %}
+                      HQ
+                    {% endif %}
+                  </p>
+                  {% if review.review_comment %}<p class="text-sm text-gray-600 dark:text-gray-400"><strong>Review Comment:</strong> {{ review.review_comment }}</p>{% endif %}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Action Buttons -->
+    <div class="mt-10 flex flex-wrap gap-4 justify-end">
+        {% if not requested_docs and app.status != 'document_requested_by_hq' and app.status != 'document_requested' %}
+          {% if app.status == 'hq_document_accepted' %}
+          <button id="approveApplicationBtn" class="bg-success-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-success-900 transition">Approve</button>
+          {% elif app.status == 'branch_approved' and not branch_reuploads %}
+          <button id="approveApplicationBtn" class="bg-success-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-success-900 transition">Approve</button>
+          {% endif %}
+          {% if app.status == 'hq_document_accepted' %}
+          <button id="rejectApplicationBtn" class="bg-error-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-error-700 transition">Reject</button>
+          {% elif app.status == 'hq_approved' %}
+          <button id="rejectApplicationBtn" class="bg-error-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-error-700 transition">Reject</button>
+          {% elif app.status == 'branch_approved' %}
+          <button id="rejectApplicationBtn" class="bg-error-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-error-700 transition">Reject</button>
+          {% endif %}
+        {% endif %}
+        <a href="{% url 'hq:hq_loan_list' %}" class="bg-gray-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-gray-700 transition">Back to List</a>
+    </div>
+</div>
+
+<!-- Document Request Modal -->
+<div id="documentRequestModal" class="fixed inset-0 z-9999 bg-gray-400/50 backdrop-blur-[32px] hidden">
+    <div class="absolute inset-0 bg-black bg-opacity-50"></div>
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">Request Document</h3>
+                    <button onclick="closeDocumentRequestModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <form id="documentRequestForm" method="post" action="">
+                    {% csrf_token %}
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Document Type</label>
+                            <input type="text" id="documentType" name="documentType" readonly class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Reason for Request</label>
+                            <select id="requestReason" name="requestReason" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+                                <option value="">Select a reason</option>
+                                <option value="missing">Document Missing</option>
+                                <option value="blurred">Document Blurred/Unclear</option>
+                                <option value="wrong_file">Wrong Document Uploaded</option>
+                                <option value="expired">Document Expired</option>
+                                <option value="incomplete">Document Incomplete</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Additional Comments (Optional)</label>
+                            <textarea id="requestComment" name="requestComment" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500" placeholder="Please provide any additional details..."></textarea>
+                        </div>
+                    </div>
+                    <div class="flex gap-3 mt-6">
+                        <button type="button" onclick="closeDocumentRequestModal()" class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition">Cancel</button>
+                        <button type="submit" class="flex-1 px-4 py-2 text-sm font-medium text-white bg-error-500 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition">Send Request</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Approve Confirmation Modal -->
+<div id="approveConfirmModal" class="fixed inset-0 z-9999 bg-gray-400/50 backdrop-blur-[32px] hidden">
+    <div class="absolute inset-0 bg-black bg-opacity-50"></div>
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">Confirm Approval</h3>
+                    <button onclick="closeApproveModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <p class="mb-6 text-gray-700 dark:text-gray-300">Are you sure you want to approve this application?</p>
+                <div class="flex gap-3">
+                    <button onclick="closeApproveModal()" class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition">Cancel</button>
+                    <button id="confirmApproveBtn" class="flex-1 px-4 py-2 text-sm font-medium text-white bg-success-500 border border-transparent rounded-md hover:bg-success-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-success-500 transition">Approve</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Confirmation Modal -->
+<div id="rejectConfirmModal" class="fixed inset-0 z-9999 bg-gray-400/50 backdrop-blur-[32px] hidden">
+    <div class="absolute inset-0 bg-black bg-opacity-50"></div>
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">Confirm Rejection</h3>
+                    <button onclick="closeRejectModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <p class="mb-6 text-gray-700 dark:text-gray-300">Are you sure you want to reject this application?</p>
+                <div class="flex gap-3">
+                    <button onclick="closeRejectModal()" class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition">Cancel</button>
+                    <button id="confirmRejectBtn" class="flex-1 px-4 py-2 text-sm font-medium text-white bg-error-500 border border-transparent rounded-md hover:bg-error-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-error-500 transition">Reject</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Document Review Modal -->
+<div id="documentReviewModal" class="fixed inset-0 z-99999 bg-gray-400/50 backdrop-blur-[32px] hidden">
+  <div class="flex items-center justify-center min-h-screen p-4">
+    <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-md w-full">
+      <button id="closeDocumentReviewModal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+      <div class="p-6">
+        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Review Document</h3>
+        <form id="documentReviewForm">
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Document Type</label>
+            <input type="text" id="reviewDocumentType" readonly class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white">
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Review Decision</label>
+            <select id="reviewDecision" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+              <option value="">Select a decision</option>
+              <option value="approved">✅ Approve Document</option>
+              <option value="request_again">🔄 Request Again</option>
+            </select>
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Review Comments (Optional)</label>
+            <textarea id="reviewComment" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white" placeholder="Please provide your review comments..."></textarea>
+          </div>
+          <div class="flex gap-3 mt-6">
+            <button type="button" id="cancelReviewModalBtn" class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition">Cancel</button>
+            <button type="submit" class="flex-1 px-4 py-2 text-sm font-medium text-white bg-brand-500 border border-transparent rounded-md hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 transition">Submit Review</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentDocumentType = '';
+function openDocumentRequestModal(documentType, documentLabel) {
+    currentDocumentType = documentType;
+    var docTypeInput = document.getElementById('documentType');
+    if (docTypeInput) {
+        docTypeInput.value = documentLabel;
+    }
+    document.getElementById('documentRequestModal').classList.remove('hidden');
+}
+function closeDocumentRequestModal() {
+    document.getElementById('documentRequestModal').classList.add('hidden');
+    document.getElementById('documentRequestForm').reset();
+}
+document.addEventListener('DOMContentLoaded', function () {
+    // Attach event listeners to all request document buttons
+    document.querySelectorAll('button[name="request_doc"]').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const docType = btn.value;
+            let label = '';
+            if (docType === 'id_proof') label = 'ID Proof (Aadhar/PAN)';
+            else if (docType === 'income_proof') label = 'Income Proof';
+            else if (docType === 'photo') label = 'Passport Photo';
+            else if (docType === 'signature') label = 'Digital Signature';
+            else if (docType === 'collateral') label = 'Collateral Documents';
+            else if (docType === 'residential_proof_file') label = 'residential_proof_file';
+            openDocumentRequestModal(docType, label);
+        });
+    });
+    // AJAX submit for document request
+    var docRequestForm = document.getElementById('documentRequestForm');
+    if (docRequestForm) {
+        docRequestForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const reason = document.getElementById('requestReason').value;
+            const comment = document.getElementById('requestComment').value;
+            const loanRefNo = "{{ app.loan_ref_no }}";
+            const csrfToken = document.querySelector('#documentRequestForm [name=csrfmiddlewaretoken]').value;
+            if (!currentDocumentType || !reason) {
+                if (typeof showToast === 'function') {
+                    showToast('Please select a document type and reason.', 'error');
+                } else {
+                    alert('Please select a document type and reason.');
+                }
+                return;
+            }
+            fetch('{% url "hq:hq_document_request_api" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    loan_ref_no: loanRefNo,
+                    document_type: currentDocumentType,
+                    reason: reason,
+                    comment: comment
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (typeof showToast === 'function') {
+                        showToast('Document request sent successfully!', 'success');
+                    } else {
+                        alert('Document request sent successfully!');
+                    }
+                    closeDocumentRequestModal();
+                    // Disable the button after request
+                    document.querySelectorAll('button[name="request_doc"]').forEach(function(btn) {
+                        if (btn.value === currentDocumentType) {
+                            btn.classList.remove('text-brand-500', 'bg-brand-50');
+                            btn.classList.add('text-error-500', 'bg-error-50');
+                            btn.disabled = true;
+                        }
+                    });
+                } else {
+                    if (typeof showToast === 'function') {
+                        showToast('Error: ' + (data.error || 'Unknown error'), 'error');
+                    } else {
+                        alert('Error: ' + (data.error || 'Unknown error'));
+                    }
+                }
+            })
+            .catch(error => {
+                if (typeof showToast === 'function') {
+                    showToast('An error occurred while sending the request.', 'error');
+                } else {
+                    alert('An error occurred while sending the request.');
+                }
+            });
+        });
+    }
+});
+
+// Approve/Reject Modal Logic
+function openApproveModal() {
+    document.getElementById('approveConfirmModal').classList.remove('hidden');
+}
+function closeApproveModal() {
+    document.getElementById('approveConfirmModal').classList.add('hidden');
+}
+function openRejectModal() {
+    document.getElementById('rejectConfirmModal').classList.remove('hidden');
+}
+function closeRejectModal() {
+    document.getElementById('rejectConfirmModal').classList.add('hidden');
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    // Approve button
+    var approveBtn = document.getElementById('approveApplicationBtn');
+    if (approveBtn) {
+        approveBtn.addEventListener('click', function() {
+            openApproveModal();
+        });
+    }
+    var confirmApproveBtn = document.getElementById('confirmApproveBtn');
+    if (confirmApproveBtn) {
+        confirmApproveBtn.addEventListener('click', function() {
+            confirmApproveBtn.disabled = true;
+            fetch('{% url "hq:hq_loan_review" app.loan_ref_no %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: new URLSearchParams({action: 'approve'})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    closeApproveModal();
+                    if (typeof showToast === 'function') {
+                        showToast('Application approved successfully!', 'success');
+                    }
+                    setTimeout(function() {
+                        window.location.href = '{% url "hq:hq_loan_list" %}';
+                    }, 1200);
+                } else {
+                    if (typeof showToast === 'function') {
+                        showToast(data.error || 'Failed to approve application.', 'error');
+                    } else {
+                        alert(data.error || 'Failed to approve application.');
+                    }
+                }
+            })
+            .finally(() => { confirmApproveBtn.disabled = false; });
+        });
+    }
+    // Reject button
+    var rejectBtn = document.getElementById('rejectApplicationBtn');
+    if (rejectBtn) {
+        rejectBtn.addEventListener('click', function() {
+            openRejectModal();
+        });
+    }
+    var confirmRejectBtn = document.getElementById('confirmRejectBtn');
+    if (confirmRejectBtn) {
+        confirmRejectBtn.addEventListener('click', function() {
+            confirmRejectBtn.disabled = true;
+            fetch('{% url "hq:hq_loan_review" app.loan_ref_no %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: new URLSearchParams({action: 'reject'})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    closeRejectModal();
+                    if (typeof showToast === 'function') {
+                        showToast('Application rejected successfully!', 'success');
+                    }
+                    setTimeout(function() {
+                        window.location.href = '{% url "hq:hq_loan_list" %}';
+                    }, 1200);
+                } else {
+                    if (typeof showToast === 'function') {
+                        showToast(data.error || 'Failed to reject application.', 'error');
+                    } else {
+                        alert(data.error || 'Failed to reject application.');
+                    }
+                }
+            })
+            .finally(() => { confirmRejectBtn.disabled = false; });
+        });
+    }
+});
+
+// Modal logic
+let currentReuploadId = null;
+function openDocumentReviewModal(reuploadId, documentType) {
+  currentReuploadId = reuploadId;
+  document.getElementById('reviewDocumentType').value = documentType;
+  document.getElementById('documentReviewModal').classList.remove('hidden');
+}
+document.getElementById('closeDocumentReviewModal').onclick = function() {
+  document.getElementById('documentReviewModal').classList.add('hidden');
+  document.getElementById('documentReviewForm').reset();
+};
+document.getElementById('cancelReviewModalBtn').onclick = function() {
+  document.getElementById('documentReviewModal').classList.add('hidden');
+  document.getElementById('documentReviewForm').reset();
+};
+document.getElementById('documentReviewModal').addEventListener('click', function(e) {
+  if (e.target === this) {
+    document.getElementById('documentReviewModal').classList.add('hidden');
+    document.getElementById('documentReviewForm').reset();
+  }
+});
+// Stub for form submit
+
+document.getElementById('documentReviewForm').onsubmit = function(e) {
+  e.preventDefault();
+  const decision = document.getElementById('reviewDecision').value;
+  const comment = document.getElementById('reviewComment').value;
+  const csrfToken = '{{ csrf_token }}';
+  fetch('/hq/api/document-review/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': csrfToken
+    },
+    body: JSON.stringify({
+      reupload_id: currentReuploadId,
+      decision: decision,
+      review_comment: comment
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      if (typeof showToast === 'function') {
+        showToast('Review submitted successfully!', 'success');
+      } else {
+        alert('Review submitted successfully!');
+      }
+      document.getElementById('documentReviewModal').classList.add('hidden');
+      document.getElementById('documentReviewForm').reset();
+      window.location.reload();
+    } else {
+      if (typeof showToast === 'function') {
+        showToast('Error: ' + (data.error || 'Unknown error'), 'error');
+      } else {
+        alert('Error: ' + (data.error || 'Unknown error'));
+      }
+    }
+  })
+  .catch(error => {
+    if (typeof showToast === 'function') {
+      showToast('An error occurred while submitting the review.', 'error');
+    } else {
+      alert('An error occurred while submitting the review.');
+    }
+  });
+};
+</script>
+{% endblock %}

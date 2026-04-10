@@ -1,0 +1,308 @@
+{% extends "hq/base.html" %}
+{% load static %}
+{% block title %}Emi Loan List{% endblock %}
+
+{% block page_id %}EmiLoanList{% endblock %}
+
+{% block content %}
+
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+    <!-- Breadcrumb Start -->
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 class="text-title-md2 font-bold text-black dark:text-white">
+            Loan List
+        </h2>
+        <nav>
+            <ol class="flex items-center gap-2">
+                <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+                        href="{% url 'hq:dashboard' %}">Dashboard <svg class="stroke-current" width="17" height="16"
+                            viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                            </path>
+                        </svg></a></li>
+                <li class="text-sm text-gray-800 dark:text-white/90">Loan List</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        <!-- KPI Row -->
+        <div class="p-5 sm:p-6">
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <!-- Total Loans -->
+                <div class="group relative overflow-hidden rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-500">Total Loans</div>
+                            <div class="mt-0.5 text-2xl font-semibold">{{ kpis.total_loans }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upcoming EMI -->
+                <div class="group relative overflow-hidden rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-50 text-indigo-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12h18"/><path d="M12 3v18"/></svg>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-500">Upcoming EMI</div>
+                            <div class="mt-0.5 text-2xl font-semibold">{{ kpis.upcoming_count }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Due today -->
+                <div class="group relative overflow-hidden rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-amber-50 text-amber-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-500">Due EMI (Today)</div>
+                            <div class="mt-0.5 text-2xl font-semibold">{{ kpis.due_count }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Overdue -->
+                <div class="group relative overflow-hidden rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-red-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M21.73 18.73 12 3 2.27 18.73z"/></svg>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-500">Overdue EMI</div>
+                            <div class="mt-0.5 text-2xl font-semibold">{{ kpis.overdue_count }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Loan Amount -->
+                <div class="group relative overflow-hidden rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                            <span class="text-lg font-bold">₹</span>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-500">Total Loan Amount</div>
+                            <div class="mt-0.5 text-2xl font-semibold">₹ {{ kpis.total_loan_amount|floatformat:2 }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4 px-4 py-3 space-y-6 border-t border-gray-100 dark:border-gray-800 sm:p-6">
+            <div class="col-span-2 lg:col-span-1">
+                <!-- Branch and EMI Filters -->
+                <form id="filtersForm" method="get" class="w-full flex flex-col sm:flex-row gap-3 items-stretch sm:items-end">
+                    <div class="w-full sm:w-1/2">
+                        <label for="branchSelect" class="block text-sm font-medium text-gray-700 mb-1">Branch</label>
+                        <select id="branchSelect" name="branch_id"
+                            class="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">All Branches</option>
+                            {% for b in branches %}
+                                <option class="flex items-center py-1" value="{{ b.branch_id }}" {% if selected_branch_id|stringformat:"s" == b.branch_id|stringformat:"s" %}selected{% endif %}>
+                                    <span class="font-medium">{{ b.branch_name }}</span> <span class="text-xs text-gray-500 ml-1">(# {{ b.branch_id }})</span>
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="w-full sm:w-1/2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">EMI {% if selected_branch_id %}in Branch # {{selected_branch_id}}{% endif %}</label>
+                        <div class="relative" id="emiDropdownWrapper">
+                            <input type="hidden" name="loan_ref_no" id="loanRefHidden" value="{{ selected_loan_ref_no }}" />
+                            <button type="button" id="emiDropdownBtn"
+                                class="w-full flex items-center justify-between p-2 text-sm border border-gray-300 rounded-md bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-400"
+                                {% if not selected_branch_id %}disabled{% endif %}>
+                                <span id="emiDropdownLabel">
+                                    {% if selected_loan_ref_no %}{{ selected_loan_ref_no }}{% else %}All EMIs{% if selected_branch_id %} in Branch # {{ selected_branch_id }}{% endif %}{% endif %}
+                                </span>
+                                <svg class="h-4 w-4 ml-2 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.939l3.71-3.71a.75.75 0 111.06 1.062l-4.24 4.24a.75.75 0 01-1.06 0L5.25 8.29a.75.75 0 01-.02-1.08z" clip-rule="evenodd"/></svg>
+                            </button>
+                            <!-- Dropdown panel -->
+                            <div id="emiDropdownPanel" class="hidden absolute z-20 mt-1 w-full rounded-md border border-gray-300 bg-white shadow-lg">
+                                <div class="p-2 border-b border-gray-200">
+                                    <input id="emiDropdownSearch" type="text" placeholder="Search loan no"
+                                        class="w-full p-2 text-sm border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <ul id="emiDropdownList" class="max-h-56 overflow-auto py-1 text-sm">
+                                    <li class="px-3 py-2 hover:bg-gray-100 cursor-pointer" data-value="">
+                                        All EMIs{% if selected_branch_id %} in Branch # {{ selected_branch_id }}{% endif %}
+                                    </li>
+                                    {% if selected_branch_id %}
+                                        {% for ref in emi_options %}
+                                            <li class="px-3 py-2 hover:bg-gray-100 cursor-pointer" data-value="{{ ref }}">{{ ref }}</li>
+                                        {% endfor %}
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sm:ml-auto sm:self-end mt-6">
+                        {% if selected_branch_id or selected_loan_ref_no %}
+                        <a href="{% url 'hq:emi_loan_list' %}" class="inline-flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50">
+                            <svg xmlns="http://www.w3.org/2000/svg" title="Refresh" fill="#000000" width="18px" height="18px" viewBox="0 0 512 512" data-name="Layer 1" id="Layer_1" class="h-4 w-4 transition-transform duration-500 group-hover:rotate-[180deg]">
+                                <path d="M64,256H34A222,222,0,0,1,430,118.15V85h30V190H355V160h67.27A192.21,192.21,0,0,0,256,64C150.13,64,64,150.13,64,256Zm384,0c0,105.87-86.13,192-192,192A192.21,192.21,0,0,1,89.73,352H157V322H52V427H82V393.85A222,222,0,0,0,478,256Z">
+                                </path>
+                            </svg>
+                            Reset</a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+            <div></div>
+        </div>
+        <div class="p-5 space-y-6 border-t border-gray-100 dark:border-gray-800 sm:p-6">
+            <div class="custom-scrollbar overflow-x-auto">
+
+                <!-- Loans Table -->
+                <div id="loans-table-container" class="position-relative">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead id="thead">
+                            <tr>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Loan No</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Branch</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Customer Name</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Loan Amount</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Disbursed Date</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                            {% for loan in loan_emi_list %}
+                            <tr>
+                                <td class="px-4 py-2 text-sm">{{ loan.loan_ref_no|default:"N/A" }}</td>
+                                <td class="px-4 py-2 text-sm pb-0">{{ loan.branch.branch_name|default:"N/A" }} <br>
+                                     <samp class="text-xs text-gray-500 pb-0">#{{ loan.branch.branch_id|default:"N/A" }}</samp> 
+                                </td>
+                                <td class="px-4 py-2 text-sm">{{ loan.customer.full_name|default:"N/A" }}</td>
+                                <td class="px-4 py-2 text-sm">{{ loan.loan_details.first.loan_amount|default:"N/A" }}</td>
+                                <td class="px-4 py-2 text-sm">{{ loan.disbursed_at|date:"Y-m-d"|default:"N/A" }}</td>
+                                <td class="px-4 py-2 text-sm">
+                                    <a href="{% url 'hq:emi_schedule' loan.loan_ref_no %}" class="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md">View Emi</a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="px-4 py-6 text-center text-sm text-gray-500">No records found.</td>
+                            </tr>
+                            {% endfor %}    
+                        </tbody>
+                    </table>
+                </div>
+                <div id="assign-agent-dropdown" class="hidden position-fixed">
+
+                </div>
+            </div>
+            <div class="flex items-center justify-between pt-4">
+                <div class="text-sm text-gray-600">
+                    {% if page_obj %}
+                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                    {% endif %}
+                </div>
+                {% if page_obj and page_obj.paginator.num_pages > 1 %}
+                    <div class="inline-flex gap-2">
+                        {% if page_obj.has_previous %}
+                            <a class="px-3 py-1 text-sm border rounded-md" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
+                        {% else %}
+                            <span class="px-3 py-1 text-sm border rounded-md text-gray-400">Previous</span>
+                        {% endif %}
+                        {% for p in page_links %}
+                            {% if p == '…' or p == '...' %}
+                                <span class="px-3 py-1 text-sm border rounded-md text-gray-400">{{ p }}</span>
+                            {% elif p == page_obj.number %}
+                                <span class="px-3 py-1 text-sm border rounded-md bg-blue-500 text-white">{{ p }}</span>
+                            {% else %}
+                                <a class="px-3 py-1 text-sm border rounded-md" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ p }}">{{ p }}</a>
+                            {% endif %}
+                        {% endfor %}
+                        {% if page_obj.has_next %}
+                            <a class="px-3 py-1 text-sm border rounded-md" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
+                        {% else %}
+                            <span class="px-3 py-1 text-sm border rounded-md text-gray-400">Next</span>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+            <div id="no-applications-message" class="text-center text-red-600 py-8 hidden">No EMI data available</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const branchSelect = document.getElementById('branchSelect');
+        const emiDropdownBtn = document.getElementById('emiDropdownBtn');
+        const emiDropdownPanel = document.getElementById('emiDropdownPanel');
+        const emiDropdownSearch = document.getElementById('emiDropdownSearch');
+        const emiDropdownList = document.getElementById('emiDropdownList');
+        const emiDropdownLabel = document.getElementById('emiDropdownLabel');
+        const loanRefHidden = document.getElementById('loanRefHidden');
+        const form = document.getElementById('filtersForm');
+
+        // When branch changes, clear EMI, enable emi select, submit form
+        branchSelect && branchSelect.addEventListener('change', function() {
+            if (emiDropdownSearch) emiDropdownSearch.value = '';
+            if (loanRefHidden) loanRefHidden.value = '';
+            form.submit();
+        });
+
+        // Toggle dropdown panel
+        emiDropdownBtn && emiDropdownBtn.addEventListener('click', function(){
+            if (!emiDropdownPanel) return;
+            emiDropdownPanel.classList.toggle('hidden');
+            if (!emiDropdownPanel.classList.contains('hidden') && emiDropdownSearch) {
+                setTimeout(() => emiDropdownSearch.focus(), 0);
+            }
+        });
+
+        // Click outside to close
+        document.addEventListener('click', function(e){
+            const wrapper = document.getElementById('emiDropdownWrapper');
+            if (!wrapper) return;
+            if (!wrapper.contains(e.target)) {
+                emiDropdownPanel && emiDropdownPanel.classList.add('hidden');
+            }
+        });
+
+        // Filter list items by search term
+        function filterDropdownList() {
+            if (!emiDropdownList) return;
+            const term = (emiDropdownSearch?.value || '').toLowerCase();
+            const items = emiDropdownList.querySelectorAll('li');
+            items.forEach((li) => {
+                const val = (li.getAttribute('data-value') || '').toLowerCase();
+                const text = li.textContent.toLowerCase();
+                // Always keep the "All EMIs" visible
+                if (li.getAttribute('data-value') === '') { li.classList.remove('hidden'); return; }
+                if (!term) { li.classList.remove('hidden'); return; }
+                if (val.includes(term) || text.includes(term)) li.classList.remove('hidden'); else li.classList.add('hidden');
+            });
+        }
+        emiDropdownSearch && emiDropdownSearch.addEventListener('input', filterDropdownList);
+
+        // Handle selection
+        emiDropdownList && emiDropdownList.addEventListener('click', function(e){
+            const li = e.target.closest('li[data-value]');
+            if (!li) return;
+            const value = li.getAttribute('data-value') || '';
+            loanRefHidden.value = value;
+            // Update label
+            if (emiDropdownLabel) {
+                emiDropdownLabel.textContent = value ? value : `All EMIs${branchSelect && branchSelect.value ? ` in Branch # ${branchSelect.value}` : ''}`;
+            }
+            // Close and submit
+            emiDropdownPanel && emiDropdownPanel.classList.add('hidden');
+            form.submit();
+        });
+    })();
+</script>
+
+{% endblock %}

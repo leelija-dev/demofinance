@@ -1,0 +1,114 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Login</title>
+    <!-- PWA Manifest - FIXED PATH -->
+    <link rel="manifest" href="{% static 'manifest.json' %}" />
+    <!-- Load Tailwind CSS -->
+    <!-- <link rel="stylesheet" href="{% static 'dist/css/tailwind.css' %}?v=1.0.0"> -->
+    <!-- Your custom styles  -->
+     
+    <link rel="stylesheet" href="{% static 'main/css/output.css' %}">
+    <link rel="stylesheet" href="{% static 'main/css/output.css' %}" />
+    <!-- pwa install css  -->
+     <link rel="stylesheet" href="{% static 'agent/css/pwa-installation.css' %}">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+    </style>
+    <!-- Debug information -->
+    {% if debug %}
+    <script>
+    //   console.log('Debug mode is ON');
+    //   console.log('Static URL:', '{{ STATIC_URL }}');
+    </script>
+    {% endif %}
+</head>
+
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    {% block content %}
+    <div class="w-full max-w-md bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-2xl font-bold text-center mb-6">Agent Login</h2>
+
+        <!-- Display Django messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mb-4 px-4 py-3 rounded text-sm text-white {% if message.tags == 'error' %}bg-red-500{% elif message.tags == 'warning' %}bg-yellow-500{% else %}bg-green-500{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% if error %}
+            <div class="mb-4 px-4 py-3 rounded text-sm text-white bg-red-500">
+                {{ error }}
+            </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'agent:api_login' %}" class="space-y-5">
+            {% if request.GET.next %}
+                <input type="hidden" name="next" value="{{ request.GET.next }}">
+            {% endif %}
+            {% csrf_token %}
+            <div>
+                <label for="username" class="block text-sm font-medium text-gray-700">Email</label>
+                <input type="email" id="username" name="username" required
+                    class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                <input type="password" id="password" name="password" required
+                    class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+            <button type="submit"
+                class="w-full py-2 px-4 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                Login
+            </button>
+        </form>
+    </div>
+    {% endblock %}
+     <!-- PWA Installation Popup -->
+    <div class="pwa-popup-overlay" id="pwaPopupOverlay"></div>
+    <div class="pwa-install-popup" id="pwaInstallPopup">
+        <button class="pwa-close-btn" id="pwaCloseBtn">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="pwa-popup-content">
+            <div class="pwa-popup-icon">
+                <img src="{% static 'main/images/company-logo.png' %}" alt="">
+            </div>
+            <div class="pwa-popup-text">
+                <h3>Install App</h3>
+                <p>Add this website to your home screen for quick access</p>
+            </div>
+        </div>
+        <div class="pwa-popup-actions">
+            <button class="pwa-later-btn" id="pwaLaterBtn">Maybe Later</button>
+            <button class="pwa-install-btn" id="pwaInstallBtn">
+                <span class="btn-text">Install</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- PWA Installation Instructions -->
+    <div class="pwa-instructions" id="pwaInstructions">
+        <h3>How to Install</h3>
+        <p>Follow these steps to install our app:</p>
+        <ol>
+            <!-- This will be dynamically replaced based on browser -->
+            <li>Tap the <strong>Menu</strong> button <i class="fas fa-ellipsis-vertical"></i> in your browser</li>
+            <li>Select <strong>"Install app"</strong> or <strong>"Add to Home screen"</strong></li>
+            <li>Confirm by tapping <strong>"Install"</strong></li>
+        </ol>
+        <button class="pwa-instructions-close" id="pwaInstructionsClose">Got It</button>
+    </div>
+    <script src="{% static 'agent/js/pwa-installation.js' %}"></script>
+</body>
+
+</html> 
+

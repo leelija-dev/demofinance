@@ -1,0 +1,888 @@
+{% extends "branch/base.html" %}
+{% load static %}
+{% block title %}New Loan Application{% endblock %}
+
+{% block page_id %}loanNewApplications{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+ <link rel="stylesheet" href="{% static 'main/css/submit-loader/submit-loader.css' %}">
+
+{% endblock %}
+
+{% block content %}
+
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+
+    <!-- Breadcrumb Start -->
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 class="text-title-md2 font-bold text-black dark:text-white">
+            New Loan Application
+        </h2>
+        <nav>
+            <ol class="flex items-center gap-2">
+                <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+                        href="{% url 'branch:dashboard' %}">Dashboard <svg class="stroke-current" width="17" height="16"
+                            viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                            </path>
+                        </svg></a></li>
+                <li class="text-sm text-gray-800 dark:text-white/90">New Loan Application</li>
+            </ol>
+            </nav>
+        </div>
+
+    {% if is_active %}
+    <!-- Draft Info Modal (opened from breadcrumb draft icon) -->
+    <div id="draft-info-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm">
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-xl max-w-lg w-full mx-4 max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 px-4 py-3">
+                <h3 class="text-sm font-semibold text-gray-800 dark:text-white">Saved Draft Details</h3>
+                <button type="button" id="draft-modal-close" class="text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl leading-none">&times;</button>
+            </div>
+            <div id="draft-modal-body" class="px-4 py-3 text-sm text-gray-800 dark:text-gray-100 flex-1 min-h-0 overflow-y-auto">
+                <p class="text-gray-500 dark:text-gray-400 text-sm">Loading draft details...</p>
+            </div>
+            <div class="flex justify-end gap-2 px-4 py-3 border-t border-gray-200 dark:border-gray-800">
+                <button type="button" id="draft-modal-close-footer" class="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">Close</button>
+                <button type="button" id="draft-modal-continue" class="px-3 py-1.5 text-xs font-medium text-white bg-brand-500 rounded-lg hover:bg-brand-600">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="full-page-loader" class="full-page-loader" >
+        <div class="w-auto relative ">
+        <div class="loader">
+        </div>
+        <span class="absolute text-[15px] top-[36%] left-[12%] text-[#8c8b8b]">Submitting..</span>
+        </div>
+        
+    </div>
+    <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        <div class="p-5 space-y-6 border-t border-gray-100 dark:border-gray-800 sm:p-6">
+            <form id="loan-application-form" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <script>
+                    // Identify current user for draft APIs (branch portal)
+                    window.CURRENT_USER_ID = "{{ branch_id }}";
+                    window.CURRENT_USER_TYPE = "branch";
+                  </script>
+
+                <div id="form-success" class="hidden mb-4 p-3 rounded bg-green-100 text-green-800"></div>
+                <div id="form-error" class="hidden mb-4 p-3 rounded bg-red-100 text-red-800"></div>
+                <div class="py-2 text-center">
+                    <h3 class="text-base font-bold text-gray-800 dark:text-white/90">
+                        Customer Details
+                    </h3>
+                </div>
+                <hr class="pb-5">
+                <div class="-mx-2.5 flex flex-wrap gap-y-5">
+                    <div class="w-full px-2.5 flex justify-between w-full">
+                        <h4
+                            class="pb-2 text-base font-medium text-gray-800 border-b border-gray-200 dark:border-gray-800 dark:text-white/90">
+                            Personal Info :
+                        </h4>
+                        <button type="button" id="draft-icon-button" class="inline-flex items-center justify-center p-1 mr-4 rounded hover:bg-gray-100 dark:hover:bg-gray-800" title="Draft application">
+                            <p class="text-xs font-medium text-gray-700 dark:text-gray-400">Draft application</p>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" class="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 flex-shrink-0">
+                                <path d="M6 18.5V9.62132C6 9.2235 6.15803 8.84197 6.43934 8.56066L10.5607 4.43934C10.842 4.15804 11.2235 4 11.6213 4H16.5C17.3284 4 18 4.67157 18 5.5V18.5C18 19.3284 17.3284 20 16.5 20H7.5C6.67157 20 6 19.3284 6 18.5Z" stroke="#000000" stroke-width="2"/>
+                                <path d="M6 10H10.5C11.3284 10 12 9.32843 12 8.5V4" stroke="#000000" stroke-width="1.5"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400" for="full_name">
+                            Full Name <span class="text-[#ec4a0a]">*</span>
+                        </label>
+                        <input id="full_name" name="full_name" type="text" placeholder="Enter full name"
+                            class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800" required>
+                        <div class="text-error-500 text-xs mt-1" id="error-full_name"></div>
+                    </div>
+
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400" for="father_name">
+                            Father Name <span class="text-[#ec4a0a]">*</span>
+                        </label>
+                        <input id="father_name" name="father_name" type="text" placeholder="Enter father name"
+                            class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800" required>
+                        <div class="text-error-500 text-xs mt-1" id="error-father_name"></div>
+                    </div>
+
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400" for="date_of_birth">
+                            Date of Birth <span class="text-[#ec4a0a]">*</span>
+                        </label>
+                        <input id="date_of_birth" name="date_of_birth" type="text" placeholder="DD-MM-YYYY" class="datepicker dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800" required>
+                        <div class="text-error-500 text-xs mt-1" id="error-date_of_birth"></div>
+                    </div>
+
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400" for="gender">
+                            Gender <span class="text-[#ec4a0a]">*</span>
+                        </label>
+                        <div x-data="{ isOptionSelected: false }" class="relative z-20 bg-transparent">
+                            <select id="gender" name="gender"
+                                class="w-full px-4 py-3 text-sm text-gray-800 bg-transparent border border-gray-300 rounded-lg appearance-none dark:bg-dark-900 h-11 bg-none shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                                :class="isOptionSelected && 'text-gray-500 dark:text-gray-400'"
+                                @change="isOptionSelected = true" required>
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Others">Others</option>
+                            </select>
+                            <span
+                                class="absolute z-30 text-gray-500 -translate-y-1/2 right-4 top-[32px] dark:text-gray-400">
+                                <svg class="stroke-current" width="20" height="20" viewBox="0 0 20 20" fill="none"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M4.79175 7.396L10.0001 12.6043L15.2084 7.396" stroke="" stroke-width="1.5"
+                                        stroke-linecap="round" stroke-linejoin="round"></path>
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="text-error-500 text-xs mt-1" id="error-gender"></div>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400" for="contact">
+                            Contact(Phone/Whatsapp) <span class="text-[#ec4a0a]">*</span>
+                        </label>
+                        <input id="contact" name="contact" type="number" placeholder="Enter contact number" maxlength="10" pattern="\d{10}"
+                        oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);"
+                            class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800" required>
+                        <div class="text-error-500 text-xs mt-1" id="error-contact"></div>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400" for="email">
+                            Email
+                        </label>
+                        <input id="email" name="email" type="email" placeholder="Enter email address (e.g. user@example.com)"
+                            class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800">
+                        <div class="text-error-500 text-xs mt-1" id="error-email"></div>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400" for="adhar_number">
+                            Adhar Number <span class="text-[#ec4a0a]">*</span>
+                        </label>
+                        <input id="adhar_number" name="adhar_number" type="text" placeholder="Enter adhar number (e.g., 1234 5678 9012)" maxlength="14"
+                            class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800" required>
+                        <div class="text-error-500 text-xs mt-1" id="error-adhar_number"></div>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400" for="pan_number">
+                            PAN Number <span class="text-[#ec4a0a]">*</span>
+                        </label>
+                        <input id="pan_number" name="pan_number" type="text" placeholder="Enter pan number (e.g., ABCDE1234F)" maxlength="10" oninput="this.value = this.value.slice(0, 10);"
+                            class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800" required>
+                        <div class="text-error-500 text-xs mt-1" id="error-pan_number"></div>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400" for="voter_number">
+                            Voter ID
+                        </label>
+                        <input id="voter_number" name="voter_number" type="text" placeholder="Enter voter id (e.g. ABC1234567)" maxlength="10" pattern="[A-Za-z]{3}\d{7}" oninput="this.value = this.value.replace(/[^A-Za-z0-9]/g, '').slice(0, 10);" class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800">
+                        <div class="text-error-500 text-xs mt-1" id="error-voter_number"></div>
+                    </div>
+
+                    <div class="w-full px-2.5">
+                        <h4
+                            class="pb-2 text-base font-medium text-gray-800 border-b border-gray-200 dark:border-gray-800 dark:text-white/90">
+                            Address :
+                        </h4>
+                    </div>
+                    <div class="w-full px-2.5 xl:w-1/2">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                            Address line 1 <span class="text-[#ec4a0a]">*</span>
+                        </label>
+                        <input id="address_line_1" name="address_line_1" type="text" placeholder="Enter address line 1"
+                            class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800" required>
+                        <div class="text-error-500 text-xs mt-1" id="error-address_line_1"></div>
+                    </div>
+                    <div class="w-full px-2.5 xl:w-1/2">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                            Address line 2
+                        </label>
+                        <input id="address_line_2" name="address_line_2" type="text" placeholder="Enter address line 2"
+                            class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800">
+                        <div class="text-error-500 text-xs mt-1" id="error-address_line_2"></div>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                            Landmark
+                        </label>
+                        <input id="landmark" name="landmark" type="text" placeholder="Enter landmark"
+                            class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800">
+                        <div class="text-error-500 text-xs mt-1" id="error-landmark"></div>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                            Post Code <span class="text-[#ec4a0a]">*</span>
+                            <span class="text-xs text-gray-500 ml-1">(Auto-fills address details)</span>
+                        </label>
+                        <input id="post_code" name="post_code" type="text" placeholder="Enter post code (6 digits)" maxlength="6" pattern="\d{6}" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);" required
+                            class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800">
+                        <div class="text-error-500 text-xs mt-1" id="error-post_code"></div>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                            Post Office
+                        </label>
+                        <input id="post_office" name="post_office" type="text" placeholder="Enter post office"
+                            class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800">
+                        <div class="text-error-500 text-xs mt-1" id="error-post_office"></div>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                            City/Town <span class="text-[#ec4a0a]">*</span>
+                        </label>
+                        <input id="city_or_town" name="city_or_town" type="text" placeholder="Enter city or town"
+                            class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800" required>
+                        <div class="text-error-500 text-xs mt-1" id="error-city_or_town"></div>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                            District <span class="text-[#ec4a0a]">*</span>
+                        </label>
+                        <input id="district" name="district" type="text" placeholder="Enter district"
+                            class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800" required>
+                        <div class="text-error-500 text-xs mt-1" id="error-district"></div>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                            State <span class="text-[#ec4a0a]">*</span>
+                        </label>
+                        <input id="state" name="state" type="text" placeholder="Enter state"
+                            class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800" required>
+                        <div class="text-error-500 text-xs mt-1" id="error-state"></div>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                            Country
+                        </label>
+                        <input id="country" name="country" type="text" placeholder="Enter country" value="India"
+                            class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800">
+                        <div class="text-error-500 text-xs mt-1" id="error-country"></div>
+                    </div>
+                    <div class="w-full px-2.5">
+                        <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-400">
+                            <input type="checkbox" id="same-address" name="same_address"
+                                class="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-900">
+                            Permanent and Current Address are the same
+                        </label>
+                    </div>
+
+                    <div id="current-address-section" class="w-full flex flex-wrap gap-y-5">
+                        <div class="w-full px-2.5">
+                            <h4
+                                class="pb-2 text-base font-medium text-gray-800 border-b border-gray-200 dark:border-gray-800 dark:text-white/90">
+                                Current Address :
+                            </h4>
+                        </div>
+                        <div class="w-full px-2.5 xl:w-1/2">
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                                Current Address Line 1 <span class="text-[#ec4a0a]">*</span>
+                            </label>
+                            <input id="current_address_line_1" name="current_address_line_1" type="text" placeholder="Enter current address line 1" required
+                                class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800">
+                            <div class="text-error-500 text-xs mt-1" id="error-current_address_line_1"></div>
+                        </div>
+                        <div class="w-full px-2.5 xl:w-1/2">
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                                Current Address Line 2
+                            </label>
+                            <input id="current_address_line_2" name="current_address_line_2" type="text" placeholder="Enter current address line 2"
+                                class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800">
+                            <div class="text-error-500 text-xs mt-1" id="error-current_address_line_2"></div>
+                        </div>
+                        <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                                Current Landmark
+                            </label>
+                            <input id="current_landmark" name="current_landmark" type="text" placeholder="Enter current landmark"
+                                class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800">
+                            <div class="text-error-500 text-xs mt-1" id="error-current_landmark"></div>
+                        </div>
+                        <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                                Current Post Code <span class="text-[#ec4a0a]">*</span>
+                                <span class="text-xs text-gray-500 ml-1">(Auto-fills address details)</span>
+                            </label>
+                            <input id="current_post_code" name="current_post_code" type="text" placeholder="Enter current post code (6 digits)" maxlength="6" pattern="\d{6}" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);" required
+                                class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800">
+                            <div class="text-error-500 text-xs mt-1" id="error-current_post_code"></div>
+                        </div>
+                        <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                                Current Post Office
+                            </label>
+                            <input id="current_post_office" name="current_post_office" type="text" placeholder="Enter current post office"
+                                class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800">
+                            <div class="text-error-500 text-xs mt-1" id="error-current_post_office"></div>
+                        </div>
+                        <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                                Current City/Town <span class="text-[#ec4a0a]">*</span>
+                            </label>
+                            <input id="current_city_or_town" name="current_city_or_town" type="text" placeholder="Enter current city or town" required
+                                class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800">
+                            <div class="text-error-500 text-xs mt-1" id="error-current_city_or_town"></div>
+                        </div>
+                        <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                                Current District <span class="text-[#ec4a0a]">*</span>
+                            </label>
+                            <input id="current_district" name="current_district" type="text" placeholder="Enter current district" required
+                                class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800">
+                            <div class="text-error-500 text-xs mt-1" id="error-current_district"></div>
+                        </div>
+                        <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                                Current State <span class="text-[#ec4a0a]">*</span>
+                            </label>
+                            <input id="current_state" name="current_state" type="text" placeholder="Enter current state" required
+                                class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800">
+                            <div class="text-error-500 text-xs mt-1" id="error-current_state"></div>
+                        </div>
+                        <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                                Current Country
+                            </label>
+                            <input id="current_country" name="current_country" type="text" placeholder="Enter current country" value="India"
+                                class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800">
+                            <div class="text-error-500 text-xs mt-1" id="error-current_country"></div>
+                        </div>
+                        
+                        <div class="w-full px-2.5 residential-proof-section">
+                            <h4
+                                class="pb-2 text-base font-medium text-gray-800 border-b border-gray-200 dark:border-gray-800 dark:text-white/90">
+                                Residential Proof for Current Address :
+                            </h4>
+                            <p class="text-xs text-gray-600 dark:text-gray-400 mt-2 mb-4">
+                                <strong>Note:</strong> Residential proof is required only when your current address is different from your permanent address. 
+                                If both addresses are the same, you can check the "same address" checkbox above to skip this section.
+                            </p>
+                        </div>
+                        
+                        <div class="w-full px-2.5 lg:w-1/2 xl:w-1/3 residential-proof-section">
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                                Residential Proof Type <span class="text-[#ec4a0a]">*</span>
+                            </label>
+                            <div x-data="{ isOptionSelected: false }" class="relative z-20 bg-transparent">
+                                <select id="residential_proof_type" name="residential_proof_type"
+                                    class="w-full px-4 py-3 text-sm text-gray-800 bg-transparent border border-gray-300 rounded-lg appearance-none dark:bg-dark-900 h-11 bg-none shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                                    :class="isOptionSelected && 'text-gray-500 dark:text-gray-400'"
+                                    @change="isOptionSelected = true" required>
+                                    <option value="">Select Proof Type</option>
+                                    <option value="electricity_bill">Electricity Bill</option>
+                                    <option value="water_bill">Water Bill</option>
+                                    <option value="gas_bill">Gas Bill</option>
+                                    <option value="rental_agreement">Rental Agreement (with landlord signature)</option>
+                                    <option value="bank_passbook">Bank Passbook with current address</option>
+                                    <option value="government_certificate">Government-issued Address Certificate</option>
+                                    <option value="mobile_bill">Post-paid Mobile Bill</option>
+                                </select>
+                                <span
+                                    class="absolute z-30 text-gray-500 -translate-y-1/2 right-4 top-[32px] dark:text-gray-400">
+                                    <svg class="stroke-current" width="20" height="20" viewBox="0 0 20 20" fill="none"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M4.79175 7.396L10.0001 12.6043L15.2084 7.396" stroke="" stroke-width="1.5"
+                                            stroke-linecap="round" stroke-linejoin="round"></path>
+                                    </svg>
+                                </span>
+                            </div>
+                            <div class="text-error-500 text-xs mt-1" id="error-residential_proof_type"></div>
+                        </div>
+                        
+                        <div class="w-full px-2.5 lg:w-1/2 xl:w-2/3 residential-proof-section">
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400" for="residential_proof_file">
+                                Residential Proof Document <span class="text-[#ec4a0a]">*</span>
+                            </label>
+                            <input id="residential_proof_file" name="residential_proof_file" type="file"
+                                class="focus:border-ring-brand-300 shadow-theme-xs focus:file:ring-brand-300 h-11 w-full overflow-hidden rounded-lg border border-gray-300 bg-transparent text-sm text-gray-500 transition-colors file:mr-5 file:border-collapse file:cursor-pointer file:rounded-l-lg file:border-0 file:border-r file:border-solid file:border-gray-200 file:bg-gray-50 file:py-3 file:pr-3 file:pl-3.5 file:text-sm file:text-gray-700 placeholder:text-gray-400 hover:file:bg-gray-100 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:text-white/90 dark:file:border-gray-800 dark:file:bg-white/[0.03] dark:file:text-gray-400 dark:placeholder:text-gray-400" required>
+                            <div class="text-error-500 text-xs mt-1" id="error-residential_proof_file"></div>
+                        </div>
+                        
+                    </div>
+                </div>
+                <div class="mt-10 py-4 text-center">
+                    <h3 class="text-base font-bold text-gray-800 dark:text-white/90">
+                        Loan-Specific Details
+                    </h3>
+                </div>
+                <hr class="pb-5">
+                <div class="-mx-2.5 flex flex-wrap gap-y-5">
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                            Loan Category <span class="text-[#ec4a0a]">*</span>
+                        </label>
+                        <div x-data="{ isOptionSelected: false }" class="relative z-20 bg-transparent">
+                            <select id="loan_category" name="loan_category"
+                                class="w-full px-4 py-3 text-sm text-gray-800 bg-transparent border border-gray-300 rounded-lg appearance-none dark:bg-dark-900 h-11 bg-none shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                                :class="isOptionSelected && 'text-gray-500 dark:text-gray-400'"
+                                @change="isOptionSelected = true" required>
+                                <option value="">Select Loan Category</option>
+                                <!-- <option value="Personal">Personal</option>
+                                <option value="Business">Business</option>
+                                <option value="Emergency">Emergency</option> -->
+                            </select>
+                            <div class="text-error-500 text-xs mt-1" id="error-loan_category"></div>
+                        </div>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                            Loan Amount <span class="text-[#ec4a0a]">*</span>
+                        </label>
+                        <input id="loan_amount" name="loan_amount" type="text" placeholder="Enter loan amount (e.g., 50000)"
+                            class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800" required>
+                        <div class="text-error-500 text-xs mt-1" id="error-loan_amount"></div>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                            Tenure <span class="text-[#ec4a0a]">*</span>
+                        </label>
+                        <select id="tenure_months" name="tenure_months"
+                          class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                          required>
+                          <option value="">Select Tenure</option>
+                          <!-- <option value="6">6</option>
+                          <option value="12">12</option>
+                          <option value="18">18</option>
+                          <option value="24">24</option>
+                          <option value="36">36</option>
+                          <option value="48">48</option>
+                          <option value="60">60</option> -->
+                        </select>
+                        <div class="text-error-500 text-xs mt-1" id="error-tenure_months"></div>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                            Loan Purpose <span class="text-[#ec4a0a]">*</span>
+                        </label>
+                        <input id="loan_purpose" name="loan_purpose" type="text"
+                            class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800" required>
+                        <div class="text-error-500 text-xs mt-1" id="error-loan_purpose"></div>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                            Interest Rate(%) <span class="text-[#ec4a0a]">*</span>
+                        </label>
+                        <input id="interest_rate" name="interest_rate" type="text" readonly
+                            class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800">
+                            <input type="hidden" id="interest_rate_id" name="interest_rate">
+                        <div class="text-error-500 text-xs mt-1" id="error-interest_rate"></div>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/4">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                            EMI Amount <span class="text-[#ec4a0a]">*</span>
+                        </label>
+                        <input id="emi_amount" name="emi_amount" type="text" readonly placeholder="EMI will be calculated automatically"
+                            class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800">
+                        <div class="text-error-500 text-xs mt-1" id="error-emi_amount"></div>
+                    </div>
+                </div>
+
+                <div class="mt-10 py-4 text-center">
+                    <h3 class="text-base font-bold text-gray-800 dark:text-white/90">
+                        Bank Account Details :
+                    </h3>
+                </div>
+                <hr class="pb-5">
+                <div class="-mx-2.5 flex flex-wrap gap-y-5">
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/3">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                            Account Number
+                        </label>
+                        <input id="account_number" name="account_number" type="text" placeholder="Enter account number"
+                               class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                               >
+                        <div class="text-error-500 text-xs mt-1" id="error-account_number"></div>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/3">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                            Confirm Account Number
+                        </label>
+                        <input id="confirm_account_number" name="confirm_account_number" type="text"
+                               placeholder="Re-enter account number"
+                               class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus-border-brand-800"
+                               >
+                        <div class="text-error-500 text-xs mt-1" id="error-confirm_account_number"></div>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/3">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                            IFSC Code
+                        </label>
+                        <input id="ifsc_code" name="ifsc_code" type="text" placeholder="Enter IFSC code (e.g., SBIN0001234)"
+                               class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus-border-brand-800"
+                               >
+                        <div class="text-error-500 text-xs mt-1" id="error-ifsc_code"></div>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/3">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                            Account Type
+                        </label>
+                        <select id="account_type" name="account_type"
+                                class="w-full px-4 py-3 text-sm text-gray-800 bg-transparent border border-gray-300 rounded-lg appearance-none dark:bg-dark-900 h-11 bg-none shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus-border-brand-800"
+                                >
+                            <option value="">Select Account Type</option>
+                            <option value="savings">Savings</option>
+                            <option value="current">Current</option>
+                            <option value="fixed_deposit">Fixed Deposit</option>
+                            <option value="recurring_deposit">Recurring Deposit</option>
+                        </select>
+                        <div class="text-error-500 text-xs mt-1" id="error-account_type"></div>
+                    </div>
+                    <div class="w-full px-2.5 lg:w-1/2 xl:w-1/3">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                            Bank Name
+                        </label>
+                        <input id="bank_name" name="bank_name" type="text" placeholder="Enter bank name"
+                               class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus-outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus-border-brand-800"
+                               >
+                        <div class="text-error-500 text-xs mt-1" id="error-bank_name"></div>
+                        <p id="bank-branch-display" class="text-xs text-gray-600 dark:text-gray-300"></p>
+                    </div>
+                </div>
+
+                <div class="mt-10 py-4 text-center">
+                    <h3 class="text-base font-bold text-gray-800 dark:text-white/90">
+                        Document Upload
+                    </h3>
+                </div>
+                <hr class="pb-5">
+                <div class="-mx-2.5 flex flex-wrap gap-y-5">
+                    <div class="w-full px-2.5 xl:w-1/2">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400" for="id_proof">
+                            Id Proof (Front) <span class="text-[#ec4a0a]">*</span>
+                        </label>
+                        <input id="id_proof" name="id_proof" type="file"
+                            class="focus:border-ring-brand-300 shadow-theme-xs focus:file:ring-brand-300 h-11 w-full overflow-hidden rounded-lg border border-gray-300 bg-transparent text-sm text-gray-500 transition-colors file:mr-5 file:border-collapse file:cursor-pointer file:rounded-l-lg file:border-0 file:border-r file:border-solid file:border-gray-200 file:bg-gray-50 file:py-3 file:pr-3 file:pl-3.5 file:text-sm file:text-gray-700 placeholder:text-gray-400 hover:file:bg-gray-100 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:text-white/90 dark:file:border-gray-800 dark:file:bg-white/[0.03] dark:file:text-gray-400 dark:placeholder:text-gray-400" required>
+                        <div class="text-error-500 text-xs mt-1" id="error-id_proof"></div>
+                    </div>
+                    <div class="w-full px-2.5 xl:w-1/2">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400" for="id_proof_back">
+                            Id Proof (Back)
+                        </label>
+                        <input id="id_proof_back" name="id_proof_back" type="file"
+                            class="focus:border-ring-brand-300 shadow-theme-xs focus:file:ring-brand-300 h-11 w-full overflow-hidden rounded-lg border border-gray-300 bg-transparent text-sm text-gray-500 transition-colors file:mr-5 file:border-collapse file:cursor-pointer file:rounded-l-lg file:border-0 file:border-r file:border-solid file:border-gray-200 file:bg-gray-50 file:py-3 file:pr-3 file:pl-3.5 file:text-sm file:text-gray-700 placeholder:text-gray-400 hover:file:bg-gray-100 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:text-white/90 dark:file:border-gray-800 dark:file:bg-white/[0.03] dark:file:text-gray-400 dark:placeholder:text-gray-400">
+                        <div class="text-error-500 text-xs mt-1" id="error-id_proof_back"></div>
+                    </div>
+                    <div class="w-full px-2.5 xl:w-1/2">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400" for="pan_card_document">
+                            PAN Card
+                        </label>
+                        <input id="pan_card_document" name="pan_card_document" type="file"
+                            class="focus:border-ring-brand-300 shadow-theme-xs focus:file:ring-brand-300 h-11 w-full overflow-hidden rounded-lg border border-gray-300 bg-transparent text-sm text-gray-500 transition-colors file:mr-5 file:border-collapse file:cursor-pointer file:rounded-l-lg file:border-0 file:border-r file:border-solid file:border-gray-200 file:bg-gray-50 file:py-3 file:pr-3 file:pl-3.5 file:text-sm file:text-gray-700 placeholder:text-gray-400 hover:file:bg-gray-100 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:text-white/90 dark:file:border-gray-800 dark:file:bg-white/[0.03] dark:file:text-gray-400 dark:placeholder:text-gray-400">
+                        <div class="text-error-500 text-xs mt-1" id="error-pan_card_document"></div>
+                    </div>
+                    <div class="w-full px-2.5 xl:w-1/2">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400" for="income_proof">
+                            Income Proof 
+                        </label>
+                        <input id="income_proof" name="income_proof" type="file"
+                            class="focus:border-ring-brand-300 shadow-theme-xs focus:file:ring-brand-300 h-11 w-full overflow-hidden rounded-lg border border-gray-300 bg-transparent text-sm text-gray-500 transition-colors file:mr-5 file:border-collapse file:cursor-pointer file:rounded-l-lg file:border-0 file:border-r file:border-solid file:border-gray-200 file:bg-gray-50 file:py-3 file:pr-3 file:pl-3.5 file:text-sm file:text-gray-700 placeholder:text-gray-400 hover:file:bg-gray-100 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:text-white/90 dark:file:border-gray-800 dark:file:bg-white/[0.03] dark:file:text-gray-400 dark:placeholder:text-gray-400">
+                        <div class="text-error-500 text-xs mt-1" id="error-income_proof"></div>
+                    </div>
+                    <div class="w-full px-2.5 xl:w-1/2">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400" for="collaterol">
+                            Collaterol 
+                        </label>
+                        <input id="collaterol" name="collaterol" type="file"
+                            class="focus:border-ring-brand-300 shadow-theme-xs focus:file:ring-brand-300 h-11 w-full overflow-hidden rounded-lg border border-gray-300 bg-transparent text-sm text-gray-500 transition-colors file:mr-5 file:border-collapse file:cursor-pointer file:rounded-l-lg file:border-0 file:border-r file:border-solid file:border-gray-200 file:bg-gray-50 file:py-3 file:pr-3 file:pl-3.5 file:text-sm file:text-gray-700 placeholder:text-gray-400 hover:file:bg-gray-100 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:text-white/90 dark:file:border-gray-800 dark:file:bg-white/[0.03] dark:file:text-gray-400 dark:placeholder:text-gray-400">
+                        <div class="text-error-500 text-xs mt-1" id="error-collaterol"></div>
+                    </div>
+                    <div class="w-full px-2.5 xl:w-1/2">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400" for="photo">
+                            Photo <span class="text-[#ec4a0a]">*</span>
+                        </label>
+                        <input id="photo" name="photo" type="file" accept="image/*"
+                            class="focus:border-ring-brand-300 shadow-theme-xs focus:file:ring-brand-300 h-11 w-full overflow-hidden rounded-lg border border-gray-300 bg-transparent text-sm text-gray-500 transition-colors file:mr-5 file:border-collapse file:cursor-pointer file:rounded-l-lg file:border-0 file:border-r file:border-solid file:border-gray-200 file:bg-gray-50 file:py-3 file:pr-3 file:pl-3.5 file:text-sm file:text-gray-700 placeholder:text-gray-400 hover:file:bg-gray-100 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:text-white/90 dark:file:border-gray-800 dark:file:bg-white/[0.03] dark:file:text-gray-400 dark:placeholder:text-gray-400" required>
+                        <div class="text-error-500 text-xs mt-1" id="error-photo"></div>
+                    </div>
+                    <div class="w-full px-2.5 xl:w-1/2">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400" for="signature">
+                            Signature <span class="text-[#ec4a0a]">*</span>
+                        </label>
+                        <input id="signature" name="signature" type="file" accept="image/*"
+                            class="focus:border-ring-brand-300 shadow-theme-xs focus:file:ring-brand-300 h-11 w-full overflow-hidden rounded-lg border border-gray-300 bg-transparent text-sm text-gray-500 transition-colors file:mr-5 file:border-collapse file:cursor-pointer file:rounded-l-lg file:border-0 file:border-r file:border-solid file:border-gray-200 file:bg-gray-50 file:py-3 file:pr-3 file:pl-3.5 file:text-sm file:text-gray-700 placeholder:text-gray-400 hover:file:bg-gray-100 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:text-white/90 dark:file:border-gray-800 dark:file:bg-white/[0.03] dark:file:text-gray-400 dark:placeholder:text-gray-400" required>
+                        <div class="text-error-500 text-xs mt-1" id="error-signature"></div>
+                    </div>
+                </div>
+
+                <div class="w-full py-5 mt-6">
+                    <div class="flex flex-col justify-end gap-5 xl:flex-row xl:items-center">
+                        <button type="button"
+                            id="continue-btn"
+                            class="flex items-center justify-center w-full gap-2 px-4 py-3 text-sm font-medium text-white rounded-lg bg-brand-500 hover:bg-brand-600 xl:w-auto">
+                            Continue
+                            <svg class="fill-current" width="20" height="20" viewBox="0 0 20 20" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" clip-rule="evenodd"
+                                    d="M17.4175 9.9986C17.4178 10.1909 17.3446 10.3832 17.198 10.53L12.2013 15.5301C11.9085 15.8231 11.4337 15.8233 11.1407 15.5305C10.8477 15.2377 10.8475 14.7629 11.1403 14.4699L14.8604 10.7472L3.33301 10.7472C2.91879 10.7472 2.58301 10.4114 2.58301 9.99715C2.58301 9.58294 2.91879 9.24715 3.33301 9.24715L14.8549 9.24715L11.1403 5.53016C10.8475 5.23717 10.8477 4.7623 11.1407 4.4695C11.4336 4.1767 11.9085 4.17685 12.2013 4.46984L17.1588 9.43049C17.3173 9.568 17.4175 9.77087 17.4175 9.99715C17.4175 9.99763 17.4175 9.99812 17.4175 9.9986Z"
+                                    fill=""></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% else %}
+    <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] p-5">
+        <div class="p-4 mb-4 rounded bg-red-100 text-red-800 text-center">
+            {{ error_message }}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% if is_active %}
+{% include 'loan/preview-modal.html' %}
+{% endif %}
+
+
+{% if is_active %}
+<script>
+// Prevent duplicate form submissions
+let isSubmitting = false;
+
+function toTitleCase(str) {
+    return (str || '').replace(/\w\S*/g, function(txt) {
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+    });
+}
+
+const fullNameField = document.getElementById('full_name');
+if (fullNameField) {
+    fullNameField.addEventListener('input', function() {
+        fullNameField.value = toTitleCase(fullNameField.value);
+    });
+    fullNameField.addEventListener('blur', function() {
+        fullNameField.value = toTitleCase(fullNameField.value);
+    });
+}
+
+const fatherNameField = document.getElementById('father_name');
+if (fatherNameField) {
+    fatherNameField.addEventListener('input', function() {
+        fatherNameField.value = toTitleCase(fatherNameField.value);
+    });
+    fatherNameField.addEventListener('blur', function() {
+        fatherNameField.value = toTitleCase(fatherNameField.value);
+    });
+}
+
+
+// Hook preview modal submit button to trigger form submit with loader (no logic changes)
+const submitPreviewBtn = document.getElementById('submit-preview');
+if (submitPreviewBtn) {
+    submitPreviewBtn.addEventListener('click', () => {
+        if (isSubmitting) return; // respect existing guard
+        // show loader immediately for UX; the submit handler will manage isSubmitting and final hide
+        showLoader();
+        const formEl = document.getElementById('loan-application-form');
+        if (formEl && typeof formEl.requestSubmit === 'function') {
+            formEl.requestSubmit();
+        } else if (formEl) {
+            const evt = new Event('submit', { bubbles: true, cancelable: true });
+            formEl.dispatchEvent(evt);
+        }
+    });
+}
+
+document.getElementById('loan-application-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    // Prevent duplicate submissions
+    if (isSubmitting) {
+        return;
+    }
+    isSubmitting = true;
+    showLoader();
+    
+    // Clear previous errors
+    document.querySelectorAll('[id^="error-"]').forEach(el => el.textContent = '');
+    document.getElementById('form-success').classList.add('hidden');
+    document.getElementById('form-error').classList.add('hidden');
+
+    const form = e.target;
+    const formData = new FormData(form);
+    
+    // Clean formatted numbers before submission
+    const loanAmountField = document.getElementById('loan_amount');
+    const emiAmountField = document.getElementById('emi_amount');
+    const aadhaarField = document.getElementById('adhar_number');
+    
+    if (loanAmountField && loanAmountField.value) {
+        // Remove commas and convert to plain number
+        const cleanLoanAmount = loanAmountField.value.replace(/,/g, '');
+        formData.set('loan_amount', cleanLoanAmount);
+    }
+    
+    if (emiAmountField && emiAmountField.value) {
+        // Remove commas and convert to plain number
+        const cleanEmiAmount = emiAmountField.value.replace(/,/g, '');
+        formData.set('emi_amount', cleanEmiAmount);
+    }
+    
+    if (aadhaarField && aadhaarField.value) {
+        // Remove spaces from Aadhaar number
+        const cleanAadhaar = aadhaarField.value.replace(/\s/g, '');
+        formData.set('adhar_number', cleanAadhaar);
+    }
+    
+    // Check if the checkbox is checked
+    const sameAddressChecked = document.getElementById('same-address').checked;
+    // If same address is checked, copy permanent address to current address fields
+    if (sameAddressChecked) {
+        formData.set('current_address_line_1', formData.get('address_line_1'));
+        formData.set('current_address_line_2', formData.get('address_line_2'));
+        formData.set('current_landmark', formData.get('landmark'));
+        formData.set('current_post_office', formData.get('post_office'));
+        formData.set('current_city_or_town', formData.get('city_or_town'));
+        formData.set('current_district', formData.get('district'));
+        formData.set('current_state', formData.get('state'));
+        formData.set('current_country', formData.get('country'));
+        formData.set('current_post_code', formData.get('post_code'));
+        
+        // Clear residential proof fields when same address is checked
+        formData.delete('residential_proof_type');
+        formData.delete('residential_proof_file');
+        
+        // Clear the file input field
+        const residentialProofFileInput = document.getElementById('residential_proof_file');
+        if (residentialProofFileInput) {
+            residentialProofFileInput.value = '';
+        }
+        
+        // Clear the select field
+        const residentialProofTypeSelect = document.getElementById('residential_proof_type');
+        if (residentialProofTypeSelect) {
+            residentialProofTypeSelect.selectedIndex = 0;
+        }
+    }
+    
+    try {
+    const response = await fetch('/branch/api/application/', {
+        method: 'POST',
+        body: formData
+    });
+    const result = await response.json();
+
+    if (result.success) {
+        showToast(result.message + ' (Customer ID: ' + result.customer_id + ')', 'success');
+        
+        // Handle automatic PDF download
+        if (result.pdf_download) {
+            try {
+                // console.log('[Download] Triggering automatic PDF download:', result.pdf_download.filename);
+                // Create blob from base64
+                const binaryString = atob(result.pdf_download.content);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                const blob = new Blob([bytes], { type: 'application/pdf' });
+                
+                // Trigger automatic download
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = result.pdf_download.filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                // console.log('[Download] PDF download triggered successfully');
+            } catch (pdfError) {
+                console.error('[Download Error] Failed to trigger PDF download:', pdfError);
+            }
+        } else {
+            console.log('[Download] No PDF download data in response');
+        }
+        
+        form.reset();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        // keep loader until redirect OR a short timeout
+        setTimeout(() => {
+            hideLoader();
+            isSubmitting = false;
+        }, 1000); // optional small delay for smoother UX
+
+        // Example redirect:
+        // window.location.href = "/success-page";
+        return; // Important: exit so we don’t hit the finally block
+    } else if (result.errors) {
+        // Show field-specific errors
+        for (const [field, msg] of Object.entries(result.errors)) {
+            const errDiv = document.getElementById('error-' + field);
+            if (errDiv) errDiv.textContent = msg;
+        }
+        showToast('Please fix the errors below.', 'error');
+        hideLoader();
+    } else {
+        showToast(result.message || 'An error occurred.', 'error');
+    }
+} catch (error) {
+    console.error('Error submitting form:', error);
+    showToast('Network error occurred. Please try again.', 'error');
+    hideLoader();
+    // Auto-close modal (if open) and reload after 3 seconds
+    setTimeout(() => {
+        try {
+            const closeBtn = document.getElementById('close-preview') || document.getElementById('close-preview-x');
+            if (closeBtn) closeBtn.click();
+            const modal = document.getElementById('preview-modal');
+            if (modal) modal.classList.add('hidden');
+        } catch (_) {}
+        location.reload();
+    }, 3000);
+} finally {
+    // ✅ Only hide loader if NOT successful
+    if (!result?.success) {
+        isSubmitting = false;
+        hideLoader();
+    }
+}
+});
+// Clear error message for a field when its value changes
+['input', 'change'].forEach(eventType => {
+    document.querySelectorAll('#loan-application-form input, #loan-application-form select').forEach(field => {
+        field.addEventListener(eventType, function() {
+            const errDiv = document.getElementById('error-' + this.name);
+            if (errDiv) errDiv.textContent = '';
+        });
+    });
+});
+// Explicitly clear error for loan_category on change
+const loanCategoryField = document.getElementById('loan_category');
+if (loanCategoryField) {
+    loanCategoryField.addEventListener('change', function() {
+        const errDiv = document.getElementById('error-loan_category');
+        if (errDiv) {
+            if (this.value) {
+                errDiv.textContent = '';
+            } else {
+                // Only show error if field has been touched or form is being submitted
+                if (window.touchedFields && window.touchedFields.has('loan_category') || window._showAllErrors) {
+                    errDiv.textContent = 'This field is required.';
+                }
+            }
+        }
+    });
+}
+</script>
+
+
+
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="/static/loan/js/loan-application.js"></script>
+<!-- <script src="/static/loan/js/formValidation.js"></script> -->
+<script src="/static/loan/js/formValidation.js?v=4.0&cb=20250108&ts=1736356800"></script>
+<script src="/static/main/js/main.js"></script>
+{% endblock %}

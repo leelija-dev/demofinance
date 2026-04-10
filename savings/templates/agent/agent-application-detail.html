@@ -1,0 +1,627 @@
+{% extends "agent/base.html" %}
+
+{% load static %}
+
+{% block title %}AgentSavingsApplicationDetail{% endblock %}
+
+{% block page_id %}agentSavingsApplicationDetail{% endblock %}
+
+{% block content %}
+
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+
+        <h2 class="text-title-md2 font-bold text-black dark:text-white">Application Detail</h2>
+
+        <nav>
+
+            <ol class="flex items-center gap-2">
+
+                <li>
+
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400" href="{% url 'agent:dashboard' %}">
+
+                        Dashboard
+
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+
+                        </svg>
+
+                    </a>
+
+                </li>
+
+                <li>
+
+                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400" href="{% url 'agent:my_savings_applications' %}">
+
+                        Saving Applications
+
+                        <svg class="stroke-current" width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+
+                        </svg>
+
+                    </a>
+
+                </li>
+
+                <li class="text-sm text-gray-800 dark:text-white/90">Application Detail</li>
+
+            </ol>
+
+        </nav>
+
+    </div>
+
+
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+
+        <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+
+            <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+
+                <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Customer Information</h3>
+
+            </div>
+
+            <div class="p-5 space-y-4 sm:p-6">
+
+                <div class="grid grid-cols-2 gap-4">
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Customer ID</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.customer_id }}</p>
+
+                    </div>
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Full Name</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.full_name }}</p>
+
+                    </div>
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Contact</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.contact }}</p>
+
+                    </div>
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Email</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.email|default:"-" }}</p>
+
+                    </div>
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Aadhaar Number</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.adhar_number }}</p>
+
+                    </div>
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">PAN Number</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.pan_number }}</p>
+
+                    </div>
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Status</label>
+
+                        {% if application.status == 'hq_approved' or application.status == 'success' %}
+                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-green-500 text-white">{{ application.get_status_display|default:application.status }}</span>
+                        {% elif application.status == 'branch_approved' or application.status == 'active' %}
+                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-green-100 text-green-700">{{ application.get_status_display|default:application.status }}</span>
+                        {% elif application.status == 'disbursed' %}
+                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-blue-100 text-blue-700">{{ application.get_status_display|default:application.status }}</span>
+                        {% elif application.status == 'disbursed_fund_released' %}
+                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-blue-500 text-white">{{ application.get_status_display|default:application.status }}</span>
+                        {% elif application.status == 'reject' or application.status == 'rejected_by_branch' or application.status == 'hq_rejected' %}
+                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-red-100 text-red-700">{{ application.get_status_display|default:application.status }}</span>
+                        {% elif application.status == 'inactive' %}
+                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-gray-100 text-gray-700">{{ application.get_status_display|default:application.status }}</span>
+                        {% elif application.status == 'document_requested' or application.status == 'document_requested_by_hq' %}
+                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-yellow-100 text-yellow-800">{{ application.get_status_display|default:application.status }}</span>
+                        {% elif application.status == 'branch_document_accepted' or application.status == 'hq_document_accepted' %}
+                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-brand-500 text-white">{{ application.get_status_display|default:application.status }}</span>
+                        {% elif application.status == 'pending' or application.status == 'resubmitted' or application.status == 'branch_resubmitted' or application.status == 'hq_resubmitted' %}
+                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-orange-100 text-orange-700">{{ application.get_status_display|default:application.status }}</span>
+                        {% else %}
+                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-gray-100 text-gray-700">{{ application.get_status_display|default:application.status }}</span>
+                        {% endif %}
+
+                    </div>
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Applied At</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.submitted_at }}</p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+
+            <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+
+                <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Savings Information</h3>
+
+            </div>
+
+            <div class="p-5 space-y-4 sm:p-6">
+
+                <div class="grid grid-cols-2 gap-4">
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Application ID</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.application_id }}</p>
+
+                    </div>
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Product Type</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.get_product_type_display }}</p>
+
+                    </div>
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Product ID</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.product_id|default:"-" }}</p>
+
+                    </div>
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Installment Amount</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">₹{{ application.installment_amount|default:"-" }}</p>
+
+                    </div>
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Interest Rate (%)</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">{{ application.interest_rate|default:"-" }}{% if application.interest_rate %}%{% endif %}</p>
+
+                    </div>
+
+                    <div>
+
+                        <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Tenure</label>
+
+                        <p class="text-sm text-gray-800 dark:text-white">
+
+                            {{ application.tenure }}
+
+                            {% if application.tenure_unit %}
+
+                            (
+
+                            {% if application.tenure_unit == 'days' %}daily{% elif application.tenure_unit == 'weeks' %}weekly{% elif application.tenure_unit == 'months' %}monthly{% elif application.tenure_unit == 'years' %}yearly{% else %}{{ application.tenure_unit }}{% endif %}
+
+                            )
+
+                            {% endif %}
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="mt-6 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+
+        <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+
+            <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Nominee Details</h3>
+
+        </div>
+
+        <div class="p-5 space-y-4 sm:p-6">
+
+            <div class="grid grid-cols-2 gap-4">
+
+                <div>
+
+                    <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Nominee Name</label>
+
+                    <p class="text-sm text-gray-800 dark:text-white">{{ application.nominee_name|default:"-" }}</p>
+
+                </div>
+
+                <div>
+
+                    <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Relationship</label>
+
+                    <p class="text-sm text-gray-800 dark:text-white">{{ application.nominee_relationship|default:"-" }}</p>
+
+                </div>
+
+                <div>
+
+                    <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Nominee KYC Type</label>
+
+                    <p class="text-sm text-gray-800 dark:text-white">{% if application.nominee_kyc_type %}{{ application.get_nominee_kyc_type_display }}{% else %}-{% endif %}</p>
+
+                </div>
+
+                <div>
+
+                    <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Nominee KYC Number</label>
+
+                    <p class="text-sm text-gray-800 dark:text-white">{{ application.nominee_kyc_number|default:"-" }}</p>
+
+                </div>
+
+                <div>
+
+                    <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Nominee KYC Document</label>
+
+                    <p class="text-sm text-gray-800 dark:text-white">
+                        {% if application.nominee_kyc_document %}
+                            <a href="{{ application.nominee_kyc_document.url }}" target="_blank" class="text-brand-500 hover:underline">View</a>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="mt-6 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+
+        <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+
+            <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Address Information</h3>
+
+        </div>
+
+        <div class="p-5 space-y-4 sm:p-6">
+
+            {% if application.customer.address %}
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                    <div>
+
+                        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Permanent Address</h4>
+
+                        <hr class="w-[30%] pb-3 border-gray-300 dark:border-gray-700">
+
+                        <div class="space-y-1">
+
+                            <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.address.address_line_1 }},</p>
+
+                            {% if application.customer.address.address_line_2 %}
+
+                            <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.address.address_line_2 }},</p>
+
+                            {% endif %}
+
+                            <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.address.landmark|default:"" }},</p>
+
+                            <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.address.post_office|default:"" }} - {{ application.customer.address.post_code }},</p>
+
+                            <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.address.city_or_town }}, {{ application.customer.address.district }}, {{ application.customer.address.state }}, {{ application.customer.address.country }}</p>
+
+                        </div>
+
+                    </div>
+
+                    <div>
+
+                        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Current Address</h4>
+
+                        <hr class="w-[30%] pb-3 border-gray-300 dark:border-gray-700">
+
+                        <div class="space-y-1">
+
+                            <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.address.current_address_line_1 }},</p>
+
+                            {% if application.customer.address.current_address_line_2 %}
+
+                            <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.address.current_address_line_2 }},</p>
+
+                            {% endif %}
+
+                            <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.address.current_landmark|default:"" }},</p>
+
+                            <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.address.current_post_office|default:"" }} - {{ application.customer.address.current_post_code }},</p>
+
+                            <p class="text-sm text-gray-800 dark:text-white">{{ application.customer.address.current_city_or_town }}, {{ application.customer.address.current_district }}, {{ application.customer.address.current_state }}, {{ application.customer.address.current_country }}</p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            {% else %}
+
+                <p class="text-sm text-gray-600 dark:text-gray-400">No address available.</p>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+
+    <div class="mt-6 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+
+        <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
+
+            <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Documents</h3>
+
+        </div>
+
+        <div class="p-5 space-y-6 sm:p-6">
+
+            {% if documents %}
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+
+                        <div class="flex items-center justify-between mb-2">
+
+                            <span class="text-xs text-gray-500 dark:text-gray-400">ID Proof (Front)</span>
+
+                            <span class="text-xs text-success-500 dark:text-success-500">✓ Uploaded</span>
+
+                        </div>
+
+                        <div class="flex gap-2">
+
+                            <a href="{{ documents.id_proof.url }}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition">View</a>
+
+                        </div>
+
+                    </div>
+
+
+
+                    {% if documents.id_proof_back %}
+
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+
+                        <div class="flex items-center justify-between mb-2">
+
+                            <span class="text-xs text-gray-500 dark:text-gray-400">ID Proof (Back)</span>
+
+                            <span class="text-xs text-success-500 dark:text-success-500">✓ Uploaded</span>
+
+                        </div>
+
+                        <div class="flex gap-2">
+
+                            <a href="{{ documents.id_proof_back.url }}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition">View</a>
+
+                        </div>
+
+                    </div>
+
+                    {% endif %}
+
+
+
+                    {% if documents.pan_card_document %}
+
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+
+                        <div class="flex items-center justify-between mb-2">
+
+                            <span class="text-xs text-gray-500 dark:text-gray-400">PAN Card</span>
+
+                            <span class="text-xs text-success-500 dark:text-success-500">✓ Uploaded</span>
+
+                        </div>
+
+                        <div class="flex gap-2">
+
+                            <a href="{{ documents.pan_card_document.url }}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition">View</a>
+
+                        </div>
+
+                    </div>
+
+                    {% endif %}
+
+
+
+                    {% if documents.income_proof %}
+
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+
+                        <div class="flex items-center justify-between mb-2">
+
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Income Proof</span>
+
+                            <span class="text-xs text-success-500 dark:text-success-500">✓ Uploaded</span>
+
+                        </div>
+
+                        <div class="flex gap-2">
+
+                            <a href="{{ documents.income_proof.url }}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition">View</a>
+
+                        </div>
+
+                    </div>
+
+                    {% endif %}
+
+
+
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+
+                        <div class="flex items-center justify-between mb-2">
+
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Photo</span>
+
+                            {% if documents.photo %}
+                            <span class="text-xs text-success-500 dark:text-success-500">✓ Uploaded</span>
+                            {% else %}
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Not uploaded</span>
+                            {% endif %}
+
+                        </div>
+
+                        <div class="flex items-center space-x-3">
+
+                            {% if documents.photo %}
+                            <img src="{{ documents.photo.url }}" alt="Customer Photo" class="w-16 h-16 object-cover rounded-lg border border-gray-200 dark:border-gray-700">
+
+                            <a href="{{ documents.photo.url }}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition">View</a>
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+
+                        <div class="flex items-center justify-between mb-2">
+
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Signature</span>
+
+                            {% if documents.signature %}
+                            <span class="text-xs text-success-500 dark:text-success-500">✓ Uploaded</span>
+                            {% else %}
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Not uploaded</span>
+                            {% endif %}
+
+                        </div>
+
+                        <div class="flex gap-2">
+
+                            {% if documents.signature %}
+                            <a href="{{ documents.signature.url }}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition">View</a>
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+
+
+                    {% if documents.collateral %}
+
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+
+                        <div class="flex items-center justify-between mb-2">
+
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Collateral</span>
+
+                            <span class="text-xs text-success-500 dark:text-success-500">✓ Uploaded</span>
+
+                        </div>
+
+                        <div class="flex gap-2">
+
+                            <a href="{{ documents.collateral.url }}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition">View</a>
+
+                        </div>
+
+                    </div>
+
+                    {% endif %}
+
+
+
+                    {% if documents.residential_proof_file %}
+
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+
+                        <div class="flex items-center justify-between mb-2">
+
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Residential Proof</span>
+
+                            <span class="text-xs text-success-500 dark:text-success-500">✓ Uploaded</span>
+
+                        </div>
+
+                        <div class="flex gap-2">
+
+                            <a href="{{ documents.residential_proof_file.url }}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition">View</a>
+
+                        </div>
+
+                    </div>
+
+                    {% endif %}
+
+                </div>
+
+            {% else %}
+
+                <p class="text-sm text-gray-600 dark:text-gray-400">No documents found for this application.</p>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+
+    <div class="flex items-center justify-end gap-3 mt-6">
+
+        <a href="{% url 'agent:my_savings_applications' %}" class="inline-flex items-center justify-center rounded-md bg-gray-500 px-6 py-2 text-sm font-medium text-white hover:bg-gray-700 transition">Back</a>
+
+    </div>
+
+</div>
+
+{% endblock %}

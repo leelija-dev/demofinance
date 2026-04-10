@@ -1,0 +1,59 @@
+{% extends 'hq/base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">{{ title }}</h1>
+        {% if 'add_role' in request.user_permissions %}
+        <a href="{% url 'hq:create_role' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            Create New Role
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="bg-white shadow-md rounded my-6">
+        <table class="min-w-full">
+            <thead>
+                <tr class="bg-gray-100">
+                    <th class="px-6 py-3 border-b border-gray-200 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">Role Name</th>
+                    <th class="px-6 py-3 border-b border-gray-200 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                    <th class="px-6 py-3 border-b border-gray-200 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">Permissions</th>
+                    <th class="px-6 py-3 border-b border-gray-200 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white">
+                {% for role in roles %}
+                <tr>
+                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
+                        {{ role.name }}
+                    </td>
+                    <td class="px-6 py-4 border-b border-gray-200">
+                        {{ role.description|truncatewords:20 }}
+                    </td>
+                    <td class="px-6 py-4 border-b border-gray-200">
+                        <div class="flex flex-wrap gap-1">
+                            {% for permission in role.permissions.all %}
+                            <span class="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                                {{ permission.name }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200 text-sm leading-5">
+                        {% if 'change_role' in request.user_permissions %}
+                        <a href="{% url 'hq:edit_role' role.id %}" class="text-blue-600 hover:text-blue-900 mr-3">Edit</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="px-6 py-4 whitespace-no-wrap border-b border-gray-200 text-center">
+                        No roles found
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %} 

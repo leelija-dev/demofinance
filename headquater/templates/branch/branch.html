@@ -1,0 +1,546 @@
+{% extends "hq/base.html" %}
+{% load static %}
+
+{% block title %}Branch Management{% endblock %}
+
+{% block page_id %}BranchManagement{% endblock %}
+{% block content %}
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+    <!-- Breadcrumb Start -->
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 class="text-title-md2 font-bold text-black dark:text-white">
+            Branch Management
+        </h2>
+        <nav>
+            <ol class="flex items-center gap-2">
+                <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+                        href="{% url 'hq:dashboard' %}">Dashboard <svg class="stroke-current" width="17" height="16"
+                            viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                            </path>
+                        </svg></a></li>
+                <li class="text-sm text-gray-800 dark:text-white/90">Branch Management</li>
+            </ol>
+        </nav>
+    </div>
+    <!-- Breadcrumb End -->
+
+    <!-- Branch Management Content -->
+    <div
+        class="rounded-2xl border border-stroke bg-white px-6 pt-8 pb-6 shadow-default dark:border-gray-700 dark:bg-boxdark sm:px-8">
+        <!-- Add Branch Button & Status Filter -->
+        <div class="mb-4 flex flex-col gap-3 px-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+            <a href="{% url 'hq:register_branch' %}"
+                class="inline-flex items-center gap-2 px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600">
+                <svg class="fill-current" width="20" height="20" viewBox="0 0 20 20" fill="none"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" clip-rule="evenodd"
+                        d="M10 1.25C10.4142 1.25 10.75 1.58579 10.75 2V9.25H18C18.4142 9.25 18.75 9.58579 18.75 10C18.75 10.4142 18.4142 10.75 18 10.75H10.75V18C10.75 18.4142 10.4142 18.75 10 18.75C9.58579 18.75 9.25 18.4142 9.25 18V10.75H2C1.58579 10.75 1.25 10.4142 1.25 10C1.25 9.58579 1.58579 9.25 2 9.25H9.25V2C9.25 1.58579 9.58579 1.25 10 1.25Z"
+                        fill=""></path>
+                </svg>
+                Add New Branch
+            </a>
+
+            <form method="get" class="flex items-center gap-2 text-sm">
+                <label for="status-filter" class="text-gray-600 dark:text-gray-300 whitespace-nowrap">Status:</label>
+                <select id="status-filter" name="status" onchange="this.form.submit()"
+                    class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-boxdark dark:text-gray-200">
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All</option>
+                </select>
+            </form>
+        </div>
+        <div class="custom-scrollbar max-w-full overflow-x-auto overflow-y-visible px-5 sm:px-6">
+            <table class="min-w-full">
+                <thead class="border-y border-gray-100 py-3 dark:border-gray-800">
+                    <tr>
+                        <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6">
+                            <div class="flex items-center">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                                    ID
+                                </p>
+                            </div>
+                        </th>
+                        <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6">
+                            <div class="flex items-center">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                                    Branch Name
+                                </p>
+                            </div>
+                        </th>
+                        <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6">
+                            <div class="flex items-center">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                                    Email
+                                </p>
+                            </div>
+                        </th>
+                        <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6">
+                            <div class="flex items-center">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                                    Manager Id
+                                </p>
+                            </div>
+                        </th>
+                        <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6">
+                            <div class="flex items-center">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                                    Status
+                                </p>
+                            </div>
+                        </th>
+                        <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6">
+                            <div class="flex items-center">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                                    Actions
+                                </p>
+                            </div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for branch in branches %}
+                    <tr class="border-b border-stroke dark:border-strokedark hover:bg-gray-50 dark:hover:bg-meta-4">
+                        <td class="py-3">
+                            <div class="flex items-center">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                                    {{ branch.branch_id }}
+                                </p>
+                            </div>
+                        </td>
+                        <td class="py-3">
+                            <div class="flex items-center">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                                    {{ branch.branch_name }}
+                                </p>
+                            </div>
+                        </td>
+                        <td class="py-3">
+                            <div class="flex items-center">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                                    {{ branch.email }}
+                                </p>
+                            </div>
+                        </td>
+                        <td class="py-3">
+                            <div class="flex items-center">
+                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                                    {{ branch.manager_id }}
+                                </p>
+                            </div>
+                        </td>
+                        <td class="py-3">
+                            <div class="flex items-center">
+                                {% if branch.status %}
+                                <p
+                                    class="rounded-full bg-success-50 px-2 py-0.5 text-theme-xs font-medium text-success-600 dark:bg-success-500/15 dark:text-success-500">
+                                    Active
+                                </p>
+                                {% else %}
+                                <p
+                                    class="rounded-full bg-error-50 px-2 py-0.5 text-theme-xs font-medium text-error-600 dark:bg-error-500/15 dark:text-error-500">
+                                    Inactive
+                                </p>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="py-3">
+                            <div class="flex items-center gap-3">
+                                <a href="{% url 'hq:branch_overview' branch.branch_id %}" class="text-gray-500 hover:text-brand-500 dark:text-gray-400" title="View" aria-label="View">
+                                    <svg class="fill-current" width="18" height="18" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M10 3C5.5 3 1.73 5.61.46 9.5c1.27 3.89 5.04 6.5 9.54 6.5s8.27-2.61 9.54-6.5C18.27 5.61 14.5 3 10 3zm0 11a4.5 4.5 0 110-9 4.5 4.5 0 010 9z"/>
+                                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                                    </svg>
+                                </a>
+                                <button
+                                    class="text-gray-500 hover:text-brand-500 dark:text-gray-400 dark:hover:text-error-500 edit-branch-btn"
+                                    data-branch-id="{{ branch.branch_id }}" title="Edit" aria-label="Edit">
+                                    <svg class="fill-current" width="18" height="18" viewBox="0 0 18 18" fill="none"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd" clip-rule="evenodd"
+                                            d="M15.0911 2.78206C14.2125 1.90338 12.7878 1.90338 11.9092 2.78206L4.57524 10.116C4.26682 10.4244 4.0547 10.8158 3.96468 11.2426L3.31231 14.3352C3.25997 14.5833 3.33653 14.841 3.51583 15.0203C3.69512 15.1996 3.95286 15.2761 4.20096 15.2238L7.29355 14.5714C7.72031 14.4814 8.11172 14.2693 8.42013 13.9609L15.7541 6.62695C16.6327 5.74827 16.6327 4.32365 15.7541 3.44497L15.0911 2.78206ZM12.9698 3.84272C13.2627 3.54982 13.7376 3.54982 14.0305 3.84272L14.6934 4.50563C14.9863 4.79852 14.9863 5.2734 14.6934 5.56629L14.044 6.21573L12.3204 4.49215L12.9698 3.84272ZM11.2597 5.55281L5.6359 11.1766C5.53309 11.2794 5.46238 11.4099 5.43238 11.5522L5.01758 13.5185L6.98394 13.1037C7.1262 13.0737 7.25666 13.003 7.35947 12.9002L12.9833 7.27639L11.2597 5.55281Z"
+                                            fill=""></path>
+                                    </svg>
+                                </button>
+
+                                {% if branch.status %}
+                                <button
+                                    class="text-gray-500 hover:text-error-500 dark:text-gray-400 dark:hover:text-error-500 delete-branch-btn"
+                                    data-branch-id="{{ branch.branch_id }}" title="Deactivate" aria-label="Deactivate" data-branch-name="{{ branch.branch_name }}">
+                                    <svg class="fill-current" width="21" height="20" viewBox="0 0 21 20" fill="none"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd" clip-rule="evenodd"
+                                            d="M7.4163 3.79199C7.4163 2.54935 8.42366 1.54199 9.6663 1.54199H12.083C13.3256 1.54199 14.333 2.54935 14.333 3.79199V4.04199H16.5H17.5409C17.9551 4.04199 18.2909 4.37778 18.2909 4.79199C18.2909 5.20621 17.9551 5.54199 17.5409 5.54199H17.25V8.24687V13.2469V16.2087C17.25 17.4513 16.2427 18.4587 15 18.4587H6.75004C5.5074 18.4587 4.50004 17.4513 4.50004 16.2087V13.2469V8.24687V5.54199H4.20837C3.79416 5.54199 3.45837 5.20621 3.45837 4.79199C3.45837 4.37778 3.79416 4.04199 4.20837 4.04199H5.25004H7.4163V3.79199ZM15.75 13.2469V8.24687V5.54199H14.333H13.583H8.1663H7.4163H6.00004V8.24687V13.2469V16.2087C6.00004 16.6229 6.33583 16.9587 6.75004 16.9587H15C15.4143 16.9587 15.75 16.6229 15.75 16.2087V13.2469ZM8.9163 4.04199H12.833V3.79199C12.833 3.37778 12.4972 3.04199 12.083 3.04199H9.6663C9.25209 3.04199 8.9163 3.37778 8.9163 3.79199V4.04199ZM9.20837 8.00033C9.62259 8.00033 9.95837 8.33611 9.95837 8.75033V13.7503C9.95837 14.1645 9.62259 14.5003 9.20837 14.5003C8.79416 14.5003 8.45837 14.1645 8.45837 13.7503V8.75033C8.45837 8.33611 8.79416 8.00033 9.20837 8.00033ZM13.2917 8.75033C13.2917 8.33611 12.9559 8.00033 12.5417 8.00033C12.1275 8.00033 11.7917 8.33611 11.7917 8.75033V13.7503C11.7917 14.1645 12.1275 14.5003 12.5417 14.5003C12.9559 14.5003 13.2917 14.1645 13.2917 13.7503V8.75033Z"
+                                            fill=""></path>
+                                    </svg>
+                                </button>
+                                {% else %}
+                                <button
+                                    class="text-gray-500 hover:text-success-600 dark:text-gray-400 dark:hover:text-success-500 activate-branch-btn"
+                                    data-branch-id="{{ branch.branch_id }}" title="Activate" aria-label="Activate" data-branch-name="{{ branch.branch_name }}">
+                                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12 2V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M7.5 4.6C5.1 6.2 3.5 8.9 3.5 12C3.5 16.694 7.306 20.5 12 20.5C16.694 20.5 20.5 16.694 20.5 12C20.5 8.9 18.9 6.2 16.5 4.6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr class="border-b border-stroke dark:border-gray-700">
+                        <td colspan="6" class="py-3">
+                            <p class="text-red-500 text-md dark:text-gray-400 flex justify-center">
+                                No branches found 
+                            </p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<!-- ===== Page Wrapper End ===== -->
+
+<!-- CSRF Token for AJAX requests -->
+{% csrf_token %}
+
+<!-- Edit Branch Modal -->
+<div id="editBranchModal" style="display:none;"
+    class="fixed bg-gray-400/50 backdrop-blur-[32px] inset-0 z-9999 overflow-y-auto" aria-labelledby="modal-title"
+    role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-gray-500/75 dark:bg-gray-900/75 backdrop-blur-sm transition-opacity"
+        onclick="closeEditBranchModal()"></div>
+    <div class="flex w-full min-h-full items-center justify-center p-4 text-center sm:p-0">
+        <div
+            class="relative transform overflow-hidden rounded-lg bg-white dark:bg-boxdark text-left shadow-xl transition-all sm:my-8 w-[70%] mx-auto max-h-[90vh]">
+            <div class="bg-white dark:bg-boxdark px-4 pt-5 pb-4 sm:p-6 sm:pb-4 flex items-center justify-between">
+                <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Edit Branch</h3>
+                <button onclick="closeEditBranchModal()" class="text-gray-400 hover:text-gray-500 focus:outline-none">
+                    <span class="sr-only">Close</span>
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="bg-white dark:bg-boxdark px-4 pt-5 pb-4 sm:p-6 sm:pb-4 flex-1 overflow-y-auto h-[80vh]"
+                id="editBranchFormContainer">
+                <!-- Edit form will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Branch Modal -->
+<div id="deleteBranchModal" style="display:none;"
+    class="fixed flex items-center justify-center bg-black/50 inset-0 z-9999 overflow-y-auto"
+    aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-black/50"
+        onclick="closeDeleteBranchModal()"></div>
+    <div class="flex w-full min-h-full items-center justify-center p-4 text-center sm:p-0">
+        <div
+            class="relative transform overflow-hidden rounded-lg bg-white dark:bg-boxdark text-left shadow-xl transition-all sm:my-8 w-[40%] mx-auto max-h-[90vh]">
+            <div class="bg-white dark:bg-boxdark px-4 pt-5 pb-4 sm:p-6 sm:pb-4 flex items-center justify-between">
+                <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Deactivation Branch</h3>
+                <button onclick="closeDeleteBranchModal()" class="text-gray-400 hover:text-gray-500 focus:outline-none">
+                    <span class="sr-only">Close</span>
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="bg-white dark:bg-boxdark px-4 pt-5 pb-4 sm:p-6 sm:pb-4 flex-1 overflow-y-auto">
+                <div class="sm:flex sm:items-start sm:gap-4">
+                    <div
+                        class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900 sm:mx-0 sm:h-10 sm:w-10">
+                        <svg class="h-6 w-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                    </div>
+                    <div class="mt-3 text-center sm:mt-0 sm:text-left flex-1 w-full">
+                        <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">
+                            Deactivate Branch
+                        </h3>
+                        <div class="mt-2">
+                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                Are you sure you want to deactivate the branch "<span id="deleteBranchName"
+                                    class="font-medium text-gray-900 dark:text-white"></span>"? 
+                            </p>
+                        </div>
+
+                        <div class="mt-4 w-full" id="deleteBranchActivityContainer" style="display:none;">
+                            <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-3 w-full">
+                                <p class="text-sm font-medium text-gray-900 dark:text-white">Branch Activities</p>
+                                <div class="mt-2 grid grid-cols-2 gap-2 text-sm">
+                                    <div class="text-gray-600 dark:text-gray-300">Provided Amount: <span id="branchActProvided" class="font-medium text-gray-900 dark:text-white">-</span></div>
+                                    <div class="text-gray-600 dark:text-gray-300">Received Amount: <span id="branchActReceived" class="font-medium text-gray-900 dark:text-white">-</span></div>
+                                    <div class="text-gray-600 dark:text-gray-300">Due Amount: <span id="branchActDue" class="font-medium text-gray-900 dark:text-white">-</span></div>
+                                    <div class="text-gray-600 dark:text-gray-300">Employees: <span id="branchActEmployees" class="font-medium text-gray-900 dark:text-white">-</span></div>
+                                    <div class="text-gray-600 dark:text-gray-300">Agents (Total): <span id="branchActAgentsTotal" class="font-medium text-gray-900 dark:text-white">-</span></div>
+                                    <div class="text-gray-600 dark:text-gray-300">Agent Active: <span id="branchActAgentsActive" class="font-medium text-gray-900 dark:text-white">-</span></div>
+                                    <div class="text-gray-600 dark:text-gray-300">Agent Inactive: <span id="branchActAgentsInactive" class="font-medium text-gray-900 dark:text-white">-</span></div>
+                                    <div class="text-gray-600 dark:text-gray-300">Customers: <span id="branchActCustomers" class="font-medium text-gray-900 dark:text-white">-</span></div>
+                                    <div class="text-gray-600 dark:text-gray-300">Loans: <span id="branchActLoans" class="font-medium text-gray-900 dark:text-white">-</span></div>
+                                    <div class="text-gray-600 dark:text-gray-300">Transactions: <span id="branchActTransactions" class="font-medium text-gray-900 dark:text-white">-</span></div>
+                                    <div class="text-gray-600 dark:text-gray-300">Agent Deposits: <span id="branchActDeposits" class="font-medium text-gray-900 dark:text-white">-</span></div>
+                                </div>
+
+                                <div class="mt-3" id="branchActRecentWrap" style="display:none;">
+                                    <p class="text-xs font-medium text-gray-700 dark:text-gray-200">Recent Loans</p>
+                                    <div id="branchActRecentLoans" class="mt-1 text-xs text-gray-600 dark:text-gray-300 space-y-1"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-3" id="deleteBranchActivityLoading" style="display:none;">
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Loading branch activities...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end dark:bg-gray-800 px-4 py-3 gap-3">
+                <button onclick="closeDeleteBranchModal()" type="button"
+                    class="mt-3 inline-flex w-full justify-center rounded-md bg-white dark:bg-gray-700 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 sm:mt-0 sm:w-auto">
+                    Cancel
+                </button>
+                <button id="confirmDeleteBranchBtn" type="button"
+                    class="px-4 py-2 text-sm font-medium text-white bg-error-500 border border-transparent rounded-md hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500">
+                    Deactivate Branch
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal and Form Handling -->
+<script>
+
+    function closeEditBranchModal() {
+        // console.log('closeEditBranchModal function called'); // Debug log
+        document.getElementById('editBranchModal').style.display = 'none';
+        document.getElementById('editBranchFormContainer').innerHTML = '';
+    }
+
+    // Make the function globally available
+    window.closeEditBranchModal = closeEditBranchModal;
+    // console.log('closeEditBranchModal function made globally available'); // Debug log
+
+    // Set up edit button event listeners immediately
+    document.querySelectorAll('.edit-branch-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var branchId = this.getAttribute('data-branch-id');
+            fetch(`/hq/branch/${branchId}/edit/`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('editBranchFormContainer').innerHTML = html;
+                    document.getElementById('editBranchModal').style.display = 'block';
+                });
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Additional setup if needed
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.activate-branch-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const branchId = this.getAttribute('data-branch-id');
+                const branchName = this.getAttribute('data-branch-name') || 'this branch';
+                if (!branchId) return;
+
+                Swal.fire({
+                    title: 'Confirm Activate',
+                    text: `Do you want to activate the branch "${branchName}"?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#16a34a',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Activate'
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+
+                    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+                    fetch(`/hq/branch/${branchId}/activate/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRFToken': csrfToken,
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `csrfmiddlewaretoken=${csrfToken}`
+                    })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.success) {
+                                window.showToast(data.message || 'Branch activated successfully.', 'success');
+                                setTimeout(() => {
+                                    window.location.href = data.redirect_url || window.location.href;
+                                }, 800);
+                            } else {
+                                window.showToast(data.message || 'Failed to activate branch.', 'error');
+                            }
+                        })
+                        .catch(() => {
+                            window.showToast('An error occurred while activating the branch.', 'error');
+                        });
+                });
+            });
+        });
+    });
+
+    let branchToDelete = null;
+    function closeDeleteBranchModal() {
+        document.getElementById('deleteBranchModal').style.display = 'none';
+        document.getElementById('deleteBranchName').textContent = '';
+        document.getElementById('deleteBranchActivityContainer').style.display = 'none';
+        document.getElementById('deleteBranchActivityLoading').style.display = 'none';
+        document.getElementById('branchActProvided').textContent = '-';
+        document.getElementById('branchActReceived').textContent = '-';
+        document.getElementById('branchActDue').textContent = '-';
+        document.getElementById('branchActEmployees').textContent = '-';
+        document.getElementById('branchActAgentsTotal').textContent = '-';
+        document.getElementById('branchActAgentsActive').textContent = '-';
+        document.getElementById('branchActAgentsInactive').textContent = '-';
+        document.getElementById('branchActCustomers').textContent = '-';
+        document.getElementById('branchActLoans').textContent = '-';
+        document.getElementById('branchActTransactions').textContent = '-';
+        document.getElementById('branchActDeposits').textContent = '-';
+        document.getElementById('branchActRecentWrap').style.display = 'none';
+        document.getElementById('branchActRecentLoans').innerHTML = '';
+        branchToDelete = null;
+    }
+
+    function escapeHtml(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function loadBranchActivitiesForDeleteModal(branchId) {
+        const loadingEl = document.getElementById('deleteBranchActivityLoading');
+        const containerEl = document.getElementById('deleteBranchActivityContainer');
+        loadingEl.style.display = 'block';
+        containerEl.style.display = 'none';
+
+        fetch(`/hq/branch/${branchId}/activity-summary/`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(r => r.json())
+            .then(data => {
+                if (!data || !data.success) {
+                    throw new Error((data && data.message) || 'Failed to load branch activities.');
+                }
+
+                const provided = (data.funds && typeof data.funds.provided_to_branch !== 'undefined') ? data.funds.provided_to_branch : '-';
+                const received = (data.funds && typeof data.funds.received_from_branch !== 'undefined') ? data.funds.received_from_branch : '-';
+                const due = (data.funds && typeof data.funds.due_amount !== 'undefined') ? data.funds.due_amount : '-';
+                document.getElementById('branchActProvided').textContent = provided;
+                document.getElementById('branchActReceived').textContent = received;
+                document.getElementById('branchActDue').textContent = due;
+
+                document.getElementById('branchActEmployees').textContent = data.employees ? data.employees.total : '-';
+                document.getElementById('branchActAgentsTotal').textContent = (data.agents && typeof data.agents.total !== 'undefined') ? data.agents.total : '-';
+                document.getElementById('branchActAgentsActive').textContent = (data.agents && typeof data.agents.active !== 'undefined') ? data.agents.active : '-';
+                document.getElementById('branchActAgentsInactive').textContent = (data.agents && typeof data.agents.inactive !== 'undefined') ? data.agents.inactive : '-';
+                document.getElementById('branchActCustomers').textContent = data.customers ? data.customers.total : '-';
+                document.getElementById('branchActLoans').textContent = data.loans ? data.loans.total : '-';
+                document.getElementById('branchActTransactions').textContent = data.transactions ? data.transactions.total : '-';
+                document.getElementById('branchActDeposits').textContent = data.agent_deposits ? data.agent_deposits.total : '-';
+
+                const recentLoans = (data.loans && data.loans.recent) ? data.loans.recent : [];
+                const recentWrap = document.getElementById('branchActRecentWrap');
+                const recentBox = document.getElementById('branchActRecentLoans');
+
+                if (recentLoans.length) {
+                    recentWrap.style.display = 'block';
+                    recentBox.innerHTML = recentLoans.map(l => {
+                        const ref = escapeHtml(l.loan_ref_no || '');
+                        const name = escapeHtml(l.customer_name || '');
+                        const status = escapeHtml(l.status || '');
+                        const when = escapeHtml(l.submitted_at || '');
+                        return `<div class="flex justify-between gap-2"><span class="truncate">${ref} - ${name}</span><span class="whitespace-nowrap">${status} ${when ? `• ${when}` : ''}</span></div>`;
+                    }).join('');
+                } else {
+                    recentWrap.style.display = 'none';
+                    recentBox.innerHTML = '';
+                }
+
+                loadingEl.style.display = 'none';
+                containerEl.style.display = 'block';
+            })
+            .catch(err => {
+                loadingEl.style.display = 'none';
+                containerEl.style.display = 'none';
+                window.showToast(err.message || 'Failed to load branch activities.', 'error');
+            });
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.delete-branch-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                branchToDelete = this.getAttribute('data-branch-id');
+                var branchName = this.getAttribute('data-branch-name');
+                document.getElementById('deleteBranchName').textContent = branchName;
+                document.getElementById('deleteBranchModal').style.display = 'flex';
+
+                if (branchToDelete) {
+                    loadBranchActivitiesForDeleteModal(branchToDelete);
+                }
+            });
+        });
+        document.getElementById('confirmDeleteBranchBtn').addEventListener('click', function () {
+            if (!branchToDelete) return;
+
+            // Get CSRF token
+            const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+
+            fetch(`/hq/branch/${branchToDelete}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `csrfmiddlewaretoken=${csrfToken}`
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        if (response.status === 403) {
+                            throw new Error('Permission denied. You may not have the required permissions to delete this branch.');
+                        }
+                        return response.json().then(data => {
+                            throw new Error(data.message || 'Failed to delete branch.');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        closeDeleteBranchModal();
+                        // Show success message
+                        window.showToast(data.message, 'success');
+                        // Reload the page after a short delay
+                        setTimeout(() => {
+                            window.location.href = data.redirect_url || window.location.href;
+                        }, 1000);
+                    } else {
+                        window.showToast(data.message || 'Failed to delete branch.', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    window.showToast(error.message || 'An error occurred while deleting the branch.', 'error');
+                });
+        });
+    });
+</script>
+{% endblock %}

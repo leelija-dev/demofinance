@@ -1,0 +1,120 @@
+{% extends 'branch/base.html' %}
+{% load static %}
+
+{% block title %}Completed Loan{% endblock %}
+
+{% block page_id %}loanCompletedClosed{% endblock %}
+
+{% block content %}
+
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+  <!-- Breadcrumb Start -->
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <h2 class="text-title-md2 font-bold text-black dark:text-white">
+          Completed Loans
+      </h2>
+      <nav>
+          <ol class="flex items-center gap-2">
+              <li><a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+                      href="{% url 'branch:dashboard' %}">Dashboard <svg class="stroke-current" width="17" height="16"
+                          viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366" stroke="" stroke-width="1.2"
+                              stroke-linecap="round" stroke-linejoin="round">
+                          </path>
+                      </svg></a></li>
+              <li class="text-sm text-gray-800 dark:text-white/90">Completed Loans</li>
+          </ol>
+      </nav>
+    </div>
+
+    <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        <div class="p-5 space-y-6 border-t border-gray-100 dark:border-gray-800 sm:p-6">
+            <div class="custom-scrollbar overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead>
+                        <tr>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Loan Ref No</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Customer Name</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Agent</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Loan Amount</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Loan Category</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Closed At</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="completed-applications-tbody" class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const tbody = document.getElementById('completed-applications-tbody');
+      const row = (cells) => `<tr>${cells.map(c => `<td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">${c}</td>`).join('')}</tr>`;
+    
+      try {
+        const res = await fetch("{% url 'branch:api_completed_closed_loans' %}", { credentials: 'include' });
+        if (!res.ok) throw new Error('Failed to load data');
+        const data = await res.json();
+        const items = data.completed || [];
+    
+        if (!items.length) {
+          tbody.innerHTML = row(['No records', '', '', '', '', '', '', '']);
+          return;
+        }
+    
+        tbody.innerHTML = items.map(it => {
+          const amount = (it.loan_amount != null) ? it.loan_amount.toLocaleString() : '-';
+          const requestId = it.request_id;
+          const closedAt = it.closed_at ? new Date(it.closed_at).toLocaleString() : '-';
+          const nocAction = requestId
+            ? `<button class="inline-block px-3 py-1 mb-1 text-xs font-medium rounded bg-green-600 text-white transition" onclick="downloadNoc(this, '${requestId}')">
+                 Download NOC
+               </button>`
+            : `<span class="inline-block px-3 py-1 text-xs text-gray-400">NOC not available</span>`;
+
+          return row([
+            it.loan_ref_no || '-',
+            it.customer_name || '-',
+            it.agent_name || '-',
+            amount,
+            it.loan_category_name || it.loan_category || '-',
+            it.status == 'approved' ? 'Closed' : '-' || '-',
+            closedAt,
+            `${nocAction}
+            <br>
+            <a href="/branch/application-detail/${it.customer_id}/${it.loan_ref_no}/?dflag=details"
+               class="inline-block px-3 py-1 text-xs font-medium rounded border border-brand-500 bg-brand-500 text-white hover:bg-brand-600 transition">
+               view
+            </a>
+            <a href="{% url 'branch:emi_schedule' %}?loan_ref_no=${it.loan_ref_no}"
+               class="inline-block px-3 py-1 text-xs font-medium rounded border border-gray-500 bg-gray-200 text-gray-800 hover:bg-gray-600 hover:text-white transition">
+               EMI
+            </a>
+            `
+          ]);
+        }).join('');
+      } catch (e) {
+        tbody.innerHTML = row(['Error loading data', '', '', '', '', '', '', '']);
+        console.error(e);
+      }
+    });
+    function downloadNoc(button, requestId) {
+      const originalText = button.textContent;
+      button.textContent = 'Downloading...';
+      button.disabled = true;
+
+      window.location.href = `/hq/close-requests/${encodeURIComponent(requestId)}/noc.pdf`;
+
+      setTimeout(() => {
+        button.textContent = originalText;
+        button.disabled = false;
+      }, 3000);
+    }
+    </script>
+{% endblock %}

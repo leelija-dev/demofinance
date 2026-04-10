@@ -1,0 +1,159 @@
+{% extends 'branch/base.html' %}
+
+{% block title %}Customer List{% endblock %}
+{% block page_id %}customer{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+  <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <h2 class="text-title-md2 font-bold text-black dark:text-white">Customer List</h2>
+
+  </div>
+
+  <div class="rounded-2xl border border-stroke bg-white px-6 pt-8 pb-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-8">
+    <div class="w-full flex flex-wrap items-center gap-2 justify-between mb-4 sm:mb-0 sm:flex-nowrap sm:gap-0 sm:justify-start">
+    <form method="get" class="w-full flex flex-wrap items-center gap-2 justify-between">
+      <input
+        type="text"
+        name="q"
+        value="{{ q|default:'' }}"
+        placeholder="Search by ID / name / phone / Aadhaar / PAN"
+        class="w-[320px] rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
+      />
+      <select
+        name="agent"
+        class="w-[200px] rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
+      >
+        <option value="">All Agents</option>
+        {% for a in agents %}
+          <option value="{{ a.agent_id }}" {% if selected_agent == a.agent_id %}selected{% endif %}>{{ a.full_name }}</option>
+        {% endfor %}
+      </select>
+      <select
+        name="loan"
+        class="w-[200px] rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
+      >
+        <option value="" {% if not loan_filter %}selected{% endif %}>All Loans</option>
+        <option value="daily" {% if loan_filter == 'daily' %}selected{% endif %}>Daily Loan</option>
+        <option value="weekly" {% if loan_filter == 'weekly' %}selected{% endif %}>Weekly Loan</option>
+        <option value="monthly" {% if loan_filter == 'monthly' %}selected{% endif %}>Monthly Loan</option>
+      </select>
+      <select
+        name="savings"
+        class="w-[200px] rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
+      >
+        <option value="" {% if not savings_filter %}selected{% endif %}>All Savings</option>
+        {% for val, label in savings_type_choices %}
+          <option value="{{ val }}" {% if savings_filter == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <div class="flex items-center gap-2">
+      <button
+        type="submit"
+        class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600"
+      >
+        Search
+      </button>
+      <a
+        href="."
+        class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
+      >
+        Clear
+      </a>
+      </div>
+    </form>
+    </div>
+    <div class="custom-scrollbar max-w-full overflow-x-auto overflow-y-visible px-5 sm:px-6">
+      <table class="min-w-full">
+        <thead class="border-y border-gray-100 py-3 dark:border-gray-800">
+          <tr class="text-left">
+            <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6">
+              <p class="font-bold text-gray-500 text-theme-sm dark:text-gray-400">Customer ID</p>
+            </th>
+            <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6">
+              <p class="font-bold text-gray-500 text-theme-sm dark:text-gray-400">Name</p>
+            </th>
+            <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6">
+              <p class="font-bold text-gray-500 text-theme-sm dark:text-gray-400">Phone</p>
+            </th>
+            <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6">
+              <p class="font-bold text-gray-500 text-theme-sm dark:text-gray-400">Email</p>
+            </th>
+            <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6">
+              <p class="font-bold text-gray-500 text-theme-sm dark:text-gray-400">Created</p>
+            </th>
+            <th class="py-3 pr-5 font-normal whitespace-nowrap sm:pr-6">
+              <p class="font-bold text-gray-500 text-theme-sm dark:text-gray-400">Actions</p>
+            </th>
+          </tr>
+        </thead>
+        
+        <tbody>
+          {% for customer in customers_page.object_list %}
+          <tr class="border-b border-stroke dark:border-strokedark hover:bg-gray-50 dark:hover:bg-meta-4">
+            <td class="py-3">
+              <p class="text-gray-700 text-theme-sm dark:text-gray-200">{{ customer.customer_id }}</p>
+            </td>
+            <td class="py-3">
+              <p class="text-gray-700 text-theme-sm dark:text-gray-200">{{ customer.full_name }}</p>
+            </td>
+            <td class="py-3">
+              <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ customer.contact }}</p>
+            </td>
+            <td class="py-3">
+              <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ customer.email|default:'-' }}</p>
+            </td>
+            <td class="py-3">
+              <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ customer.submitted_at|date:'d-m-Y' }}</p>
+            </td>
+            <td class="py-3">
+              <div class="flex items-center gap-2">
+                <a href="{% url 'branch:customer_detail' customer.customer_id %}" class="inline-flex items-center justify-center rounded-md bg-brand-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-600">
+                  View
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr class="border-b border-stroke dark:border-strokedark">
+            <td colspan="6" class="py-8 text-center">
+              <p class="text-gray-500 text-theme-sm dark:text-gray-400">No customers found</p>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="flex items-center justify-between pt-4">
+      <div class="text-sm text-gray-600">
+        {% if customers_page %}
+          Page {{ customers_page.number }} of {{ customers_page.paginator.num_pages }}
+        {% endif %}
+      </div>
+      {% if customers_page and customers_page.paginator.num_pages > 1 %}
+        <div class="inline-flex gap-2">
+          {% if customers_page.has_previous %}
+            <a class="px-3 py-1 text-sm border rounded-md" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ customers_page.previous_page_number }}">Previous</a>
+          {% else %}
+            <span class="px-3 py-1 text-sm border rounded-md text-gray-400">Previous</span>
+          {% endif %}
+          {% for p in page_links %}
+            {% if p == '…' or p == '...' %}
+              <span class="px-3 py-1 text-sm border rounded-md text-gray-400">{{ p }}</span>
+            {% elif p == customers_page.number %}
+              <span class="px-3 py-1 text-sm border rounded-md bg-blue-500 text-white">{{ p }}</span>
+            {% else %}
+              <a class="px-3 py-1 text-sm border rounded-md" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ p }}">{{ p }}</a>
+            {% endif %}
+          {% endfor %}
+          {% if customers_page.has_next %}
+            <a class="px-3 py-1 text-sm border rounded-md" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ customers_page.next_page_number }}">Next</a>
+          {% else %}
+            <span class="px-3 py-1 text-sm border rounded-md text-gray-400">Next</span>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
