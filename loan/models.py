@@ -81,13 +81,13 @@ class LoanApplication(models.Model):
         Use force=True to overwrite an existing snapshot.
         """
 
-        print('Start  populating customer snapshot ...................................................')
+        # print('Start  populating customer snapshot ...................................................')
         if not self.customer:
-            print('Nothing to snapshot')
+            # print('Nothing to snapshot')
             return  # Nothing to snapshot
 
         if self.customer_snapshot and not force:
-            print('Already has snapshot (skip unless forced)')
+            # print('Already has snapshot (skip unless forced)')
             return  # Already has snapshot (skip unless forced)
 
         snapshot = {
