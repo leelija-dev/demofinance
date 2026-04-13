@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'agent.apps.AgentConfig',
     'loan.apps.LoanConfig',
     'savings.apps.SavingsConfig',
+    'data_import.apps.DataImportConfig',
 ]
 
 AUTH_USER_MODEL = 'headquater.HeadquarterEmployee'
