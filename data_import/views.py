@@ -24,7 +24,7 @@ from headquater.decorators import require_super_admin
 from loan.models import (
     LoanApplication, CustomerDetail, CustomerAddress, CustomerAccount,
     CustomerLoanDetail, LoanEMISchedule, LoanCategory, LoanInterest, LoanTenure,
-    Product, Shop, ShopBankAccount
+    Product, Shop, ShopBankAccount, CustomerDocument
 )
 from headquater.models import Branch, HeadquarterEmployee
 from agent.models import Agent
@@ -33,17 +33,37 @@ from agent.models import Agent
 logger = logging.getLogger(__name__)
 
 def validate_required_columns(df):
-    """Validate that required columns are present in DataFrame"""
+    """Validate that required columns are present in the Excel file"""
     required_columns = [
-        'customer_type', 'full_name', 'date_of_birth', 'gender', 'contact', 
-        'adhar_number', 'address_line_1', 'city_or_town', 'district', 'state', 'post_code',
+        'customer_type', 'full_name', 'date_of_birth', 'gender', 'contact', 'adhar_number',
+        'address_line_1', 'city_or_town', 'district', 'state', 'post_code',
         'current_address_line_1', 'current_city_or_town', 'current_district', 'current_state', 'current_post_code',
         'account_number', 'bank_name', 'ifsc_code', 'account_type',
         'loan_category_name', 'loan_amount', 'tenure_value', 'tenure_unit', 
         'loan_purpose', 'interest_rate', 'emi_amount', 'branch_name'
     ]
     
+    # Optional columns (nullable fields from new application form)
+    optional_columns = [
+        'father_name', 'guarantor_name', 'email', 'pan_number', 'voter_number',
+        'address_line_2', 'landmark', 'post_office', 'country',
+        'current_address_line_2', 'current_landmark', 'current_post_office', 'current_country', 'residential_proof_type',
+        'product_main_category', 'product_subcategory', 'product_type', 'sale_price', 'loan_percentage', 'down_payment',
+        'shop_id', 'shop_bank_account_id',
+        'emi_start_date', 'emi_frequency',
+        # Document file paths (optional)
+        'id_proof_path', 'id_proof_back_path', 'guarantor_id_proof_path', 'pan_card_document_path',
+        'photo_path', 'signature_path', 'income_proof_path', 'collateral_path', 'residential_proof_file_path'
+    ]
+    
+    # Check required columns
     missing_columns = [col for col in required_columns if col not in df.columns]
+    
+    # Log which optional columns are available
+    available_optional = [col for col in optional_columns if col in df.columns]
+    if available_optional:
+        logger.info(f"Optional columns found in Excel: {', '.join(available_optional)}")
+    
     return missing_columns
 
 def validate_data_types(row_data):
@@ -97,6 +117,101 @@ def get_or_create_reference(model, field_name, value, **kwargs):
     except model.DoesNotExist:
         logger.warning(f"Reference not found: {model.__name__} {field_name}={value}")
         return None
+
+def copy_document_file(source_path, destination_path):
+    """Helper to copy document files from source to destination"""
+    if not source_path or pd.isna(source_path):
+        return None
+    
+    try:
+        import shutil
+        from django.conf import settings
+        
+        # Ensure source path exists
+        if not os.path.exists(source_path):
+            logger.warning(f"Source document file not found: {source_path}")
+            return None
+        
+        # Create destination directory if it doesn't exist
+        dest_dir = os.path.dirname(destination_path)
+        if dest_dir and not os.path.exists(dest_dir):
+            os.makedirs(dest_dir, exist_ok=True)
+        
+        # Copy the file
+        shutil.copy2(source_path, destination_path)
+        logger.info(f"Document copied: {source_path} -> {destination_path}")
+        return destination_path
+        
+    except Exception as e:
+        logger.error(f"Error copying document from {source_path} to {destination_path}: {str(e)}")
+        return None
+
+def process_document_upload(row_data, loan_application, agent, branch):
+    """Process document uploads from Excel file paths"""
+    try:
+        document_data = {
+            'loan_application': loan_application,
+            'agent': agent,
+            'branch': branch,
+        }
+        
+        # Process each document if path is provided
+        document_fields = {
+            'id_proof': 'id_proof_path',
+            'id_proof_back': 'id_proof_back_path',
+            'guarantor_id_proof': 'guarantor_id_proof_path',
+            'pan_card_document': 'pan_card_document_path',
+            'photo': 'photo_path',
+            'signature': 'signature_path',
+            'income_proof': 'income_proof_path',
+            'collateral': 'collateral_path',
+            'residential_proof_file': 'residential_proof_file_path'
+        }
+        
+        documents_created = False
+        for field_name, path_column in document_fields.items():
+            source_path = row_data.get(path_column)
+            if source_path and pd.notna(source_path):
+                # Generate destination path based on field type
+                from django.conf import settings
+                import uuid
+                
+                file_extension = os.path.splitext(source_path)[1]
+                if not file_extension:
+                    file_extension = '.jpg'  # Default extension
+                
+                unique_filename = f"{uuid.uuid4().hex}{file_extension}"
+                
+                # Determine upload path based on document type
+                upload_paths = {
+                    'id_proof': f'static/customer/id_proof/{unique_filename}',
+                    'id_proof_back': f'static/customer/id_proof/{unique_filename}',
+                    'guarantor_id_proof': f'static/customer/guarantor_id_proof/{unique_filename}',
+                    'pan_card_document': f'static/customer/pan_card/{unique_filename}',
+                    'photo': f'static/customer/photo/{unique_filename}',
+                    'signature': f'static/customer/signature/{unique_filename}',
+                    'income_proof': f'static/customer/income_proof/{unique_filename}',
+                    'collateral': f'static/customer/collateral/{unique_filename}',
+                    'residential_proof_file': f'static/customer/residential_proof/{unique_filename}'
+                }
+                
+                destination_path = upload_paths.get(field_name)
+                if destination_path:
+                    copied_path = copy_document_file(source_path, destination_path)
+                    if copied_path:
+                        document_data[field_name] = copied_path
+                        documents_created = True
+        
+        # Create CustomerDocument record if any documents were processed
+        if documents_created:
+            CustomerDocument.objects.create(**document_data)
+            logger.info(f"Documents created for loan application {loan_application.loan_ref_no}")
+        
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error processing documents for loan application {loan_application.loan_ref_no}: {str(e)}")
+        return False
 
 def process_customer_loan_data(row_data, request):
     """Process a single row of customer and loan data"""
@@ -164,13 +279,17 @@ def process_customer_loan_data(row_data, request):
                 'district': str(row_data['district']),
                 'state': str(row_data['state']),
                 'post_code': str(row_data['post_code']),
+                'country': row_data.get('country', 'India'),  # Default to India if not provided
                 'current_address_line_1': str(row_data['current_address_line_1']),
                 'current_address_line_2': row_data.get('current_address_line_2'),
                 'current_landmark': row_data.get('current_landmark'),
+                'current_post_office': row_data.get('current_post_office'),
                 'current_city_or_town': str(row_data['current_city_or_town']),
                 'current_district': str(row_data['current_district']),
                 'current_state': str(row_data['current_state']),
                 'current_post_code': str(row_data['current_post_code']),
+                'current_country': row_data.get('current_country', 'India'),  # Default to India if not provided
+                'residential_proof_type': row_data.get('residential_proof_type'),
                 'agent': agent,
                 'branch': branch,
             }
@@ -235,12 +354,31 @@ def process_customer_loan_data(row_data, request):
                 errors.append(f"Invalid tenure: {row_data.get('tenure_value')} {row_data.get('tenure_unit')}")
                 return None, errors
             
+            # Handle product and shop information
+            product = None
+            shop = None
+            shop_bank_account = None
+            
+            # Get product if product information is provided
+            if pd.notna(row_data.get('product_type')):
+                product = get_or_create_reference(Product, 'id', row_data['product_type'])
+            
+            # Get shop if shop information is provided
+            if pd.notna(row_data.get('shop_id')):
+                shop = get_or_create_reference(Shop, 'shop_id', row_data['shop_id'])
+                
+                # Get shop bank account if provided
+                if pd.notna(row_data.get('shop_bank_account_id')):
+                    shop_bank_account = get_or_create_reference(ShopBankAccount, 'bank_account_id', row_data['shop_bank_account_id'])
+            
             # Create loan application
             loan_application = LoanApplication.objects.create(
                 customer=customer,
                 branch=branch,
                 agent=agent,
                 created_by_agent=agent,
+                shop=shop,
+                shop_bank_account=shop_bank_account,
             )
             
             # Create customer loan details
@@ -252,7 +390,7 @@ def process_customer_loan_data(row_data, request):
                 'loan_purpose': str(row_data['loan_purpose']),
                 'interest_rate': loan_interest,
                 'emi_amount': Decimal(str(row_data['emi_amount'])),
-                'product': None,
+                'product': product,  # Use the product we found earlier
                 'loan_percentage': Decimal(str(row_data.get('loan_percentage', 0))) if pd.notna(row_data.get('loan_percentage')) else None,
                 'sale_price': Decimal(str(row_data.get('sale_price', 0))) if pd.notna(row_data.get('sale_price')) else None,
                 'processing_fee': Decimal(str(row_data.get('processing_fee', 0))) if pd.notna(row_data.get('processing_fee')) else None,
@@ -307,12 +445,58 @@ def process_customer_loan_data(row_data, request):
                     logger.error(f"Error creating EMI schedule: {str(e)}")
                     errors.append(f"Error creating EMI schedule: {str(e)}")
             
+            # Process document uploads if paths are provided
+            document_success = process_document_upload(row_data, loan_application, agent, branch)
+            if not document_success:
+                errors.append("Failed to process document uploads")
+                return None, errors
+            
+            # Update all relationships after successful import
+            update_relationships_after_import(loan_application, customer)
+            
             return loan_application, []
     
     except Exception as e:
         logger.error(f"Processing error for row {row_data}: {str(e)}")
         errors.append(f"Processing error: {str(e)}")
         return None, errors
+
+def update_relationships_after_import(loan_application, customer):
+    """
+    Update all relationships after successful import to ensure proper linking
+    between related models
+    """
+    try:
+        # Update CustomerDetail.loan_application relationship
+        customer.loan_application = loan_application
+        customer.save(update_fields=['loan_application'])
+        
+        # Update CustomerAddress.loan_application relationship
+        if hasattr(customer, 'address'):
+            customer.address.loan_application = loan_application
+            customer.address.save(update_fields=['loan_application'])
+        
+        # Update CustomerAccount.loan_application relationship
+        if hasattr(customer, 'account'):
+            customer.account.loan_application = loan_application
+            customer.account.save(update_fields=['loan_application'])
+        
+        # Update CustomerLoanDetail.loan_application relationship (already set during creation)
+        # This is already handled in the main import logic
+        
+        # Update LoanApplication.customer_snapshot for historical data
+        loan_application.populate_customer_snapshot(force=True)
+        loan_application.save(update_fields=['customer_snapshot'])
+        
+        # Update EMI schedules loan_application relationship (already set during creation)
+        # This is already handled in the main import logic
+        
+        logger.info(f"Successfully updated relationships for loan application {loan_application.loan_ref_no}")
+        
+    except Exception as e:
+        logger.error(f"Error updating relationships for loan application {loan_application.loan_ref_no}: {str(e)}")
+        # Don't raise exception here as the main import was successful
+        # Just log the error for debugging
 
 @method_decorator(require_super_admin, name='dispatch')
 class UploadExcelView(View):

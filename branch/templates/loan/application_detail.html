@@ -813,7 +813,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <p class="text-sm text-gray-800 dark:text-white">${data.address.current_post_office || ''} - ${data.address.current_post_code || ''},</p>
                                 <p class="text-sm text-gray-800 dark:text-white">${data.address.current_city_or_town || '-'}, ${data.address.current_district || '-'}, ${data.address.current_state || '-'}, ${data.address.current_country || '-'}</p>
                             </div>
-                            ${data.documents.residential_proof_file ? `
+                            ${data.documents && data.documents.residential_proof_file ? `
                             <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mt-4">Residential Proof</h4>
                                 <hr class="w-[30%] pb-3 border-gray-300 dark:border-gray-700">
                                 <div class="space-y-1">
