@@ -77,6 +77,47 @@ This guide describes the required Excel file structure for uploading customer an
 - **emi_start_date**: EMI start date in YYYY-MM-DD format
 - **emi_frequency**: EMI frequency (monthly/weekly/daily)
 
+## Conditional EMI Schedule Logic
+
+### EMI Schedule Creation Rules
+The system creates EMI schedules based on the loan application status:
+
+- **disbursed_fund_released**: EMI schedules are created normally
+- **closed**: EMI schedules are created AND all payments are automatically marked as completed
+- **All other statuses**: EMI schedules are NOT created
+
+### EMI Payment Completion for Closed Loans
+When `application_status` is set to `closed`:
+1. EMI schedules are created based on tenure and frequency
+2. For each EMI schedule, an `EmiCollectionDetail` record is automatically created
+3. Payment status is set to `verified`
+4. Payment reference is set to `CLOSED_LOAN`
+5. All amounts (principal, interest) are marked as received
+6. No penalties are applied
+
+### Example Usage
+
+#### Disbursed Loan with Active EMI Schedule
+```
+| application_status | emi_start_date | emi_frequency | tenure_value | tenure_unit |
+| disbursed_fund_released | 2024-01-01 | monthly | 12 | months |
+```
+**Result**: Creates 12 EMI schedules, no payments marked as completed
+
+#### Closed Loan with Completed EMI Schedule
+```
+| application_status | emi_start_date | emi_frequency | tenure_value | tenure_unit |
+| closed | 2024-01-01 | monthly | 12 | months |
+```
+**Result**: Creates 12 EMI schedules + 12 EMI collection records marked as paid
+
+#### Pending Loan (No EMI Schedule)
+```
+| application_status | emi_start_date | emi_frequency | tenure_value | tenure_unit |
+| pending | 2024-01-01 | monthly | 12 | months |
+```
+**Result**: No EMI schedules created
+
 ### Document Upload Information (File Paths)
 - **id_proof_path**: File path to ID proof (front) document
 - **id_proof_back_path**: File path to ID proof (back) document

@@ -506,6 +506,35 @@ def process_emi_collection(row_data, loan_application, agent):
         logger.error(f"Error processing EMI collection for {loan_application.loan_ref_no}: {str(e)}")
         return False
 
+def create_emi_collection_for_closed_loan(emi_schedule, loan_application, agent):
+    """Create EMI collection record for closed loan (all payments completed)"""
+    try:
+        from django.utils import timezone
+        
+        # Create EMI collection detail with full payment completed
+        emi_collection = EmiCollectionDetail.objects.create(
+            loan_application=loan_application,
+            emi=emi_schedule,
+            collected_by_agent=agent,
+            amount_received=emi_schedule.installment_amount,
+            principal_received=emi_schedule.principal_amount,
+            interest_received=emi_schedule.interest_amount,
+            penalty_received=Decimal('0.00'),
+            payment_mode='Cash',  # Default payment mode for closed loans
+            payment_reference='CLOSED_LOAN',
+            collected_at=timezone.now(),
+            remarks='EMI automatically marked as paid for closed loan',
+            status='verified',  # Mark as verified for closed loans
+            collected=True
+        )
+        
+        logger.info(f"Created EMI collection {emi_collection.collected_id} for closed loan {loan_application.loan_ref_no}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error creating EMI collection for closed loan {loan_application.loan_ref_no}: {str(e)}")
+        return False
+
 def process_branch_transaction(row_data, loan_application, branch, transaction_type=None, amount=None, disbursement_log=None):
     """Process branch transaction information"""
     try:
@@ -748,8 +777,11 @@ def process_customer_loan_data(row_data, request):
             }
             CustomerLoanDetail.objects.create(**loan_detail_data)
             
-            # Create EMI schedule if dates provided
-            if pd.notna(row_data.get('emi_start_date')) and pd.notna(row_data.get('emi_frequency')):
+            # Create EMI schedule if dates provided and status allows it
+            application_status = str(row_data.get('application_status', 'pending'))
+            should_create_emi_schedule = application_status in ['disbursed_fund_released', 'closed']
+            
+            if should_create_emi_schedule and pd.notna(row_data.get('emi_start_date')) and pd.notna(row_data.get('emi_frequency')):
                 try:
                     emi_start_date = pd.to_datetime(row_data['emi_start_date']).date()
                     emi_frequency = str(row_data['emi_frequency'])
@@ -781,7 +813,7 @@ def process_customer_loan_data(row_data, request):
                         loan_amount = Decimal(str(row_data['loan_amount']))
                         installment_amount = Decimal(str(row_data['emi_amount']))
                         
-                        LoanEMISchedule.objects.create(
+                        emi_schedule = LoanEMISchedule.objects.create(
                             loan_application=loan_application,
                             installment_date=installment_date,
                             frequency=emi_frequency,
@@ -789,6 +821,11 @@ def process_customer_loan_data(row_data, request):
                             principal_amount=loan_amount / num_installments,
                             interest_amount=installment_amount - (loan_amount / num_installments)
                         )
+                        
+                        # If loan status is 'closed', mark all EMI payments as completed
+                        if application_status == 'closed':
+                            create_emi_collection_for_closed_loan(emi_schedule, loan_application, agent)
+                            
                 except Exception as e:
                     logger.error(f"Error creating EMI schedule: {str(e)}")
                     errors.append(f"Error creating EMI schedule: {str(e)}")
