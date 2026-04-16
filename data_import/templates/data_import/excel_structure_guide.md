@@ -91,6 +91,62 @@ This guide describes the required Excel file structure for uploading customer an
 ### Agent Information
 - **agent_name**: Agent's full name (optional)
 
+## Application Status and Timeline (Optional)
+
+### Status Management
+- **application_status**: Current application status
+  - Valid values: `pending`, `active`, `success`, `reject`, `rejected_by_branch`, `inactive`, 
+    `document_requested`, `resubmitted`, `branch_document_accepted`, `branch_approved`, 
+    `branch_resubmitted`, `hq_document_accepted`, `hq_resubmitted`, `hq_approved`, `hq_rejected`, 
+    `disbursed`, `disbursed_fund_released`, `document_requested_by_hq`
+- **approved_at**: Date when application was approved (YYYY-MM-DD)
+- **disbursed_at**: Date when loan was disbursed (YYYY-MM-DD)
+- **submitted_at**: Date when application was submitted (YYYY-MM-DD)
+- **rejection_reason**: Reason for application rejection
+- **document_request_reason**: Reason for document request
+- **ever_branch_approved**: Whether application was ever approved by branch (true/false)
+
+## Disbursement Information (Optional)
+
+### Disbursement Details
+- **disbursement_amount**: Total disbursement amount
+- **disbursement_mode**: Mode of disbursement (Cash/Bank Transfer/UPI/Cheque)
+- **disbursement_bank_name**: Destination bank name
+- **disbursement_account_number**: Destination account number
+- **disbursement_net_amount**: Net amount received by customer
+- **disbursement_tax_charges**: Tax/deduction charges
+- **disbursement_proof**: Proof of disbursement (file path or reference)
+- **disbursement_remarks**: Disbursement remarks
+- **disbursement_branch_account_id**: Source branch account ID
+- **disbursement_shop_bank_account_id**: Shop bank account ID (for shop loans)
+- **disbursement_date**: Disbursement date (YYYY-MM-DD)
+
+## EMI Collection Information (Optional)
+
+### EMI Collection Details
+- **emi_collected_amount**: Total EMI amount collected
+- **emi_principal_received**: Principal amount received
+- **emi_interest_received**: Interest amount received
+- **emi_penalty_received**: Penalty amount received
+- **emi_payment_mode**: Payment mode (Cash/Bank Transfer/UPI/Cheque)
+- **emi_payment_reference**: Payment reference number
+- **emi_collected_at**: Collection date/time (YYYY-MM-DD HH:MM:SS)
+- **emi_collected_by_agent**: Name of collecting agent
+- **emi_collection_remarks**: Collection remarks
+- **emi_status**: Collection status (pending/collected/verified/rejected)
+
+## Branch Transaction Information (Optional)
+
+### Transaction Details
+- **branch_transaction_type**: Transaction type (CREDIT/DEBIT)
+- **branch_transaction_amount**: Transaction amount
+- **branch_transaction_purpose**: Transaction purpose
+- **branch_transaction_code**: Transaction code
+- **branch_transaction_mode**: Transaction mode
+- **branch_transaction_description**: Transaction description
+- **branch_transaction_date**: Transaction date (YYYY-MM-DD HH:MM:SS)
+- **branch_transaction_account_id**: Branch account ID
+
 ## Document Upload Process
 
 ### File Path Requirements
@@ -148,6 +204,60 @@ The import system will:
 4. Roll back all changes if any critical error occurs
 5. Provide detailed error messages for failed rows
 
+## Workflow Examples
+
+### Example 1: New Loan Application with Disbursement
+```
+| customer_type | full_name | ... | application_status | approved_at | disbursement_amount | disbursement_mode | disbursement_date |
+| NEW | John Doe | ... | disbursed | 2024-01-15 | 50000 | Bank Transfer | 2024-01-16 |
+```
+
+### Example 2: Existing Loan with EMI Collection
+```
+| customer_type | full_name | ... | application_status | emi_collected_amount | emi_payment_mode | emi_collected_at | emi_collected_by_agent |
+| EXISTING | Jane Smith | ... | active | 5000 | Cash | 2024-01-20 10:30:00 | Agent Name |
+```
+
+### Example 3: Branch Transaction Recording
+```
+| customer_type | full_name | ... | branch_transaction_type | branch_transaction_amount | branch_transaction_purpose |
+| NEW | Bob Johnson | ... | DEBIT | 1000 | Processing Fee |
+```
+
+## Import Processing Order
+
+The system processes data in the following order:
+1. **Customer & Loan Creation** - Basic loan application setup
+2. **Document Upload** - Copy and link document files
+3. **Status Updates** - Application status and timeline
+4. **Disbursement Processing** - Create disbursement logs and transactions
+5. **EMI Collection** - Record EMI collections
+6. **Branch Transactions** - Create additional branch transactions
+7. **Relationship Updates** - Link all related models
+
+## Important Notes
+
+### Status Management
+- Status changes are validated against available choices
+- Timeline dates (approved_at, disbursed_at) are optional but recommended
+- Rejection and document request reasons are stored for audit trail
+
+### Disbursement Processing
+- Disbursement automatically creates `DisbursementLog` record
+- Updates loan status to 'disbursed'
+- Creates corresponding `BranchTransaction` if account specified
+- Tax charges calculated automatically: `tax_charges = amount - net_amount`
+
+### EMI Collections
+- Creates `EmiCollectionDetail` records
+- Links to collecting agent if specified
+- Supports all payment modes (Cash, Bank Transfer, UPI, Cheque)
+
+### Branch Transactions
+- Can be standalone or linked to disbursement
+- Supports both CREDIT and DEBIT transactions
+- Links to branch accounts for proper fund tracking
+
 ## Tips for Success
 
 1. **Use the template**: Download the sample Excel template for proper column names
@@ -155,6 +265,9 @@ The import system will:
 3. **Check references**: Verify that branch names, loan categories, and other references exist in the system
 4. **Test with small batches**: Start with a few rows to test your data format
 5. **Review error messages**: Carefully review any error messages to fix data issues
+6. **Status consistency**: Ensure status values match the workflow progression
+7. **Amount validation**: Verify all monetary amounts are positive numbers
+8. **Date logic**: Ensure timeline dates are in logical order (submitted < approved < disbursed)
 
 ## Support
 

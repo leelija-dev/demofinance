@@ -1,33 +1,36 @@
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.http import HttpResponse, JsonResponse
-import pandas as pd
 import os
-from datetime import datetime, date
-from decimal import Decimal, InvalidOperation
-from django.db import transaction
-from django.core.exceptions import ValidationError
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-from django.views import View
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.parsers import MultiPartParser, FormParser
 import json
 import logging
+import pandas as pd
+
+from decimal import Decimal, InvalidOperation
+from datetime import datetime, date
+from django.db import transaction
+from django.http import HttpResponse, JsonResponse
+from django.views import View
+from django.utils import timezone
+from rest_framework import status
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from rest_framework.views import APIView
+from django.core.exceptions import ValidationError
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.response import Response
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 
 # Import HQ authentication decorators
+from agent.models import Agent
+from branch.models import BranchTransaction, BranchAccount
+from headquater.models import Branch, HeadquarterEmployee
 from headquater.decorators import require_super_admin
 
 # Import models
 from loan.models import (
     LoanApplication, CustomerDetail, CustomerAddress, CustomerAccount,
     CustomerLoanDetail, LoanEMISchedule, LoanCategory, LoanInterest, LoanTenure,
-    Product, Shop, ShopBankAccount, CustomerDocument
+    Product, Shop, ShopBankAccount, CustomerDocument, DisbursementLog, EmiCollectionDetail
 )
-from headquater.models import Branch, HeadquarterEmployee
-from agent.models import Agent
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -48,12 +51,27 @@ def validate_required_columns(df):
         'father_name', 'guarantor_name', 'email', 'pan_number', 'voter_number',
         'address_line_2', 'landmark', 'post_office', 'country',
         'current_address_line_2', 'current_landmark', 'current_post_office', 'current_country', 'residential_proof_type',
-        'product_main_category', 'product_subcategory', 'product_type', 'sale_price', 'loan_percentage', 'down_payment',
-        'shop_id', 'shop_bank_account_id',
+        'product_main_category', 'product_subcategory', 'product_name', 'sale_price', 'loan_percentage', 'down_payment',
+        'shop_id', 'shop_bank_account_number',
         'emi_start_date', 'emi_frequency',
         # Document file paths (optional)
         'id_proof_path', 'id_proof_back_path', 'guarantor_id_proof_path', 'pan_card_document_path',
-        'photo_path', 'signature_path', 'income_proof_path', 'collateral_path', 'residential_proof_file_path'
+        'photo_path', 'signature_path', 'income_proof_path', 'collateral_path', 'residential_proof_file_path',
+        # Application status and timeline (optional)
+        'application_status', 'approved_at', 'disbursed_at', 'rejection_reason', 'document_request_reason',
+        'ever_branch_approved', 'submitted_at',
+        # Disbursement information (optional)
+        'disbursement_amount', 'disbursement_mode', 'disbursement_bank_name', 'disbursement_account_number',
+        'disbursement_net_amount', 'disbursement_tax_charges', 'disbursement_proof', 'disbursement_remarks',
+        'disbursement_branch_account_number', 'disbursement_shop_bank_account_number', 'disbursement_date',
+        # EMI collection information (optional)
+        'emi_collected_amount', 'emi_principal_received', 'emi_interest_received', 'emi_penalty_received',
+        'emi_payment_mode', 'emi_payment_reference', 'emi_collected_at', 'emi_collected_by_agent',
+        'emi_collection_remarks', 'emi_status',
+        # Branch transaction information (optional)
+        'branch_transaction_type', 'branch_transaction_amount', 'branch_transaction_purpose',
+        'branch_transaction_code', 'branch_transaction_mode', 'branch_transaction_description',
+        'branch_transaction_date', 'branch_transaction_account_number'
     ]
     
     # Check required columns
@@ -104,6 +122,90 @@ def validate_data_types(row_data):
                 Decimal(str(row_data[field]))
             except (InvalidOperation, ValueError):
                 errors.append(f"Invalid {field} format. Use decimal numbers")
+    
+    # Validate application status if provided
+    if row_data.get('application_status'):
+        status = str(row_data['application_status'])
+        valid_statuses = [choice[0] for choice in LoanApplication.STATUS_CHOICES]
+        if status not in valid_statuses:
+            errors.append(f"Invalid application_status. Valid options: {', '.join(valid_statuses)}")
+    
+    # Validate timeline dates if provided
+    for date_field in ['approved_at', 'disbursed_at', 'submitted_at']:
+        if row_data.get(date_field):
+            try:
+                pd.to_datetime(row_data[date_field]).date()
+            except:
+                errors.append(f"Invalid {date_field} format. Use YYYY-MM-DD")
+    
+    # Validate disbursement fields if provided
+    if row_data.get('disbursement_amount'):
+        try:
+            amount = Decimal(str(row_data['disbursement_amount']))
+            if amount <= 0:
+                errors.append("Disbursement amount must be positive")
+        except (InvalidOperation, ValueError):
+            errors.append("Invalid disbursement_amount format. Use decimal numbers")
+    
+    if row_data.get('disbursement_net_amount'):
+        try:
+            amount = Decimal(str(row_data['disbursement_net_amount']))
+            if amount <= 0:
+                errors.append("Disbursement net amount must be positive")
+        except (InvalidOperation, ValueError):
+            errors.append("Invalid disbursement_net_amount format. Use decimal numbers")
+    
+    # Validate disbursement mode if provided
+    if row_data.get('disbursement_mode'):
+        mode = str(row_data['disbursement_mode'])
+        valid_modes = ['Cash', 'Bank Transfer', 'UPI', 'Cheque']
+        if mode not in valid_modes:
+            errors.append(f"Invalid disbursement_mode. Valid options: {', '.join(valid_modes)}")
+    
+    # Validate EMI collection fields if provided
+    if row_data.get('emi_collected_amount'):
+        try:
+            amount = Decimal(str(row_data['emi_collected_amount']))
+            if amount <= 0:
+                errors.append("EMI collected amount must be positive")
+        except (InvalidOperation, ValueError):
+            errors.append("Invalid emi_collected_amount format. Use decimal numbers")
+    
+    # Validate EMI payment mode if provided
+    if row_data.get('emi_payment_mode'):
+        mode = str(row_data['emi_payment_mode'])
+        valid_modes = ['Cash', 'Bank Transfer', 'UPI', 'Cheque']
+        if mode not in valid_modes:
+            errors.append(f"Invalid emi_payment_mode. Valid options: {', '.join(valid_modes)}")
+    
+    # Validate EMI status if provided
+    if row_data.get('emi_status'):
+        status = str(row_data['emi_status'])
+        valid_statuses = ['pending', 'collected', 'verified', 'rejected']
+        if status not in valid_statuses:
+            errors.append(f"Invalid emi_status. Valid options: {', '.join(valid_statuses)}")
+    
+    # Validate branch transaction fields if provided
+    if row_data.get('branch_transaction_amount'):
+        try:
+            amount = Decimal(str(row_data['branch_transaction_amount']))
+            if amount <= 0:
+                errors.append("Branch transaction amount must be positive")
+        except (InvalidOperation, ValueError):
+            errors.append("Invalid branch_transaction_amount format. Use decimal numbers")
+    
+    # Validate branch transaction type if provided
+    if row_data.get('branch_transaction_type'):
+        trans_type = str(row_data['branch_transaction_type'])
+        valid_types = ['CREDIT', 'DEBIT']
+        if trans_type not in valid_types:
+            errors.append(f"Invalid branch_transaction_type. Valid options: {', '.join(valid_types)}")
+    
+    # Validate boolean fields if provided
+    if row_data.get('ever_branch_approved'):
+        boolean_value = str(row_data['ever_branch_approved']).lower()
+        if boolean_value not in ['true', 'false', '1', '0', 'yes', 'no', 'y', 'n', '']:
+            errors.append("Invalid ever_branch_approved. Use true/false, 1/0, yes/no")
     
     return errors
 
@@ -211,6 +313,252 @@ def process_document_upload(row_data, loan_application, agent, branch):
         
     except Exception as e:
         logger.error(f"Error processing documents for loan application {loan_application.loan_ref_no}: {str(e)}")
+        return False
+
+def process_application_status(row_data, loan_application):
+    """Process application status and timeline information"""
+    try:
+        # Update application status if provided
+        if pd.notna(row_data.get('application_status')):
+            status = str(row_data['application_status'])
+            # Validate status against available choices
+            valid_statuses = [choice[0] for choice in LoanApplication.STATUS_CHOICES]
+            if status in valid_statuses:
+                loan_application.status = status
+                logger.info(f"Updated loan application {loan_application.loan_ref_no} status to {status}")
+            else:
+                logger.warning(f"Invalid status '{status}' for loan application {loan_application.loan_ref_no}")
+        
+        # Update timeline fields
+        if pd.notna(row_data.get('approved_at')):
+            try:
+                loan_application.approved_at = None
+                approved_at = pd.to_datetime(row_data['approved_at'])
+                if not pd.isnull(approved_at):
+                    loan_application.approved_at = timezone.make_aware(approved_at.to_pydatetime())
+            except Exception as e:
+                logger.warning(f"Invalid approved_at date for {loan_application.loan_ref_no}: {str(e)}")
+        
+        if pd.notna(row_data.get('disbursed_at')):
+            try:
+                loan_application.disbursed_at = None
+                disbursed_at = pd.to_datetime(row_data['disbursed_at'])
+                if not pd.isnull(disbursed_at):
+                    loan_application.disbursed_at = timezone.make_aware(disbursed_at.to_pydatetime())
+            except Exception as e:
+                logger.warning(f"Invalid disbursed_at date for {loan_application.loan_ref_no}: {str(e)}")
+        
+        if pd.notna(row_data.get('submitted_at')):
+            try:
+                dt = pd.to_datetime(row_data['submitted_at'])
+                if pd.isnull(dt):
+                    submitted_at = None
+                else:
+                    submitted_at = timezone.make_aware(dt.to_pydatetime())
+                loan_application.submitted_at = submitted_at
+                print("submitted_at", submitted_at)
+            except Exception as e:
+                logger.warning(f"Invalid submitted_at date for {loan_application.loan_ref_no}: {str(e)}")
+        
+        # Update reason fields
+        if pd.notna(row_data.get('rejection_reason')):
+            loan_application.rejection_reason = str(row_data['rejection_reason'])
+        
+        if pd.notna(row_data.get('document_request_reason')):
+            loan_application.document_request_reason = str(row_data['document_request_reason'])
+        
+        # Update boolean fields
+        if pd.notna(row_data.get('ever_branch_approved')):
+            ever_approved = str(row_data['ever_branch_approved']).lower()
+            loan_application.ever_branch_approved = ever_approved in ['true', '1', 'yes', 'y']
+        
+        loan_application.save()
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error processing application status for {loan_application.loan_ref_no}: {str(e)}")
+        return False
+
+def process_disbursement(row_data, loan_application, branch):
+    """Process disbursement information and create disbursement log"""
+    try:
+        # Only process disbursement if amount is provided
+        if not pd.notna(row_data.get('disbursement_amount')):
+            return True  # No disbursement to process
+                
+        # Parse disbursement amount
+        disbursement_amount = Decimal(str(row_data['disbursement_amount']))
+        
+        # Parse other disbursement fields
+        disbursement_mode = str(row_data.get('disbursement_mode', 'Cash'))
+        bank_name = str(row_data.get('disbursement_bank_name', ''))
+        account_number = str(row_data.get('disbursement_account_number', ''))
+        net_amount = Decimal(str(row_data.get('disbursement_net_amount', disbursement_amount)))
+        tax_charges = disbursement_amount - net_amount
+        disbursement_proof = str(row_data.get('disbursement_proof', ''))
+        remarks = str(row_data.get('disbursement_remarks', ''))
+        
+        # Parse disbursement date
+        disbursement_date = timezone.now().date()
+        if pd.notna(row_data.get('disbursement_date')):
+            try:
+                dt = pd.to_datetime(row_data['disbursement_date'])
+                if not pd.isnull(dt):
+                    disbursement_date = timezone.make_aware(dt.to_pydatetime())
+            except Exception as e:
+                logger.warning(f"Invalid disbursement_date, using today: {str(e)}")
+        
+        # Create disbursement log
+        disbursement_log = DisbursementLog.objects.create(
+            loan_id=loan_application,
+            amount=disbursement_amount,
+            disb_mode=disbursement_mode,
+            bank_name=bank_name,
+            account_number=account_number,
+            net_amount_cust=net_amount,
+            tax_charges=tax_charges,
+            disburse_proof=disbursement_proof,
+            remarks=remarks,
+            disbursed_by=branch,
+            disbursed_to=loan_application
+        )
+        
+        logger.info(f"Created disbursement log {disbursement_log.dis_id} for {loan_application.loan_ref_no}")
+        
+        # Update loan application status to disbursed
+        loan_application.status = 'disbursed'
+        loan_application.disbursed_at = disbursement_date
+        loan_application.save()
+        
+        # Process branch transaction if account is provided
+        if pd.notna(row_data.get('disbursement_branch_account_number')):
+            process_branch_transaction(
+                row_data, 
+                loan_application, 
+                branch, 
+                'DEBIT', 
+                disbursement_amount, 
+                disbursement_log
+            )
+        
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error processing disbursement for {loan_application.loan_ref_no}: {str(e)}")
+        return False
+
+def process_emi_collection(row_data, loan_application, agent):
+    """Process EMI collection information"""
+    try:
+        # Only process EMI collection if amount is provided
+        if not pd.notna(row_data.get('emi_collected_amount')):
+            return True  # No EMI collection to process
+        
+        
+        # Parse EMI collection fields
+        amount_received = Decimal(str(row_data['emi_collected_amount']))
+        principal_received = Decimal(str(row_data.get('emi_principal_received', 0)))
+        interest_received = Decimal(str(row_data.get('emi_interest_received', 0)))
+        emi_penalty_received = row_data.get('emi_penalty_received', 0)
+        penalty_received = Decimal(str(emi_penalty_received)) if emi_penalty_received else 0.0
+
+        payment_mode = str(row_data.get('emi_payment_mode', 'Cash'))
+        payment_reference = str(row_data.get('emi_payment_reference', ''))
+        remarks = str(row_data.get('emi_collection_remarks', ''))
+        emi_status = str(row_data.get('emi_status', 'collected'))
+        
+        # Parse collection date
+        collected_at = timezone.now()
+        if pd.notna(row_data.get('emi_collected_at')):
+            try:
+                ct = pd.to_datetime(row_data['emi_collected_at'])
+                if not pd.isnull(ct):
+                    collected_at = timezone.make_aware(ct.to_pydatetime())
+            except Exception as e:
+                logger.warning(f"Invalid emi_collected_at, using now: {str(e)}")
+        
+        # Get collecting agent
+        collected_by_agent = None
+        if pd.notna(row_data.get('emi_collected_by_agent')):
+            agent_name = str(row_data['emi_collected_by_agent'])
+            collected_by_agent = get_or_create_reference(Agent, 'full_name', agent_name)
+        
+        # Create EMI collection detail
+        emi_collection = EmiCollectionDetail.objects.create(
+            loan_application=loan_application,
+            collected_by_agent=collected_by_agent,
+            amount_received=amount_received,
+            principal_received=principal_received,
+            interest_received=interest_received,
+            penalty_received=penalty_received,
+            payment_mode=payment_mode,
+            payment_reference=payment_reference,
+            collected_at=collected_at,
+            remarks=remarks,
+            status=emi_status,
+            collected=(emi_status == 'collected')
+        )
+        
+        logger.info(f"Created EMI collection {emi_collection.collected_id} for {loan_application.loan_ref_no}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error processing EMI collection for {loan_application.loan_ref_no}: {str(e)}")
+        return False
+
+def process_branch_transaction(row_data, loan_application, branch, transaction_type=None, amount=None, disbursement_log=None):
+    """Process branch transaction information"""
+    try:
+        # Use provided values or parse from row_data
+        if transaction_type is None:
+            transaction_type = str(row_data.get('branch_transaction_type', 'DEBIT'))
+        if amount is None:
+            if not pd.notna(row_data.get('branch_transaction_amount')):
+                return True  # No transaction amount to process
+            amount = Decimal(str(row_data['branch_transaction_amount']))
+        
+        # Parse transaction fields
+        purpose = str(row_data.get('branch_transaction_purpose', 'Loan Transaction'))
+        code = str(row_data.get('branch_transaction_code', ''))
+        mode = str(row_data.get('branch_transaction_mode', ''))
+        description = str(row_data.get('branch_transaction_description', ''))
+        
+        # Parse transaction date
+        transaction_date = timezone.now()
+        if pd.notna(row_data.get('branch_transaction_date')):
+            try:
+                transaction_date = pd.to_datetime(row_data['branch_transaction_date'])
+            except Exception as e:
+                logger.warning(f"Invalid branch_transaction_date, using now: {str(e)}")
+        
+        # Get branch account if provided
+        branch_account = None
+        if pd.notna(row_data.get('branch_transaction_account_number')):
+            account_number = str(row_data['branch_transaction_account_number'])
+            # Use 'account_number' for more user-friendly lookup
+            branch_account = get_or_create_reference(BranchAccount, 'account_number', account_number)
+        
+        # Create branch transaction
+        branch_transaction = BranchTransaction.objects.create(
+            branch=branch,
+            branch_account=branch_account,
+            disbursement_log=disbursement_log,
+            transaction_type=transaction_type,
+            purpose=purpose,
+            code=code,
+            mode=mode,
+            amount=amount,
+            description=description,
+            transaction_date=transaction_date,
+            loan_application=loan_application,
+            agent=loan_application.agent
+        )
+        
+        logger.info(f"Created branch transaction {branch_transaction.transaction_id} for {loan_application.loan_ref_no}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error processing branch transaction for {loan_application.loan_ref_no}: {str(e)}")
         return False
 
 def process_customer_loan_data(row_data, request):
@@ -360,16 +708,16 @@ def process_customer_loan_data(row_data, request):
             shop_bank_account = None
             
             # Get product if product information is provided
-            if pd.notna(row_data.get('product_type')):
-                product = get_or_create_reference(Product, 'id', row_data['product_type'])
+            if pd.notna(row_data.get('product_name')):
+                product = get_or_create_reference(Product, 'name', row_data['product_name'])
             
             # Get shop if shop information is provided
             if pd.notna(row_data.get('shop_id')):
                 shop = get_or_create_reference(Shop, 'shop_id', row_data['shop_id'])
                 
                 # Get shop bank account if provided
-                if pd.notna(row_data.get('shop_bank_account_id')):
-                    shop_bank_account = get_or_create_reference(ShopBankAccount, 'bank_account_id', row_data['shop_bank_account_id'])
+                if pd.notna(row_data.get('shop_bank_account_number')):
+                    shop_bank_account = get_or_create_reference(ShopBankAccount, 'bank_account_number', row_data['shop_bank_account_number'])
             
             # Create loan application
             loan_application = LoanApplication.objects.create(
@@ -449,6 +797,30 @@ def process_customer_loan_data(row_data, request):
             document_success = process_document_upload(row_data, loan_application, agent, branch)
             if not document_success:
                 errors.append("Failed to process document uploads")
+                return None, errors
+            
+            # Process application status and timeline information
+            status_success = process_application_status(row_data, loan_application)
+            if not status_success:
+                errors.append("Failed to process application status")
+                return None, errors
+            
+            # Process disbursement information
+            disbursement_success = process_disbursement(row_data, loan_application, branch)
+            if not disbursement_success:
+                errors.append("Failed to process disbursement")
+                return None, errors
+            
+            # Process EMI collection information
+            emi_success = process_emi_collection(row_data, loan_application, agent)
+            if not emi_success:
+                errors.append("Failed to process EMI collection")
+                return None, errors
+            
+            # Process branch transaction information (standalone transactions)
+            transaction_success = process_branch_transaction(row_data, loan_application, branch)
+            if not transaction_success:
+                errors.append("Failed to process branch transaction")
                 return None, errors
             
             # Update all relationships after successful import
@@ -578,9 +950,11 @@ class ProcessExcelDataView(APIView):
                 # Process all rows within a single transaction
                 for index, row_data in enumerate(excel_data, 1):
                     # Clean NaN values
+                    print('******************************---------------------------------------------')
                     row_data = {k: (v if pd.notna(v) else None) for k, v in row_data.items()}
-                    
+                    print('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$---------------------------------------------')
                     loan_application, errors = process_customer_loan_data(row_data, request)
+                    print('##############################---------------------------------------------')
                     
                     if loan_application:
                         successful_imports += 1
