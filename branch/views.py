@@ -787,13 +787,21 @@ class BranchApplicationDetailAPI(APIView):
                 print('No loan_app found for customer:', customer_id)
                 return Response({'detail': 'Not found.'}, status=404)
             address = getattr(customer, 'address', None)
-            loans = loan_app.loan_details.all()
+            loans = loan_app.loan_details.select_related('loan_category__main_category').all()
             documents = getattr(loan_app, 'documents', None)
             agent = loan_app.agent
             document_reuploads = loan_app.document_reuploads.all()
             print('reupload document', document_reuploads)
             document_reviews = loan_app.document_reviews.all()
             document_requests = loan_app.document_requests.all()
+
+            first_loan = loans.first()
+            is_shop_active = bool(
+                first_loan
+                and getattr(first_loan, 'loan_category', None)
+                and getattr(first_loan.loan_category, 'main_category', None)
+                and bool(getattr(first_loan.loan_category.main_category, 'is_shop_active', False))
+            )
 
             # Helper to get latest approved document reupload or original
             from loan.models import DocumentReupload
@@ -882,6 +890,7 @@ class BranchApplicationDetailAPI(APIView):
                     'shop_id': loan_app.shop.shop_id,
                     'name': loan_app.shop.name
                 } if loan_app.shop else None,
+                'is_shop_active': is_shop_active,
                 'address': customer_address_snapshot if is_old_loan else CustomerAddressSerializer(address).data if address else None,
                 'customer_account': (
                     customer_bank_details_snapshot if is_old_loan else 

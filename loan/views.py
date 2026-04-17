@@ -315,8 +315,12 @@ class NewLoanApplicationAPI(APIView):
                         account_errors['account_number'] = 'Account number must contain digits only.'
                     elif not 9 <= len(account_number) <= 18:
                         account_errors['account_number'] = 'Account number must be between 9 and 18 digits.'
-                    elif CustomerAccount.objects.filter(account_number=account_number).exists():
-                        account_errors['account_number'] = 'This account number is already registered.'
+                    else:
+                        account_qs = CustomerAccount.objects.filter(account_number=account_number)
+                        if existing_account_for_customer:
+                            account_qs = account_qs.exclude(pk=existing_account_for_customer.pk)
+                        if account_qs.exists():
+                            account_errors['account_number'] = 'This account number is already registered.'
                     
                     # Only validate confirm_account_number if account_number is provided
                     if not confirm_account_number:
@@ -348,17 +352,63 @@ class NewLoanApplicationAPI(APIView):
                 adhar_number = data.get('adhar_number')
                 pan_number = data.get('pan_number')
                 voter_number = data.get('voter_number')
-                if adhar_number and CustomerDetail.objects.filter(adhar_number=adhar_number).exists():
-                    errors['adhar_number'] = 'A customer with this Adhar Number already exists.'
-                if pan_number and CustomerDetail.objects.filter(pan_number=pan_number).exists():
-                    errors['pan_number'] = 'A customer with this PAN Number already exists.'
+
+                existing_customer_by_aadhaar = None
+                existing_customer_by_pan = None
+                if adhar_number:
+                    existing_customer_by_aadhaar = CustomerDetail.objects.filter(adhar_number=adhar_number).first()
+                if pan_number:
+                    existing_customer_by_pan = CustomerDetail.objects.filter(pan_number=pan_number).first()
+
+                existing_customer = None
+                if existing_customer_by_aadhaar and existing_customer_by_pan:
+                    if existing_customer_by_aadhaar.customer_id != existing_customer_by_pan.customer_id:
+                        errors['adhar_number'] = 'A customer with this Adhar Number already exists.'
+                        errors['pan_number'] = 'A customer with this PAN Number already exists.'
+                    else:
+                        existing_customer = existing_customer_by_aadhaar
+                else:
+                    existing_customer = existing_customer_by_aadhaar or existing_customer_by_pan
+
+                existing_account_for_customer = None
+                if existing_customer:
+                    existing_account_for_customer = getattr(existing_customer, 'account', None)
+
+                if existing_customer:
+                    non_rejected_loan_qs = (
+                        LoanApplication.objects
+                        .filter(customer=existing_customer)
+                        .exclude(status__in=['reject', 'hq_rejected', 'rejected_by_branch'])
+                    )
+                    
+                    active_loan_statuses = [
+                        'active',
+                        'hq_approved',
+                        'disbursed',
+                        'disbursed_fund_released',
+                        'success',
+                    ]
+                    has_any_open_loan = (
+                        non_rejected_loan_qs
+                        .filter(status__in=active_loan_statuses)
+                        .exclude(close_requests__status='approved')
+                        .exists()
+                    )
+
+                    if has_any_open_loan:
+                        errors['__all__'] = 'This customer already has an active loan. Please complete/close the existing loan (HQ approval required) before applying again.'
+                        if adhar_number and existing_customer_by_aadhaar:
+                            errors['adhar_number'] = 'A customer with this Adhar Number already exists.'
+                        if pan_number and existing_customer_by_pan:
+                            errors['pan_number'] = 'A customer with this PAN Number already exists.'
+                
                 # if voter_number and CustomerDetail.objects.filter(voter_number=voter_number).exists():
                 #     errors['voter_number'] = 'A customer with this Voter ID already exists.'
                 if (voter_number and 
                     voter_number.strip() and 
                     len(voter_number.strip()) > 0 and 
                     not voter_number.isspace() and 
-                    CustomerDetail.objects.filter(voter_number=voter_number.strip()).exclude(voter_number__isnull=True).exclude(voter_number='').exists()):
+                    CustomerDetail.objects.filter(voter_number=voter_number.strip()).exclude(voter_number__isnull=True).exclude(voter_number='').exclude(customer_id=getattr(existing_customer, 'customer_id', None)).exists()):
                     errors['voter_number'] = 'A customer with this Voter ID already exists.'
                 try:
                     loan_amount_decimal = Decimal(str(data.get('loan_amount', '')))
@@ -476,7 +526,13 @@ class NewLoanApplicationAPI(APIView):
 
                 if agent:
                     customer_kwargs['agent'] = agent
-                customer = CustomerDetail.objects.create(**customer_kwargs)
+                if existing_customer:
+                    for k, v in customer_kwargs.items():
+                        setattr(existing_customer, k, v)
+                    existing_customer.save()
+                    customer = existing_customer
+                else:
+                    customer = CustomerDetail.objects.create(**customer_kwargs)
 
                 loan_application_kwargs = dict(
                     customer=customer,
@@ -574,7 +630,13 @@ class NewLoanApplicationAPI(APIView):
                 )
                 if agent:
                     address_kwargs['agent'] = agent
-                CustomerAddress.objects.create(**address_kwargs)
+                existing_address = getattr(customer, 'address', None)
+                if existing_address:
+                    for k, v in address_kwargs.items():
+                        setattr(existing_address, k, v)
+                    existing_address.save()
+                else:
+                    CustomerAddress.objects.create(**address_kwargs)
 
                 loan_detail_kwargs = dict(
                     loan_application=loan_application,
@@ -660,7 +722,13 @@ class NewLoanApplicationAPI(APIView):
                     if account_type:
                         account_kwargs['account_type'] = account_type
                     
-                    CustomerAccount.objects.create(**account_kwargs)
+                    existing_account = getattr(customer, 'account', None)
+                    if existing_account:
+                        for k, v in account_kwargs.items():
+                            setattr(existing_account, k, v)
+                        existing_account.save()
+                    else:
+                        CustomerAccount.objects.create(**account_kwargs)
 
                 # --- Email Notification with PDF Attachment ---
                 # Initialize pdf_content so that later download logic never
@@ -1126,9 +1194,17 @@ class AgentApplicationDetailAPI(APIView):
         # Build the response dict manually for full control
         customer = loan_app.customer
         address = customer.address if hasattr(customer, 'address') else None
-        loans = loan_app.loan_details.all()
+        loans = loan_app.loan_details.select_related('loan_category__main_category').all()
         documents = getattr(loan_app, 'documents', None)
         agent = loan_app.agent
+
+        first_loan = loans.first()
+        is_shop_active = bool(
+            first_loan
+            and getattr(first_loan, 'loan_category', None)
+            and getattr(first_loan.loan_category, 'main_category', None)
+            and bool(getattr(first_loan.loan_category.main_category, 'is_shop_active', False))
+        )
 
         # Helper to get latest document reupload or original
         from loan.models import DocumentReupload
@@ -1195,6 +1271,7 @@ class AgentApplicationDetailAPI(APIView):
                 'shop_id': loan_app.shop.shop_id,
                 'name': loan_app.shop.name
             } if loan_app.shop else None,
+            'is_shop_active': is_shop_active,
             'loans': CustomerLoanDetailSerializer(loans, many=True).data,
             'address': customer_address_snapshot if is_old_loan else CustomerAddressSerializer(address).data if address else None,
             'customer_account': (

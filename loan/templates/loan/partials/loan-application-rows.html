@@ -35,6 +35,8 @@
             <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-success-500 text-green-800">Success</span>
         {% elif app.status == 'reject' %}
             <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-error-500 text-red-800">Rejected</span>
+        {% elif app.status == 'closed' %}
+            <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-gray-200 text-gray-700">Closed</span>
         {% else %}
             <span class="inline-block px-2 py-1 text-xs font-semibold rounded bg-gray-200 text-gray-700">Inactive</span>
         {% endif %}
