@@ -560,18 +560,26 @@ document.addEventListener('DOMContentLoaded', function() {
             const deductionDiv = document.getElementById('deduction-div');
             // const deductions = app.deductions || [];
             const decoded_shapshot = JSON.parse(loan.processing_fee_snapshot);
-            const deductions = Array.isArray(decoded_shapshot) ? decoded_shapshot : [];
-            //console.log('deductions ', deductions);
+            const isSnapshotArray = Array.isArray(decoded_shapshot);
+            let deductions = Array.isArray(decoded_shapshot) ? decoded_shapshot : app.deductions;
+            if (isSnapshotArray) {
+                deductions = deductions.filter(d => d && d.checked === true);
+            }
+            console.log('deductions ', deductions);
             
             deductions.forEach(deduction => {
                 const isPercentage = deduction.deduction_type === 'percentage';
                 const symbol = isPercentage ? '%' : '₹';
                 const isActive = deduction.is_active !== false; // Default to true if not specified
+
                 const displayValue = isPercentage ? 
                     `${deduction.deduction_value}%` : 
                     `₹${parseFloat(deduction.deduction_value || 0).toFixed(2)}`;
-                
-                deductionDiv.innerHTML += `
+
+                const deductionLabel = isSnapshotArray 
+                    ? deduction.name 
+                    : deduction.deduction_name;
+                            deductionDiv.innerHTML += `
                     <div class="deduction-row mb-3">
                         <label class="inline-flex items-center">
                             <input 
@@ -582,10 +590,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                 data-deduction-value="${deduction.deduction_value || '0'}"
                                 ${isActive ? 'checked' : ''}
                                 onchange="calculateNetAmount()"
-                                disabled
+                        ${Array.isArray(decoded_shapshot)?'disabled':''}
                             >
                             <span class="ml-2 text-sm font-medium text-gray-700">
-                                ${deduction.name} - ${displayValue}
+                                ${deductionLabel} - ${displayValue}
                                 ${deduction.deduction_description ? `<span class="text-xs text-gray-500 ml-2">(${deduction.deduction_description})</span>` : ''}
                             </span>
                         </label>
@@ -611,6 +619,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 //     </div>
                 // `;
             });
+            if(Array.isArray(decoded_shapshot)){
             deductionDiv.innerHTML += `
                 <hr class="my-4 border-gray-200" />
 
@@ -624,8 +633,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 <input type="hidden" id="processing_fee" name="processing_fee" value="${loan.processing_fee}">
 
             `;
+            }
 
             // down_payment ----------------------------
+           if(Array.isArray(decoded_shapshot)){
             if(loan.product){
                 const downPaymentDiv = document.getElementById('down_payment-div');
                 downPaymentDiv.innerHTML += `
@@ -638,7 +649,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     <input type="hidden" id="down_payment" name="down_payment" value="${loan.down_payment}">
                 `;
-            }
+            }}
 
             // Initial net amount calculation
             calculateNetAmount();

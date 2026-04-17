@@ -31,6 +31,7 @@ class LoanApplication(models.Model):
         ('disbursed', 'Disbursed'),
         ('disbursed_fund_released', 'Disbursed - Fund Released'),
         ('document_requested_by_hq', 'Document Requested by HQ'),
+        ('closed', 'Closed'),
     ]
     loan_ref_no = models.CharField(primary_key=True, max_length=50, editable=False, unique=True)
     customer = models.ForeignKey('CustomerDetail', on_delete=models.CASCADE, related_name='loan_applications', null=True, blank=True)
@@ -81,13 +82,13 @@ class LoanApplication(models.Model):
         Use force=True to overwrite an existing snapshot.
         """
 
-        # print('Start  populating customer snapshot ...................................................')
+        print('Start  populating customer snapshot ...................................................')
         if not self.customer:
-            # print('Nothing to snapshot')
+            print('Nothing to snapshot')
             return  # Nothing to snapshot
 
         if self.customer_snapshot and not force:
-            # print('Already has snapshot (skip unless forced)')
+            print('Already has snapshot (skip unless forced)')
             return  # Already has snapshot (skip unless forced)
 
         snapshot = {

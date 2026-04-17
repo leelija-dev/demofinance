@@ -171,7 +171,13 @@ class NewLoanApplicationAPIV2(APIView):
                     if branch_manager_id and created_by_branch_manager:
                         loan_application_kwargs['created_by_branch_manager'] = created_by_branch_manager
                     ## validate and populate shop_data
-                    _get_shop_data = self._validate_and_populate_shop_data(data, agent, branch, product_id, loan_application_kwargs)
+                    _get_shop_data = self._validate_and_populate_shop_data(
+                        data,
+                        agent,
+                        branch,
+                        loan_category_instance,
+                        loan_application_kwargs,
+                    )
                     if _get_shop_data:
                         return _get_shop_data
 
@@ -729,16 +735,30 @@ class NewLoanApplicationAPIV2(APIView):
         return product_id, product
 
 
-    def _validate_and_populate_shop_data(self, data:QueryDict, agent, branch, product_id, loan_application_kwargs:dict) -> Union[None, Response]:
+    def _validate_and_populate_shop_data(
+        self,
+        data: QueryDict,
+        agent,
+        branch,
+        loan_category_instance: Optional[LoanCategory],
+        loan_application_kwargs: dict,
+    ) -> Union[None, Response]:
         shop_id = (data.get('shop_id') or '').strip()
         shop_bank_account_id = (data.get('shop_bank_account_id') or '').strip()
 
-        if product_id and (not shop_id and not shop_bank_account_id):
+        is_shop_active = False
+        if loan_category_instance and loan_category_instance.main_category:
+            is_shop_active = bool(loan_category_instance.main_category.is_shop_active)
+
+        if not is_shop_active:
+            return None
+
+        if not shop_id and not shop_bank_account_id:
             return Response(
                 {
                     'success': False,
                     'errors': {
-                        'shop_id': 'Shop is required for product-based (mobile) loans.'
+                        'shop_id': 'Shop is required for this loan category.'
                     },
                 },
                 status=400,

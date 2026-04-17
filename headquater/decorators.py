@@ -92,7 +92,7 @@ def require_role(role_name):
             if not request.user.is_authenticated:
                 return redirect('hq:login')
             
-            if request.user.is_headquarter_admin:
+            if request.user.is_headquarters_admin:
                 return view_func(request, *args, **kwargs)
             
             if not request.user.role or request.user.role.name != role_name:

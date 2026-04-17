@@ -343,7 +343,8 @@ class AadhaarVerification {
                 },
                 body: JSON.stringify({
                     aadhaar: this.verificationData.aadhaar,
-                    continue_with_existing_customer: continueWithExistingCustomer
+                    continue_with_existing_customer: continueWithExistingCustomer,
+                    application_source: (window.location && window.location.pathname && window.location.pathname.includes('new-application-cards')) ? 'new-application-cards' : ''
                 })
             });
 
@@ -363,6 +364,13 @@ class AadhaarVerification {
                     this.showOTPSection();
                 }
             } else {
+                const isNewApplicationCardsFlow = window.location && window.location.pathname && window.location.pathname.includes('new-application-cards');
+                if (isNewApplicationCardsFlow && data.code === 'RUNNING_LOAN') {
+                    if (typeof window.showToast === 'function') {
+                        window.showToast(data.message || 'This customer cannot apply for a new loan because there is already a running loan.', 'error');
+                    }
+                    return;
+                }
                 this.showError('aadhaar', data.message || 'Failed to send OTP');
             }
         } catch (error) {
@@ -729,6 +737,7 @@ class AadhaarVerification {
     }
 
     showCustomerDetailsPopup(customerData, loanHistory, customer_blocked) {
+        const canProceedWithCustomer = !!customer_blocked;
         // Create modal HTML
         const modalHtml = `
             <div id="customer-details-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-9999">
@@ -813,15 +822,15 @@ class AadhaarVerification {
             }
                                 </div>
                             </div>
-                            <div> ${customer_blocked?`An loan is already active for this customer.`:`Do you want to proceed with this customer?`} </div>
-                            ${customer_blocked?``:`<div class="flex items-center justify-between">
+                            <div> ${canProceedWithCustomer ? 'Do you want to proceed with this customer?' : 'An loan is already active for this customer.'} </div>
+                            ${canProceedWithCustomer ? `<div class="flex items-center justify-between">
                                 <button id="proceed-with-customer" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                     Yes
                                 </button>
                                 <button id="cancel-customer-modal" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500">
                                     No
                                 </button>
-                            </div>`}
+                            </div>` : ''}
                         </div>
                     </div>
                 </div>
@@ -833,16 +842,22 @@ class AadhaarVerification {
 
         // Add event listeners
         document.getElementById('close-customer-modal').addEventListener('click', () => this.closeCustomerModal());
-        document.getElementById('cancel-customer-modal').addEventListener('click', () => this.closeCustomerModal());
-        document.getElementById('proceed-with-customer').addEventListener('click', () => {
-            // Close the customer details modal first
-            this.closeCustomerModal();
-            // Populate data to Alpine variables
-            this.populateExistingCustomerData(customerData);
+        const cancelBtn = document.getElementById('cancel-customer-modal');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => this.closeCustomerModal());
+        }
+        const proceedBtn = document.getElementById('proceed-with-customer');
+        if (proceedBtn) {
+            proceedBtn.addEventListener('click', () => {
+                // Close the customer details modal first
+                this.closeCustomerModal();
+                // Populate data to Alpine variables
+                this.populateExistingCustomerData(customerData);
 
-            this.sendOTP(true);
-            // this.mockAadhaarVerification();
-        });
+                this.sendOTP(true);
+                // this.mockAadhaarVerification();
+            });
+        }
 
         // Close modal on background click
         document.getElementById('customer-details-modal').addEventListener('click', (e) => {

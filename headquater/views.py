@@ -4451,12 +4451,28 @@ def loan_close_request_action(request, request_id):
     action = (request.POST.get('action') or 'approve').strip().lower()
 
     if action == 'approve':
-        lcr.status = 'approved'
-        # Set approver fields on approval
-        if isinstance(request.user, HeadquarterEmployee):
-            lcr.approved_by = request.user
-        lcr.approved_at = timezone.now()
-        lcr.save(update_fields=['status', 'approved_by', 'approved_at', 'updated_at'])
+        from django.db import transaction
+
+        with transaction.atomic():
+            lcr = LoanCloseRequest.objects.select_for_update().select_related('loan_application').get(request_id=request_id)
+            if lcr.status != 'pending':
+                return HttpResponseForbidden("Request is not pending.")
+
+            lcr.status = 'approved'
+            # Set approver fields on approval
+            if isinstance(request.user, HeadquarterEmployee):
+                lcr.approved_by = request.user
+            lcr.approved_at = timezone.now()
+            lcr.save(update_fields=['status', 'approved_by', 'approved_at', 'updated_at'])
+
+            la = lcr.loan_application
+            if la:
+                la_update_fields = ['status']
+                la.status = 'closed'
+                if not la.approved_at:
+                    la.approved_at = lcr.approved_at
+                    la_update_fields.append('approved_at')
+                la.save(update_fields=la_update_fields)
 
         # Email notification to customer (if email exists), with PDF attachment
         try:

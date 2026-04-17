@@ -853,7 +853,12 @@ document.getElementById('loan-application-form').addEventListener('submit', asyn
                     errDiv.classList.add('text-red-600');
                 }
             }
-            showToast('Please fix the errors below.', 'error');
+            const formLevelMsg = result.errors.__all__ || result.errors.non_field_errors;
+            if (formLevelMsg) {
+                showToast(formLevelMsg, 'error');
+            } else {
+                showToast('Please fix the errors below.', 'error');
+            }
         } else {
             showToast(result.message || 'An error occurred while submitting the form.', 'error');
         }

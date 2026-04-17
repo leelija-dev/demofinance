@@ -1492,8 +1492,11 @@
             </div>
             <div class="space-y-3">
               <template x-for="fee in processingFees" :key="fee.id">
-                <div class="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
-                  <span class="text-sm font-medium text-gray-900 dark:text-white" x-text="fee.name"></span>
+                <div class="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700" x-init="fee.checked = (typeof fee.checked === 'undefined') ? true : fee.checked">
+                  <label class="flex items-center gap-2 min-w-0">
+                    <input type="checkbox" class="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500/30 dark:border-gray-700" x-model="fee.checked" @change="calculateTotalAmount()" />
+                    <span class="text-sm font-medium text-gray-900 dark:text-white truncate" x-text="fee.name"></span>
+                  </label>
                   <span class="text-sm text-gray-600 dark:text-gray-400">
                     <span x-text="fee.deduction_type === 'percentage' ? fee.deduction_value + '%' : '₹' + fee.deduction_value"></span>
                   </span>
@@ -2330,7 +2333,10 @@
               deductions = [];
             }
           }
-          this.processingFees = deductions;
+          this.processingFees = (deductions || []).map((fee) => ({
+            ...fee,
+            checked: typeof fee.checked === "undefined" ? true : fee.checked,
+          }));
           console.log("Extracted processing fees:", this.processingFees);
           // Calculate total fees after loading
           this.calculateTotalAmount();
@@ -2357,6 +2363,9 @@
           console.log("Processing fees:", this.processingFees);
           this.processingFees.forEach((fee) => {
             console.log("Processing fee:", fee);
+            if (!fee.checked) {
+              return;
+            }
             if (fee.deduction_type === "percentage") {
               const feeAmount = (basePrice * fee.deduction_value) / 100;
               console.log("Percentage fee calculation:", basePrice, "*", fee.deduction_value, "/ 100 =", feeAmount);
@@ -2371,6 +2380,9 @@
           // For non-product categories, sum all processing fees
           this.processingFees.forEach((fee) => {
             console.log("Processing fee:", fee);
+            if (!fee.checked) {
+              return;
+            }
             if (fee.deduction_type === "percentage") {
               const feeAmount = (loanAmount * fee.deduction_value) / 100;
               console.log("Percentage fee calculation:", loanAmount, "*", fee.deduction_value, "/ 100 =", feeAmount);
