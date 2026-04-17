@@ -40,6 +40,36 @@ This guide describes the required Excel file structure for uploading customer an
 - **emi_amount**: EMI amount in rupees
 - **branch_name**: Branch name where loan is processed
 
+### EMI Schedule Information (Required for EMI Creation)
+- **emi_start_date**: EMI start date in YYYY-MM-DD format
+- **emi_frequency**: EMI frequency (monthly/weekly/daily)
+
+## Important: Conditional EMI Schedule Creation
+
+### Status-Based EMI Processing
+The system creates EMI schedules based on `application_status`:
+
+| Application Status | EMI Schedule Created | EMI Payments Marked |
+|------------------|-------------------|-------------------|
+| `disbursed_fund_released` | ✅ Yes | ❌ No |
+| `closed` | ✅ Yes | ✅ Yes (All) |
+| All Other Statuses | ❌ No | ❌ No |
+
+### Required for EMI Creation
+To create EMI schedules, you MUST provide:
+1. `application_status` = `disbursed_fund_released` OR `closed`
+2. `emi_start_date` (YYYY-MM-DD format)
+3. `emi_frequency` (monthly/weekly/daily)
+4. `tenure_value` and `tenure_unit` (for calculating installments)
+
+### EMI Payment Completion for Closed Loans
+When `application_status` = `closed`:
+- Creates EMI schedules based on tenure
+- Automatically creates `EmiCollectionDetail` records for ALL installments
+- Payment status set to `verified`
+- Payment reference set to `CLOSED_LOAN`
+- No penalties applied
+
 ## Optional (Nullable) Columns
 
 ### Additional Customer Details
