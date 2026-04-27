@@ -4045,7 +4045,7 @@ class receiveEmiDetailAPI(APIView):
                     purpose=purpose,
                     code=code,
                     amount=total_amount,
-                    description=f"EMI received for {HOA.description} {emi.loan_application.loan_ref_no} (Collection ID: {collection.collected_id})",
+                    description=f"EMI received for {HOA.description if HOA else ''} {emi.loan_application.loan_ref_no} (Collection ID: {collection.collected_id})",
                     created_by=branch_manager,
                     branch_account=branch_account,
                 )

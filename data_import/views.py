@@ -1,11 +1,13 @@
 import os
 import json
+import uuid
 import logging
 import pandas as pd
 
 from decimal import Decimal, InvalidOperation
 from datetime import datetime, date
 from django.db import transaction
+from django.conf import settings
 from django.http import HttpResponse, JsonResponse
 from django.views import View
 from django.utils import timezone
@@ -29,7 +31,7 @@ from headquater.decorators import require_super_admin
 from loan.models import (
     LoanApplication, CustomerDetail, CustomerAddress, CustomerAccount,
     CustomerLoanDetail, LoanEMISchedule, LoanCategory, LoanInterest, LoanTenure,
-    Product, Shop, ShopBankAccount, CustomerDocument, DisbursementLog, EmiCollectionDetail
+    Product, Shop, ShopBankAccount, CustomerDocument, DisbursementLog, EmiCollectionDetail, LoanPeriod, LoanApplicationDraft, ChartOfAccount
 )
 
 # Set up logging
@@ -227,7 +229,6 @@ def copy_document_file(source_path, destination_path):
     
     try:
         import shutil
-        from django.conf import settings
         
         # Ensure source path exists
         if not os.path.exists(source_path):
@@ -275,8 +276,6 @@ def process_document_upload(row_data, loan_application, agent, branch):
             source_path = row_data.get(path_column)
             if source_path and pd.notna(source_path):
                 # Generate destination path based on field type
-                from django.conf import settings
-                import uuid
                 
                 file_extension = os.path.splitext(source_path)[1]
                 if not file_extension:
@@ -425,9 +424,11 @@ def process_disbursement(row_data, loan_application, branch):
         
         logger.info(f"Created disbursement log {disbursement_log.dis_id} for {loan_application.loan_ref_no}")
         
-        # Update loan application status to disbursed
-        loan_application.status = 'disbursed'
-        loan_application.disbursed_at = disbursement_date
+        # Update loan application status and disbursed_at if not already set
+        if loan_application.status not in ['disbursed', 'disbursed_fund_released']:
+            loan_application.status = 'disbursed'
+        if not loan_application.disbursed_at:
+            loan_application.disbursed_at = disbursement_date
         loan_application.save()
         
         # Process branch transaction if account is provided
@@ -447,21 +448,19 @@ def process_disbursement(row_data, loan_application, branch):
         logger.error(f"Error processing disbursement for {loan_application.loan_ref_no}: {str(e)}")
         return False
 
-def process_emi_collection(row_data, loan_application, agent):
-    """Process EMI collection information"""
+def process_emi_receive(row_data, loan_application, branch, agent):
+    """Process EMI receive using the same logic as emi-scedule.html with automatic collection type detection"""
     try:
-        # Only process EMI collection if amount is provided
+        # Only process EMI receive if amount is provided
         if not pd.notna(row_data.get('emi_collected_amount')):
             return True  # No EMI collection to process
-        
         
         # Parse EMI collection fields
         amount_received = Decimal(str(row_data['emi_collected_amount']))
         principal_received = Decimal(str(row_data.get('emi_principal_received', 0)))
         interest_received = Decimal(str(row_data.get('emi_interest_received', 0)))
-        emi_penalty_received = row_data.get('emi_penalty_received', 0)
-        penalty_received = Decimal(str(emi_penalty_received)) if emi_penalty_received else 0.0
-
+        penalty_received = Decimal(str(row_data.get('emi_penalty_received', 0)))
+        
         payment_mode = str(row_data.get('emi_payment_mode', 'Cash'))
         payment_reference = str(row_data.get('emi_payment_reference', ''))
         remarks = str(row_data.get('emi_collection_remarks', ''))
@@ -477,13 +476,67 @@ def process_emi_collection(row_data, loan_application, agent):
             except Exception as e:
                 logger.warning(f"Invalid emi_collected_at, using now: {str(e)}")
         
+        # Auto-detect collection type and process accordingly
+        collection_type = detect_collection_type(row_data, loan_application, agent)
+        
+        if collection_type == 'agent':
+            return process_agent_emi_collection(row_data, loan_application, branch, agent, amount_received, principal_received, interest_received, penalty_received, payment_mode, payment_reference, remarks, emi_status, collected_at)
+        else:
+            return process_branch_emi_collection(row_data, loan_application, branch, agent, amount_received, principal_received, interest_received, penalty_received, payment_mode, payment_reference, remarks, emi_status, collected_at)
+        
+    except Exception as e:
+        logger.error(f"Error processing EMI receive for {loan_application.loan_ref_no}: {str(e)}")
+        return False
+
+def detect_collection_type(row_data, loan_application, agent):
+    """Automatically detect if collection is made by agent or branch"""
+    try:
+        # Check if collecting agent is explicitly specified
+        if pd.notna(row_data.get('emi_collected_by_agent')):
+            agent_name = str(row_data['emi_collected_by_agent']).strip()
+            if agent_name and agent_name.lower() not in ['branch', 'self', 'direct']:
+                return 'agent'
+        
+        # Check if payment mode suggests branch collection
+        payment_mode = str(row_data.get('emi_payment_mode', '')).lower()
+        branch_modes = ['branch', 'direct', 'office', 'cash_counter']
+        if any(mode in payment_mode for mode in branch_modes):
+            return 'branch'
+        
+        # Check if payment reference suggests branch collection
+        payment_reference = str(row_data.get('emi_payment_reference', '')).lower()
+        branch_refs = ['br', 'branch', 'office', 'counter']
+        if any(ref in payment_reference for ref in branch_refs):
+            return 'branch'
+        
+        # Check if remarks suggest branch collection
+        remarks = str(row_data.get('emi_collection_remarks', '')).lower()
+        branch_remarks = ['branch', 'office', 'direct', 'counter']
+        if any(remark in remarks for remark in branch_remarks):
+            return 'branch'
+        
+        # Default to agent if loan has an assigned agent
+        if agent:
+            return 'agent'
+        
+        # Default to branch if no agent is assigned
+        return 'branch'
+        
+    except Exception as e:
+        logger.warning(f"Error detecting collection type, defaulting to agent: {str(e)}")
+        return 'agent'
+
+def process_agent_emi_collection(row_data, loan_application, branch, agent, amount_received, principal_received, interest_received, penalty_received, payment_mode, payment_reference, remarks, emi_status, collected_at):
+    """Process EMI collection made by agent"""
+    try:
         # Get collecting agent
-        collected_by_agent = None
+        collected_by_agent = agent  # Use the loan's assigned agent
         if pd.notna(row_data.get('emi_collected_by_agent')):
             agent_name = str(row_data['emi_collected_by_agent'])
-            collected_by_agent = get_or_create_reference(Agent, 'full_name', agent_name)
+            if agent_name and agent_name.lower() not in ['branch', 'self', 'direct']:
+                collected_by_agent = get_or_create_reference(Agent, 'full_name', agent_name)
         
-        # Create EMI collection detail
+        # Create EMI collection detail for agent
         emi_collection = EmiCollectionDetail.objects.create(
             loan_application=loan_application,
             collected_by_agent=collected_by_agent,
@@ -494,45 +547,284 @@ def process_emi_collection(row_data, loan_application, agent):
             payment_mode=payment_mode,
             payment_reference=payment_reference,
             collected_at=collected_at,
-            remarks=remarks,
+            remarks=f"{remarks} (Agent Collection)" if remarks else "Agent Collection",
             status=emi_status,
             collected=(emi_status == 'collected')
         )
         
-        logger.info(f"Created EMI collection {emi_collection.collected_id} for {loan_application.loan_ref_no}")
+        # If status is 'verified', process the receive logic like emi-scedule.html
+        if emi_status == 'verified':
+            process_emi_verification(emi_collection, loan_application, branch, agent)
+        
+        logger.info(f"Created Agent EMI collection {emi_collection.collected_id} for {loan_application.loan_ref_no}")
         return True
         
     except Exception as e:
-        logger.error(f"Error processing EMI collection for {loan_application.loan_ref_no}: {str(e)}")
+        logger.error(f"Error processing Agent EMI collection for {loan_application.loan_ref_no}: {str(e)}")
         return False
 
-def create_emi_collection_for_closed_loan(emi_schedule, loan_application, agent):
-    """Create EMI collection record for closed loan (all payments completed)"""
+def process_branch_emi_collection(row_data, loan_application, branch, agent, amount_received, principal_received, interest_received, penalty_received, payment_mode, payment_reference, remarks, emi_status, collected_at):
+    """Process EMI collection made by branch"""
+    try:
+        # Create EMI collection detail for branch (no agent)
+        emi_collection = EmiCollectionDetail.objects.create(
+            loan_application=loan_application,
+            collected_by_agent=None,  # No agent for branch collections
+            amount_received=amount_received,
+            principal_received=principal_received,
+            interest_received=interest_received,
+            penalty_received=penalty_received,
+            payment_mode=payment_mode,
+            payment_reference=payment_reference,
+            collected_at=collected_at,
+            remarks=f"{remarks} (Branch Collection)" if remarks else "Branch Collection",
+            status=emi_status,
+            collected=(emi_status == 'collected')
+        )
+        
+        # If status is 'verified', process the receive logic like emi-scedule.html
+        if emi_status == 'verified':
+            process_branch_emi_verification(emi_collection, loan_application, branch)
+        
+        logger.info(f"Created Branch EMI collection {emi_collection.collected_id} for {loan_application.loan_ref_no}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error processing Branch EMI collection for {loan_application.loan_ref_no}: {str(e)}")
+        return False
+
+def process_branch_emi_verification(emi_collection, loan_application, branch):
+    """Process EMI verification for branch collections (similar to agent but without agent-specific logic)"""
     try:
         from django.utils import timezone
         
-        # Create EMI collection detail with full payment completed
-        emi_collection = EmiCollectionDetail.objects.create(
-            loan_application=loan_application,
-            emi=emi_schedule,
-            collected_by_agent=agent,
-            amount_received=emi_schedule.installment_amount,
-            principal_received=emi_schedule.principal_amount,
-            interest_received=emi_schedule.interest_amount,
-            penalty_received=Decimal('0.00'),
-            payment_mode='Cash',  # Default payment mode for closed loans
-            payment_reference='CLOSED_LOAN',
-            collected_at=timezone.now(),
-            remarks='EMI automatically marked as paid for closed loan',
-            status='verified',  # Mark as verified for closed loans
-            collected=True
-        )
+        # Find the EMI schedule for this collection
+        emi_schedule = None
+        if emi_collection.emi:
+            emi_schedule = emi_collection.emi
+        else:
+            # Find the first unpaid EMI schedule for this loan
+            emi_schedule = LoanEMISchedule.objects.filter(
+                loan_application=loan_application,
+                paid=False
+            ).order_by('installment_date').first()
         
-        logger.info(f"Created EMI collection {emi_collection.collected_id} for closed loan {loan_application.loan_ref_no}")
+        if not emi_schedule:
+            logger.warning(f"No EMI schedule found for verification of {loan_application.loan_ref_no}")
+            return True
+        
+        # Mark EMI as paid (same logic as receiveEmiDetailAPI)
+        emi_schedule.paid = True
+        if not emi_schedule.paid_date:
+            emi_schedule.paid_date = timezone.now().date()
+        
+        # Update late fee if not already set
+        if not emi_schedule.late_fee or emi_schedule.late_fee == 0:
+            emi_schedule.late_fee = emi_collection.penalty_received
+        
+        # Fill payment_reference from collection if available
+        if not emi_schedule.payment_reference and emi_collection.payment_reference:
+            emi_schedule.payment_reference = emi_collection.payment_reference
+        
+        emi_schedule.save()
+        
+        # Verify the collection
+        emi_collection.status = 'verified'
+        emi_collection.verified_at = timezone.now()
+        emi_collection.save()
+        
+        # Create branch transaction (same logic as emi-scedule.html but without agent)
+        create_branch_emi_branch_transaction(emi_collection, emi_schedule, branch)
+        
+        # Update branch account balance
+        update_branch_account_for_emi(emi_collection, branch)
+        
+        logger.info(f"Verified Branch EMI {emi_schedule.id} for {loan_application.loan_ref_no}")
         return True
         
     except Exception as e:
-        logger.error(f"Error creating EMI collection for closed loan {loan_application.loan_ref_no}: {str(e)}")
+        logger.error(f"Error verifying Branch EMI for {loan_application.loan_ref_no}: {str(e)}")
+        return False
+
+def create_branch_emi_branch_transaction(emi_collection, emi_schedule, branch):
+    """Create branch transaction for EMI receive (branch version without agent)"""
+    try:
+        from django.utils import timezone
+        from loan.models import ChartOfAccount
+        
+        # Determine Chart of Account based on frequency
+        HOA = None
+        if emi_schedule.frequency == 'daily':
+            HOA = ChartOfAccount.objects.filter(code='122').first()
+        elif emi_schedule.frequency == 'weekly':
+            HOA = ChartOfAccount.objects.filter(code='123').first()
+        
+        # Decide purpose/code based on HOA and frequency
+        if HOA is not None:
+            purpose = HOA.head_of_account
+            code = HOA.code
+        else:
+            freq = (emi_schedule.frequency or '').lower()
+            if freq in ('days', 'daily', 'day'):
+                purpose = 'Installment collection daily'
+                code = '122'
+            elif freq in ('weekly', 'week'):
+                purpose = 'Installment collection group'
+                code = '123'
+            else:
+                purpose = 'EMI Collection'
+                code = None
+        
+        total_amount = (emi_collection.amount_received or Decimal('0')) + (emi_collection.penalty_received or Decimal('0'))
+        
+        # Create branch transaction (branch version - no agent)
+        BranchTransaction.objects.create(
+            branch=branch,
+            loan_application=emi_collection.loan_application,
+            agent=None,  # No agent for branch collections
+            transaction_type='CREDIT',
+            purpose=purpose,
+            code=code,
+            amount=total_amount,
+            description=f"Branch EMI received for {HOA.description if HOA else ''} {emi_collection.loan_application.loan_ref_no} (Collection ID: {emi_collection.collected_id})",
+            transaction_date=emi_collection.collected_at,
+            created_by=None,  # Created by branch system
+        )
+        
+        logger.info(f"Created branch EMI transaction for EMI {emi_schedule.id}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error creating branch EMI transaction for EMI {emi_schedule.id}: {str(e)}")
+        return False
+
+def process_emi_verification(emi_collection, loan_application, branch, agent):
+    """Process EMI verification using the same logic as emi-scedule.html"""
+    try:
+        from django.utils import timezone
+        
+        # Find the EMI schedule for this collection
+        emi_schedule = None
+        if emi_collection.emi:
+            emi_schedule = emi_collection.emi
+        else:
+            # Find the first unpaid EMI schedule for this loan
+            emi_schedule = LoanEMISchedule.objects.filter(
+                loan_application=loan_application,
+                paid=False
+            ).order_by('installment_date').first()
+        
+        if not emi_schedule:
+            logger.warning(f"No EMI schedule found for verification of {loan_application.loan_ref_no}")
+            return True
+        
+        # Mark EMI as paid (same logic as receiveEmiDetailAPI)
+        emi_schedule.paid = True
+        if not emi_schedule.paid_date:
+            emi_schedule.paid_date = timezone.now().date()
+        
+        # Update late fee if not already set
+        if not emi_schedule.late_fee or emi_schedule.late_fee == 0:
+            emi_schedule.late_fee = emi_collection.penalty_received
+        
+        # Fill payment_reference from collection if available
+        if not emi_schedule.payment_reference and emi_collection.payment_reference:
+            emi_schedule.payment_reference = emi_collection.payment_reference
+        
+        emi_schedule.save()
+        
+        # Verify the collection
+        emi_collection.status = 'verified'
+        emi_collection.verified_at = timezone.now()
+        emi_collection.save()
+        
+        # Create branch transaction (same logic as emi-scedule.html)
+        create_emi_branch_transaction(emi_collection, emi_schedule, branch, agent)
+        
+        # Update branch account balance
+        update_branch_account_for_emi(emi_collection, branch)
+        
+        logger.info(f"Verified EMI {emi_schedule.id} for {loan_application.loan_ref_no}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error verifying EMI for {loan_application.loan_ref_no}: {str(e)}")
+        return False
+
+def create_emi_branch_transaction(emi_collection, emi_schedule, branch, agent):
+    """Create branch transaction for EMI receive (same logic as emi-scedule.html)"""
+    try:
+        from django.utils import timezone
+        from loan.models import ChartOfAccount
+        
+        # Determine Chart of Account based on frequency
+        HOA = None
+        if emi_schedule.frequency == 'daily':
+            HOA = ChartOfAccount.objects.filter(code='122').first()
+        elif emi_schedule.frequency == 'weekly':
+            HOA = ChartOfAccount.objects.filter(code='123').first()
+        
+        # Decide purpose/code based on HOA and frequency
+        if HOA is not None:
+            purpose = HOA.head_of_account
+            code = HOA.code
+        else:
+            freq = (emi_schedule.frequency or '').lower()
+            if freq in ('days', 'daily', 'day'):
+                purpose = 'Installment collection daily'
+                code = '122'
+            elif freq in ('weekly', 'week'):
+                purpose = 'Installment collection group'
+                code = '123'
+            else:
+                purpose = 'EMI Collection'
+                code = None
+        
+        total_amount = (emi_collection.amount_received or Decimal('0')) + (emi_collection.penalty_received or Decimal('0'))
+        
+        # Create branch transaction
+        BranchTransaction.objects.create(
+            branch=branch,
+            loan_application=emi_collection.loan_application,
+            agent=agent,
+            transaction_type='CREDIT',
+            purpose=purpose,
+            code=code,
+            amount=total_amount,
+            description=f"EMI received for {HOA.description if HOA else ''} {emi_collection.loan_application.loan_ref_no} (Collection ID: {emi_collection.collected_id})",
+            transaction_date=emi_collection.collected_at,
+            created_by=agent,
+        )
+        
+        logger.info(f"Created branch transaction for EMI {emi_schedule.id}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error creating branch transaction for EMI {emi_schedule.id}: {str(e)}")
+        return False
+
+def update_branch_account_for_emi(emi_collection, branch):
+    """Update branch account balance for EMI receive (same logic as emi-scedule.html)"""
+    try:
+        from django.utils import timezone
+        
+        # Get cash account for the branch
+        branch_account = BranchAccount.objects.filter(branch=branch, type='CASH').first()
+        if branch_account:
+            # Update balance
+            total_amount = (emi_collection.amount_received or Decimal('0')) + (emi_collection.penalty_received or Decimal('0'))
+            branch_account.current_balance += total_amount
+            branch_account.updated_at = timezone.now().date()
+            branch_account.save()
+            
+            logger.info(f"Updated branch account balance by {total_amount}")
+        else:
+            logger.warning(f"No cash account found for branch {branch.branch_name}")
+        
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error updating branch account for EMI: {str(e)}")
         return False
 
 def process_branch_transaction(row_data, loan_application, branch, transaction_type=None, amount=None, disbursement_log=None):
@@ -758,6 +1050,78 @@ def process_customer_loan_data(row_data, request):
                 shop_bank_account=shop_bank_account,
             )
             
+            # Create LoanApplicationDraft record
+            draft_data = {
+                'customer_type': str(row_data['customer_type']),
+                'full_name': str(row_data['full_name']),
+                'date_of_birth': str(row_data['date_of_birth']),
+                'gender': str(row_data['gender']),
+                'contact': str(row_data['contact']),
+                'adhar_number': str(row_data['adhar_number']),
+                'address_line_1': str(row_data['address_line_1']),
+                'city_or_town': str(row_data['city_or_town']),
+                'district': str(row_data['district']),
+                'state': str(row_data['state']),
+                'post_code': str(row_data['post_code']),
+                'current_address_line_1': str(row_data['current_address_line_1']),
+                'current_city_or_town': str(row_data['current_city_or_town']),
+                'current_district': str(row_data['current_district']),
+                'current_state': str(row_data['current_state']),
+                'current_post_code': str(row_data['current_post_code']),
+                'account_number': str(row_data['account_number']),
+                'bank_name': str(row_data['bank_name']),
+                'ifsc_code': str(row_data['ifsc_code']),
+                'account_type': str(row_data['account_type']),
+                'loan_category_name': str(row_data['loan_category_name']),
+                'loan_amount': str(row_data['loan_amount']),
+                'tenure_value': str(row_data['tenure_value']),
+                'tenure_unit': str(row_data['tenure_unit']),
+                'loan_purpose': str(row_data['loan_purpose']),
+                'interest_rate': str(row_data['interest_rate']),
+                'emi_amount': str(row_data['emi_amount']),
+                'branch_name': str(row_data['branch_name']),
+                'loan_ref_no': loan_application.loan_ref_no,
+                'created_at': str(timezone.now()),
+            }
+            
+            # Add optional fields if present
+            optional_fields = [
+                'father_name', 'guarantor_name', 'email', 'pan_number', 'voter_number',
+                'address_line_2', 'landmark', 'post_office', 'country',
+                'current_address_line_2', 'current_landmark', 'current_post_office', 'current_country',
+                'residential_proof_type', 'agent_name', 'product_name', 'loan_percentage',
+                'sale_price', 'processing_fee', 'down_payment', 'shop_id', 'shop_bank_account_number',
+                'emi_start_date', 'emi_frequency', 'application_status', 'approved_at',
+                'disbursed_at', 'submitted_at', 'rejection_reason', 'document_request_reason',
+                'ever_branch_approved', 'disbursement_amount', 'disbursement_mode',
+                'disbursement_bank_name', 'disbursement_account_number', 'disbursement_net_amount',
+                'disbursement_tax_charges', 'disbursement_proof', 'disbursement_remarks',
+                'disbursement_date', 'emi_collected_amount', 'emi_principal_received',
+                'emi_interest_received', 'emi_penalty_received', 'emi_payment_mode',
+                'emi_payment_reference', 'emi_collected_at', 'emi_collected_by_agent',
+                'emi_collection_remarks', 'emi_status', 'branch_transaction_type',
+                'branch_transaction_amount', 'branch_transaction_purpose', 'branch_transaction_code',
+                'branch_transaction_mode', 'branch_transaction_description', 'branch_transaction_date',
+                'branch_transaction_account_number', 'id_proof_path', 'id_proof_back_path',
+                'guarantor_id_proof_path', 'pan_card_document_path', 'photo_path',
+                'signature_path', 'income_proof_path', 'collateral_path', 'residential_proof_file_path'
+            ]
+            
+            for field in optional_fields:
+                if field in row_data and pd.notna(row_data[field]):
+                    draft_data[field] = str(row_data[field])
+            
+            # Determine user type and user_id for draft
+            user_type = 'agent' if agent else 'branch'
+            user_id = agent.agent_id if agent else branch.branch_id
+            
+            # Create the draft record
+            LoanApplicationDraft.objects.create(
+                user_id=user_id,
+                user_type=user_type,
+                draft_data=draft_data,
+            )
+            
             # Create customer loan details
             loan_detail_data = {
                 'loan_application': loan_application,
@@ -776,6 +1140,22 @@ def process_customer_loan_data(row_data, request):
                 'branch': branch,
             }
             CustomerLoanDetail.objects.create(**loan_detail_data)
+            
+            # Create LoanPeriod record
+            loan_amount_decimal = Decimal(str(row_data['loan_amount']))
+            emi_amount_decimal = Decimal(str(row_data['emi_amount']))
+            
+            LoanPeriod.objects.create(
+                loan_application=loan_application,
+                loan_amount=loan_amount_decimal,
+                rate_of_interest=Decimal(str(row_data['interest_rate'])),
+                installment_size=emi_amount_decimal,
+                realizable_amount=emi_amount_decimal * Decimal(tenure_value),
+                number_of_installments=tenure_value,
+                remaining_balance=Decimal('0.00'),
+                remaining_principal=Decimal('0.00'),
+                remaining_interest=Decimal('0.00'),
+            )
             
             # Create EMI schedule if dates provided and status allows it
             application_status = str(row_data.get('application_status', 'pending'))
@@ -848,8 +1228,8 @@ def process_customer_loan_data(row_data, request):
                 errors.append("Failed to process disbursement")
                 return None, errors
             
-            # Process EMI collection information
-            emi_success = process_emi_collection(row_data, loan_application, agent)
+            # Process EMI collection information using receive process
+            emi_success = process_emi_receive(row_data, loan_application, branch, agent)
             if not emi_success:
                 errors.append("Failed to process EMI collection")
                 return None, errors
