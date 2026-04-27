@@ -205,6 +205,16 @@ When `application_status` is set to `closed`:
 - **emi_collected_by_agent**: Name of collecting agent
 - **emi_collection_remarks**: Collection remarks
 - **emi_status**: Collection status (pending/collected/verified/rejected)
+- **multiple_emi_count**: Number of EMIs to process (for multiple EMI payments)
+
+### Agent Deposit Information (Optional for Agent Collections)
+- **online_amount**: Online deposited amount (default: 0)
+
+### Automatic Fields (No Excel Input Required)
+- **emi_id**: Automatically linked to first unpaid EMI schedule
+- **verified_by**: Automatically assigned to branch manager
+- **Denomination quantities**: Automatically calculated based on amount
+- **Coin amounts**: Automatically calculated (default: 0)
 
 ## EMI Receive Process Integration
 
@@ -398,6 +408,120 @@ Remarks suggesting branch collection:
 - Proper remarks for tracking
 - Consistent data structure
 
+## Enhanced EMI Collection Features
+
+### Automatic EMI ID Linking
+The system automatically links EMI collections to the first unpaid EMI schedule:
+
+#### **Automatic EMI Detection:**
+```
+| emi_collected_amount | emi_status |
+| 5000.00 | verified |
+```
+**Result**: Collection automatically linked to first unpaid EMI schedule
+
+#### **EMI ID Benefits:**
+- No manual EMI ID specification required
+- Automatic schedule-to-collection linking
+- Proper payment application sequence
+
+### Automatic Verification Tracking
+The system automatically assigns verification to the branch manager:
+
+#### **Automatic Verification Assignment:**
+```
+| emi_collected_amount | emi_status |
+| 5000.00 | verified |
+```
+**Result**: Collection automatically verified by branch manager
+
+#### **Verification Benefits:**
+- Automatic `verified_at` timestamp
+- Proper audit trail with branch manager responsibility
+- No manual employee ID specification required
+
+### Multiple EMI Payments
+Process multiple EMI payments in a single row like the "ready" button:
+
+#### **Multiple EMI Processing:**
+```
+| emi_collected_amount | emi_status | multiple_emi_count |
+| 15000.00 | verified | 3 |
+```
+**Result**: Creates 3 EMI collection records (5000.00 each)
+
+#### **Amount Distribution:**
+- Total amount distributed equally among EMIs
+- Individual EMI tracking with remarks
+- Sequential EMI schedule processing
+
+#### **Multiple EMI Benefits:**
+- Bulk payment processing
+- Reduced data entry
+- Consistent payment application
+
+### Agent Deposit Integration
+Automatic AgentDeposit and AgentDepositDenomination creation for agent collections:
+
+#### **Agent Deposit Creation:**
+```
+| emi_collected_amount | emi_status | emi_collected_by_agent | online_amount |
+| 5000.00 | verified | John Smith | 0 |
+```
+**Result**: 
+- EMI collection with agent tracking
+- AgentDeposit record created
+- AgentDepositDenomination records automatically calculated (500x10, 200x0, 100x0, 50x0, 20x0, 10x0, 5x0, 2x0, 1x0)
+
+#### **Deposit Features:**
+- Automatic category assignment (daily/weekly/others)
+- **Automatic denomination calculation** based on amount
+- Cash and coin tracking (coins default to 0)
+- Online payment support
+
+#### **Automatic Denomination Calculation:**
+- **Optimal breakdown**: System calculates best denomination mix
+- **No manual input required**: Denominations calculated automatically
+- **Standard denominations**: 500, 200, 100, 50, 20, 10, 5, 2, 1
+- **Coin handling**: Coins default to 0 (configurable)
+- **online_amount**: Online deposited amount (optional, default: 0)
+
+### Advanced Usage Examples
+
+#### **Complete Agent Collection with Deposit:**
+```
+| emi_collected_amount | emi_principal_received | emi_interest_received | emi_status | emi_collected_by_agent | online_amount |
+| 5000.00 | 4000.00 | 1000.00 | verified | John Smith | 0 |
+```
+**Result**: 
+- EMI collection automatically linked to first unpaid EMI
+- Automatically verified by branch manager
+- Agent deposit with automatic denomination breakdown (500x10)
+- Branch transaction created
+- Account balance updated
+
+#### **Multiple EMI Processing:**
+```
+| emi_collected_amount | emi_status | multiple_emi_count | emi_collected_by_agent |
+| 15000.00 | verified | 3 | John Smith |
+```
+**Result**: 
+- 3 EMI collections created (5000.00 each)
+- Each automatically linked to sequential EMI schedules
+- Agent deposit with automatic denominations (500x30 total)
+- 3 branch transactions created
+
+#### **Branch Collection:**
+```
+| emi_collected_amount | emi_status | emi_payment_mode |
+| 5000.00 | verified | Branch Counter |
+```
+**Result**: 
+- Branch collection (no agent deposit)
+- EMI automatically linked to first unpaid EMI schedule
+- Automatically verified by branch manager
+- Branch transaction created
+
 ### Important Notes
 - EMI receive process only activates when `emi_status` = `verified`
 - Collection type detection is automatic and requires no manual intervention
@@ -405,6 +529,9 @@ Remarks suggesting branch collection:
 - Cash account balances are automatically updated
 - All financial integration follows the same business rules as the EMI schedule interface
 - Collection type is automatically determined and processed accordingly
+- Agent deposits are created automatically for verified agent collections
+- Multiple EMI processing distributes amounts equally among specified EMIs
+- EMI ID linking ensures precise collection-to-schedule relationships
 
 ## Branch Transaction Information (Optional)
 

@@ -23,7 +23,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 # Import HQ authentication decorators
 from agent.models import Agent
-from branch.models import BranchTransaction, BranchAccount
+from branch.models import BranchEmployee, BranchTransaction, BranchAccount
 from headquater.models import Branch, HeadquarterEmployee
 from headquater.decorators import require_super_admin
 
@@ -33,6 +33,7 @@ from loan.models import (
     CustomerLoanDetail, LoanEMISchedule, LoanCategory, LoanInterest, LoanTenure,
     Product, Shop, ShopBankAccount, CustomerDocument, DisbursementLog, EmiCollectionDetail, LoanPeriod, LoanApplicationDraft, ChartOfAccount
 )
+from branch.models import AgentDeposit, AgentDepositDenomination
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -448,18 +449,123 @@ def process_disbursement(row_data, loan_application, branch):
         logger.error(f"Error processing disbursement for {loan_application.loan_ref_no}: {str(e)}")
         return False
 
+def process_multiple_emi_payments(row_data, loan_application, branch, agent):
+    """Process payment records for multiple EMI schedules like the 'ready' button functionality"""
+    try:
+        # Check if multiple EMI processing is requested
+        if not pd.notna(row_data.get('multiple_emi_count')):
+            return True  # No multiple EMI processing requested
+        
+        multiple_count = int(row_data['multiple_emi_count'])
+        if multiple_count <= 1:
+            return True  # No multiple EMI processing needed
+        
+        # Get the base EMI collection data with proper decimal quantization
+        amount_received = Decimal(str(row_data['emi_collected_amount'])).quantize(Decimal('0.01'))
+        principal_received = Decimal(str(row_data.get('emi_principal_received', 0))).quantize(Decimal('0.01'))
+        interest_received = Decimal(str(row_data.get('emi_interest_received', 0))).quantize(Decimal('0.01'))
+        penalty_received = Decimal(str(row_data.get('emi_penalty_received', 0))).quantize(Decimal('0.01'))
+        
+        payment_mode = str(row_data.get('emi_payment_mode', 'Cash'))
+        payment_reference = str(row_data.get('emi_payment_reference', ''))
+        remarks = str(row_data.get('emi_collection_remarks', ''))
+        emi_status = str(row_data.get('emi_status', 'verified'))
+        
+        # Parse collection date
+        collected_at = timezone.now()
+        if pd.notna(row_data.get('emi_collected_at')):
+            try:
+                ct = pd.to_datetime(row_data['emi_collected_at'])
+                if not pd.isnull(ct):
+                    collected_at = timezone.make_aware(ct.to_pydatetime())
+            except Exception as e:
+                logger.warning(f"Invalid emi_collected_at, using now: {str(e)}")
+        
+        # Get unpaid EMI schedules for this loan
+        unpaid_emis = LoanEMISchedule.objects.filter(
+            loan_application=loan_application,
+            paid=False
+        ).order_by('installment_date')[:multiple_count]
+        
+        if not unpaid_emis:
+            logger.warning(f"No unpaid EMI schedules found for loan {loan_application.loan_ref_no}")
+            return True
+        
+        # Auto-detect collection type
+        collection_type = detect_collection_type(row_data, loan_application, agent)
+        
+        # Process each EMI schedule
+        for i, emi_schedule in enumerate(unpaid_emis):
+            # Create a copy of row_data with specific EMI ID
+            emi_row_data = row_data.copy()
+            emi_row_data['emi_id'] = emi_schedule.id
+            
+            # Adjust amounts if this is not the first EMI (use proportional amounts)
+            if i > 0:
+                # For multiple EMIs, distribute the amounts proportionally with proper decimal quantization
+                # This is a simplified approach - you might want more complex logic
+                emi_row_data['emi_collected_amount'] = str((amount_received / multiple_count).quantize(Decimal('0.01')))
+                emi_row_data['emi_principal_received'] = str((principal_received / multiple_count).quantize(Decimal('0.01')))
+                emi_row_data['emi_interest_received'] = str((interest_received / multiple_count).quantize(Decimal('0.01')))
+                emi_row_data['emi_penalty_received'] = str((penalty_received / multiple_count).quantize(Decimal('0.01')))
+            
+            # Set status for all EMIs to verified, but only first will have collected=True
+            # All EMIs: verified, but collected field will differentiate first vs subsequent
+            current_emi_status = 'verified'  # All EMIs should be verified
+            
+            # Process the individual EMI collection
+            is_first_emi = (i == 0)
+            if collection_type == 'agent':
+                success = process_agent_emi_collection(
+                    emi_row_data, loan_application, branch, agent,
+                    Decimal(str(emi_row_data['emi_collected_amount'])),
+                    Decimal(str(emi_row_data['emi_principal_received'])),
+                    Decimal(str(emi_row_data['emi_interest_received'])),
+                    Decimal(str(emi_row_data['emi_penalty_received'])),
+                    payment_mode, payment_reference, 
+                    f"{remarks} (EMI {i+1}/{multiple_count})" if remarks else f"EMI {i+1}/{multiple_count}",
+                    current_emi_status, collected_at, is_first_emi
+                )
+            else:
+                success = process_branch_emi_collection(
+                    emi_row_data, loan_application, branch, agent,
+                    Decimal(str(emi_row_data['emi_collected_amount'])),
+                    Decimal(str(emi_row_data['emi_principal_received'])),
+                    Decimal(str(emi_row_data['emi_interest_received'])),
+                    Decimal(str(emi_row_data['emi_penalty_received'])),
+                    payment_mode, payment_reference,
+                    f"{remarks} (EMI {i+1}/{multiple_count})" if remarks else f"EMI {i+1}/{multiple_count}",
+                    current_emi_status, collected_at, is_first_emi
+                )
+            
+            if not success:
+                logger.error(f"Failed to process EMI {i+1} for loan {loan_application.loan_ref_no}")
+                return False
+        
+        logger.info(f"Processed {len(unpaid_emis)} EMI payments for loan {loan_application.loan_ref_no}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error processing multiple EMI payments for {loan_application.loan_ref_no}: {str(e)}")
+        return False
+
 def process_emi_receive(row_data, loan_application, branch, agent):
     """Process EMI receive using the same logic as emi-scedule.html with automatic collection type detection"""
     try:
+        # First, process multiple EMI payments if requested
+        multiple_success = process_multiple_emi_payments(row_data, loan_application, branch, agent)
+        if pd.notna(row_data.get('multiple_emi_count')) and int(row_data['multiple_emi_count']) > 1:
+            return multiple_success
+        
         # Only process EMI receive if amount is provided
         if not pd.notna(row_data.get('emi_collected_amount')):
             return True  # No EMI collection to process
         
-        # Parse EMI collection fields
-        amount_received = Decimal(str(row_data['emi_collected_amount']))
-        principal_received = Decimal(str(row_data.get('emi_principal_received', 0)))
-        interest_received = Decimal(str(row_data.get('emi_interest_received', 0)))
-        penalty_received = Decimal(str(row_data.get('emi_penalty_received', 0)))
+        # Parse EMI collection fields with proper decimal quantization
+        amount_received = Decimal(str(row_data['emi_collected_amount'])).quantize(Decimal('0.01'))
+        principal_received = Decimal(str(row_data.get('emi_principal_received', 0))).quantize(Decimal('0.01'))
+        interest_received = Decimal(str(row_data.get('emi_interest_received', 0))).quantize(Decimal('0.01'))
+        penalty_received = Decimal(str(row_data.get('emi_penalty_received', 0))).quantize(Decimal('0.01'))
         
         payment_mode = str(row_data.get('emi_payment_mode', 'Cash'))
         payment_reference = str(row_data.get('emi_payment_reference', ''))
@@ -526,8 +632,8 @@ def detect_collection_type(row_data, loan_application, agent):
         logger.warning(f"Error detecting collection type, defaulting to agent: {str(e)}")
         return 'agent'
 
-def process_agent_emi_collection(row_data, loan_application, branch, agent, amount_received, principal_received, interest_received, penalty_received, payment_mode, payment_reference, remarks, emi_status, collected_at):
-    """Process EMI collection made by agent"""
+def process_agent_emi_collection(row_data, loan_application, branch, agent, amount_received, principal_received, interest_received, penalty_received, payment_mode, payment_reference, remarks, emi_status, collected_at, is_first_emi=False):
+    """Process EMI collection made by agent with automatic emi_id linking and AgentDeposit creation"""
     try:
         # Get collecting agent
         collected_by_agent = agent  # Use the loan's assigned agent
@@ -536,9 +642,24 @@ def process_agent_emi_collection(row_data, loan_application, branch, agent, amou
             if agent_name and agent_name.lower() not in ['branch', 'self', 'direct']:
                 collected_by_agent = get_or_create_reference(Agent, 'full_name', agent_name)
         
+        # Find the EMI schedule automatically (based on schedule created while saving)
+        emi_schedule = LoanEMISchedule.objects.filter(
+            loan_application=loan_application,
+            paid=False
+        ).order_by('installment_date').first()
+        
+        # Get branch manager automatically for verification
+        verified_by = None
+        if emi_status == 'verified':
+            verified_by = get_branch_manager(branch)
+            if not verified_by:
+                logger.warning(f"No branch manager found for {branch.branch_name}, using first employee")
+                verified_by = BranchEmployee.objects.filter(branch=branch).first()
+        
         # Create EMI collection detail for agent
         emi_collection = EmiCollectionDetail.objects.create(
             loan_application=loan_application,
+            emi=emi_schedule,  # Automatic emi_id linking
             collected_by_agent=collected_by_agent,
             amount_received=amount_received,
             principal_received=principal_received,
@@ -549,12 +670,21 @@ def process_agent_emi_collection(row_data, loan_application, branch, agent, amou
             collected_at=collected_at,
             remarks=f"{remarks} (Agent Collection)" if remarks else "Agent Collection",
             status=emi_status,
-            collected=(emi_status == 'collected')
+            collected=is_first_emi,  # Only first EMI has collected=True
+            verified_by=verified_by if emi_status == 'verified' else None,
+            verified_at=timezone.now() if emi_status == 'verified' else None
         )
         
         # If status is 'verified', process the receive logic like emi-scedule.html
         if emi_status == 'verified':
             process_emi_verification(emi_collection, loan_application, branch, agent)
+        
+        # Create AgentDeposit and AgentDepositDenomination records for agent collections (only for first EMI)
+        if emi_status == 'verified' and is_first_emi:
+            logger.info(f"Creating AgentDeposit for first EMI collection {emi_collection.collected_id}")
+            create_agent_deposit_records(row_data, emi_collection, collected_by_agent, branch, verified_by)
+        else:
+            logger.info(f"Skipping AgentDeposit creation for EMI collection {emi_collection.collected_id} (is_first_emi: {is_first_emi})")
         
         logger.info(f"Created Agent EMI collection {emi_collection.collected_id} for {loan_application.loan_ref_no}")
         return True
@@ -563,12 +693,137 @@ def process_agent_emi_collection(row_data, loan_application, branch, agent, amou
         logger.error(f"Error processing Agent EMI collection for {loan_application.loan_ref_no}: {str(e)}")
         return False
 
-def process_branch_emi_collection(row_data, loan_application, branch, agent, amount_received, principal_received, interest_received, penalty_received, payment_mode, payment_reference, remarks, emi_status, collected_at):
-    """Process EMI collection made by branch"""
+def get_branch_manager(branch):
+    """Get the branch manager automatically"""
     try:
+        manager = BranchEmployee.objects.filter(branch=branch, is_manager=True).first()
+        return manager
+    except Exception as e:
+        logger.warning(f"Error getting branch manager for {branch.branch_name}: {str(e)}")
+        return None
+
+def calculate_denominations(amount):
+    """Calculate optimal denomination breakdown for a given amount"""
+    try:
+        # Available denominations in descending order
+        denominations = [500, 200, 100, 50, 20, 10, 5, 2, 1]
+        remaining_amount = int(amount)
+        denomination_breakdown = {}
+        
+        # Calculate quantities for each denomination
+        for denom in denominations:
+            if remaining_amount >= denom:
+                qty = remaining_amount // denom
+                denomination_breakdown[f'qty_{denom}'] = qty
+                remaining_amount -= qty * (denom * qty)
+            else:
+                denomination_breakdown[f'qty_{denom}'] = 0
+        
+        # Calculate coin amounts (assuming no coins for simplicity)
+        for denom in denominations:
+            denomination_breakdown[f'coin_{denom}'] = 0
+        
+        return denomination_breakdown
+    except Exception as e:
+        logger.error(f"Error calculating denominations for amount {amount}: {str(e)}")
+        return {}
+
+def create_agent_deposit_records(row_data, emi_collection, agent, branch, verified_by):
+    """Create AgentDeposit and AgentDepositDenomination records for agent collections with automatic denomination calculation"""
+    try:
+        # Parse deposit amounts from EMI collection
+        subtotal_amount = emi_collection.amount_received
+        online_amount = Decimal(str(row_data.get('online_amount', 0)))
+        grand_total = subtotal_amount + online_amount
+        
+        # Parse category amounts based on EMI frequency
+        daily_amount = Decimal('0')
+        weekly_amount = Decimal('0')
+        saving_amount = Decimal('0')
+        others_amount = Decimal('0')
+        
+        # Get EMI frequency from the linked EMI schedule
+        if emi_collection.emi:
+            frequency = emi_collection.emi.frequency or ''
+            if frequency.lower() in ('daily', 'day', 'days'):
+                daily_amount = emi_collection.amount_received
+            elif frequency.lower() in ('weekly', 'week'):
+                weekly_amount = emi_collection.amount_received
+            else:
+                others_amount = emi_collection.amount_received
+        
+        # Calculate denominations automatically
+        denomination_breakdown = calculate_denominations(subtotal_amount)
+        coin_total = Decimal('0')  # Assuming no coins for simplicity
+        
+        # Create AgentDeposit record
+        agent_deposit = AgentDeposit.objects.create(
+            agent=agent,
+            branch=branch,
+            received_by=verified_by,
+            subtotal_amount=subtotal_amount,
+            coin_total=coin_total,
+            cash_total=subtotal_amount - coin_total,
+            online_amount=online_amount,
+            grand_total=grand_total,
+            expected_total=grand_total,  # Assume expected matches actual for import
+            mismatch=False,
+            daily_amount=daily_amount,
+            weekly_amount=weekly_amount,
+            saving_amount=saving_amount,
+            others_amount=others_amount,
+            status='verified',  # Auto-verify for import
+            remarks=f"Auto-generated from EMI collection {emi_collection.collected_id}",
+            created_by=verified_by
+        )
+        
+        # Create AgentDepositDenomination records with automatic calculation
+        denominations = [500, 200, 100, 50, 20, 10, 5, 2, 1]
+        
+        for denom in denominations:
+            qty = denomination_breakdown.get(f'qty_{denom}', 0)
+            if qty > 0:
+                line_total = Decimal(str(denom * qty))
+                coin = denomination_breakdown.get(f'coin_{denom}', 0)
+                cash = line_total - coin
+                
+                AgentDepositDenomination.objects.create(
+                    deposit=agent_deposit,
+                    value=denom,
+                    qty=qty,
+                    line_total=line_total,
+                    coin=coin,
+                    cash=cash
+                )
+        
+        logger.info(f"Created AgentDeposit {agent_deposit.deposit_id} for agent {agent.full_name} with automatic denominations")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error creating AgentDeposit records: {str(e)}")
+        return False
+
+def process_branch_emi_collection(row_data, loan_application, branch, agent, amount_received, principal_received, interest_received, penalty_received, payment_mode, payment_reference, remarks, emi_status, collected_at, is_first_emi=False):
+    """Process EMI collection made by branch with automatic emi_id linking"""
+    try:
+        # Find the EMI schedule automatically (based on schedule created while saving)
+        emi_schedule = LoanEMISchedule.objects.filter(
+            loan_application=loan_application,
+            paid=False
+        ).order_by('installment_date').first()
+        
+        # Get branch manager automatically for verification
+        verified_by = None
+        if emi_status == 'verified':
+            verified_by = get_branch_manager(branch)
+            if not verified_by:
+                logger.warning(f"No branch manager found for {branch.branch_name}, using first employee")
+                verified_by = BranchEmployee.objects.filter(branch=branch).first()
+        
         # Create EMI collection detail for branch (no agent)
         emi_collection = EmiCollectionDetail.objects.create(
             loan_application=loan_application,
+            emi=emi_schedule,  # Automatic emi_id linking
             collected_by_agent=None,  # No agent for branch collections
             amount_received=amount_received,
             principal_received=principal_received,
@@ -579,7 +834,9 @@ def process_branch_emi_collection(row_data, loan_application, branch, agent, amo
             collected_at=collected_at,
             remarks=f"{remarks} (Branch Collection)" if remarks else "Branch Collection",
             status=emi_status,
-            collected=(emi_status == 'collected')
+            collected=is_first_emi,  # Only first EMI has collected=True
+            verified_by=verified_by if emi_status == 'verified' else None,
+            verified_at=timezone.now() if emi_status == 'verified' else None
         )
         
         # If status is 'verified', process the receive logic like emi-scedule.html
@@ -677,6 +934,11 @@ def create_branch_emi_branch_transaction(emi_collection, emi_schedule, branch):
         
         total_amount = (emi_collection.amount_received or Decimal('0')) + (emi_collection.penalty_received or Decimal('0'))
         
+        # Get branch manager for created_by field (always use BranchEmployee for created_by)
+        branch_manager = get_branch_manager(branch)
+        if not branch_manager:
+            branch_manager = BranchEmployee.objects.filter(branch=branch).first()
+        
         # Create branch transaction (branch version - no agent)
         BranchTransaction.objects.create(
             branch=branch,
@@ -688,7 +950,7 @@ def create_branch_emi_branch_transaction(emi_collection, emi_schedule, branch):
             amount=total_amount,
             description=f"Branch EMI received for {HOA.description if HOA else ''} {emi_collection.loan_application.loan_ref_no} (Collection ID: {emi_collection.collected_id})",
             transaction_date=emi_collection.collected_at,
-            created_by=None,  # Created by branch system
+            created_by=branch_manager,  # Use branch manager for branch collections
         )
         
         logger.info(f"Created branch EMI transaction for EMI {emi_schedule.id}")
@@ -782,18 +1044,25 @@ def create_emi_branch_transaction(emi_collection, emi_schedule, branch, agent):
         
         total_amount = (emi_collection.amount_received or Decimal('0')) + (emi_collection.penalty_received or Decimal('0'))
         
+        # Get branch manager for created_by field (always use BranchEmployee for created_by)
+        branch_manager = get_branch_manager(branch)
+        if not branch_manager:
+            branch_manager = BranchEmployee.objects.filter(branch=branch).first()
+        
         # Create branch transaction
+        # For agent collections: agent field tracks the agent, created_by uses branch manager
+        # For branch collections: agent field is null, created_by uses branch manager
         BranchTransaction.objects.create(
             branch=branch,
             loan_application=emi_collection.loan_application,
-            agent=agent,
+            agent=agent,  # This will be the agent for agent collections, null for branch collections
             transaction_type='CREDIT',
             purpose=purpose,
             code=code,
             amount=total_amount,
             description=f"EMI received for {HOA.description if HOA else ''} {emi_collection.loan_application.loan_ref_no} (Collection ID: {emi_collection.collected_id})",
             transaction_date=emi_collection.collected_at,
-            created_by=agent,
+            created_by=branch_manager,  # Always use BranchEmployee (branch manager)
         )
         
         logger.info(f"Created branch transaction for EMI {emi_schedule.id}")
@@ -859,7 +1128,14 @@ def process_branch_transaction(row_data, loan_application, branch, transaction_t
             # Use 'account_number' for more user-friendly lookup
             branch_account = get_or_create_reference(BranchAccount, 'account_number', account_number)
         
+        # Get branch manager for created_by field (always use BranchEmployee for created_by)
+        branch_manager = get_branch_manager(branch)
+        if not branch_manager:
+            branch_manager = BranchEmployee.objects.filter(branch=branch).first()
+        
         # Create branch transaction
+        # agent field will track the loan's assigned agent (if any)
+        # created_by always uses branch manager (BranchEmployee)
         branch_transaction = BranchTransaction.objects.create(
             branch=branch,
             branch_account=branch_account,
@@ -872,7 +1148,8 @@ def process_branch_transaction(row_data, loan_application, branch, transaction_t
             description=description,
             transaction_date=transaction_date,
             loan_application=loan_application,
-            agent=loan_application.agent
+            agent=loan_application.agent,  # Track the loan's assigned agent
+            created_by=branch_manager  # Always use branch manager
         )
         
         logger.info(f"Created branch transaction {branch_transaction.transaction_id} for {loan_application.loan_ref_no}")
