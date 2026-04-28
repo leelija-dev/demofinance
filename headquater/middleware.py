@@ -6,9 +6,11 @@ Automatically logs out trial users when their trial period expires.
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.contrib import messages
-from .models import Headquarters
+# from .models import Headquarters
+from headquater.models import HeadquarterEmployee
 from django.utils import timezone
 from django.conf import settings
+
 
 class RoleBasedAccessMiddleware:
     def __init__(self, get_response):
@@ -21,7 +23,7 @@ class RoleBasedAccessMiddleware:
             request.user_permissions = set()
             
             # Check if user is a Headquarters instance
-            if isinstance(request.user, Headquarters):
+            if isinstance(request.user, HeadquarterEmployee):
                 request.user_role = request.user.role
                 if request.user.is_headquater_admin:
                     # Super admin has all permissions
@@ -49,7 +51,7 @@ class RoleBasedAccessMiddleware:
             return None
 
         # Check if user is a Headquarters instance and is super admin
-        if isinstance(request.user, Headquarters) and request.user.is_headquater_admin:
+        if isinstance(request.user, HeadquarterEmployee) and request.user.is_headquater_admin:
             return None
 
         # Check if view requires specific permission
