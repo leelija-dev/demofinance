@@ -75,6 +75,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'headquater.middleware.TrialUserExpiryMiddleware',  # Trial user expiry check
 ]
 
 # Simplified static file serving for production with WhiteNoise

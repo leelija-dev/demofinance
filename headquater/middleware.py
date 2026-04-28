@@ -1,7 +1,14 @@
+"""
+Trial User Expiry Middleware
+Automatically logs out trial users when their trial period expires.
+"""
+
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.contrib import messages
 from .models import Headquarters
+from django.utils import timezone
+from django.conf import settings
 
 class RoleBasedAccessMiddleware:
     def __init__(self, get_response):
@@ -52,4 +59,31 @@ class RoleBasedAccessMiddleware:
                 messages.error(request, 'You do not have permission to access this page.')
                 return redirect('hq:dashboard')  # Redirect to dashboard or appropriate page
 
-        return None 
+        return None
+
+        
+class TrialUserExpiryMiddleware:
+    """Check trial expiry and logout expired users"""
+    
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if request.user.is_authenticated:
+            if (hasattr(request.user, 'trial_expiry_date') and 
+                request.user.trial_expiry_date and 
+                'trial@' in request.user.email):
+                
+                if request.user.trial_expiry_date <= timezone.now():
+                    # Deactivate user
+                    request.user.is_active = False
+                    request.user.save()
+                    
+                    # Show message and logout
+                    messages.error(request, "Your trial period has expired.")
+                    from django.contrib.auth import logout
+                    logout(request)
+                    
+                    return redirect(settings.LOGIN_URL)
+        
+        return self.get_response(request)

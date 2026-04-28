@@ -84,6 +84,7 @@ class HeadquarterEmployee(AbstractUser):
     )
     is_active = models.BooleanField(default=True)
     last_login = models.DateTimeField(null=True, blank=True)
+    trial_expiry_date = models.DateTimeField(null=True, blank=True, help_text='Trial account expiry date')
     
     groups = models.ManyToManyField(
         'auth.Group',
