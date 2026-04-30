@@ -18,13 +18,18 @@ django.setup()
 from django.contrib.auth import get_user_model
 from headquater.models import Role
 
-def create_trial_superuser():
+def create_trial_superuser(trial_email=None):
     """Create a 7-day trial superuser"""
     
     User = get_user_model()
-    trial_email = "trial@demofinance.com"
-    trial_username = "trial_admin"
-    trial_password = "trial123456"
+    
+    # Use provided email or default
+    if not trial_email:
+        trial_email = "trial@demofinance.com"
+    
+    # Generate username from email
+    trial_username = trial_email.split('@')[0] + "_admin"
+    trial_password = trial_email.split('@')[0] +"@trial2026"
     
     # Check if trial user already exists
     if User.objects.filter(email=trial_email).exists():
@@ -133,8 +138,19 @@ if __name__ == "__main__":
         elif command == "cleanup":
             cleanup_expired_trials()
         elif command == "create":
-            create_trial_superuser()
+            # Check if email provided
+            trial_email = sys.argv[2] if len(sys.argv) > 2 else None
+            create_trial_superuser(trial_email)
         else:
-            print("Usage: create|list|cleanup")
+            # If not a command, treat as email
+            if '@' in sys.argv[1]:
+                create_trial_superuser(sys.argv[1])
+            else:
+                print("Usage:")
+                print("  python create_trial_superuser.py                    # Create with default email")
+                print("  python create_trial_superuser.py create [email]    # Create with custom email")
+                print("  python create_trial_superuser.py [email]          # Create with custom email")
+                print("  python create_trial_superuser.py list              # List trial users")
+                print("  python create_trial_superuser.py cleanup           # Clean expired users")
     else:
         create_trial_superuser()

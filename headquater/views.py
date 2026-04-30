@@ -305,7 +305,8 @@ class HQAgentListView(LoginRequiredMixin, TemplateView):
         status_filter = (self.request.GET.get('status') or 'active').strip().lower()
         q = (self.request.GET.get('q') or '').strip()
 
-        agents_qs = Agent.objects.select_related('branch').all()
+        # Filter agents from branches created by the logged-in HQ employee
+        agents_qs = Agent.objects.select_related('branch').filter(branch__created_by=self.request.user)
         if status_filter == 'active':
             agents_qs = agents_qs.filter(status='active')
         elif status_filter == 'inactive':
@@ -345,7 +346,7 @@ class HQAgentListView(LoginRequiredMixin, TemplateView):
         context['paginator'] = paginator
         context['page_links'] = page_links
         context['query_string'] = query_string
-        context['branches'] = Branch.objects.all().order_by('branch_name')
+        context['branches'] = Branch.objects.filter(created_by=self.request.user).order_by('branch_name')
         context['selected_branch_id'] = branch_id
         context['status_filter'] = status_filter
         context['q'] = q
@@ -1273,7 +1274,8 @@ def branch_list(request):
     # Filter branches by status: active (default), inactive, or all
     status_filter = (request.GET.get('status') or 'active').lower()
 
-    branches = Branch.objects.all().prefetch_related('employees')
+    # Filter branches by the logged-in HQ employee (only show branches they created)
+    branches = Branch.objects.filter(created_by=request.user).prefetch_related('employees')
     if status_filter == 'active':
         branches = branches.filter(status=True)
     elif status_filter == 'inactive':
