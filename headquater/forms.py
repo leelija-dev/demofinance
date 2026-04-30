@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, PasswordChangeForm, AuthenticationForm
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, get_user_model
 from .models import HeadquarterEmployee, Role, Branch, HeadquartersTransactions, HeadquartersWallet, FundTransfers
 from branch.models import BranchEmployee, BranchAccount
 from django.contrib.auth.hashers import make_password
@@ -1350,3 +1350,72 @@ class BranchTransferForm(forms.ModelForm):
         instance = super().save(commit=False)
         instance.branch = self.cleaned_data['branch']
         return instance
+
+class TrialUserCreationForm(forms.Form):
+    """Form for creating trial users with custom email and duration"""
+    email = forms.EmailField(
+        label="Email Address",
+        widget=forms.EmailInput(attrs={
+            'class': 'w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white',
+            'placeholder': 'Enter email for trial user'
+        })
+    )
+    trial_duration = forms.IntegerField(
+        label="Trial Duration (Days)",
+        min_value=1,
+        max_value=365,
+        initial=7,
+        widget=forms.NumberInput(attrs={
+            'class': 'w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white',
+            'placeholder': 'Number of days'
+        })
+    )
+    
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        User = get_user_model()
+        
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError("A user with this email already exists.")
+        
+        return email
+    
+    def create_trial_user(self):
+        """Create a trial user based on form data"""
+        from django.contrib.auth import get_user_model
+        from datetime import datetime, timedelta
+        from django.utils import timezone
+        
+        User = get_user_model()
+        email = self.cleaned_data['email']
+        trial_duration = self.cleaned_data['trial_duration']
+        
+        # Generate username and password
+        trial_username = email.split('@')[0] + "_admin"
+        trial_password = email.split('@')[0] + "@trial2026"
+        
+        # Get or create Super Admin role
+        super_admin_role, _ = Role.objects.get_or_create(
+            name='Super Admin',
+            defaults={'role_type': 'super_admin'}
+        )
+        
+        # Create trial user
+        trial_user = User.objects.create_user(
+            username=trial_username,
+            email=email,
+            password=trial_password,
+            first_name='Trial',
+            last_name='Admin',
+            is_headquater_admin=True,
+            is_staff=True,
+            is_superuser=True,
+            is_active=True
+        )
+        
+        # Set trial expiry
+        trial_user.trial_expiry_date = timezone.now() + timedelta(days=trial_duration)
+        trial_user.role = super_admin_role
+        trial_user.save()
+        
+        return trial_user, trial_password

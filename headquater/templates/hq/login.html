@@ -70,6 +70,15 @@
                 Login
             </button>
         </form>
+        
+        <div class="mt-6 text-center">
+            <p class="text-sm text-gray-600">
+                Not an admin user? 
+                <a href="{% url 'trial_check' %}" class="text-blue-600 hover:text-blue-800 font-medium">
+                    Check your trial status
+                </a>
+            </p>
+        </div>
     </div>
     {% endblock %}
 

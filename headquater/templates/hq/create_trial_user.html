@@ -1,0 +1,150 @@
+{% extends 'hq/base.html' %}
+{% load static %}
+
+{% block title %}Create Trial User{% endblock %}
+
+{% block page_id %}create_trial_user{% endblock %}
+
+{% block content %}
+<div class="p-6">
+    <div class="max-w-4xl mx-auto">
+        <!-- Page Header -->
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
+                <i class="fas fa-user-plus mr-3 text-blue-600"></i>
+                Create Trial User
+            </h1>
+            <p class="text-gray-600 dark:text-gray-400 mt-2">Create a trial superuser account with custom email and duration</p>
+        </div>
+
+        <!-- Info Alert -->
+        <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-info-circle text-blue-400"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-blue-700">
+                        <strong>Note:</strong> This will create a trial superuser account with admin privileges. The user will have full system access during the trial period.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Card -->
+        <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg">
+            <div class="p-6">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Form Fields -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <!-- Email Field -->
+                        <div>
+                            <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <i class="fas fa-envelope mr-2"></i>{{ form.email.label }}
+                            </label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="mt-1 text-sm text-red-600">
+                                    {% for error in form.email.errors %}
+                                        <span class="block">{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <p class="mt-1 text-sm text-gray-500">Enter the email address for the trial user</p>
+                        </div>
+
+                        <!-- Trial Duration Field -->
+                        <div>
+                            <label for="{{ form.trial_duration.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <i class="fas fa-calendar-alt mr-2"></i>{{ form.trial_duration.label }}
+                            </label>
+                            {{ form.trial_duration }}
+                            {% if form.trial_duration.errors %}
+                                <div class="mt-1 text-sm text-red-600">
+                                    {% for error in form.trial_duration.errors %}
+                                        <span class="block">{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <p class="mt-1 text-sm text-gray-500">Number of days for the trial period (1-365)</p>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex justify-between items-center">
+                        <a href="{% url 'hq:dashboard' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600">
+                            <i class="fas fa-arrow-left mr-2"></i>
+                            Back to Dashboard
+                        </a>
+                        <button type="submit" class="inline-flex items-center px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            <i class="fas fa-user-plus mr-2"></i>
+                            Create Trial User
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Information Card -->
+        <div class="mt-6 bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center">
+                <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                How Trial Users Work
+            </h3>
+            <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                <li class="flex items-start">
+                    <i class="fas fa-check text-green-500 mr-2 mt-1"></i>
+                    <span>Trial users are created as superadmins with full system access</span>
+                </li>
+                <li class="flex items-start">
+                    <i class="fas fa-check text-green-500 mr-2 mt-1"></i>
+                    <span>Username is automatically generated: <code class="bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded text-xs">[email_prefix]_admin</code></span>
+                </li>
+                <li class="flex items-start">
+                    <i class="fas fa-check text-green-500 mr-2 mt-1"></i>
+                    <span>Password is automatically generated: <code class="bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded text-xs">[email_prefix]@trial2026</code></span>
+                </li>
+                <li class="flex items-start">
+                    <i class="fas fa-check text-green-500 mr-2 mt-1"></i>
+                    <span>Trial expires after the specified number of days</span>
+                </li>
+                <li class="flex items-start">
+                    <i class="fas fa-check text-green-500 mr-2 mt-1"></i>
+                    <span>Upon expiry, the user and all related branches/agents are deactivated</span>
+                </li>
+                <li class="flex items-start">
+                    <i class="fas fa-check text-green-500 mr-2 mt-1"></i>
+                    <span>Users can check their trial status at <a href="{% url 'trial_check' %}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">/trial-check/</a></span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-focus on email field
+    const emailField = document.getElementById('{{ form.email.id_for_label }}');
+    if (emailField) {
+        emailField.focus();
+    }
+
+    // Validate trial duration
+    const durationField = document.getElementById('{{ form.trial_duration.id_for_label }}');
+    if (durationField) {
+        durationField.addEventListener('input', function() {
+            const value = parseInt(this.value);
+            if (value < 1) {
+                this.value = 1;
+            } else if (value > 365) {
+                this.value = 365;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

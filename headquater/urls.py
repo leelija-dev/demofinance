@@ -19,6 +19,7 @@ from .views import (
     # BranchTransferView
     EmiLoanListView,
     EmiScheduleView,
+    CreateTrialUserView,
 )
 
 from .savingviews import (
@@ -50,6 +51,7 @@ urlpatterns = [
     path('login/', HQLogin.as_view(), name='login'),
     path('logout/', HQLogoutView.as_view(), name='logout'),
     path('profile/', ProfileView.as_view(), name='profile'),
+    path('create-trial-user/', CreateTrialUserView.as_view(), name='create_trial_user'),
     
     path('role-management/', RoleManagementView.as_view(), name='role_management'),
     # path('roles/', role_list, name='role_list'),

@@ -570,7 +570,7 @@
                 Edit profile
               </a>
             </li>
-            {% if user.is_superuser or perms.headquater.view_role %}
+            {% if user.is_superuser and not user.is_headquater_admin %}
             <li>
               <a href="{% url 'hq:role_management' %}"
                 class="group text-theme-sm flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300">
@@ -596,7 +596,7 @@
               </a>
             </li>
             {% endif %}
-            {% if user.is_superuser or perms.headquater.view_headquarteremployee %}
+            {% if user.is_superuser and not user.is_headquater_admin %}
             <li>
               <a href="{% url 'hq:user_management' %}"
                 class="group text-theme-sm flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300">
