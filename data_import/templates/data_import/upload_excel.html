@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Import - DemoFinance</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .upload-area {
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            background-color: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+        .upload-area:hover {
+            border-color: #007bff;
+            background-color: #e7f3ff;
+        }
+        .upload-area.dragover {
+            border-color: #28a745;
+            background-color: #d4edda;
+        }
+        .file-input {
+            display: none;
+        }
+        .upload-icon {
+            font-size: 48px;
+            color: #6c757d;
+            margin-bottom: 20px;
+        }
+        .table-responsive {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .process-btn {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .process-btn:hover {
+            background: linear-gradient(45deg, #218838, #1ea085);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+        }
+        .success-message {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border-left: 4px solid #28a745;
+        }
+        .error-message {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            border-left: 4px solid #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card shadow-lg">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-file-excel me-2"></i>
+                            Excel Data Import
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        {% if messages %}
+                            <div class="alert-container mb-4">
+                                {% for message in messages %}
+                                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                        {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <form method="post" enctype="multipart/form-data" id="uploadForm">
+                            {% csrf_token %}
+                            <input type="file" id="fileInput" name="excel_file" class="file-input" accept=".xlsx,.xls" required style="display: none;">
+                            
+                            <div class="upload-area mb-4" id="uploadArea">
+                                <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                                <h5>Drop Excel file here or click to browse</h5>
+                                <p class="text-muted">Supported formats: .xlsx, .xls (Max size: 10MB)</p>
+                            </div>
+                            <div class="form-text mt-3">
+                                <a href="#" data-bs-toggle="modal" data-bs-target="#excelStructureModal">
+                                    <i class="fas fa-info-circle me-1"></i>View Required Excel Structure
+                                </a>
+                            </div>
+                            
+                            <div id="fileInfo" class="alert alert-info d-none">
+                                <h6><i class="fas fa-file-excel me-2"></i>Selected File</h6>
+                                <p class="mb-0">
+                                    <strong>File:</strong> <span id="fileName"></span><br>
+                                    <strong>Size:</strong> <span id="fileSize"></span>
+                                </p>
+                                <button type="submit" class="btn btn-primary mt-3" id="uploadBtn">
+                                    <i class="fas fa-upload me-2"></i>Upload File
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary mt-3 ms-2" id="clearBtn">
+                                    <i class="fas fa-times me-2"></i>Clear
+                                </button>
+                            </div>
+                        </form>
+                        
+                        {% if missing_columns %}
+                            <div class="alert alert-danger mt-4">
+                                <h5><i class="fas fa-exclamation-triangle me-2"></i>Missing Required Columns</h5>
+                                <ul>
+                                    {% for column in missing_columns %}
+                                        <li><code>{{ column }}</code></li>
+                                    {% endfor %}
+                                </ul>
+                                <p class="mb-0">Please ensure your Excel file contains all required columns as per the structure guide.</p>
+                            </div>
+                        {% endif %}
+                        
+                        {% if data_preview %}
+                            <hr>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5><i class="fas fa-table me-2"></i>Data Preview (First 10 rows)</h5>
+                                <span class="badge bg-info">{{ total_rows }} Total Rows</span>
+                            </div>
+                            <div class="table-responsive">
+                                {{ data_preview|safe }}
+                            </div>
+                            <div class="mt-3">
+                                <p><strong>Total Rows:</strong> {{ total_rows }}</p>
+                                <p><strong>Columns:</strong> {{ columns|join:", " }}</p>
+                                
+                                {% if show_process_button %}
+                                    <div class="alert alert-success mt-4">
+                                        <h5><i class="fas fa-check-circle me-2"></i>Ready to Process Data</h5>
+                                        <p class="mb-3">Your Excel file has been validated and is ready for import. Click "Process Data" to create customer and loan records.</p>
+                                        <form method="post" action="{% url 'data_import:process_excel_data' %}" onsubmit="return confirm('Are you sure you want to import {{ total_rows }} customer/loan records? This action cannot be undone.')" id="processForm">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn process-btn w-100" id="processBtn">
+                                                <i class="fas fa-cogs me-2"></i>Process Data
+                                            </button>
+                                        </form>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                        
+                        {% if import_complete %}
+                            <div class="alert alert-info mt-4">
+                                <h5><i class="fas fa-info-circle me-2"></i>Import Complete!</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="card border-success">
+                                            <div class="card-body text-center">
+                                                <h3 class="text-success">{{ successful_imports }}</h3>
+                                                <p class="mb-0">Successfully Imported</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card border-danger">
+                                            <div class="card-body text-center">
+                                                <h3 class="text-danger">{{ failed_imports }}</h3>
+                                                <p class="mb-0">Failed to Import</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {% if error_details %}
+                                <div class="alert alert-danger mt-4">
+                                    <h5><i class="fas fa-exclamation-triangle me-2"></i>Import Errors</h5>
+                                    <div class="table-responsive" style="max-height: 300px;">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Row</th>
+                                                    <th>Error</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for error in error_details %}
+                                                    <tr>
+                                                        <td colspan="2">{{ error }}</td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="text-center mt-4">
+                                <a href="{% url 'data_import:upload_excel' %}" class="btn btn-outline-primary">
+                                    <i class="fas fa-plus me-2"></i>Import Another File
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Excel Structure Modal -->
+    <div class="modal fade" id="excelStructureModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-table me-2"></i>Required Excel Structure
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <h6>Customer Information (Required)</h6>
+                    <ul>
+                        <li><code>customer_type</code> (NEW/EXISTING)</li>
+                        <li><code>full_name</code></li>
+                        <li><code>date_of_birth</code> (YYYY-MM-DD)</li>
+                        <li><code>gender</code> (Male/Female/Other)</li>
+                        <li><code>contact</code></li>
+                        <li><code>adhar_number</code></li>
+                    </ul>
+                    
+                    <h6>Address Information (Required)</h6>
+                    <ul>
+                        <li><code>address_line_1</code>, <code>city_or_town</code>, <code>district</code>, <code>state</code>, <code>post_code</code></li>
+                        <li><code>current_address_line_1</code>, <code>current_city_or_town</code>, <code>current_district</code>, <code>current_state</code>, <code>current_post_code</code></li>
+                    </ul>
+                    
+                    <h6>Bank Account (Required)</h6>
+                    <ul>
+                        <li><code>account_number</code>, <code>bank_name</code>, <code>ifsc_code</code>, <code>account_type</code></li>
+                    </ul>
+                    
+                    <h6>Loan Information (Required)</h6>
+                    <ul>
+                        <li><code>loan_category_name</code></li>
+                        <li><code>loan_amount</code></li>
+                        <li><code>tenure_value</code>, <code>tenure_unit</code> (days/weeks/months/years)</li>
+                        <li><code>loan_purpose</code></li>
+                        <li><code>interest_rate</code></li>
+                        <li><code>emi_amount</code></li>
+                        <li><code>branch_name</code></li>
+                    </ul>
+                    
+                    <h6>Optional Fields</h6>
+                    <ul>
+                        <li><code>father_name</code>, <code>guarantor_name</code>, <code>email</code>, <code>pan_number</code>, <code>voter_number</code></li>
+                        <li><code>agent_name</code></li>
+                        <li><code>emi_start_date</code>, <code>emi_frequency</code> (for EMI schedule)</li>
+                        <li><code>product_name</code>, <code>loan_percentage</code>, <code>sale_price</code>, <code>processing_fee</code>, <code>down_payment</code></li>
+                    </ul>
+                    
+                    <div class="alert alert-info">
+                        <strong>Note:</strong> Branch names, loan categories, and agent names must exist in the system before import.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Drag and drop functionality
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const uploadForm = document.getElementById('uploadForm');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        
+        // Click to browse functionality
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        // Drag and drop events
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileSelect(files[0]);
+            }
+        });
+        
+        // File input change handler
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileSelect(e.target.files[0]);
+            }
+        });
+        
+        // Handle file selection
+        function handleFileSelect(file) {
+            // Validate file type
+            const validTypes = ['.xlsx', '.xls'];
+            const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+            
+            if (!validTypes.includes(fileExtension)) {
+                alert('Please select a valid Excel file (.xlsx or .xls)');
+                return;
+            }
+            
+            // Validate file size (10MB max)
+            const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+            if (file.size > maxSize) {
+                alert('File size must be less than 10MB');
+                return;
+            }
+            
+            // Update file info display
+            fileInput.files = new DataTransfer().files;
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            fileInput.files = dataTransfer.files;
+            
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            
+            // Show file info and hide upload area
+            uploadArea.classList.add('d-none');
+            fileInfo.classList.remove('d-none');
+        }
+        
+        // Clear file selection
+        clearBtn.addEventListener('click', () => {
+            fileInput.value = '';
+            uploadArea.classList.remove('d-none');
+            fileInfo.classList.add('d-none');
+        });
+        
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // Form submission
+        uploadForm.addEventListener('submit', (e) => {
+            if (!fileInput.files.length) {
+                e.preventDefault();
+                alert('Please select a file to upload');
+                return;
+            }
+            
+            uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Uploading...';
+            uploadBtn.disabled = true;
+            clearBtn.disabled = true;
+        });
+        
+        // Process button animation
+        const processForm = document.getElementById('processForm');
+        if (processForm) {
+            processForm.addEventListener('submit', () => {
+                const processBtn = document.getElementById('processBtn');
+                processBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+                processBtn.disabled = true;
+            });
+        }
+    </script>
+</body>
+</html>

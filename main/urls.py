@@ -27,6 +27,7 @@ urlpatterns = [
     path('branch/', include('branch.urls', namespace='branch')),
     path('agent/', include('agent.urls', namespace='agent')),
     path('savings/', include('savings.urls', namespace='savings')),
+    path('data-import/', include('data_import.urls', namespace='data_import')),
 ]
 
 # Serve static and media files in development
