@@ -251,13 +251,38 @@
                         <li><code>branch_name</code></li>
                     </ul>
                     
+                    <h6>EMI Schedule Information (Required for EMI Creation)</h6>
+                    <ul>
+                        <li><code>emi_start_date</code> (YYYY-MM-DD)</li>
+                        <li><code>emi_frequency</code> (monthly/weekly/daily)</li>
+                    </ul>
+                    
+                    <h6>Application Status (Required for EMI Creation)</h6>
+                    <ul>
+                        <li><code>application_status</code> (disbursed_fund_released/closed for EMI creation)</li>
+                    </ul>
+                    
                     <h6>Optional Fields</h6>
                     <ul>
                         <li><code>father_name</code>, <code>guarantor_name</code>, <code>email</code>, <code>pan_number</code>, <code>voter_number</code></li>
                         <li><code>agent_name</code></li>
-                        <li><code>emi_start_date</code>, <code>emi_frequency</code> (for EMI schedule)</li>
+                        <li><code>approved_at</code>, <code>disbursed_at</code>, <code>submitted_at</code> (Timeline dates)</li>
+                        <li><code>rejection_reason</code>, <code>document_request_reason</code>, <code>ever_branch_approved</code></li>
                         <li><code>product_name</code>, <code>loan_percentage</code>, <code>sale_price</code>, <code>processing_fee</code>, <code>down_payment</code></li>
+                        <li><code>disbursement_amount</code>, <code>disbursement_mode</code>, <code>disbursement_bank_name</code>, <code>disbursement_account_number</code></li>
+                        <li><code>disbursement_net_amount</code>, <code>disbursement_tax_charges</code>, <code>disbursement_date</code>, <code>disbursement_remarks</code></li>
+                        <li><code>emi_collected_amount</code>, <code>emi_principal_received</code>, <code>emi_interest_received</code>, <code>emi_payment_mode</code></li>
+                        <li><code>emi_collected_at</code>, <code>emi_collected_by_agent</code>, <code>emi_collection_remarks</code>, <code>emi_status</code></li>
+                        <li><code>branch_transaction_type</code>, <code>branch_transaction_amount</code>, <code>branch_transaction_purpose</code></li>
+                        <li><code>branch_transaction_account_number</code>, <code>branch_transaction_date</code>, <code>branch_transaction_description</code></li>
+                        <li><code>id_proof_path</code>, <code>photo_path</code>, <code>signature_path</code>, <code>income_proof_path</code> (Document paths)</li>
                     </ul>
+                    
+                    <div class="alert alert-warning mt-3">
+                        <strong><i class="fas fa-exclamation-triangle me-2"></i>Important:</strong>
+                        <p class="mb-0">EMI schedules are only created when <code>application_status</code> is <strong>disbursed_fund_released</strong> or <strong>closed</strong>.</p>
+                        <p class="mb-0">When status is <strong>closed</strong>, all EMI payments are automatically marked as completed.</p>
+                    </div>
                     
                     <div class="alert alert-info">
                         <strong>Note:</strong> Branch names, loan categories, and agent names must exist in the system before import.

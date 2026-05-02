@@ -473,8 +473,10 @@ x-init="init()"
                 <li><a href="{% url 'hq:chartOf_accountmanagement' %}" class="menu-dropdown-item group" :class="page === 'chartsOfAccount' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">Chart Of Account</a></li>
                 <!-- <li><a href="{% url 'hq:loan_monitoring' %}" class="menu-dropdown-item group" :class="page === 'LoanMonitoring' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">Loan Monitoring</a></li> -->
                 <li><a href="{% url 'hq:product_management' %}" class="menu-dropdown-item group" :class="page === 'ProductManagement' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">Product Management</a></li>
-                <li><a href="{% url 'hq:role_management' %}" class="menu-dropdown-item group" :class="page === 'RoleManagement' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">Role Management</a></li>
-                <li><a href="{% url 'hq:user_management' %}" class="menu-dropdown-item group" :class="page === 'EmployeeManagement' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">Employee Management</a></li>
+                {% if user.is_superuser and not user.is_headquater_admin %}
+                  <li><a href="{% url 'hq:role_management' %}" class="menu-dropdown-item group" :class="page === 'RoleManagement' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">Role Management</a></li>
+                  <li><a href="{% url 'hq:user_management' %}" class="menu-dropdown-item group" :class="page === 'EmployeeManagement' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">Employee Management</a></li>
+                {% endif %}
               </ul>
             </div>
           </li>

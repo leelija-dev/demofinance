@@ -18,10 +18,11 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from .views import landing_page
+from .views import landing_page, TrialCheckView
 
 urlpatterns = [
     path('', landing_page, name='landing'),
+    path('trial-check/', TrialCheckView.as_view(), name='trial_check'),
     path('admin/', admin.site.urls),
     path('hq/', include('headquater.urls', namespace='hq')),
     path('branch/', include('branch.urls', namespace='branch')),

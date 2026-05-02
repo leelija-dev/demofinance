@@ -20,7 +20,8 @@ from .forms import (HQEmployeeRegistrationForm, HQPasswordChangeForm, RoleUserRe
                    LoanMainCategoryForm, LoanCategoryForm, LoanInterestForm, LoanTenureForm, DeductionForm, 
                    ProductCategoryForm, ProductSubCategoryForm, ProductForm,
                    SavingTypeForm, OneTimeDepositForm, DailyProductForm,
-                   WalletBalanceForm, BranchTransferForm, ChartOfAccountForm, HeadquartersWalletForm)
+                   WalletBalanceForm, BranchTransferForm, ChartOfAccountForm, HeadquartersWalletForm,
+                   TrialUserCreationForm)
 
 # BranchTransferForm
 
@@ -280,10 +281,19 @@ class HQDashboardView(LoginRequiredMixin, TemplateView):
                 context['can_delete_users'] = self.request.user.role.can_delete_users(self.request.user)
                 context['is_super_admin'] = self.request.user.role.is_super_admin(self.request.user)
         
-        # Add HQ approved loan count to context
-        context['hq_approved_count'] = LoanApplication.objects.filter(status='hq_approved').count()
+        # Get branches and agents created by the logged-in HQ user
+        user_branches = Branch.objects.filter(created_by=self.request.user)
+        user_branch_ids = user_branches.values_list('branch_id', flat=True)
+        user_agents = Agent.objects.filter(branch_id__in=user_branch_ids)
+        
+        # Add HQ approved loan count to context (filtered by user's branches/agents)
+        context['hq_approved_count'] = LoanApplication.objects.filter(status='hq_approved').filter(
+            Q(branch__in=user_branches) | Q(agent__in=user_agents)
+        ).count()
         # context['loan_applications'] = LoanApplication.objects.all()
-        context['pending_loan_count'] = LoanApplication.objects.filter(status='branch_approved').count()
+        context['pending_loan_count'] = LoanApplication.objects.filter(status='branch_approved').filter(
+            Q(branch__in=user_branches) | Q(agent__in=user_agents)
+        ).count()
         return context
 
 class HQHomeView(TemplateView):
@@ -305,7 +315,8 @@ class HQAgentListView(LoginRequiredMixin, TemplateView):
         status_filter = (self.request.GET.get('status') or 'active').strip().lower()
         q = (self.request.GET.get('q') or '').strip()
 
-        agents_qs = Agent.objects.select_related('branch').all()
+        # Filter agents from branches created by the logged-in HQ employee
+        agents_qs = Agent.objects.select_related('branch').filter(branch__created_by=self.request.user)
         if status_filter == 'active':
             agents_qs = agents_qs.filter(status='active')
         elif status_filter == 'inactive':
@@ -345,7 +356,7 @@ class HQAgentListView(LoginRequiredMixin, TemplateView):
         context['paginator'] = paginator
         context['page_links'] = page_links
         context['query_string'] = query_string
-        context['branches'] = Branch.objects.all().order_by('branch_name')
+        context['branches'] = Branch.objects.filter(created_by=self.request.user).order_by('branch_name')
         context['selected_branch_id'] = branch_id
         context['status_filter'] = status_filter
         context['q'] = q
@@ -364,7 +375,14 @@ class HQCustomerListView(LoginRequiredMixin, TemplateView):
         branch_id = (self.request.GET.get('branch_id') or '').strip()
         agent_id = (self.request.GET.get('agent_id') or '').strip()
 
-        qs = CustomerDetail.objects.select_related('branch', 'agent').all()
+        # Get branches and agents created by the logged-in HQ user
+        user_branches = Branch.objects.filter(created_by=self.request.user)
+        user_branch_ids = user_branches.values_list('branch_id', flat=True)
+        user_agents = Agent.objects.filter(branch_id__in=user_branch_ids)
+
+        qs = CustomerDetail.objects.select_related('branch', 'agent').filter(
+            Q(branch__in=user_branches) | Q(agent__in=user_agents)
+        )
 
         if branch_id:
             qs = qs.filter(branch__branch_id=branch_id)
@@ -399,7 +417,7 @@ class HQCustomerListView(LoginRequiredMixin, TemplateView):
         query_params.pop('page', None)
         query_string = query_params.urlencode()
 
-        agents_qs = Agent.objects.select_related('branch').order_by('full_name')
+        agents_qs = user_agents.select_related('branch').order_by('full_name')
         if branch_id:
             agents_qs = agents_qs.filter(branch__branch_id=branch_id)
 
@@ -409,7 +427,7 @@ class HQCustomerListView(LoginRequiredMixin, TemplateView):
         context['page_links'] = page_links
         context['query_string'] = query_string
 
-        context['branches'] = Branch.objects.all().order_by('branch_name')
+        context['branches'] = user_branches.order_by('branch_name')
         context['agents'] = agents_qs
         context['q'] = q
         context['selected_branch_id'] = branch_id
@@ -424,8 +442,15 @@ class HQCustomerDetailView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         customer_id = self.kwargs.get('customer_id')
 
+        # Get branches and agents created by the logged-in HQ user
+        user_branches = Branch.objects.filter(created_by=self.request.user)
+        user_branch_ids = user_branches.values_list('branch_id', flat=True)
+        user_agents = Agent.objects.filter(branch_id__in=user_branch_ids)
+
         customer = get_object_or_404(
-            CustomerDetail.objects.select_related('address', 'account', 'branch', 'agent'),
+            CustomerDetail.objects.filter(
+                Q(branch__in=user_branches) | Q(agent__in=user_agents)
+            ).select_related('address', 'account', 'branch', 'agent'),
             customer_id=customer_id,
         )
 
@@ -722,6 +747,28 @@ class HQLogoutView(LoginRequiredMixin, TemplateView):
         logout(request)
         messages.success(request, 'You have been logged out successfully.')
         return redirect('hq:login')
+
+class CreateTrialUserView(LoginRequiredMixin, View):
+    """View for creating trial users with custom email and duration"""
+    template_name = 'hq/create_trial_user.html'
+    
+    def get(self, request):
+        form = TrialUserCreationForm()
+        return render(request, self.template_name, {'form': form})
+    
+    def post(self, request):
+        form = TrialUserCreationForm(request.POST)
+        if form.is_valid():
+            try:
+                trial_user, trial_password = form.create_trial_user()
+                messages.success(request, f'Trial user created successfully! Email: {trial_user.email}, Password: {trial_password}')
+                return redirect('hq:create_trial_user')
+            except Exception as e:
+                messages.error(request, f'Error creating trial user: {str(e)}')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+        
+        return render(request, self.template_name, {'form': form})
 
 #==========================================================================================
 #                                 ROLE OPERATIONS STARTS                                  #
@@ -1273,7 +1320,8 @@ def branch_list(request):
     # Filter branches by status: active (default), inactive, or all
     status_filter = (request.GET.get('status') or 'active').lower()
 
-    branches = Branch.objects.all().prefetch_related('employees')
+    # Filter branches by the logged-in HQ employee (only show branches they created)
+    branches = Branch.objects.filter(created_by=request.user).prefetch_related('employees')
     if status_filter == 'active':
         branches = branches.filter(status=True)
     elif status_filter == 'inactive':
@@ -2473,6 +2521,13 @@ class HQLoanListView(LoginRequiredMixin, TemplateView):
         # Optional branch filter (by branch.branch_id) - no session persistence
         selected_branch_id = (self.request.GET.get('branch_id') or '').strip()
 
+        # Get branches created by the logged-in HQ user
+        user_branches = Branch.objects.filter(created_by=self.request.user)
+        
+        # Get agents created by those branches
+        user_branch_ids = user_branches.values_list('branch_id', flat=True)
+        user_agents = Agent.objects.filter(branch_id__in=user_branch_ids)
+
         # Base queryset: only applications in relevant statuses
         base_qs = LoanApplication.objects.filter(
             Q(status='branch_approved') |
@@ -2484,9 +2539,11 @@ class HQLoanListView(LoginRequiredMixin, TemplateView):
                 ],
                 ever_branch_approved=True,
             )
+        ).filter(
+            Q(branch__in=user_branches) | Q(agent__in=user_agents)
         ).select_related('customer', 'branch', 'agent')
 
-        # Apply branch filter if provided
+        # Apply branch filter if provided (only from user's branches)
         if selected_branch_id:
             base_qs = base_qs.filter(branch__branch_id=selected_branch_id)
 
@@ -2505,7 +2562,7 @@ class HQLoanListView(LoginRequiredMixin, TemplateView):
         context['loan_applications'] = qs
         context['status_filter'] = status_filter
         context['selected_branch_id'] = selected_branch_id
-        context['branches'] = Branch.objects.all().order_by('branch_name')  # Provide branches for filter UI
+        context['branches'] = user_branches.order_by('branch_name')  # Provide only user's branches for filter UI
         return context
 
 #==========================================================================================
@@ -2523,7 +2580,16 @@ class HQLoanDetailView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         loan_ref_no = self.kwargs.get('loan_ref_no')
-        app = LoanApplication.objects.select_related('customer', 'branch', 'agent').get(loan_ref_no=loan_ref_no)
+        
+        # Get branches and agents created by the logged-in HQ user
+        user_branches = Branch.objects.filter(created_by=self.request.user)
+        user_branch_ids = user_branches.values_list('branch_id', flat=True)
+        user_agents = Agent.objects.filter(branch_id__in=user_branch_ids)
+        
+        # Filter loan application to only show those from user's branches or agents
+        app = LoanApplication.objects.select_related('customer', 'branch', 'agent').filter(
+            Q(branch__in=user_branches) | Q(agent__in=user_agents)
+        ).get(loan_ref_no=loan_ref_no)
         context['app'] = app
 
         context['customer_account'] = getattr(app.customer, 'account', None)
@@ -2612,7 +2678,16 @@ class HQLoanApproveRejectView(LoginRequiredMixin, View):
         if not request.user.is_authenticated:
             return HttpResponseForbidden('Authentication required')
         action = request.POST.get('action')
-        loan_app = LoanApplication.objects.get(loan_ref_no=loan_ref_no)
+        
+        # Get branches and agents created by the logged-in HQ user
+        user_branches = Branch.objects.filter(created_by=request.user)
+        user_branch_ids = user_branches.values_list('branch_id', flat=True)
+        user_agents = Agent.objects.filter(branch_id__in=user_branch_ids)
+        
+        # Filter loan application to only allow actions on user's branches/agents
+        loan_app = LoanApplication.objects.filter(
+            Q(branch__in=user_branches) | Q(agent__in=user_agents)
+        ).get(loan_ref_no=loan_ref_no)
         if loan_app.status in ['document_requested', 'document_requested_by_hq']:
             return JsonResponse({'success': False, 'error': 'Cannot approve/reject while documents are requested.'}, status=400)
         if DocumentRequest.objects.filter(loan_application=loan_app, is_resolved=False).exists():
@@ -2643,7 +2718,15 @@ class HQDocumentRequestAPI(View):
         if not (loan_ref_no and document_type and reason):
             return JsonResponse({'success': False, 'error': 'Missing required fields.'}, status=400)
         try:
-            loan_app = LoanApplication.objects.get(loan_ref_no=loan_ref_no)
+            # Get branches and agents created by the logged-in HQ user
+            user_branches = Branch.objects.filter(created_by=request.user)
+            user_branch_ids = user_branches.values_list('branch_id', flat=True)
+            user_agents = Agent.objects.filter(branch_id__in=user_branch_ids)
+            
+            # Filter loan application to only allow actions on user's branches/agents
+            loan_app = LoanApplication.objects.filter(
+                Q(branch__in=user_branches) | Q(agent__in=user_agents)
+            ).get(loan_ref_no=loan_ref_no)
             DocumentRequest.objects.create(
                 loan_application=loan_app,
                 document_type=document_type,
@@ -2764,7 +2847,7 @@ def loan_management(request):
         selected_main_category = LoanMainCategory.objects.filter(main_category_id=selected_main_category_id).first()
 
     from django.db.models import Case, When, IntegerField, Q
-    main_categories = LoanMainCategory.objects.annotate(
+    main_categories = LoanMainCategory.objects.filter(created_by=request.user).annotate(
         _display_order=Case(
             When(name='Personal Loans', then=0),
             When(name='Home & Property Loans', then=1),
@@ -2777,11 +2860,11 @@ def loan_management(request):
 
     active_main_categories = main_categories.filter(is_active=True)
 
-    categories = LoanCategory.objects.select_related('main_category').filter(Q(main_category__isnull=True) | Q(main_category__is_active=True))
-    interests = LoanInterest.objects.filter(Q(main_category__isnull=True) | Q(main_category__is_active=True))
-    tenures = LoanTenure.objects.select_related('interest_rate').filter(Q(interest_rate__main_category__isnull=True) | Q(interest_rate__main_category__is_active=True))
-    deductions = Deductions.objects.filter(Q(main_category__isnull=True) | Q(main_category__is_active=True))
-    late_fees = LateFeeSetting.objects.filter(Q(main_category__isnull=True) | Q(main_category__is_active=True))
+    categories = LoanCategory.objects.select_related('main_category').filter(created_by=request.user).filter(Q(main_category__isnull=True) | Q(main_category__is_active=True))
+    interests = LoanInterest.objects.filter(created_by=request.user).filter(Q(main_category__isnull=True) | Q(main_category__is_active=True))
+    tenures = LoanTenure.objects.select_related('interest_rate').filter(created_by=request.user).filter(Q(interest_rate__main_category__isnull=True) | Q(interest_rate__main_category__is_active=True))
+    deductions = Deductions.objects.filter(created_by=request.user).filter(Q(main_category__isnull=True) | Q(main_category__is_active=True))
+    late_fees = LateFeeSetting.objects.filter(created_by=request.user).filter(Q(main_category__isnull=True) | Q(main_category__is_active=True))
 
     if selected_main_category and selected_main_category.is_active:
         categories = categories.filter(main_category=selected_main_category)
@@ -2800,10 +2883,10 @@ def loan_management(request):
 
     show_assign_unmapped_modal = False
     unmapped_target_main_category = None
-    unmapped_categories = LoanCategory.objects.filter(main_category__isnull=True).order_by('name')
-    unmapped_interests = LoanInterest.objects.filter(main_category__isnull=True).order_by('rate_of_interest')
-    unmapped_deductions = Deductions.objects.filter(main_category__isnull=True).order_by('deduction_name')
-    unmapped_late_fees = LateFeeSetting.objects.filter(main_category__isnull=True).order_by('-created_at')
+    unmapped_categories = LoanCategory.objects.filter(created_by=request.user, main_category__isnull=True).order_by('name')
+    unmapped_interests = LoanInterest.objects.filter(created_by=request.user, main_category__isnull=True).order_by('rate_of_interest')
+    unmapped_deductions = Deductions.objects.filter(created_by=request.user, main_category__isnull=True).order_by('deduction_name')
+    unmapped_late_fees = LateFeeSetting.objects.filter(created_by=request.user, main_category__isnull=True).order_by('-created_at')
 
     if request.method == 'POST' and post_form_type == 'assign_unmapped':
         target_main_category_id = (request.POST.get('target_main_category_id') or '').strip()
@@ -2821,25 +2904,25 @@ def loan_management(request):
             if not (category_ids or interest_ids or deduction_ids or late_fee_ids):
                 messages.error(request, 'Please select at least one item to assign.')
             else:
-                LoanCategory.objects.filter(main_category__isnull=True, category_id__in=category_ids).update(
+                LoanCategory.objects.filter(created_by=request.user, main_category__isnull=True, category_id__in=category_ids).update(
                     main_category=unmapped_target_main_category,
                     is_active=unmapped_target_main_category.is_active,
                 )
-                LoanInterest.objects.filter(main_category__isnull=True, interest_id__in=interest_ids).update(
+                LoanInterest.objects.filter(created_by=request.user, main_category__isnull=True, interest_id__in=interest_ids).update(
                     main_category=unmapped_target_main_category,
                     is_active=unmapped_target_main_category.is_active,
                 )
-                Deductions.objects.filter(main_category__isnull=True, deduction_id__in=deduction_ids).update(
+                Deductions.objects.filter(created_by=request.user, main_category__isnull=True, deduction_id__in=deduction_ids).update(
                     main_category=unmapped_target_main_category,
                     is_active=unmapped_target_main_category.is_active,
                 )
-                LateFeeSetting.objects.filter(main_category__isnull=True, id__in=late_fee_ids).update(
+                LateFeeSetting.objects.filter(created_by=request.user, main_category__isnull=True, id__in=late_fee_ids).update(
                     main_category=unmapped_target_main_category,
                     is_active=unmapped_target_main_category.is_active,
                 )
 
                 if interest_ids:
-                    LoanTenure.objects.filter(interest_rate__interest_id__in=interest_ids).update(
+                    LoanTenure.objects.filter(created_by=request.user, interest_rate__interest_id__in=interest_ids).update(
                         is_active=unmapped_target_main_category.is_active,
                     )
 
@@ -3229,9 +3312,17 @@ class LoanDisbursementList(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        
+        # Get branches and agents created by the logged-in HQ user
+        user_branches = Branch.objects.filter(created_by=self.request.user)
+        user_branch_ids = user_branches.values_list('branch_id', flat=True)
+        user_agents = Agent.objects.filter(branch_id__in=user_branch_ids)
+        
         # if self.request.user.is_headquater_admin or self.request.user.has_perm('loan.view_disbursementlog'):
         context['loan_disbursement'] = LoanApplication.objects.filter(
             status='hq_approved'
+        ).filter(
+            Q(branch__in=user_branches) | Q(agent__in=user_agents)
         ).select_related(
             'customer', 'branch', 'agent'
         ).prefetch_related(
@@ -3248,8 +3339,16 @@ class LoanDisbursementDetail(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         loan_ref_no = self.kwargs.get('loan_ref_no')
+        
+        # Get branches and agents created by the logged-in HQ user
+        user_branches = Branch.objects.filter(created_by=self.request.user)
+        user_branch_ids = user_branches.values_list('branch_id', flat=True)
+        user_agents = Agent.objects.filter(branch_id__in=user_branch_ids)
+        
         try:
-            loan_application = LoanApplication.objects.select_related(
+            loan_application = LoanApplication.objects.filter(
+                Q(branch__in=user_branches) | Q(agent__in=user_agents)
+            ).select_related(
                 'customer', 'branch', 'agent'
             ).prefetch_related(
                 'loan_details__loan_category', 'loan_details__tenure', 'loan_details__interest_rate', 'periods'
@@ -3264,7 +3363,15 @@ class LoanDisbursementDetail(LoginRequiredMixin, TemplateView):
     def post(self, request, *args, **kwargs):
         loan_ref_no = self.kwargs.get('loan_ref_no')
         try:
-            loan_app = LoanApplication.objects.get(loan_ref_no=loan_ref_no)
+            # Get branches and agents created by the logged-in HQ user
+            user_branches = Branch.objects.filter(created_by=request.user)
+            user_branch_ids = user_branches.values_list('branch_id', flat=True)
+            user_agents = Agent.objects.filter(branch_id__in=user_branch_ids)
+            
+            # Filter loan application to only allow actions on user's branches/agents
+            loan_app = LoanApplication.objects.filter(
+                Q(branch__in=user_branches) | Q(agent__in=user_agents)
+            ).get(loan_ref_no=loan_ref_no)
             if loan_app.status != 'hq_approved':
                 return JsonResponse({
                     'success': False,
@@ -3336,7 +3443,15 @@ class DisbursementHold(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
        context = super().get_context_data(**kwargs)
-       context['loan_disbursement'] = LoanApplication.objects.filter(status='disbursed').select_related('customer', 'branch', 'agent',).prefetch_related('loan_details__loan_category', 'loan_details__tenure', 'loan_details__interest_rate')
+       
+       # Get branches and agents created by the logged-in HQ user
+       user_branches = Branch.objects.filter(created_by=self.request.user)
+       user_branch_ids = user_branches.values_list('branch_id', flat=True)
+       user_agents = Agent.objects.filter(branch_id__in=user_branch_ids)
+       
+       context['loan_disbursement'] = LoanApplication.objects.filter(status='disbursed').filter(
+           Q(branch__in=user_branches) | Q(agent__in=user_agents)
+       ).select_related('customer', 'branch', 'agent',).prefetch_related('loan_details__loan_category', 'loan_details__tenure', 'loan_details__interest_rate')
        return context
 
 @require_permissions_for_class('loan.view_disbursementlog')
@@ -3346,8 +3461,16 @@ class DisbursementHoldDetail(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         loan_ref_no = self.kwargs.get('loan_ref_no')
+        
+        # Get branches and agents created by the logged-in HQ user
+        user_branches = Branch.objects.filter(created_by=self.request.user)
+        user_branch_ids = user_branches.values_list('branch_id', flat=True)
+        user_agents = Agent.objects.filter(branch_id__in=user_branch_ids)
+        
         try:
-            loan_application = LoanApplication.objects.select_related(
+            loan_application = LoanApplication.objects.filter(
+                Q(branch__in=user_branches) | Q(agent__in=user_agents)
+            ).select_related(
                 'customer', 'branch', 'agent'
             ).prefetch_related(
                 'loan_details__loan_category', 'loan_details__tenure', 'loan_details__interest_rate', 'periods'
@@ -3372,12 +3495,18 @@ class DisbursedAndFundRelease(LoginRequiredMixin, TemplateView):
         request = self.request
         selected_branch_id = request.GET.get('branch_id') or ''
 
+        # Get branches and agents created by the logged-in HQ user
+        user_branches = Branch.objects.filter(created_by=request.user)
+        user_branch_ids = user_branches.values_list('branch_id', flat=True)
+        user_agents = Agent.objects.filter(branch_id__in=user_branch_ids)
+
         # Base queryset: all disbursed loans
         qs = LoanApplication.objects.filter(status='disbursed_fund_released') \
+            .filter(Q(branch__in=user_branches) | Q(agent__in=user_agents)) \
             .select_related('customer', 'branch', 'agent') \
             .prefetch_related('loan_details__loan_category', 'loan_details__tenure', 'loan_details__interest_rate')
 
-        # Apply branch filter if provided
+        # Apply branch filter if provided (only from user's branches)
         if selected_branch_id:
             qs = qs.filter(branch__branch_id=selected_branch_id)
 
@@ -4248,8 +4377,15 @@ class EmiLoanListView(TemplateView):
     def get_context_data(self, **kwargs):
         from django.core.paginator import Paginator
         context = super().get_context_data(**kwargs)
+        
+        # Get branches and agents created by the logged-in HQ user
+        user_branches = Branch.objects.filter(created_by=self.request.user)
+        user_branch_ids = user_branches.values_list('branch_id', flat=True)
+        user_agents = Agent.objects.filter(branch_id__in=user_branch_ids)
+        
         # Base queryset: only disbursed loans eligible for EMI servicing
         qs = LoanApplication.objects.filter(status='disbursed_fund_released') \
+            .filter(Q(branch__in=user_branches) | Q(agent__in=user_agents)) \
             .select_related('customer', 'branch', 'agent') \
             .prefetch_related('loan_details__loan_category', 'loan_details__tenure', 'loan_details__interest_rate') \
             .order_by('-disbursed_at')
@@ -4305,8 +4441,8 @@ class EmiLoanListView(TemplateView):
         query_params.pop('page', None)
         query_string = query_params.urlencode()
 
-        # Provide branches for the filter UI
-        context['branches'] = Branch.objects.all().order_by('branch_name')
+        # Provide branches for the filter UI (only user's branches)
+        context['branches'] = user_branches.order_by('branch_name')
         context['selected_branch_id'] = selected_branch_id
         context['selected_loan_ref_no'] = selected_loan_ref_no
         context['emi_options'] = emi_options
@@ -4331,8 +4467,19 @@ class EmiScheduleView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         loan_ref_no = self.kwargs.get('loan_ref_no')
-        # Fetch loan and its EMI schedule
-        loan_app = get_object_or_404(LoanApplication.objects.select_related('customer', 'branch'), loan_ref_no=loan_ref_no)
+        
+        # Get branches and agents created by the logged-in HQ user
+        user_branches = Branch.objects.filter(created_by=self.request.user)
+        user_branch_ids = user_branches.values_list('branch_id', flat=True)
+        user_agents = Agent.objects.filter(branch_id__in=user_branch_ids)
+        
+        # Fetch loan and its EMI schedule (only from user's branches/agents)
+        loan_app = get_object_or_404(
+            LoanApplication.objects.filter(
+                Q(branch__in=user_branches) | Q(agent__in=user_agents)
+            ).select_related('customer', 'branch'), 
+            loan_ref_no=loan_ref_no
+        )
         base_qs = LoanEMISchedule.objects.filter(loan_application=loan_app).order_by('installment_date')
 
         # Filter by schedule status if provided
@@ -4382,13 +4529,23 @@ class EmiScheduleView(LoginRequiredMixin, TemplateView):
 @login_required
 @require_permission('loan.change_loancategory')
 def loan_close_requests_list(request):
-    """HQ view: list all LoanCloseRequest across branches with optional status filter."""
+    """HQ view: list LoanCloseRequest from user's branches/agents with optional status filter."""
     from django.core.paginator import Paginator
     status_filter = (request.GET.get('status') or '').strip().lower()
     valid_status = {'pending', 'approved', 'rejected', 'cancelled'}
 
+    # Get branches and agents created by the logged-in HQ user
+    user_branches = Branch.objects.filter(created_by=request.user)
+    user_branch_ids = user_branches.values_list('branch_id', flat=True)
+    user_agents = Agent.objects.filter(branch_id__in=user_branch_ids)
+
     qs = (
         LoanCloseRequest.objects
+        .filter(
+            Q(branch__in=user_branches) | 
+            Q(loan_application__branch__in=user_branches) | 
+            Q(loan_application__agent__in=user_agents)
+        )
         .select_related('loan_application__customer', 'loan_application', 'branch', 'requested_by')
         .order_by('-requested_at')
     )
@@ -4442,7 +4599,20 @@ def loan_close_request_action(request, request_id):
     """HQ view: action on a LoanCloseRequest.
     Accepts form field 'action' = 'approve' (default) or 'reject'.
     """
-    lcr = get_object_or_404(LoanCloseRequest, request_id=request_id)
+    # Get branches and agents created by the logged-in HQ user
+    user_branches = Branch.objects.filter(created_by=request.user)
+    user_branch_ids = user_branches.values_list('branch_id', flat=True)
+    user_agents = Agent.objects.filter(branch_id__in=user_branch_ids)
+    
+    # Filter loan close request to only allow actions on user's branches/agents
+    lcr = get_object_or_404(
+        LoanCloseRequest.objects.filter(
+            Q(branch__in=user_branches) | 
+            Q(loan_application__branch__in=user_branches) | 
+            Q(loan_application__agent__in=user_agents)
+        ),
+        request_id=request_id
+    )
 
     # Only pending requests can be transitioned
     if lcr.status != 'pending':
@@ -4555,6 +4725,7 @@ def hq_dashboard_data(request):
     """
     from calendar import monthrange, month_abbr
     from headquater.models import Branch
+    from django.db.models import Q
     now = timezone.now()
     tz = timezone.get_current_timezone()
 
@@ -4587,11 +4758,20 @@ def hq_dashboard_data(request):
         ny = year + 1 if month == 12 else year
         next_start = timezone.datetime(ny, nm, 1, 0, 0, 0, tzinfo=tz)
 
-    base_qs = LoanApplication.objects.filter(submitted_at__gte=start, submitted_at__lt=next_start)
+    # Get branches and agents created by the logged-in HQ user
+    user_branches = Branch.objects.filter(created_by=request.user)
+    user_branch_ids = user_branches.values_list('branch_id', flat=True)
+    user_agents = Agent.objects.filter(branch_id__in=user_branch_ids)
+
+    base_qs = LoanApplication.objects.filter(submitted_at__gte=start, submitted_at__lt=next_start).filter(
+        Q(branch__in=user_branches) | Q(agent__in=user_agents)
+    )
 
     savings_base_qs = SavingsAccountApplication.objects.filter(
         submitted_at__gte=start,
         submitted_at__lt=next_start,
+    ).filter(
+        Q(branch__in=user_branches) | Q(agent__in=user_agents)
     )
 
     # Cards
@@ -4607,6 +4787,8 @@ def hq_dashboard_data(request):
         disbursed_at__gte=start,
         disbursed_at__lt=next_start,
         status__in=disbursed_statuses,
+    ).filter(
+        Q(branch__in=user_branches) | Q(agent__in=user_agents)
     ).count()
     rejected = base_qs.filter(status='hq_rejected').count()
 
@@ -4634,7 +4816,9 @@ def hq_dashboard_data(request):
         pny = py + 1 if pm == 12 else py
         prev_next = timezone.datetime(pny, pnm, 1, 0, 0, 0, tzinfo=tz)
 
-    prev_qs = LoanApplication.objects.filter(submitted_at__gte=prev_start, submitted_at__lt=prev_next)
+    prev_qs = LoanApplication.objects.filter(submitted_at__gte=prev_start, submitted_at__lt=prev_next).filter(
+        Q(branch__in=user_branches) | Q(agent__in=user_agents)
+    )
     prev_applied = prev_qs.count()
     prev_pending = prev_qs.filter(status='branch_approved').count()
     prev_approved = prev_qs.filter(status='hq_approved').count()
@@ -4644,12 +4828,16 @@ def hq_dashboard_data(request):
         disbursed_at__gte=prev_start,
         disbursed_at__lt=prev_next,
         status__in=disbursed_statuses,
+    ).filter(
+        Q(branch__in=user_branches) | Q(agent__in=user_agents)
     ).count()
     prev_rejected = prev_qs.filter(status='hq_rejected').count()
 
     savings_prev_qs = SavingsAccountApplication.objects.filter(
         submitted_at__gte=prev_start,
         submitted_at__lt=prev_next,
+    ).filter(
+        Q(branch__in=user_branches) | Q(agent__in=user_agents)
     )
     savings_prev_applied = savings_prev_qs.count()
     savings_prev_pending = savings_prev_qs.filter(status='branch_approved').count()

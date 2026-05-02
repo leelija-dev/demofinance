@@ -1,0 +1,111 @@
+{% extends 'hq/trial_base.html' %}
+{% load static %}
+
+{% block title %}Trial Status Check{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-clock"></i> Trial Status Check
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if user_not_found %}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle"></i> {{ message }}
+                        </div>
+                        <a href="{% url 'trial_check' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left"></i> Try Again
+                        </a>
+                    {% elif not_trial_user %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> {{ message }}
+                        </div>
+                        <a href="{% url 'hq:login' %}" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt"></i> Go to Login
+                        </a>
+                    {% elif trial_active %}
+                        <div class="alert alert-success">
+                            <h5><i class="fas fa-check-circle"></i> Trial Active</h5>
+                            <p><strong>User:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+                            <p><strong>Email:</strong> {{ user.email }}</p>
+                            <p><strong>Trial Expires:</strong> {{ expiry_date|date:"F d, Y H:i" }}</p>
+                            <p><strong>Time Remaining:</strong> 
+                                {% if days_left > 0 %}
+                                    {{ days_left }} day{{ days_left|pluralize }}{% if hours_left > 0 %}, {{ hours_left }} hour{{ hours_left|pluralize }}{% endif %}
+                                {% else %}
+                                    {{ hours_left }} hour{{ hours_left|pluralize }}
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="progress mb-3">
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                 style="width: 100%"
+                                 aria-valuenow="100" 
+                                 aria-valuemin="0" aria-valuemax="100">
+                                Good
+                            </div>
+                        </div>
+                        <a href="{% url 'hq:login' %}" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt"></i> Login to Your Account
+                        </a>
+                    {% elif trial_expired %}
+                        <div class="alert alert-danger">
+                            <h5><i class="fas fa-times-circle"></i> Trial Expired</h5>
+                            <p><strong>User:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+                            <p><strong>Email:</strong> {{ user.email }}</p>
+                            <p><strong>Trial Expired On:</strong> {{ expired_date|date:"F d, Y H:i" }}</p>
+                            <p class="mb-0">Your trial period has expired. Please contact support to continue using the service.</p>
+                        </div>
+                        <a href="{% url 'trial_check' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left"></i> Check Another Email
+                        </a>
+                    {% elif no_trial %}
+                        <div class="alert alert-warning">
+                            <h5><i class="fas fa-question-circle"></i> No Trial Setup</h5>
+                            <p><strong>User:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+                            <p><strong>Email:</strong> {{ user.email }}</p>
+                            <p class="mb-0">This account doesn't have a trial period configured.</p>
+                        </div>
+                        <a href="{% url 'trial_check' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left"></i> Check Another Email
+                        </a>
+                    {% else %}
+                        <!-- Initial form -->
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="email" class="form-label">
+                                    <i class="fas fa-envelope"></i> Email Address
+                                </label>
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       placeholder="Enter your email address" required>
+                                <div class="form-text">Enter your email to check your trial status</div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-search"></i> Check Trial Status
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-focus on email field when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    const emailField = document.getElementById('email');
+    if (emailField) {
+        emailField.focus();
+    }
+});
+</script>
+{% endblock %}

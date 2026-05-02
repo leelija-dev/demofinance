@@ -301,46 +301,46 @@ class NewLoanApplicationAPI(APIView):
                 # elif account_type not in dict(CustomerAccount.ACCOUNT_TYPES):
                 #     account_errors['account_type'] = 'Invalid account type selected.'
 
-                account_number = (data.get('account_number') or '').strip()
-                confirm_account_number = (data.get('confirm_account_number') or '').strip()
-                bank_name = (data.get('bank_name') or '').strip()
-                ifsc_code = (data.get('ifsc_code') or '').strip().upper()
-                account_type = data.get('account_type')
+                # account_number = (data.get('account_number') or '').strip()
+                # confirm_account_number = (data.get('confirm_account_number') or '').strip()
+                # bank_name = (data.get('bank_name') or '').strip()
+                # ifsc_code = (data.get('ifsc_code') or '').strip().upper()
+                # account_type = data.get('account_type')
                 
-                account_errors = {}
+                # account_errors = {}
                 
-                # Only validate if account_number is provided
-                if account_number:
-                    if not account_number.isdigit():
-                        account_errors['account_number'] = 'Account number must contain digits only.'
-                    elif not 9 <= len(account_number) <= 18:
-                        account_errors['account_number'] = 'Account number must be between 9 and 18 digits.'
-                    else:
-                        account_qs = CustomerAccount.objects.filter(account_number=account_number)
-                        if existing_account_for_customer:
-                            account_qs = account_qs.exclude(pk=existing_account_for_customer.pk)
-                        if account_qs.exists():
-                            account_errors['account_number'] = 'This account number is already registered.'
+                # # Only validate if account_number is provided
+                # if account_number:
+                #     if not account_number.isdigit():
+                #         account_errors['account_number'] = 'Account number must contain digits only.'
+                #     elif not 9 <= len(account_number) <= 18:
+                #         account_errors['account_number'] = 'Account number must be between 9 and 18 digits.'
+                #     else:
+                #         account_qs = CustomerAccount.objects.filter(account_number=account_number)
+                #         if existing_account_for_customer:
+                #             account_qs = account_qs.exclude(pk=existing_account_for_customer.pk)
+                #         if account_qs.exists():
+                #             account_errors['account_number'] = 'This account number is already registered.'
                     
-                    # Only validate confirm_account_number if account_number is provided
-                    if not confirm_account_number:
-                        account_errors['confirm_account_number'] = 'Please confirm the account number.'
-                    elif account_number != confirm_account_number:
-                        account_errors['confirm_account_number'] = 'Account numbers do not match.'
+                #     # Only validate confirm_account_number if account_number is provided
+                #     if not confirm_account_number:
+                #         account_errors['confirm_account_number'] = 'Please confirm the account number.'
+                #     elif account_number != confirm_account_number:
+                #         account_errors['confirm_account_number'] = 'Account numbers do not match.'
                 
-                # Only validate bank_name if provided
-                if bank_name and len(bank_name.strip()) < 3:
-                    account_errors['bank_name'] = 'Bank name must be at least 3 characters.'
+                # # Only validate bank_name if provided
+                # if bank_name and len(bank_name.strip()) < 3:
+                #     account_errors['bank_name'] = 'Bank name must be at least 3 characters.'
                 
-                # Only validate ifsc_code if provided
-                if ifsc_code:
-                    if not re.match(r'^[A-Z]{4}0[A-Z0-9]{6}$', ifsc_code):
-                        account_errors['ifsc_code'] = 'Enter a valid IFSC code (e.g., SBIN0001234).'
+                # # Only validate ifsc_code if provided
+                # if ifsc_code:
+                #     if not re.match(r'^[A-Z]{4}0[A-Z0-9]{6}$', ifsc_code):
+                #         account_errors['ifsc_code'] = 'Enter a valid IFSC code (e.g., SBIN0001234).'
                 
-                # Account type is optional - no validation needed if empty
+                # # Account type is optional - no validation needed if empty
                 
-                if account_errors:
-                    errors.update(account_errors)
+                # if account_errors:
+                #     errors.update(account_errors)
 
                 for f in required_fields:
                     if f in required_file_fields:
@@ -402,6 +402,51 @@ class NewLoanApplicationAPI(APIView):
                         if pan_number and existing_customer_by_pan:
                             errors['pan_number'] = 'A customer with this PAN Number already exists.'
                 
+
+
+                
+                account_number = (data.get('account_number') or '').strip()
+                confirm_account_number = (data.get('confirm_account_number') or '').strip()
+                bank_name = (data.get('bank_name') or '').strip()
+                ifsc_code = (data.get('ifsc_code') or '').strip().upper()
+                account_type = data.get('account_type')
+                
+                account_errors = {}
+                
+                # Only validate if account_number is provided
+                if account_number:
+                    if not account_number.isdigit():
+                        account_errors['account_number'] = 'Account number must contain digits only.'
+                    elif not 9 <= len(account_number) <= 18:
+                        account_errors['account_number'] = 'Account number must be between 9 and 18 digits.'
+                    else:
+                        account_qs = CustomerAccount.objects.filter(account_number=account_number)
+                        if existing_account_for_customer:
+                            account_qs = account_qs.exclude(pk=existing_account_for_customer.pk)
+                        if account_qs.exists():
+                            account_errors['account_number'] = 'This account number is already registered.'
+                    
+                    # Only validate confirm_account_number if account_number is provided
+                    if not confirm_account_number:
+                        account_errors['confirm_account_number'] = 'Please confirm the account number.'
+                    elif account_number != confirm_account_number:
+                        account_errors['confirm_account_number'] = 'Account numbers do not match.'
+                
+                # Only validate bank_name if provided
+                if bank_name and len(bank_name.strip()) < 3:
+                    account_errors['bank_name'] = 'Bank name must be at least 3 characters.'
+                
+                # Only validate ifsc_code if provided
+                if ifsc_code:
+                    if not re.match(r'^[A-Z]{4}0[A-Z0-9]{6}$', ifsc_code):
+                        account_errors['ifsc_code'] = 'Enter a valid IFSC code (e.g., SBIN0001234).'
+
+                # Account type is optional - no validation needed if empty
+                
+                if account_errors:
+                    errors.update(account_errors)
+
+
                 # if voter_number and CustomerDetail.objects.filter(voter_number=voter_number).exists():
                 #     errors['voter_number'] = 'A customer with this Voter ID already exists.'
                 if (voter_number and 
