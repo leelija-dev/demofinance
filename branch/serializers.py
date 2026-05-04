@@ -17,7 +17,7 @@ class AgentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Agent
-        fields = ['agent_id', 'full_name', 'email', 'phone', 'area', 'id_proof', 'photo', 'status', 'password', 'branch', 'unverified_collected_amount']
+        fields = ['agent_id', 'full_name', 'email', 'phone', 'area', 'id_proof', 'photo', 'status', 'is_demo', 'password', 'branch', 'unverified_collected_amount']
         read_only_fields = ['agent_id']
 
     def to_representation(self, instance):

@@ -60,6 +60,7 @@ class Agent(models.Model):
     
     # Status and timestamps
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    is_demo = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
