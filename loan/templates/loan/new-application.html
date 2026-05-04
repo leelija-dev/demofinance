@@ -839,6 +839,7 @@ document.getElementById('loan-application-form').addEventListener('submit', asyn
                     submitButton.disabled = false;
                     submitButton.innerHTML = originalButtonText;
                 }
+                window.location.href = "/agent/application/";
             }, 1000);
 
             return; // prevent finally from running

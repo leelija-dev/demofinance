@@ -206,16 +206,16 @@ class SendAadhaarOTPAPI(APIView):
                 running_statuses = ['active', 'pending', 'document_requested', 'resubmitted', 'branch_document_accepted', 'branch_approved', 'branch_resubmitted', 'hq_document_accepted', 'hq_resubmitted', 'hq_approved', 'document_requested_by_hq', 'disbursed', 'disbursed_fund_released']
                 has_running_loan = existing_customer.loan_applications.filter(status__in=running_statuses).exists()
                 if has_running_loan:
-                    has_approved_close_requests = LoanCloseRequest.objects.filter(
-                        loan_application__customer=existing_customer,
-                        status='approved'
-                    ).exists()
-                    if not has_approved_close_requests:
-                        return Response({
-                            'success': False,
-                            'code': 'RUNNING_LOAN',
-                            'message': 'This customer cannot apply for a new loan because there is already a running loan.'
-                        }, status=status.HTTP_400_BAD_REQUEST)
+                    # has_approved_close_requests = LoanCloseRequest.objects.filter(
+                    #     loan_application__customer=existing_customer,
+                    #     status='approved'
+                    # ).exists()
+                    # if not has_approved_close_requests:
+                    return Response({
+                        'success': False,
+                        'code': 'RUNNING_LOAN',
+                        'message': 'This customer cannot apply for a new loan because there is already a running loan.'
+                    }, status=status.HTTP_400_BAD_REQUEST)
             
             if existing_customer and not continueWithExistingCustomer:
                 # Check if customer should be allowed to proceed (only if they have rejected loans or approved close requests)

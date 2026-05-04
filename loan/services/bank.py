@@ -33,13 +33,64 @@ class CashfreeService:
     @staticmethod
     def verify_bank_account(account_number, ifsc, phone, name):
         if CashfreeService.FORCE_MOCK or not CashfreeService.CLIENT_ID or not CashfreeService.CLIENT_SECRET:
+            ifsc_prefix = (str(ifsc or '')[:4]).upper()
+            bank_name_map = {
+                'HDFC': 'HDFC Bank Ltd',
+                'SBIN': 'State Bank of India',
+                'ICIC': 'ICICI Bank Ltd',
+                'AXIS': 'Axis Bank Ltd',
+                'PUNB': 'Punjab National Bank',
+                'KKBK': 'Kotak Mahindra Bank Ltd',
+                'UTIB': 'Axis Bank Ltd',
+                'BARB': 'Bank of Baroda',
+                'IDIB': 'Indian Bank',
+                'CNRB': 'Canara Bank',
+                'UBIN': 'Union Bank of India',
+            
+                # Additional Private Banks
+                'INDUSIND': 'IndusInd Bank Ltd',
+                'YESBANK': 'Yes Bank Ltd',
+                'IDFCFIRSTB': 'IDFC First Bank Ltd',
+                'FEDERALBNK': 'Federal Bank Ltd',
+                'SOUTHBANK': 'South Indian Bank Ltd',
+                'RBLBANK': 'RBL Bank Ltd',
+                'BANDHANBNK': 'Bandhan Bank Ltd',
+                'KARURVYSYA': 'Karur Vysya Bank Ltd',
+                'CUB': 'City Union Bank Ltd',
+                'DHANBANK': 'Dhanlaxmi Bank Ltd',
+                'TMB': 'Tamilnad Mercantile Bank Ltd',
+            
+                # Additional Public Sector Banks
+                'BANKINDIA': 'Bank of India',
+                'CENTRALBK': 'Central Bank of India',
+                'IOB': 'Indian Overseas Bank',
+                'UCOBANK': 'UCO Bank',
+                'MAHABANK': 'Bank of Maharashtra',
+                'PSB': 'Punjab & Sind Bank',
+            
+                # Small Finance Banks
+                'AUBANK': 'AU Small Finance Bank Ltd',
+                'EQUITAS': 'Equitas Small Finance Bank Ltd',
+                'UJJIVAN': 'Ujjivan Small Finance Bank Ltd',
+                'JANASFB': 'Jana Small Finance Bank Ltd',
+                'ESAFSFB': 'ESAF Small Finance Bank Ltd',
+                'SURYODAY': 'Suryoday Small Finance Bank Ltd',
+                'FINCARE': 'Fincare Small Finance Bank Ltd',
+            
+                # Payments Banks
+                'PAYTM': 'Paytm Payments Bank Ltd',
+                'AIRTELPB': 'Airtel Payments Bank Ltd',
+                'IPPB': 'India Post Payments Bank Ltd',
+                'NSDLPB': 'NSDL Payments Bank Ltd'
+            }
+            bank_name = bank_name_map.get(ifsc_prefix) or (ifsc_prefix if ifsc_prefix else 'Mock Bank')
             return {
                 'status': 'success',
                 'data': {
                     'account_number': account_number,
                     'ifsc': ifsc,
                     'name_at_bank': name or 'Mock Account Name',
-                    'bank_name': 'HDFC Bank Ltd',
+                    'bank_name': bank_name,
                     'branch': 'Mumbai Main Branch',
                     'account_type': 'SAVINGS',
                     'city': 'Mumbai',

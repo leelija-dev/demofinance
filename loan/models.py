@@ -7,7 +7,7 @@ from agent.models import Agent
 from django.utils import timezone
 from django.db.models import Q
 from headquater.models import Branch, HeadquarterEmployee
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.core.files.storage import default_storage
 from django.db.models.fields.files import FieldFile
 
@@ -122,12 +122,17 @@ class LoanApplication(models.Model):
         # === 2. Address (OneToOne or related) ===
         # try:
         # address = customer.customeraddress_set.first() if hasattr(customer, 'customeraddress_set') else None
-        address = customer.address if hasattr(customer, 'address') else None
+        address = None
+        if hasattr(customer, 'address'):
+            try:
+                address = customer.address
+            except ObjectDoesNotExist:
+                address = None
         # Alternative: if you have a direct OneToOneField on CustomerDetail → CustomerAddress
         # address = getattr(customer, 'customeraddress', None)
 
         print('hasattr(customer, "customeraddress_set") -> ', hasattr(customer, 'customeraddress_set'))
-        print('customer.address -> ',customer.address)
+        print('customer.address -> ', address)
         print('address -> ',address)
         if address:
             addr_fields = [
@@ -150,11 +155,16 @@ class LoanApplication(models.Model):
         # === 3. Bank Details (CustomerAccount) ===
         # try:
         # bank = customer.customeraccount_set.first() if hasattr(customer, 'customeraccount_set') else None
-        bank = customer.account if hasattr(customer, 'account') else None
+        bank = None
+        if hasattr(customer, 'account'):
+            try:
+                bank = customer.account
+            except ObjectDoesNotExist:
+                bank = None
         # Or: bank = getattr(customer, 'customeraccount', None)
         
         print('hasattr(customer, "customeraccount_set") -> ', hasattr(customer, 'customeraccount_set'))
-        print('customer.account -> ',customer.account)
+        print('customer.account -> ', bank)
         print('bank -> ',bank)
 
         if bank:

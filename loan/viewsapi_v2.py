@@ -683,11 +683,20 @@ class NewLoanApplicationAPIV2(APIView):
                 # Handle DD/MM/YYYY format
                 date_obj = datetime.strptime(date_str, '%d/%m/%Y').date()
             elif '-' in date_str:
-                # Handle YYYY-MM-DD format
-                date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+                # Handle YYYY-MM-DD or DD-MM-YYYY format
+                try:
+                    date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+                except ValueError:
+                    date_obj = datetime.strptime(date_str, '%d-%m-%Y').date()
             else:
-                # Try ISO format
-                date_obj = datetime.fromisoformat(date_str).date()
+                raw = str(date_str)
+                digits = re.sub(r'\D', '', raw)
+                if len(digits) == 8:
+                    # Handle DDMMYYYY format
+                    date_obj = datetime.strptime(digits, '%d%m%Y').date()
+                else:
+                    # Try ISO format
+                    date_obj = datetime.fromisoformat(date_str).date()
         except (ValueError, TypeError) as e:
             print(f"[Date Error] Failed to parse date_of_birth: {date_str}, error: {str(e)}")
             # Fallback to original string if parsing fails
@@ -872,17 +881,32 @@ class NewLoanApplicationAPIV2(APIView):
     def _send_email(self, data:QueryDict, customer:CustomerDetail, loan_application:LoanApplication, pdf_content):
         try:
             recipient_list = []
+
             # Customer email
-            if customer.email:
-                recipient_list.append(customer.email)
-            # Branch email (from branch object used in loan_application)
-            branch_email = getattr(loan_application.branch, 'email', None)
-            if branch_email:
-                recipient_list.append(branch_email)
-            # HQ email from settings (add to settings if not present)
+            customer_email = getattr(customer, 'email', None)
+            if customer_email and customer_email.strip():
+                recipient_list.append(customer_email.strip())
+
+            # Branch email
+            # Prefer loan_application.branch but fall back to other known relations.
+            branch_obj = (
+                getattr(loan_application, 'branch', None)
+                or getattr(customer, 'branch', None)
+                or getattr(getattr(loan_application, 'agent', None), 'branch', None)
+                or getattr(getattr(loan_application, 'created_by_branch_manager', None), 'branch', None)
+            )
+            branch_email = getattr(branch_obj, 'email', None) if branch_obj else None
+            if branch_email and branch_email.strip():
+                recipient_list.append(branch_email.strip())
+
+            # HQ email from settings
             hq_email = getattr(settings, 'HQ_NOTIFICATION_EMAIL', None)
-            if hq_email:
-                recipient_list.append(hq_email)
+            if hq_email and str(hq_email).strip():
+                recipient_list.append(str(hq_email).strip())
+
+            # De-duplicate while keeping order
+            seen = set()
+            recipient_list = [e for e in recipient_list if not (e in seen or seen.add(e))]
 
             if recipient_list:
                 subject = f"New Loan Application Received - Ref: {loan_application.loan_ref_no}"

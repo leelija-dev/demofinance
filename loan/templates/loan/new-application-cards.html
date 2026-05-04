@@ -798,7 +798,7 @@
 
             <div class="form-group">
               <label class="form-label">Date of Birth <span class="text-red-500">*</span></label>
-              <input type="text" id="date_of_birth" class="form-input" x-model="personalInfo.date_of_birth" :readonly="aadhaarPopulatedFields.date_of_birth === true" />
+              <input type="text" id="date_of_birth" class="form-input" x-model="personalInfo.date_of_birth" @input="formatDateOfBirth" :readonly="aadhaarPopulatedFields.date_of_birth === true" maxlength="10" inputmode="numeric" />
               <input type="hidden" name="date_of_birth" :value="personalInfo.date_of_birth" />
             </div>
 
@@ -1360,6 +1360,7 @@
           <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Enter your mobile number and verify your Aadhaar card</p>
         </div>
         <div class="card-body">
+          <div class="text-error-500 text-xs mb-4" x-show="errors.verification" x-text="errors.verification"></div>
           <!-- Mobile Number -->
           <div class="mb-6">
             <!-- <h4 class="text-md font-medium text-gray-900 dark:text-white mb-4">Mobile Number</h4> -->
@@ -2076,7 +2077,10 @@
 
       async loadMainCategories() {
         try {
-          const response = await fetch("/agent/api/loan-main-category");
+          // Determine shop_status based on user type
+          // For agents, use "active"; for branches, use "inactive"
+          const shopStatus = window.AGENT_SHOPS_COUNT > 0 ? "" : "?shop_status=inactive";
+          const response = await fetch(`/agent/api/loan-main-category${shopStatus}`);
           const categories = await response.json();
           this.mainCategories = categories;
           this.categoryError = null;
@@ -2465,6 +2469,20 @@
         this.errors = {};
       },
 
+      formatDateOfBirth(event) {
+        const raw = event && event.target ? event.target.value : this.personalInfo.date_of_birth;
+        const digits = String(raw || "").replace(/\D/g, "").slice(0, 8);
+        const d = digits.slice(0, 2);
+        const m = digits.slice(2, 4);
+        const y = digits.slice(4, 8);
+
+        let formatted = d;
+        if (digits.length > 2) formatted += "-" + m;
+        if (digits.length > 4) formatted += "-" + y;
+
+        this.personalInfo.date_of_birth = formatted;
+      },
+
       // PAN format validation
       validatePANFormat() {
         this.personalInfo.pan_number = this.personalInfo.pan_number.toUpperCase();
@@ -2700,10 +2718,15 @@
 
         if (this.currentStep === 2) {
           // Check if Aadhaar is verified using the external verification
-          // if (window.aadhaarVerification && !window.aadhaarVerification.isVerified()) {
-          // this.errors.verification = "Please complete Aadhaar verification";
-          // return false;
-          // }
+          if (window.aadhaarVerification && typeof window.aadhaarVerification.isVerified === "function") {
+            if (!window.aadhaarVerification.isVerified()) {
+              this.errors.verification = "Please verify Aadhaar OTP to continue";
+              return false;
+            }
+          } else {
+            this.errors.verification = "Aadhaar verification is not available. Please refresh the page.";
+            return false;
+          }
           return true;
         }
 
@@ -2978,8 +3001,16 @@
           formData.append("full_name", this.personalInfo.full_name);
           formData.append("father_name", this.personalInfo.father_name);
           formData.append("guarantor_name", this.personalInfo.guarantor_name);
-          const dateParts = this.personalInfo.date_of_birth.split("-");
-          const formattedDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+          const dobRaw = String(this.personalInfo.date_of_birth || "").trim();
+          const dateParts = dobRaw.split("-");
+          let formattedDate = dobRaw;
+          if (dateParts.length === 3) {
+            if (dateParts[0] && dateParts[0].length === 4) {
+              formattedDate = dobRaw;
+            } else {
+              formattedDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+            }
+          }
           formData.append("date_of_birth", formattedDate);
           formData.append("gender", this.personalInfo.gender);
           formData.append("email", this.personalInfo.email);

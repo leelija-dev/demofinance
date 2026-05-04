@@ -143,7 +143,7 @@ class LoanApplicationSerializer(serializers.ModelSerializer):
         fields = '__all__' 
 
 class LoanApplicationListSerializer(serializers.ModelSerializer):
-    full_name = serializers.CharField(source='customer.full_name', read_only=True)
+    full_name = serializers.SerializerMethodField()
     customer_id = serializers.CharField(source='customer.customer_id', read_only=True)
     loans = serializers.SerializerMethodField()
     agent = serializers.SerializerMethodField()
@@ -154,6 +154,21 @@ class LoanApplicationListSerializer(serializers.ModelSerializer):
         fields = [
             'loan_ref_no', 'customer_id', 'full_name', 'status', 'submitted_at', 'loans', 'agent', 'emi_assigned_to_agent'
         ]
+
+    def get_full_name(self, obj):
+        """Reusing the same logic as detailed serializer"""
+        customer_snapshot = getattr(obj, 'customer_snapshot', None)
+        if hasattr(obj, 'customer_snapshot') and obj.customer_snapshot:
+            customer_details = customer_snapshot.get('customer_details', {})
+            full_name = customer_details.get('full_name', {})
+            if customer_details:
+                is_old_loan = (
+                    obj.customer.loan_application_id != obj.loan_ref_no
+                )
+                if is_old_loan:
+                    return full_name
+
+        return obj.customer.full_name if hasattr(obj, 'customer') and obj.customer else None
 
     def get_loans(self, obj):
         from .models import CustomerLoanDetail
