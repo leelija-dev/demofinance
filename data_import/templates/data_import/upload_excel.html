@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -216,6 +217,7 @@
                     <h5 class="modal-title">
                         <i class="fas fa-table me-2"></i>Required Excel Structure
                     </h5>
+                    <button type="button" class="btn btn-primary downloadSampleBtn" data-bs-dismiss="modal">Download Sample</button>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -289,6 +291,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
+                    <button type="button" class="btn btn-primary downloadSampleBtn" data-bs-dismiss="modal">Download Sample</button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
@@ -408,6 +411,24 @@
                 processBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
                 processBtn.disabled = true;
             });
+        }
+        
+        // Download sample functionality
+        const downloadSampleBtns = document.querySelectorAll('.downloadSampleBtn');
+        downloadSampleBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                downloadExcelStructureGuide();
+            });
+        });
+        
+        function downloadExcelStructureGuide() {
+            // Create a temporary link element
+            const link = document.createElement('a');
+            link.href = '{% static "data_import/DemoData.xlsx" %}';
+            link.download = 'DemoData.xlsx';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
     </script>
 </body>

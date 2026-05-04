@@ -2847,7 +2847,9 @@ def loan_management(request):
         selected_main_category = LoanMainCategory.objects.filter(main_category_id=selected_main_category_id).first()
 
     from django.db.models import Case, When, IntegerField, Q
-    main_categories = LoanMainCategory.objects.filter(created_by=request.user).annotate(
+    main_categories = LoanMainCategory.objects.filter(
+        Q(created_by=request.user) | Q(created_by__isnull=True)
+    ).annotate(
         _display_order=Case(
             When(name='Personal Loans', then=0),
             When(name='Home & Property Loans', then=1),
