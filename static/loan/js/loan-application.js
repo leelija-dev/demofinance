@@ -465,7 +465,7 @@
         const select = document.getElementById('loan_category');
         if (!select) return;
         // API endpoint for loan categories
-        fetch('/agent/api/loan-category')
+        fetch('/agent/api/loan-category?shop_status=inactive')
             .then(response => {
                 if (!response.ok) throw new Error('Network response was not ok');
                 return response.json();

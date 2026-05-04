@@ -323,6 +323,7 @@ class AadhaarVerification {
     }
 
     async sendOTP(continueWithExistingCustomer = false) {
+        console.log('continueWithExistingCustomer  ->  ', continueWithExistingCustomer)
         if (!this.validateAadhaar()) {
             return;
         }
@@ -414,21 +415,29 @@ class AadhaarVerification {
             const data = await response.json();
 
             if (data.success) {
-                this.verified = true;
                 this.personalData = data.aadhaar_data || {};
-                this.showSuccess('Aadhaar verified successfully! Moving to next step...');
-                this.populatePersonalInfo();
-                this.hideOTPSection();
-                // Automatically move to next step after successful verification
-                setTimeout(() => {
-                    this.moveToNextStep();
-                }, 1500);
+                if(this.personalData.message != null && this.personalData.message != 'Invalid OTP'){
+                    this.verified = true;
+                    this.showSuccess('Aadhaar verified successfully! Moving to next step...');
+                    this.populatePersonalInfo();
+                    this.hideOTPSection();
+                    // Automatically move to next step after successful verification
+                    setTimeout(() => {
+                        this.moveToNextStep();
+                    }, 1500);
+                } else {
+                    this.verified = false;
+                    this.showError('aadhaar_otp', 'Invalid OTP. Please enter correct OTP.');
+                    this.clearOTPInputs();
+                }
             } else {
-                this.showError('aadhaar_otp', data.message || 'Invalid OTP');
+                this.verified = false;
+                this.showError('aadhaar_otp', (data && data.message ? data.message : 'Invalid OTP') + '. Please enter correct OTP.');
                 this.clearOTPInputs();
             }
         } catch (error) {
             console.error('Verify OTP error:', error);
+            this.verified = false;
             this.showError('aadhaar_otp', 'Network error. Please try again.');
         } finally {
             // Restore button state
@@ -580,7 +589,7 @@ class AadhaarVerification {
                 }
 
                 // Set OTP verified status
-                alpineData.otpVerified = true;
+                alpineData.otpVerified = this.verified === true;
 
                 // Trigger Alpine reactivity
                 Alpine.$data(appElement);
@@ -588,8 +597,12 @@ class AadhaarVerification {
         }
     }
 
+    isVerified() {
+        return this.verified === true;
+    }
+
     startCountdown() {
-        this.countdown = 60;
+        this.countdown = 120;
         const countdownElement = document.getElementById('otp-countdown');
 
         const interval = setInterval(() => {
@@ -854,8 +867,9 @@ class AadhaarVerification {
                 // Populate data to Alpine variables
                 this.populateExistingCustomerData(customerData);
 
-                this.sendOTP(true);
-                // this.mockAadhaarVerification();
+                setTimeout(() => {
+                    this.moveToNextStep();
+                }, 1500);
             });
         }
 
@@ -896,7 +910,8 @@ class AadhaarVerification {
                     pan_number: customerData.pan_number || '',
                     aadhaar_number: customerData.aadhar_number || '',
                     voter_number: customerData.voter_number || '',
-                    guarantor_name: customerData.guarantor_name || ''
+                    guarantor_name: customerData.guarantor_name || '',
+                    pincode: customerData.address_data?.post_code || '',
                 };
                 console.log(alpineData.personalInfo);
 
@@ -917,6 +932,9 @@ class AadhaarVerification {
                     if (alpineData.addressData.sameAddress) {
                         Object.assign(alpineData.addressData.current, alpineData.addressData.permanent);
                     }
+
+                    const existingFullAddress = `${alpineData.addressData.permanent.address_line_1}, ${alpineData.addressData.permanent.post_office}, ${alpineData.addressData.permanent.city_or_town}, ${alpineData.addressData.permanent.district}, ${alpineData.addressData.permanent.state} - ${alpineData.addressData.permanent.post_code}`.trim();
+                    alpineData.personalInfo.address = existingFullAddress;
                 }
 
                 // Populate bank details if available
@@ -960,6 +978,7 @@ class AadhaarVerification {
 
                 // Mark as verified
                 alpineData.otpVerified = true;
+                alpineData.panVerificationStatus = 'linked';
 
                 console.log('Populated existing customer data:', customerData);
             }

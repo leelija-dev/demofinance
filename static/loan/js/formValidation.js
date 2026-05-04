@@ -808,11 +808,13 @@ async function callDraftAPI(endpoint, method, data = null) {
                 residentialProofSection.classList.add('hidden');
             }
             updateCurrentAddress();
-            // Clear errors for current address fields
+            // Clear errors for current address fields and remove required attribute
             ['current_address_line_1', 'current_state', 'current_post_code', 'current_city_or_town', 'current_district', 'residential_proof_type', 'residential_proof_file'].forEach(id => {
                 const field = document.getElementById(id);
                 if (field) {
                     clearFieldError(field);
+                    // Remove required attribute when same address is checked to prevent browser validation on hidden fields
+                    field.removeAttribute('required');
                 }
             });
         } else {
@@ -825,6 +827,19 @@ async function callDraftAPI(endpoint, method, data = null) {
                 const field = document.getElementById(id);
                 if (field) {
                     clearFieldError(field);
+                }
+            });
+            
+            // Re-add required attribute for fields that should be required when same address is not checked
+            const requiredFields = ['current_address_line_1', 'current_state', 'current_post_code', 'current_city_or_town', 'current_district', 'residential_proof_type', 'residential_proof_file'];
+            requiredFields.forEach(id => {
+                const field = document.getElementById(id);
+                if (field) {
+                    // Re-add required attribute for fields that are originally required
+                    const originalRequired = field.getAttribute('data-original-required');
+                    if (originalRequired === 'true' || field.getAttribute('required') !== null) {
+                        field.setAttribute('required', 'required');
+                    }
                 }
             });
         }
@@ -1067,6 +1082,15 @@ async function callDraftAPI(endpoint, method, data = null) {
         
         // Initialize clean state
         initializeCleanState();
+        
+        // Store original required attributes for residential proof fields
+        const residentialProofFields = ['residential_proof_type', 'residential_proof_file'];
+        residentialProofFields.forEach(id => {
+            const field = document.getElementById(id);
+            if (field && field.hasAttribute('required')) {
+                field.setAttribute('data-original-required', 'true');
+            }
+        });
         
         attachInstantValidation();
         setupUppercaseInputs();
