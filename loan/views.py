@@ -1425,7 +1425,38 @@ class LoanCategoryListAPI(APIView):
         main_category_id = request.GET.get('main_category_id')
         shop_status = request.GET.get('shop_status')
         
-        categories = LoanCategory.objects.filter(is_active=True).order_by('name')
+        # Determine parent HQ user based on authentication type
+        parent_hq_user = None
+        
+        # Check for HQ user authentication (Django standard auth)
+        if hasattr(request.user, 'is_headquater_admin'):
+            # HQ user is directly authenticated
+            parent_hq_user = request.user
+        
+        # Check for agent authentication (session-based)
+        agent_id = request.session.get('agent_id')
+        if agent_id and not parent_hq_user:
+            try:
+                agent = Agent.objects.get(agent_id=agent_id)
+                # Agent's parent HQ user is the one who created their branch
+                parent_hq_user = agent.branch.created_by
+            except (Agent.DoesNotExist, AttributeError):
+                pass
+        
+        # Check for branch employee authentication (session-based)
+        logged_user_id = request.session.get('logged_user_id')
+        if logged_user_id and not parent_hq_user:
+            try:
+                branch_employee = BranchEmployee.objects.get(id=logged_user_id)
+                # Branch employee's parent HQ user is the one who created their branch
+                parent_hq_user = branch_employee.branch.created_by
+            except (BranchEmployee.DoesNotExist, AttributeError):
+                pass
+        if not parent_hq_user:
+            # If no parent HQ user can be determined, return empty list
+            return Response([])
+        
+        categories = LoanCategory.objects.filter(is_active=True, created_by=parent_hq_user).order_by('name')
         if shop_status:
             if shop_status == 'inactive':
                 categories = categories.filter(main_category__is_shop_active=False)

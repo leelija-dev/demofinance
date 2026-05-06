@@ -471,13 +471,23 @@
                 return response.json();
             })
             .then(categories => {
-                // Remove all options except the first (placeholder)
+                // Remove all options except first (placeholder)
                 select.options.length = 1;
                 categories.forEach(cat => {
                     const option = document.createElement('option');
                     option.value = cat.id;
                     option.textContent = cat.name;
                     select.appendChild(option);
+                });
+                // Add event listener to update tenure when category changes
+                select.addEventListener('change', function() {
+                    const categoryId = this.value;
+                    if (categoryId) {
+                        populateLoanTenureSelect(categoryId);
+                    } else {
+                        // Clear tenure field if no category selected
+                        clearTenureSelect();
+                    }
                 });
                 // Re-apply draft selection (if any) after options are loaded
                 try {
@@ -499,13 +509,45 @@
             });
     }
 
+    // Clear tenure select field
+    function clearTenureSelect() {
+        const select = document.getElementById('tenure_months');
+        const interestField = document.getElementById('interest_rate');
+        const interestIdField = document.getElementById('interest_rate_id');
+        const emiField = document.getElementById('emi_amount');
+        
+        if (select) {
+            select.options.length = 1; // Keep only placeholder
+            select.value = '';
+        }
+        if (interestField) {
+            interestField.value = '';
+        }
+        if (interestIdField) {
+            interestIdField.value = '';
+        }
+        if (emiField) {
+            emiField.value = '';
+        }
+    }
+
     // Dynamically populate the loan tenure select field
-    function populateLoanTenureSelect() {
+    function populateLoanTenureSelect(categoryId = null) {
         const select = document.getElementById('tenure_months');
         const interestField = document.getElementById('interest_rate');
         const interestIdField = document.getElementById('interest_rate_id');
         if (!select) return;
-        fetch('/agent/api/loan-tenure')
+        
+        let apiUrl;
+        if (categoryId) {
+            // Use API endpoint that filters tenures by subcategory
+            apiUrl = `/agent/api/loan-sub-category-tenure?subcategory_id=${categoryId}`;
+        } else {
+            // Use general API endpoint for all tenures
+            apiUrl = '/agent/api/loan-tenure';
+        }
+        
+        fetch(apiUrl)
             .then(response => {
                 if (!response.ok) throw new Error('Network response was not ok');
                 return response.json();
@@ -529,7 +571,7 @@
                     const selected = select.options[select.selectedIndex];
                     if (selected && selected.dataset.interestRate && interestField) {
                         interestField.value = selected.dataset.interestRate;
-                        // Set the hidden field with the interest_id
+                        // Set the hidden field with interest_id
                         if (interestIdField) {
                             interestIdField.value = selected.dataset.interestId || '';
                         }
