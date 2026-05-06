@@ -5,9 +5,9 @@ from django.core.paginator import Paginator
 from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from django.shortcuts import redirect
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from agent.decorators import AgentSessionRequiredMixin
 from loan.models import Shop, ShopBankAccount
 from agent.models import Agent
 from django.core.exceptions import ValidationError
@@ -19,7 +19,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class ShopLoansAPI(AgentSessionRequiredMixin, APIView):
+class ShopLoansAPI(APIView):
     """API to get loan applications for a specific shop (for logged-in agent)."""
 
     def get(self, request, *args, **kwargs):
@@ -73,7 +73,7 @@ class ShopLoansAPI(AgentSessionRequiredMixin, APIView):
             return Response({'success': False, 'message': 'Failed to fetch shop loans. Please try again.'}, status=500)
 
 
-class ShopTransactionsAPI(AgentSessionRequiredMixin, APIView):
+class ShopTransactionsAPI(APIView):
     """API to get disbursement-related transactions for a specific shop (for logged-in agent)."""
 
     def get(self, request, *args, **kwargs):
@@ -137,43 +137,162 @@ class ShopTransactionsAPI(AgentSessionRequiredMixin, APIView):
             return Response({'success': False, 'message': 'Failed to fetch shop transactions. Please try again.'}, status=500)
 
 
-class ShopView(AgentSessionRequiredMixin, TemplateView):
-    template_name = 'shop/shop.html'
+class ShopView(TemplateView):
+    def dispatch(self, request, *args, **kwargs):
+        # Determine if this is a branch or agent URL based on namespace
+        is_branch_url = 'branch' in getattr(request.resolver_match, 'namespace', '')
+        
+        # Check for agent authentication
+        agent_id = request.session.get('agent_id')
+        agent_authenticated = False
+        
+        if agent_id:
+            try:
+                agent = Agent.objects.get(agent_id=agent_id)
+                if agent.status == 'active':
+                    request.agent = agent
+                    agent_authenticated = True
+                else:
+                    request.session.flush()
+            except Agent.DoesNotExist:
+                request.session.flush()
+        
+        # Check for branch authentication
+        branch_user_id = request.session.get('logged_user_id')
+        branch_authenticated = False
+        
+        if branch_user_id:
+            try:
+                from branch.models import BranchEmployee
+                branch_employee = BranchEmployee.objects.get(
+                    id=branch_user_id,
+                    is_active=True
+                )
+                request.branch_employee = branch_employee
+                branch_authenticated = True
+            except BranchEmployee.DoesNotExist:
+                request.session.flush()
+        
+        # Determine if request wants JSON response
+        wants_json = (
+            request.path.startswith('/agent/api/') or request.path.startswith('/branch/api/')
+            or 'application/json' in (request.headers.get('Accept', '') or '')
+            or request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        )
+        
+        # If neither authenticated, redirect to appropriate login
+        if not agent_authenticated and not branch_authenticated:
+            if wants_json:
+                return JsonResponse({'success': False, 'message': 'Authentication required.'}, status=401)
+            
+            if is_branch_url:
+                return redirect('/branch/login/')
+            else:
+                return redirect('/agent/login/')
+        
+        return super().dispatch(request, *args, **kwargs)
+    
+    def get_template_names(self):
+        return ['shop/shop.html']
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['page_title'] = 'Shop'
         
-        # Get agent from session
-        agent_id = self.request.session.get('agent_id')
+        # Add URL namespace and pattern name for template usage
+        if 'branch' in self.request.resolver_match.namespace:
+            context['url_namespace'] = 'branch'
+            context['shop_detail_pattern'] = 'shop_detail'
+        else:
+            context['url_namespace'] = 'agent'
+            context['shop_detail_pattern'] = 'shop_detail_view'
         
         # Check if we should show active shops (switch ON = show active, switch OFF = show inactive)
         # Default is True (show active shops)
         show_active = self.request.GET.get('show_active', 'true') == 'true'
         
+        # Check if user is authenticated as agent
+        agent_id = self.request.session.get('agent_id')
         if agent_id:
-            # Check if agent exists
+            # Agent authenticated
             try:
-                agent = Agent.objects.get(agent_id=agent_id)
-            except Agent.DoesNotExist:
+                agent = getattr(self.request, 'agent', None)
+                if not agent:
+                    # Fallback: get agent directly from database
+                    agent = Agent.objects.get(agent_id=agent_id)
+                
+                # Get shops for the agent (agent-created) and branch-created shops where agent is assigned, showing active when switch is ON, inactive when switch is OFF
+                print(agent)
+                print(show_active)
+                if show_active:
+                    agent_shops = Shop.objects.filter(agent__agent_id=agent_id).exclude(status='inactive').order_by('-created_at')
+                    print(agent_shops)
+                    # Only show branch-created shops if agent is assigned to them
+                    branch_shops = Shop.objects.filter(branch__isnull=False, agent__isnull=False, agent__agent_id=agent_id).exclude(status='inactive').order_by('-created_at')
+                    # print(branch_shops)
+                else:
+                    agent_shops = Shop.objects.filter(agent__agent_id=agent_id, status='inactive').order_by('-created_at')
+                    # Only show branch-created shops if agent is assigned to them
+                    branch_shops = Shop.objects.filter(branch__isnull=False, agent__isnull=False, agent__agent_id=agent_id, status='inactive').order_by('-created_at')
+                
+                # Combine both querysets and mark ownership for template usage
+                # Use proper deduplication to avoid duplicate shops
+                shops_dict = {}
+                
+                # Add agent shops
+                for shop in agent_shops:
+                    shops_dict[shop.shop_id] = shop
+                
+                # Add assigned branch shops (avoid duplicates)
+                for shop in branch_shops:
+                    if shop.shop_id not in shops_dict:
+                        shops_dict[shop.shop_id] = shop
+                
+                shops_qs = list(shops_dict.values())
+                context['shops'] = shops_qs
+                context['show_active'] = show_active
+                
+                # Get unique categories for the filter dropdown
+                categories = []
+                seen_categories = set()
+                for shop in shops_qs:
+                    if shop.category and shop.category not in seen_categories and shop.category.strip():
+                        seen_categories.add(shop.category)
+                        categories.append(shop.category)
+                context['categories'] = categories
+                
+            except Exception as e:
+                logger.error(f"Error loading shops for agent {agent_id}: {str(e)}")
                 context['shops'] = []
                 context['categories'] = []
                 context['show_active'] = show_active
-                return context
-            
-            # Get shops for the agent, showing active when switch is ON, inactive when switch is OFF
-            if show_active:
-                shops_qs = Shop.objects.filter(agent__agent_id=agent_id).exclude(status='inactive').order_by('-created_at')
-            else:
-                shops_qs = Shop.objects.filter(agent__agent_id=agent_id, status='inactive').order_by('-created_at')
-            
-            context['shops'] = shops_qs
-            context['show_active'] = show_active
-            
-            # Get unique categories for the filter dropdown
-            categories = list(shops_qs.values_list('category', flat=True).distinct().exclude(category__isnull=True).exclude(category=''))
-            context['categories'] = categories
+                
+        # Check if user is authenticated as branch employee
+        elif hasattr(self.request, 'branch_employee'):
+            # Branch employee authenticated
+            try:
+                branch_employee = self.request.branch_employee  # Set by the mixin
+                
+                # For branch users, show all shops (both agent-created and branch-created)
+                if show_active:
+                    shops_qs = Shop.objects.exclude(status='inactive').order_by('-created_at')
+                else:
+                    shops_qs = Shop.objects.filter(status='inactive').order_by('-created_at')
+                
+                context['shops'] = shops_qs
+                context['show_active'] = show_active
+                
+                # Get unique categories for the filter dropdown
+                categories = list(shops_qs.values_list('category', flat=True).distinct().exclude(category__isnull=True).exclude(category=''))
+                context['categories'] = categories
+                
+            except Exception as e:
+                logger.error(f"Error loading shops for branch employee: {str(e)}")
+                context['shops'] = []
+                context['categories'] = []
+                context['show_active'] = show_active
         else:
+            # No authentication (shouldn't happen due to mixin)
             context['shops'] = []
             context['categories'] = []
             context['show_active'] = show_active
@@ -181,7 +300,140 @@ class ShopView(AgentSessionRequiredMixin, TemplateView):
         return context
 
 
-class ShopListPagePartialView(AgentSessionRequiredMixin, View):
+class ShopDetailView(TemplateView):
+    def dispatch(self, request, *args, **kwargs):
+        # Determine if this is a branch or agent URL based on namespace
+        is_branch_url = 'branch' in getattr(request.resolver_match, 'namespace', '')
+        
+        # Check for agent authentication
+        agent_id = request.session.get('agent_id')
+        agent_authenticated = False
+        
+        if agent_id:
+            try:
+                agent = Agent.objects.get(agent_id=agent_id)
+                if agent.status == 'active':
+                    request.agent = agent
+                    agent_authenticated = True
+                else:
+                    request.session.flush()
+            except Agent.DoesNotExist:
+                request.session.flush()
+        
+        # Check for branch authentication
+        branch_user_id = request.session.get('logged_user_id')
+        branch_authenticated = False
+        
+        if branch_user_id:
+            try:
+                from branch.models import BranchEmployee
+                branch_employee = BranchEmployee.objects.get(
+                    id=branch_user_id,
+                    is_active=True
+                )
+                request.branch_employee = branch_employee
+                branch_authenticated = True
+            except BranchEmployee.DoesNotExist:
+                request.session.flush()
+        
+        # Determine if request wants JSON response
+        wants_json = (
+            request.path.startswith('/agent/api/') or request.path.startswith('/branch/api/')
+            or 'application/json' in (request.headers.get('Accept', '') or '')
+            or request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        )
+        
+        # If neither authenticated, redirect to appropriate login
+        if not agent_authenticated and not branch_authenticated:
+            if wants_json:
+                return JsonResponse({'success': False, 'message': 'Authentication required.'}, status=401)
+            
+            if is_branch_url:
+                return redirect('/branch/login/')
+            else:
+                return redirect('/agent/login/')
+        
+        return super().dispatch(request, *args, **kwargs)
+    
+    def get_template_names(self):
+        return ['shop/shop_detail.html']
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        shop_id = kwargs.get('shop_id')
+        
+        # Add URL namespace and pattern name for template usage
+        if 'branch' in self.request.resolver_match.namespace:
+            context['url_namespace'] = 'branch'
+            context['shop_pattern'] = 'shop'
+        else:
+            context['url_namespace'] = 'agent'
+            context['shop_pattern'] = 'shop'
+        
+        # Check authentication type and get shop
+        try:
+            # Get the shop - can be either agent-created or branch-created
+            shop = Shop.objects.get(shop_id=shop_id)
+            context['shop'] = shop
+            
+            # Check if user is authenticated as agent
+            agent_id = self.request.session.get('agent_id')
+            if agent_id and hasattr(self.request, 'agent'):
+                # Agent authenticated
+                context['is_agent_shop'] = shop.agent and shop.agent.agent_id == agent_id
+                context['is_branch_shop'] = shop.branch is not None and shop.agent is None
+                
+                # Access control: Agent can access branch-created shops only if assigned to them
+                if shop.created_by == 'branch' and (not shop.agent or shop.agent.agent_id != agent_id):
+                    context['error'] = 'This shop was created by branch and is not assigned to you.'
+                    context['error_type'] = 'access_denied'
+                    return context
+            elif hasattr(self.request, 'branch_employee'):
+                # Branch employee authenticated
+                context['is_agent_shop'] = False
+                context['is_branch_shop'] = shop.branch is not None and shop.agent is None
+            else:
+                # No authentication (shouldn't happen due to mixin)
+                context['error'] = 'Authentication required.'
+                return context
+            
+            # Get bank accounts for this shop
+            context['bank_accounts'] = ShopBankAccount.objects.filter(shop=shop).order_by('-created_at')
+            
+            # Get recent transactions for this shop
+            from branch.models import BranchTransaction
+            from django.db.models import Q
+            
+            transactions_qs = (
+                BranchTransaction.objects
+                .select_related('branch_account', 'disbursement_log', 'disbursement_log__loan_id')
+                .filter((Q(disbursement_log__loan_id__shop=shop) | Q(shop=shop)))
+                .order_by('-transaction_date')[:20]
+            )
+            context['transactions'] = transactions_qs
+            
+            # Get recent loans for this shop
+            from loan.models import LoanApplication
+            
+            loans_qs = (
+                LoanApplication.objects
+                .filter(shop=shop)
+                .select_related('customer')
+                .prefetch_related('loan_details')
+                .order_by('-submitted_at')[:20]
+            )
+            context['loans'] = loans_qs
+            
+        except Shop.DoesNotExist:
+            context['error'] = 'Shop not found or access denied.'
+        except Exception as e:
+            logger.error(f"Error loading shop detail: {str(e)}")
+            context['error'] = 'Failed to load shop details. Please try again.'
+            
+        return context
+
+
+class ShopListPagePartialView(View):
     def get(self, request, *args, **kwargs):
         page = request.GET.get('page') or 1
 
@@ -251,8 +503,8 @@ class ShopListPagePartialView(AgentSessionRequiredMixin, View):
         return HttpResponse(''.join(html_rows), content_type='text/html')
 
 
-class ShopCreateAPI(AgentSessionRequiredMixin, APIView):
-    """API to create a new shop for the logged-in agent."""
+class ShopCreateAPI(APIView):
+    """API to create a new shop for the logged-in agent or branch employee."""
 
     @method_decorator(csrf_exempt)
     def post(self, request, *args, **kwargs):
@@ -273,15 +525,30 @@ class ShopCreateAPI(AgentSessionRequiredMixin, APIView):
                 logger.exception('Unexpected error while parsing shop create payload')
                 return Response({'success': False, 'message': 'Invalid request payload.'}, status=400)
 
-        # Get agent from session
+        # Check for agent authentication first
         agent_id = request.session.get('agent_id')
-        if not agent_id:
-            return Response({'success': False, 'message': 'Authentication required.'}, status=401)
+        agent = None
+        branch_employee = None
 
-        try:
-            agent = Agent.objects.get(agent_id=agent_id)
-        except Agent.DoesNotExist:
-            return Response({'success': False, 'message': 'Agent not found.'}, status=404)
+        if agent_id:
+            try:
+                agent = Agent.objects.get(agent_id=agent_id)
+            except Agent.DoesNotExist:
+                return Response({'success': False, 'message': 'Agent not found.'}, status=404)
+        else:
+            # Check for branch authentication
+            branch_user_id = request.session.get('logged_user_id')
+            if not branch_user_id:
+                return Response({'success': False, 'message': 'Authentication required.'}, status=401)
+
+            try:
+                from branch.models import BranchEmployee
+                branch_employee = BranchEmployee.objects.get(
+                    id=branch_user_id,
+                    is_active=True
+                )
+            except BranchEmployee.DoesNotExist:
+                return Response({'success': False, 'message': 'Branch employee not found.'}, status=404)
 
         # Validate required fields
         name = (data.get('name') or '').strip()
@@ -289,11 +556,15 @@ class ShopCreateAPI(AgentSessionRequiredMixin, APIView):
             return Response({'success': False, 'message': 'Shop name is required.'}, status=400)
 
         owner_name = (data.get('owner_name') or '').strip()
-        email = (data.get('email') or '').strip()
+        email_raw = (data.get('email') or '').strip()
+        email = email_raw if email_raw else None  # Convert empty string to None
         contact = (data.get('contact') or '').strip()
         category = (data.get('category') or '').strip()
-        address = (data.get('address') or '').strip()
+        address = (data.get('address') or '').strip().replace('\n', ' ')
         status = (data.get('status') or 'active').strip() or 'active'
+
+        # Debug: Log received data
+        logger.info(f"Received shop data: name={name}, owner_name={owner_name}, email={email}, contact={contact}, category={category}, address={address[:50]}..., status={status}")
 
         if status not in dict(Shop.STATUS_CHOICES):
             return Response({'success': False, 'message': 'Invalid shop status.'}, status=400)
@@ -309,21 +580,43 @@ class ShopCreateAPI(AgentSessionRequiredMixin, APIView):
 
         # Create shop
         try:
-            shop = Shop(
-                name=name,
-                owner_name=owner_name or None,
-                category=category or None,
-                contact=contact or None,
-                email=email or None,
-                address=address or None,
-                status=status,
-                agent=agent,
-                branch=agent.branch,
-            )
+            # Determine agent and branch based on authentication type
+            if agent:
+                # Agent-created shop
+                shop = Shop(
+                    name=name,
+                    owner_name=owner_name or None,
+                    category=category or None,
+                    contact=contact or None,
+                    email=email or None,
+                    address=address or None,
+                    status=status,
+                    agent=agent,
+                    branch=agent.branch,
+                    created_by='agent',
+                )
+            else:
+                # Branch-created shop (no agent assigned)
+                if not branch_employee.branch:
+                    return Response({'success': False, 'message': 'Branch employee not assigned to a branch.'}, status=400)
+                shop = Shop(
+                    name=name,
+                    owner_name=owner_name or None,
+                    category=category or None,
+                    contact=contact or None,
+                    email=email or None,
+                    address=address or None,
+                    status=status,
+                    agent=None,  # No agent for branch-created shops
+                    branch=branch_employee.branch,
+                    created_by='branch',
+                )
 
             # Ensure field validators run (e.g., EmailField)
             shop.full_clean()
             shop.save()
+            print('jjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj')
+            print('0000000000000000')
 
             if not ShopBankAccount.objects.filter(
                 shop=shop,
@@ -340,6 +633,7 @@ class ShopCreateAPI(AgentSessionRequiredMixin, APIView):
                     is_primary=True,
                     is_verified=True,
                 )
+            print('1111111111111111')
 
             return Response({
                 'success': True,
@@ -352,12 +646,21 @@ class ShopCreateAPI(AgentSessionRequiredMixin, APIView):
             try:
                 # e.message_dict is best when available
                 if hasattr(e, 'message_dict'):
-                    first_key = next(iter(e.message_dict.keys()), None)
-                    if first_key and e.message_dict.get(first_key):
-                        msg = str(e.message_dict[first_key][0])
+                    logger.error(f"Validation error dict: {e.message_dict}")
+                    # Get the first field with an error
+                    for field_name, error_messages in e.message_dict.items():
+                        if error_messages:
+                            field_display = field_name.replace('_', ' ').title()
+                            msg = f"{field_display}: {str(error_messages[0])}"
+                            break
                 elif getattr(e, 'messages', None):
+                    logger.error(f"Validation error messages: {e.messages}")
                     msg = str(e.messages[0])
-            except Exception:
+                else:
+                    logger.error(f"Validation error: {str(e)}")
+                    msg = str(e)
+            except Exception as validation_ex:
+                logger.error(f"Error processing validation: {str(validation_ex)}")
                 pass
             return Response({'success': False, 'message': msg}, status=400)
         except (IntegrityError, DataError) as e:
@@ -368,7 +671,7 @@ class ShopCreateAPI(AgentSessionRequiredMixin, APIView):
             return Response({'success': False, 'message': 'Failed to create shop. Please try again.'}, status=500)
 
 
-class ShopDetailUpdateAPI(AgentSessionRequiredMixin, APIView):
+class ShopDetailUpdateAPI(APIView):
     """API to retrieve or update a specific shop for the logged-in agent."""
 
     def get(self, request, shop_id, *args, **kwargs):
@@ -377,7 +680,16 @@ class ShopDetailUpdateAPI(AgentSessionRequiredMixin, APIView):
             return Response({'success': False, 'message': 'Authentication required.'}, status=401)
 
         try:
-            shop = Shop.objects.get(shop_id=shop_id, agent__agent_id=agent_id)
+            shop = Shop.objects.get(shop_id=shop_id)
+            
+            # Access control: Check if agent can access this shop
+            if shop.created_by == 'branch' and shop.agent is None:
+                return Response({'success': False, 'message': 'This shop was created by branch and is not assigned to any agent yet.'}, status=403)
+            
+            # For agent-created shops, ensure agent owns the shop
+            if shop.created_by == 'agent' and (not shop.agent or shop.agent.agent_id != agent_id):
+                return Response({'success': False, 'message': 'Shop not found or access denied.'}, status=404)
+            
             return Response({
                 'success': True,
                 'shop': {
@@ -389,6 +701,7 @@ class ShopDetailUpdateAPI(AgentSessionRequiredMixin, APIView):
                     'email': shop.email,
                     'address': shop.address,
                     'status': shop.status,
+                    'created_by': shop.created_by,
                 }
             }, status=200)
         except Shop.DoesNotExist:
@@ -442,7 +755,137 @@ class ShopDetailUpdateAPI(AgentSessionRequiredMixin, APIView):
             return Response({'success': False, 'message': 'Failed to update shop. Please try again.'}, status=500)
 
 
-class ShopDeleteAPI(AgentSessionRequiredMixin, APIView):
+class ShopAssignAgentAPI(APIView):
+    """API to assign an agent to a branch-created shop."""
+
+    @method_decorator(csrf_exempt)
+    def post(self, request, *args, **kwargs):
+        data = None
+        try:
+            parsed = getattr(request, 'data', None)
+            if isinstance(parsed, dict) and parsed:
+                data = parsed
+        except Exception:
+            logger.exception('Unexpected error while accessing request.data for agent assignment payload')
+
+        if data is None:
+            try:
+                data = json.loads(request.body)
+            except json.JSONDecodeError:
+                return Response({'success': False, 'message': 'Invalid JSON data.'}, status=400)
+            except Exception:
+                logger.exception('Unexpected error while parsing agent assignment payload')
+                return Response({'success': False, 'message': 'Invalid request payload.'}, status=400)
+
+        # Check for branch authentication
+        branch_user_id = request.session.get('logged_user_id')
+        if not branch_user_id:
+            return Response({'success': False, 'message': 'Branch authentication required.'}, status=401)
+
+        try:
+            from branch.models import BranchEmployee
+            branch_employee = BranchEmployee.objects.get(
+                id=branch_user_id,
+                is_active=True
+            )
+        except BranchEmployee.DoesNotExist:
+            return Response({'success': False, 'message': 'Branch employee not found.'}, status=404)
+
+        # Validate required fields
+        shop_id = (data.get('shop_id') or '').strip()
+        agent_id = (data.get('agent_id') or '').strip()
+        
+        if not shop_id:
+            return Response({'success': False, 'message': 'Shop ID is required.'}, status=400)
+        if not agent_id:
+            return Response({'success': False, 'message': 'Agent ID is required.'}, status=400)
+
+        try:
+            # Get the shop
+            shop = Shop.objects.get(shop_id=shop_id)
+            
+            # Check if shop is branch-created (no agent assigned yet)
+            if shop.agent is not None:
+                return Response({'success': False, 'message': 'This shop already has an agent assigned.'}, status=400)
+            
+            # Check if shop belongs to the same branch as the branch employee
+            if shop.branch != branch_employee.branch:
+                return Response({'success': False, 'message': 'You can only assign agents to shops in your branch.'}, status=403)
+            
+            # Get the agent
+            try:
+                agent = Agent.objects.get(agent_id=agent_id, status='active')
+                
+                # Check if agent belongs to the same branch
+                if agent.branch != branch_employee.branch:
+                    return Response({'success': False, 'message': 'Agent must belong to the same branch as the shop.'}, status=400)
+                    
+            except Agent.DoesNotExist:
+                return Response({'success': False, 'message': 'Agent not found or not active.'}, status=404)
+
+            # Assign agent to shop
+            shop.agent = agent
+            shop.save()
+
+            return Response({
+                'success': True,
+                'message': f'Agent {agent.full_name} has been assigned to shop {shop.name}.',
+                'shop_id': shop.shop_id,
+                'agent_name': agent.full_name,
+                'agent_id': agent.agent_id,
+            }, status=200)
+
+        except Shop.DoesNotExist:
+            return Response({'success': False, 'message': 'Shop not found.'}, status=404)
+        except Exception as e:
+            logger.error(f"Error assigning agent to shop {shop_id}: {str(e)}")
+            return Response({'success': False, 'message': 'Failed to assign agent. Please try again.'}, status=500)
+
+
+class BranchAgentsAPI(APIView):
+    """API to get list of active agents for the branch user."""
+
+    def get(self, request, *args, **kwargs):
+        # Check for branch authentication
+        branch_user_id = request.session.get('logged_user_id')
+        if not branch_user_id:
+            return Response({'success': False, 'message': 'Branch authentication required.'}, status=401)
+
+        try:
+            from branch.models import BranchEmployee
+            branch_employee = BranchEmployee.objects.get(
+                id=branch_user_id,
+                is_active=True
+            )
+        except BranchEmployee.DoesNotExist:
+            return Response({'success': False, 'message': 'Branch employee not found.'}, status=404)
+
+        try:
+            # Get active agents from the same branch
+            agents = Agent.objects.filter(
+                branch=branch_employee.branch,
+                status='active'
+            ).order_by('full_name')
+
+            agents_data = []
+            for agent in agents:
+                agents_data.append({
+                    'agent_id': agent.agent_id,
+                    'name': agent.full_name,
+                    'email': agent.email,
+                })
+
+            return Response({
+                'success': True,
+                'agents': agents_data,
+            }, status=200)
+
+        except Exception as e:
+            logger.error(f"Error fetching agents for branch {branch_employee.branch.name}: {str(e)}")
+            return Response({'success': False, 'message': 'Failed to fetch agents. Please try again.'}, status=500)
+
+
+class ShopDeleteAPI(APIView):
     """API to delete a shop and return its activity summary."""
 
     def get(self, request, shop_id, *args, **kwargs):
@@ -527,8 +970,62 @@ class ShopDeleteAPI(AgentSessionRequiredMixin, APIView):
             return Response({'success': False, 'message': 'Failed to delete shop. Please try again.'}, status=500)
 
 
-class ShopBankAccountCreateAPI(AgentSessionRequiredMixin, APIView):
+class ShopBankAccountCreateAPI(APIView):
     """API to add a bank account to a shop."""
+    
+    def dispatch(self, request, *args, **kwargs):
+        # Determine if this is a branch or agent URL based on namespace
+        is_branch_url = 'branch' in getattr(request.resolver_match, 'namespace', '')
+        
+        # Check for agent authentication
+        agent_id = request.session.get('agent_id')
+        agent_authenticated = False
+        
+        if agent_id:
+            try:
+                agent = Agent.objects.get(agent_id=agent_id)
+                if agent.status == 'active':
+                    request.agent = agent
+                    agent_authenticated = True
+                else:
+                    request.session.flush()
+            except Agent.DoesNotExist:
+                request.session.flush()
+        
+        # Check for branch authentication
+        branch_user_id = request.session.get('logged_user_id')
+        branch_authenticated = False
+        
+        if branch_user_id:
+            try:
+                from branch.models import BranchEmployee
+                branch_employee = BranchEmployee.objects.get(
+                    id=branch_user_id,
+                    is_active=True
+                )
+                request.branch_employee = branch_employee
+                branch_authenticated = True
+            except BranchEmployee.DoesNotExist:
+                request.session.flush()
+        
+        # Determine if request wants JSON response
+        wants_json = (
+            request.path.startswith('/agent/api/') or request.path.startswith('/branch/api/')
+            or 'application/json' in (request.headers.get('Accept', '') or '')
+            or request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        )
+        
+        # If neither authenticated, redirect to appropriate login
+        if not agent_authenticated and not branch_authenticated:
+            if wants_json:
+                return JsonResponse({'success': False, 'message': 'Authentication required.'}, status=401)
+            
+            if is_branch_url:
+                return redirect('/branch/login/')
+            else:
+                return redirect('/agent/login/')
+        
+        return super().dispatch(request, *args, **kwargs)
 
     @method_decorator(csrf_exempt)
     def post(self, request, *args, **kwargs):
@@ -568,16 +1065,6 @@ class ShopBankAccountCreateAPI(AgentSessionRequiredMixin, APIView):
                 return val
             return str(val)
 
-        # Get agent from session
-        agent_id = request.session.get('agent_id')
-        if not agent_id:
-            return Response({'success': False, 'message': 'Authentication required.'}, status=401)
-
-        try:
-            agent = Agent.objects.get(agent_id=agent_id)
-        except Agent.DoesNotExist:
-            return Response({'success': False, 'message': 'Agent not found.'}, status=404)
-
         # Validate required fields
         shop_id = _get_str(data, 'shop_id').strip() or _get_str(data, 'shopId').strip()
         account_holder_name = _get_str(data, 'account_holder_name').strip()
@@ -596,9 +1083,22 @@ class ShopBankAccountCreateAPI(AgentSessionRequiredMixin, APIView):
         if not ifsc_code:
             return Response({'success': False, 'message': 'IFSC code is required.'}, status=400)
 
-        # Verify shop exists and belongs to this agent
+        # Verify shop exists and user has access
         try:
-            shop = Shop.objects.get(shop_id=shop_id, agent=agent)
+            shop = Shop.objects.get(shop_id=shop_id)
+            
+            # Check if user is authenticated as agent
+            agent_id = request.session.get('agent_id')
+            if agent_id and hasattr(request, 'agent'):
+                # Agent can only add bank accounts to their own shops
+                if shop.agent and shop.agent.agent_id != agent_id:
+                    return Response({'success': False, 'message': 'Shop not found or access denied.'}, status=404)
+            elif hasattr(request, 'branch_employee'):
+                # Branch employees can add bank accounts to any shop
+                pass  # No additional restrictions for branch users
+            else:
+                return Response({'success': False, 'message': 'Authentication required.'}, status=401)
+                
         except Shop.DoesNotExist:
             return Response({'success': False, 'message': 'Shop not found or access denied.'}, status=404)
 

@@ -11,7 +11,7 @@ from .views import (
     agent_image_update_api,
     AgentDashboardStatsAPI,
 )
-from .views_shop import ShopView, ShopListPagePartialView, ShopCreateAPI, ShopDetailUpdateAPI, ShopDeleteAPI, ShopBankAccountCreateAPI, ShopLoansAPI, ShopTransactionsAPI
+from .views_shop import ShopView, ShopDetailView, ShopListPagePartialView, ShopCreateAPI, ShopDetailUpdateAPI, ShopDeleteAPI, ShopBankAccountCreateAPI, ShopLoansAPI, ShopTransactionsAPI, ShopAssignAgentAPI, BranchAgentsAPI
 from loan.views import ( 
     LoanApplicationView, NewLoanApplication,
     LoanApplicationEdit, NewLoanApplicationAPI, AgentApplicationDetailView, DocumentReuploadAPI,
@@ -63,6 +63,7 @@ urlpatterns = [
     path('dashboard/', AgentDashboardView.as_view(), name='dashboard'),
     path('profile/', AgentProfileView.as_view(), name='profile'),
     path('shop/', ShopView.as_view(), name='shop'),
+    path('shop/<str:shop_id>/', ShopDetailView.as_view(), name='shop_detail_view'),
     path('api/shops-page/', ShopListPagePartialView.as_view(), name='api_shops_page'),
     path('api/shops/', ShopCreateAPI.as_view(), name='api_shops_create'),
     path('api/shops/<str:shop_id>/', ShopDetailUpdateAPI.as_view(), name='api_shop_detail_update'),
@@ -70,6 +71,8 @@ urlpatterns = [
     path('api/shop-bank-accounts/', ShopBankAccountCreateAPI.as_view(), name='api_shop_bank_accounts_create'),
     path('api/shop-loans/', ShopLoansAPI.as_view(), name='api_shop_loans'),
     path('api/shop-transactions/', ShopTransactionsAPI.as_view(), name='api_shop_transactions'),
+    path('api/shops/assign-agent/', ShopAssignAgentAPI.as_view(), name='api_shop_assign_agent'),
+    path('api/agents/', BranchAgentsAPI.as_view(), name='api_branch_agents'),
 
     # REST API login endpoint
     path('api/login/', AgentLoginAPI.as_view(), name='api_login'),

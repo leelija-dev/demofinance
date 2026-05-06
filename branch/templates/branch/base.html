@@ -31,7 +31,7 @@
     <meta name="csrf-token" content="{{ csrf_token }}">
 </head>
 
-<body x-data="{ 
+<body data-url-namespace="branch" x-data="{ 
       page: '{% block page_id %}dashboard{% endblock %}', 
       loaded: true, 
       darkMode: false, 

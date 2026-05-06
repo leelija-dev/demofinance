@@ -1,4 +1,39 @@
 // Shop Modal Functions
+
+// Alert function for showing notifications
+function showAlert(message, type = 'info') {
+  // Create alert element
+  const alertDiv = document.createElement('div');
+  alertDiv.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm transform transition-all duration-300 ${
+    type === 'success' ? 'bg-green-500 text-white' :
+    type === 'error' ? 'bg-red-500 text-white' :
+    type === 'warning' ? 'bg-yellow-500 text-white' :
+    'bg-blue-500 text-white'
+  }`;
+  alertDiv.innerHTML = `
+    <div class="flex items-center">
+      <div class="flex-1">
+        <p class="text-sm font-medium">${message}</p>
+      </div>
+      <button onclick="this.parentElement.parentElement.remove()" class="ml-3 text-white hover:text-gray-200">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+        </svg>
+      </button>
+    </div>
+  `;
+  
+  // Add to page
+  document.body.appendChild(alertDiv);
+  
+  // Auto remove after 5 seconds
+  setTimeout(() => {
+    if (alertDiv.parentElement) {
+      alertDiv.remove();
+    }
+  }, 5000);
+}
+
 function openAddShopModal() {
   document.getElementById('add-shop-modal')?.classList.remove('hidden');
 }
@@ -19,7 +54,11 @@ function submitAddShopForm() {
     data[key] = value;
   }
 
-  fetch('/agent/api/shops/', {
+  // Determine the correct API endpoint based on current namespace
+  const urlNamespace = document.body.dataset.urlNamespace || 'agent';
+  const apiEndpoint = `/${urlNamespace}/api/shops/`;
+
+  fetch(apiEndpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -843,6 +882,147 @@ window.submitEditShopForm = submitEditShopForm;
 window.deleteShop = deleteShop;
 window.closeDeleteShopModal = closeDeleteShopModal;
 window.confirmDeleteShop = confirmDeleteShop;
+window.openAssignAgentModal = openAssignAgentModal;
+window.closeAssignAgentModal = closeAssignAgentModal;
+window.loadAvailableAgents = loadAvailableAgents;
+window.populateAgentSelect = populateAgentSelect;
+window.submitAssignAgentForm = submitAssignAgentForm;
+
+// Agent Assignment Functions
+function openAssignAgentModal(shopId, shopName) {
+  document.getElementById('assign-agent-shop-id').value = shopId;
+  document.getElementById('assign-agent-shop-name').textContent = shopName;
+  document.getElementById('assign-agent-modal')?.classList.remove('hidden');
+  
+  // Load available agents
+  loadAvailableAgents();
+}
+
+function closeAssignAgentModal() {
+  document.getElementById('assign-agent-modal')?.classList.add('hidden');
+  document.getElementById('assign-agent-form')?.reset();
+  document.getElementById('assign-agent-shop-name').textContent = '';
+  document.getElementById('assign-agent-shop-id').value = '';
+}
+
+function loadAvailableAgents() {
+  const urlNamespace = document.body.dataset.urlNamespace || 'agent';
+  const apiEndpoint = `/${urlNamespace}/api/agents/`;
+
+  fetch(apiEndpoint, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCookie('csrftoken'),
+    },
+  })
+  .then(async (response) => {
+    const contentType = response.headers.get('content-type') || '';
+    const isJson = contentType.includes('application/json');
+
+    if (isJson) {
+      const payload = await response.json();
+      return { ok: response.ok, payload };
+    }
+
+    const text = await response.text();
+    return {
+      ok: response.ok,
+      payload: {
+        success: false,
+        message: text || `Request failed with status ${response.status}`,
+      },
+    };
+  })
+  .then(({ ok, payload }) => {
+    if (ok && payload.success) {
+      populateAgentSelect(payload.agents);
+    } else {
+      showAlert(payload.message || 'Failed to load agents', 'error');
+    }
+  })
+  .catch((error) => {
+    console.error('Error loading agents:', error);
+    showAlert('Failed to load agents. Please try again.', 'error');
+  });
+}
+
+function populateAgentSelect(agents) {
+  const select = document.getElementById('agent-select');
+  if (!select) return;
+
+  // Clear existing options except the first one
+  select.innerHTML = '<option value="">Select an agent...</option>';
+
+  agents.forEach(agent => {
+    const option = document.createElement('option');
+    option.value = agent.agent_id;
+    option.textContent = `${agent.name} (${agent.email})`;
+    select.appendChild(option);
+  });
+}
+
+function submitAssignAgentForm() {
+  const form = document.getElementById('assign-agent-form');
+  if (!form) return;
+
+  const shopId = document.getElementById('assign-agent-shop-id').value;
+  const agentId = document.getElementById('agent-select').value;
+
+  if (!agentId) {
+    showAlert('Please select an agent', 'error');
+    return;
+  }
+
+  const data = {
+    shop_id: shopId,
+    agent_id: agentId,
+  };
+
+  const urlNamespace = document.body.dataset.urlNamespace || 'agent';
+  const apiEndpoint = `/${urlNamespace}/api/shops/assign-agent/`;
+
+  fetch(apiEndpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCookie('csrftoken'),
+    },
+    body: JSON.stringify(data),
+  })
+  .then(async (response) => {
+    const contentType = response.headers.get('content-type') || '';
+    const isJson = contentType.includes('application/json');
+
+    if (isJson) {
+      const payload = await response.json();
+      return { ok: response.ok, payload };
+    }
+
+    const text = await response.text();
+    return {
+      ok: response.ok,
+      payload: {
+        success: false,
+        message: text || `Request failed with status ${response.status}`,
+      },
+    };
+  })
+  .then(({ ok, payload }) => {
+    if (ok && payload.success) {
+      showAlert(payload.message, 'success');
+      closeAssignAgentModal();
+      // Reload the page to show updated shop list  after 1 seconds
+      setTimeout(() => window.location.reload(), 1000);
+    } else {
+      showAlert(payload.message || 'Failed to assign agent', 'error');
+    }
+  })
+  .catch((error) => {
+    console.error('Error assigning agent:', error);
+    showAlert('Failed to assign agent. Please try again.', 'error');
+  });
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   initShopSearchAndFilter();

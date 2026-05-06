@@ -1241,10 +1241,15 @@ class Shop(models.Model):
         ('inactive', 'Inactive'),
         ('pending', 'Pending'),
     ]
+    
+    CREATED_BY_CHOICES = [
+        ('agent', 'Agent'),
+        ('branch', 'Branch'),
+    ]
 
     shop_id = models.CharField(primary_key=True, max_length=50, editable=False, unique=True)
-    agent = models.ForeignKey(Agent, on_delete=models.SET_NULL, null=True, related_name='shops')
-    branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, related_name='shops')
+    agent = models.ForeignKey(Agent, on_delete=models.SET_NULL, null=True, blank=True, related_name='shops')
+    branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, blank=True, related_name='shops')
 
     name = models.CharField(max_length=255)
     contact = models.CharField(max_length=20, blank=True, null=True)
@@ -1253,6 +1258,7 @@ class Shop(models.Model):
     category = models.CharField(max_length=100, blank=True, null=True)
     owner_name = models.CharField(max_length=255, blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    created_by = models.CharField(max_length=10, choices=CREATED_BY_CHOICES, default='agent')
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

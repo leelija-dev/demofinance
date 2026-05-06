@@ -1,4 +1,4 @@
-{% extends "branch/base.html" %}
+{% extends url_namespace|default:"agent"|add:"/base.html" %}
 {% load static %}
 
 {% block title %}Shop Details - {{ shop.name|default:"Shop" }}{% endblock %}
@@ -14,7 +14,7 @@
           <nav class="flex" aria-label="Breadcrumb">
             <ol class="inline-flex items-center space-x-1 md:space-x-3">
               <li class="inline-flex items-center">
-                <a href="{% url 'branch:shop' %}" class="text-gray-700 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400">
+                <a href="{% url url_namespace|add:':'|add:shop_pattern %}" class="text-gray-700 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400">
                   Shop
                 </a>
               </li>
@@ -28,9 +28,16 @@
               </li>
             </ol>
           </nav>
-          <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mt-2">{{ shop.name|default:"Shop Details" }}</h2>
+          <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mt-2">
+              {{ shop.name|default:"Shop Details" }}
+              {% if is_branch_shop %}
+                <span class="ml-2 px-2 py-1 text-xs font-medium rounded-full bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
+                  Branch Created - Read Only
+                </span>
+              {% endif %}
+            </h2>
         </div>
-        <a href="{% url 'branch:shop' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+        <a href="{% url url_namespace|add:':'|add:shop_pattern %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
           <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
           </svg>
@@ -293,7 +300,14 @@
 
         <!-- Loans Tab -->
         <div id="content-loans" class="tab-content hidden">
-          <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-4">Recent Loans</h3>
+          <h2 class="text-lg leading-6 font-medium text-gray-900 dark:text-white" id="view-shop-details-title">
+                Shop Details
+                {% if is_branch_shop %}
+                  <span class="ml-2 px-2 py-1 text-xs font-medium rounded-full bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
+                    Branch Created - Read Only
+                  </span>
+                {% endif %}
+              </h2>
           <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Last 20 loans related to this shop</p>
           {% if loans %}
           <div class="overflow-x-auto">

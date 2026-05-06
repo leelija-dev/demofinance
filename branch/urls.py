@@ -128,7 +128,7 @@ from .empview import (
     employee_active,
 )
 
-from .views_shop import BranchShopView, BranchShopDetailView, BranchShopBankAccountAPI
+from agent.views_shop import ShopView, ShopDetailView, ShopBankAccountCreateAPI, ShopCreateAPI, ShopAssignAgentAPI, BranchAgentsAPI
 app_name = 'branch'
 
 # handler403 = permission_denied_view
@@ -176,10 +176,13 @@ urlpatterns = [
     path('profile/image-update/', profile_image_update, name='profile_image_update'),
     path('api/change-password/', change_password, name='change_password'),
 
-    # Shop (read-only: shows shops created by agents in this branch)
-    path('shop/', BranchShopView.as_view(), name='shop'),
-    path('shop/<str:shop_id>/', BranchShopDetailView.as_view(), name='shop_detail'),
-    path('api/shop-bank-accounts/', BranchShopBankAccountAPI.as_view(), name='api_shop_bank_accounts'),
+    # Shop (using agent views)
+    path('shop/', ShopView.as_view(), name='shop'),
+    path('shop/<str:shop_id>/', ShopDetailView.as_view(), name='shop_detail'),
+    path('api/shop-bank-accounts/', ShopBankAccountCreateAPI.as_view(), name='api_shop_bank_accounts'),
+    path('api/shops/', ShopCreateAPI.as_view(), name='api_shops_create'),
+    path('api/shops/assign-agent/', ShopAssignAgentAPI.as_view(), name='api_shop_assign_agent'),
+    path('api/agents/', BranchAgentsAPI.as_view(), name='api_branch_agents'),
     
     # Agent pages (protected)
     path('agent/', AgentListView.as_view(), name='agent'),
