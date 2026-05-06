@@ -11,7 +11,7 @@ from django.contrib.auth import get_user_model
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponseRedirect, HttpResponse
 from django.contrib.auth.hashers import make_password
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from branch.models import BranchEmployee, BranchAccount, BranchTransaction, AgentDeposit
 from agent.models import Agent
 from .models import HeadquarterEmployee, Role, Branch, HeadquartersWallet, HeadquartersTransactions, FundTransfers
@@ -3018,6 +3018,10 @@ def loan_management(request):
 
             if request.POST.get('category_id'):
                 cat.main_category = original_main_category
+            elif selected_main_category:
+                # Always set main_category from URL parameter when creating new category
+                # This ensures it's set even when the form field is disabled
+                cat.main_category = selected_main_category
 
             cat.save()
             messages.success(request, f"Loan category {modal_action.lower()}ed successfully!")
@@ -3026,6 +3030,11 @@ def loan_management(request):
             return redirect('hq:loan_management')
         else:
             messages.error(request, "Failed to save loan category. Please check the form.")
+            # If there's a validation error and we have a selected main category, 
+            # ensure the form maintains the preselected and readonly state
+            if not request.POST.get('category_id') and selected_main_category:
+                form.fields['main_category'].widget.attrs['readonly'] = True
+                form.fields['main_category'].widget.attrs['disabled'] = True
     elif category_id:
         category = get_object_or_404(LoanCategory, category_id=category_id)
         form = LoanCategoryForm(instance=category)
@@ -3033,7 +3042,17 @@ def loan_management(request):
         modal_title = 'Edit Loan Category'
         show_modal = True
     elif request.GET.get('add') == '1':
-        form = LoanCategoryForm()
+        # Preselect main_category if provided in URL
+        initial_data = {}
+        if selected_main_category:
+            initial_data['main_category'] = selected_main_category
+        form = LoanCategoryForm(initial=initial_data)
+        
+        # Make main_category field readonly if preselected
+        if selected_main_category:
+            form.fields['main_category'].widget.attrs['readonly'] = True
+            form.fields['main_category'].widget.attrs['disabled'] = True
+        
         modal_action = 'Add'
         modal_title = 'Add Loan Category'
         show_modal = True
@@ -3059,14 +3078,19 @@ def loan_management(request):
         if selected_main_category:
             interest_form.instance.main_category = selected_main_category
         if interest_form.is_valid():
-            obj = interest_form.save(commit=False)
-            obj.created_by = request.user
-            obj.save()
-            messages.success(request, f"Interest rate {interest_modal_action.lower()}ed successfully!")
-            if selected_main_category_id:
-                return redirect(f"/hq/loan-manage/management/?main_category={selected_main_category_id}")
-            return redirect('hq:loan_management')
-
+            try:
+                obj = interest_form.save(commit=False)
+                obj.created_by = request.user
+                obj.save()
+                messages.success(request, f"Interest rate {interest_modal_action.lower()}ed successfully!")
+                if selected_main_category_id:
+                    return redirect(f"/hq/loan-manage/management/?main_category={selected_main_category_id}")
+                return redirect('hq:loan_management')
+            except IntegrityError as e:
+                if 'loan_loaninterest_main_category_id_rate_of_f2429aff_uniq' in str(e):
+                    messages.error(request, "This interest rate already exists for the selected main category. Please use a different interest rate.")
+                else:
+                    messages.error(request, "A database error occurred. Please try again.")
         else:
             messages.error(request, "Failed to save interest rate. Please check the form.")
     elif interest_id:
@@ -3092,12 +3116,12 @@ def loan_management(request):
 
         if request.POST.get('tenure_id'):
             tenure = get_object_or_404(LoanTenure, tenure_id=request.POST['tenure_id'])
-            tenure_form = LoanTenureForm(request.POST, instance=tenure, main_category=selected_main_category)
+            tenure_form = LoanTenureForm(request.POST, instance=tenure, main_category=selected_main_category, user=request.user)
 
             tenure_modal_action = 'Edit'
             tenure_modal_title = 'Edit Loan Tenure'
         else:
-            tenure_form = LoanTenureForm(request.POST, main_category=selected_main_category)
+            tenure_form = LoanTenureForm(request.POST, main_category=selected_main_category, user=request.user)
 
             tenure_modal_action = 'Add'
             tenure_modal_title = 'Add Loan Tenure'
@@ -3114,13 +3138,13 @@ def loan_management(request):
             messages.error(request, "Failed to save loan tenure. Please check the form.")
     elif tenure_id:
         tenure = get_object_or_404(LoanTenure, tenure_id=tenure_id)
-        tenure_form = LoanTenureForm(instance=tenure, main_category=selected_main_category)
+        tenure_form = LoanTenureForm(instance=tenure, main_category=selected_main_category, user=request.user)
 
         tenure_modal_action = 'Edit'
         tenure_modal_title = 'Edit Loan Tenure'
         show_tenure_modal = True
     elif request.GET.get('add_tenure') == '1':
-        tenure_form = LoanTenureForm(main_category=selected_main_category)
+        tenure_form = LoanTenureForm(main_category=selected_main_category, user=request.user)
 
         tenure_modal_action = 'Add'
         tenure_modal_title = 'Add Loan Tenure'

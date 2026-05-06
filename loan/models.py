@@ -531,7 +531,7 @@ class LoanInterest(models.Model):
         verbose_name = "Loan Interest Rate"
         verbose_name_plural = "Loan Interest Rates"
         ordering = ['rate_of_interest']
-        unique_together = [('main_category', 'rate_of_interest')]
+        unique_together = [('main_category', 'rate_of_interest', 'created_by')]
     
     def save(self, *args, **kwargs):
         if not self.interest_id:

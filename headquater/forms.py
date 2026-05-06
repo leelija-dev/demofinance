@@ -772,8 +772,12 @@ class LoanTenureForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         main_category = kwargs.pop('main_category', None)
+        user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+        # Filter by active status and user if provided
         qs = LoanInterest.objects.filter(is_active=True)
+        if user is not None:
+            qs = qs.filter(created_by=user)
         if main_category is not None:
             qs = qs.filter(main_category=main_category)
         self.fields['interest_rate'].queryset = qs
