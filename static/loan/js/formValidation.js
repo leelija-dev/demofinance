@@ -1019,6 +1019,96 @@ async function callDraftAPI(endpoint, method, data = null) {
                 previewField.value = selectedOption ? selectedOption.text : '';
             }
         });
+
+        // Hide product-related sections if no data is found
+        hideEmptyProductSections();
+    }
+    
+    function hideEmptyProductSections() {
+        // Hide/show individual product field containers based on data
+        const productContainers = [
+            'preview_selected_product',
+            'preview_loan_percentage_container',
+            'preview_sale_price_container', 
+            'preview_processing_fee_container',
+            'preview_down_payment_container',
+            'preview_total_loan_amount_container',
+            'preview_product_main_category_container',
+            'preview_product_subcategory_container',
+            'preview_product_type_container'
+        ];
+        
+        productContainers.forEach(containerId => {
+            let container = document.getElementById(containerId);
+            if (!containerId.endsWith("_container")) {
+                container = container.parentElement;
+            }
+            if (container) {
+                const input = container.querySelector('input');
+                if (input && input.value && input.value.trim() !== '') {
+                    container.style.display = 'block';
+                } else {
+                    container.style.display = 'none';
+                }
+            }
+        });
+        
+        // Check processing fees section - hide entire section if no fees
+        const processingFeesContainer = document.getElementById('preview_processing_fees_container');
+        if (processingFeesContainer) {
+            // First check if processing fee field has data
+            const processingFeeField = document.getElementById('preview_processing_fee');
+            let hasProcessingFee = false;
+            
+            if (processingFeeField && processingFeeField.value && processingFeeField.value.trim() !== '') {
+                hasProcessingFee = true;
+            }
+            
+            // Also check Alpine data for additional fees
+            const modal = document.getElementById('preview-modal');
+            let hasAlpineFees = false;
+            
+            if (modal && window.Alpine) {
+                try {
+                    // Try to get Alpine data for the modal
+                    const alpineData = window.Alpine.$data(modal);
+                    if (alpineData && alpineData.processingFees && alpineData.processingFees.length > 0) {
+                        hasAlpineFees = true;
+                    }
+                } catch (e) {
+                    // Fallback to field checking if Alpine access fails
+                }
+            }
+            
+            // Show container only if there are any processing fees
+            if (hasProcessingFee || hasAlpineFees) {
+                processingFeesContainer.style.display = 'block';
+            } else {
+                processingFeesContainer.style.display = 'none';
+            }
+
+
+            const processingFeesSectionHR = processingFeesContainer.previousElementSibling;
+            if (processingFeesSectionHR) {
+                // Show entire section only if there are any processing fees
+                if (hasProcessingFee || hasAlpineFees) {
+                    processingFeesSectionHR.style.display = 'block';
+                } else {
+                    processingFeesSectionHR.style.display = 'none';
+                }
+            }
+
+
+            const processingFeesSectionDIV = processingFeesSectionHR.previousElementSibling;
+            if (processingFeesSectionDIV) {
+                // Show entire section only if there are any processing fees
+                if (hasProcessingFee || hasAlpineFees) {
+                    processingFeesSectionDIV.style.display = 'block';
+                } else {
+                    processingFeesSectionDIV.style.display = 'none';
+                }
+            }
+        }
     }
     
     function setupPreviewModal() {
