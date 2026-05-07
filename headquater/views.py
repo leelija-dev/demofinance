@@ -84,9 +84,9 @@ def product_management(request):
     edit_sub_id = (request.GET.get('edit_sub') or '').strip()
     edit_product_id = (request.GET.get('edit_product') or '').strip()
 
-    main_category_form = ProductCategoryForm()
-    sub_category_form = ProductSubCategoryForm()
-    product_form = ProductForm()
+    main_category_form = ProductCategoryForm(user=request.user)
+    sub_category_form = ProductSubCategoryForm(user=request.user)
+    product_form = ProductForm(user=request.user)
 
     edit_main_form = None
     edit_sub_form = None
@@ -97,25 +97,25 @@ def product_management(request):
     open_add_product_modal = False
 
     if edit_main_id:
-        edit_main_obj = ProductCategory.objects.filter(main_category_id=edit_main_id).first()
+        edit_main_obj = ProductCategory.objects.filter(main_category_id=edit_main_id, created_by=request.user).first()
         if edit_main_obj:
-            edit_main_form = ProductCategoryForm(instance=edit_main_obj)
+            edit_main_form = ProductCategoryForm(instance=edit_main_obj, user=request.user)
 
     if edit_sub_id:
-        edit_sub_obj = ProductSubCategory.objects.filter(sub_category_id=edit_sub_id).first()
+        edit_sub_obj = ProductSubCategory.objects.filter(sub_category_id=edit_sub_id, created_by=request.user).first()
         if edit_sub_obj:
-            edit_sub_form = ProductSubCategoryForm(instance=edit_sub_obj)
+            edit_sub_form = ProductSubCategoryForm(instance=edit_sub_obj, user=request.user)
 
     if edit_product_id:
-        edit_product_obj = Product.objects.filter(product_id=edit_product_id).first()
+        edit_product_obj = Product.objects.filter(product_id=edit_product_id, created_by=request.user).first()
         if edit_product_obj:
-            edit_product_form = ProductForm(instance=edit_product_obj)
+            edit_product_form = ProductForm(instance=edit_product_obj, user=request.user)
 
     if request.method == 'POST':
         form_type = (request.POST.get('form_type') or '').strip()
 
         if form_type == 'main_category':
-            main_category_form = ProductCategoryForm(request.POST)
+            main_category_form = ProductCategoryForm(request.POST, user=request.user)
             if main_category_form.is_valid():
                 obj = main_category_form.save(commit=False)
                 obj.created_by = request.user
@@ -131,7 +131,7 @@ def product_management(request):
             if not edit_obj:
                 messages.error(request, 'Main product not found.')
                 return redirect('hq:product_management')
-            edit_main_form = ProductCategoryForm(request.POST, instance=edit_obj)
+            edit_main_form = ProductCategoryForm(request.POST, instance=edit_obj, user=request.user)
             if edit_main_form.is_valid():
                 edit_main_form.save()
                 messages.success(request, 'Main product updated successfully!')
@@ -140,7 +140,7 @@ def product_management(request):
 
         elif form_type == 'main_category_toggle':
             target_id = (request.POST.get('toggle_id') or '').strip()
-            obj = ProductCategory.objects.filter(main_category_id=target_id).first()
+            obj = ProductCategory.objects.filter(main_category_id=target_id, created_by=request.user).first()
             if not obj:
                 messages.error(request, 'Main product not found.')
                 return redirect('hq:product_management')
@@ -152,7 +152,7 @@ def product_management(request):
             return redirect('hq:product_management')
 
         elif form_type == 'sub_category':
-            sub_category_form = ProductSubCategoryForm(request.POST)
+            sub_category_form = ProductSubCategoryForm(request.POST, user=request.user)
             if sub_category_form.is_valid():
                 obj = sub_category_form.save(commit=False)
                 obj.created_by = request.user
@@ -168,7 +168,7 @@ def product_management(request):
             if not edit_obj:
                 messages.error(request, 'Product category not found.')
                 return redirect('hq:product_management')
-            edit_sub_form = ProductSubCategoryForm(request.POST, instance=edit_obj)
+            edit_sub_form = ProductSubCategoryForm(request.POST, instance=edit_obj, user=request.user)
             if edit_sub_form.is_valid():
                 edit_sub_form.save()
                 messages.success(request, 'Product category updated successfully!')
@@ -177,7 +177,7 @@ def product_management(request):
 
         elif form_type == 'sub_category_toggle':
             target_id = (request.POST.get('toggle_id') or '').strip()
-            obj = ProductSubCategory.objects.filter(sub_category_id=target_id).first()
+            obj = ProductSubCategory.objects.filter(sub_category_id=target_id, created_by=request.user).first()
             if not obj:
                 messages.error(request, 'Product category not found.')
                 return redirect('hq:product_management')
@@ -188,7 +188,7 @@ def product_management(request):
             return redirect('hq:product_management')
 
         elif form_type == 'product':
-            product_form = ProductForm(request.POST)
+            product_form = ProductForm(request.POST, user=request.user)
             if product_form.is_valid():
                 obj = product_form.save(commit=False)
                 obj.created_by = request.user
@@ -204,7 +204,7 @@ def product_management(request):
             if not edit_obj:
                 messages.error(request, 'Product not found.')
                 return redirect('hq:product_management')
-            edit_product_form = ProductForm(request.POST, instance=edit_obj)
+            edit_product_form = ProductForm(request.POST, instance=edit_obj, user=request.user)
             if edit_product_form.is_valid():
                 edit_product_form.save()
                 messages.success(request, 'Product updated successfully!')
@@ -213,7 +213,7 @@ def product_management(request):
 
         elif form_type == 'product_toggle':
             target_id = (request.POST.get('toggle_id') or '').strip()
-            obj = Product.objects.filter(product_id=target_id).first()
+            obj = Product.objects.filter(product_id=target_id, created_by=request.user).first()
             if not obj:
                 messages.error(request, 'Product not found.')
                 return redirect('hq:product_management')
@@ -222,9 +222,15 @@ def product_management(request):
             messages.success(request, 'Product status updated successfully!')
             return redirect('hq:product_management')
 
-    main_categories = ProductCategory.objects.select_related('loan_main_category', 'loan_category').all().order_by('name')
-    sub_categories = ProductSubCategory.objects.select_related('main_category').all().order_by('main_category__name', 'name')
-    products = Product.objects.select_related('sub_category', 'sub_category__main_category').all().order_by(
+    main_categories = ProductCategory.objects.select_related('loan_main_category', 'loan_category').filter(
+        created_by=request.user
+    ).order_by('name')
+    sub_categories = ProductSubCategory.objects.select_related('main_category').filter(
+        created_by=request.user
+    ).order_by('main_category__name', 'name')
+    products = Product.objects.select_related('sub_category', 'sub_category__main_category').filter(
+        created_by=request.user
+    ).order_by(
         'sub_category__main_category__name',
         'sub_category__name',
         'name',

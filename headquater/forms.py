@@ -812,14 +812,21 @@ class ProductCategoryForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        self.fields['loan_category'].queryset = LoanCategory.objects.filter(is_active=True)
+        if user:
+            self.fields['loan_category'].queryset = LoanCategory.objects.filter(is_active=True, created_by=user)
+        else:
+            self.fields['loan_category'].queryset = LoanCategory.objects.filter(is_active=True)
         self.fields['loan_category'].empty_label = "Select loan category"
         self.fields['loan_category'].label_from_instance = lambda obj: obj.name
         self.fields['loan_category'].widget.attrs.update({
             'class': 'dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30',
         })
-        self.fields['loan_main_category'].queryset = LoanMainCategory.objects.filter(is_active=True)
+        if user:
+            self.fields['loan_main_category'].queryset = LoanMainCategory.objects.filter(Q(is_active=True) & (Q(created_by=user) | Q(created_by__isnull=True)))
+        else:
+            self.fields['loan_main_category'].queryset = LoanMainCategory.objects.filter(is_active=True)
         self.fields['loan_main_category'].empty_label = "Select loan main category"
         self.fields['loan_main_category'].widget.attrs.update({
             'class': 'dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30',
@@ -843,8 +850,12 @@ class ProductSubCategoryForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        self.fields['main_category'].queryset = ProductCategory.objects.filter(is_active=True)
+        if user:
+            self.fields['main_category'].queryset = ProductCategory.objects.filter(is_active=True, created_by=user)
+        else:
+            self.fields['main_category'].queryset = ProductCategory.objects.filter(is_active=True)
         self.fields['main_category'].empty_label = "Select main product"
 
 class ProductForm(forms.ModelForm):
@@ -871,8 +882,12 @@ class ProductForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        self.fields['sub_category'].queryset = ProductSubCategory.objects.filter(is_active=True)
+        if user:
+            self.fields['sub_category'].queryset = ProductSubCategory.objects.filter(is_active=True, created_by=user)
+        else:
+            self.fields['sub_category'].queryset = ProductSubCategory.objects.filter(is_active=True)
         self.fields['sub_category'].empty_label = "Select sub category"
 
 # Savings Management Forms
