@@ -31,13 +31,37 @@
         }
         
         const errDiv = document.getElementById('error-' + field.name);
-        if (errDiv) errDiv.textContent = message;
+        if (errDiv) {
+            errDiv.textContent = message;
+            errDiv.classList.add('text-red-600');
+            errDiv.classList.remove('text-green-600');
+        }
         field.classList.add('border-red-500');
+        field.classList.remove('border-green-500');
     }
     // Helper: clear error for a field
     function clearFieldError(field) {
         const errDiv = document.getElementById('error-' + field.name);
-        if (errDiv) errDiv.textContent = '';
+        if (errDiv) {
+            errDiv.textContent = '';
+            errDiv.classList.remove('text-red-600', 'text-green-600');
+        }
+        field.classList.remove('border-red-500', 'border-green-500');
+    }
+    
+    // Helper: show success for a field (for account number matching)
+    function showFieldSuccess(field, message) {
+        if (!touchedFields.has(field.name) && !window._showAllErrors) {
+            return;
+        }
+        
+        const errDiv = document.getElementById('error-' + field.name);
+        if (errDiv) {
+            errDiv.textContent = message;
+            errDiv.classList.add('text-green-600');
+            errDiv.classList.remove('text-red-600');
+        }
+        field.classList.add('border-green-500');
         field.classList.remove('border-red-500');
     }
     
@@ -196,12 +220,13 @@ async function callDraftAPI(endpoint, method, data = null) {
             if (digitsOnly !== field.value) {
                 field.value = digitsOnly;
             }
-            // if (!digitsOnly) {
-            //     return 'Account number is required.';
-            // }
+            
             if (field.value) {
-                if (digitsOnly.length < 9 || digitsOnly.length > 18) {
-                    return 'Account number must be between 9 and 18 digits.';
+                if (digitsOnly.length < 9) {
+                    return `Account number must be at least 9 digits (${digitsOnly.length}/9 entered).`;
+                }
+                if (digitsOnly.length > 18) {
+                    return 'Account number cannot exceed 18 digits.';
                 }
             }
         }
@@ -212,12 +237,19 @@ async function callDraftAPI(endpoint, method, data = null) {
             if (digitsOnly !== field.value) {
                 field.value = digitsOnly;
             }
-            // if (!digitsOnly) {
-            //     return 'Please re-enter the account number.';
-            // }
+            
             if (field.value) {
-                if (accountField && digitsOnly !== accountField.value) {
-                    return 'Account numbers do not match.';
+                if (accountField && accountField.value) {
+                    if (digitsOnly !== accountField.value) {
+                        return 'Account numbers do not match.';
+                    } else {
+                        // Show success message when numbers match
+                        if (touchedFields.has(field.name) || window._showAllErrors) {
+                            showFieldSuccess(field, 'Account numbers match!');
+                        }
+                    }
+                } else if (accountField && !accountField.value) {
+                    return 'Please enter the account number first.';
                 }
             }
         }
@@ -348,9 +380,10 @@ async function callDraftAPI(endpoint, method, data = null) {
         if (!form) return;
         const requiredFields = form.querySelectorAll('input[required], select[required]');
         const optionalFields = form.querySelectorAll('input[name="email"], input[name="voter_number"]');
+        const accountFields = form.querySelectorAll('input[name="account_number"], input[name="confirm_account_number"]');
 
-        // Combine required and optional fields for validation
-        const allFields = [...requiredFields, ...optionalFields];
+        // Combine required, optional, and account fields for validation
+        const allFields = [...requiredFields, ...optionalFields, ...accountFields];
 
         allFields.forEach(field => {
             field.addEventListener('input', function() {
@@ -366,6 +399,19 @@ async function callDraftAPI(endpoint, method, data = null) {
                     const customMsg = customValidation(this);
                     if (customMsg) {
                         showFieldError(this, customMsg);
+                    }
+                }
+                
+                // Special handling: if account number changes, revalidate confirm field
+                if (this.name === 'account_number') {
+                    const confirmField = document.getElementById('confirm_account_number');
+                    if (confirmField && confirmField.value && touchedFields.has('confirm_account_number')) {
+                        clearFieldError(confirmField);
+                        const confirmMsg = customValidation(confirmField);
+                        if (confirmMsg) {
+                            showFieldError(confirmField, confirmMsg);
+                        }
+                        // If no error, the success state is already handled in customValidation
                     }
                 }
             });
