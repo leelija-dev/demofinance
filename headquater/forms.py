@@ -1268,14 +1268,19 @@ class BranchTransferForm(forms.ModelForm):
         selected_branch = kwargs.pop('selected_branch', None)
         super().__init__(*args, **kwargs)
         
-        # Set the branch queryset to active branches only
-        if 'branch' in self.fields:
-            self.fields['branch'].queryset = Branch.objects.filter(status=True).order_by('branch_id', 'branch_name')
+        # Set branch queryset to active branches created by logged-in HQ user only
+        if 'branch' in self.fields and self.request:
+            self.fields['branch'].queryset = Branch.objects.filter(
+                status=True, 
+                created_by=self.request.user
+            ).order_by('branch_id', 'branch_name')
         
-        # Keep all HQ accounts available in the select to avoid invalid choice errors.
+        # Keep HQ accounts created by logged-in user available in select to avoid invalid choice errors.
         # We will enforce alignment with payment mode in clean().
-        if 'hq_account' in self.fields:
-            self.fields['hq_account'].queryset = HeadquartersWallet.objects.all().order_by('type', 'bank_name', 'account_number')
+        if 'hq_account' in self.fields and self.request:
+            self.fields['hq_account'].queryset = HeadquartersWallet.objects.filter(
+                created_by=self.request.user
+            ).order_by('type', 'bank_name', 'account_number')
         
         # Set accounts based on selected branch
         if 'accounts' in self.fields:

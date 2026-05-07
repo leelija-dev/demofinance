@@ -227,6 +227,13 @@ class HeadquartersWallet(models.Model):
     balance = models.DecimalField(max_digits=15, decimal_places=2, default=0.00, null=False)
     last_updated = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='hq_wallets_created'
+    )
 
     def __str__(self):
         return f"{self.wallet_id} - Balance: {self.balance}"

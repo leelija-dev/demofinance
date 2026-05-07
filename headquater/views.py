@@ -3742,15 +3742,24 @@ class HQWallet(LoginRequiredMixin, View):
         # Initialize balance form
         balance_form = self.balance_form_class(user=request.user)
 
-        # Get recent transactions
+        # Get branches and agents created by the logged-in HQ user
+        user_branches = Branch.objects.filter(created_by=request.user)
+        user_branch_ids = user_branches.values_list('branch_id', flat=True)
+        user_agents = Agent.objects.filter(branch_id__in=user_branch_ids)
+        
+        # Get recent transactions filtered by user hierarchy
         hq_transactions = HeadquartersTransactions.objects.select_related('wallet') \
-                                                     .order_by('-transaction_date')[:50]
+            .filter(
+                Q(created_by=request.user) |
+                Q(fund_transfers__branch_transaction__branch__in=user_branches)
+            ).distinct().order_by('-transaction_date')[:50]
         
         # NEW APPROACH: Get branch names through FundTransfers -> BranchTransaction
         try:
-            # Get all fund transfers for these HQ transactions
+            # Get all fund transfers for these HQ transactions filtered by user hierarchy
             fund_transfers = FundTransfers.objects.filter(
-                hq_transaction__in=hq_transactions
+                hq_transaction__in=hq_transactions,
+                branch_transaction__branch__in=user_branches
             ).select_related('branch_transaction__branch')
             
             # Create a mapping of HQ transaction IDs to branch names
@@ -3763,7 +3772,7 @@ class HQWallet(LoginRequiredMixin, View):
                 elif ft.hq_transaction_id and ft.transfer_to:
                     # Fallback: use transfer_to field if branch_transaction is None
                     try:
-                        branch = Branch.objects.get(branch_id=ft.transfer_to)
+                        branch = Branch.objects.get(branch_id=ft.transfer_to, created_by=request.user)
                         hq_to_branch_display[ft.hq_transaction_id] = f"{branch.branch_name} ({branch.branch_id})"
                     except Branch.DoesNotExist:
                         hq_to_branch_display[ft.hq_transaction_id] = f"Unknown Branch ({ft.transfer_to})"
@@ -3818,7 +3827,7 @@ class HQWallet(LoginRequiredMixin, View):
         try:
             from branch.models import BranchAccount
             accounts_data = {}
-            for acc in BranchAccount.objects.select_related('branch').filter(type='BANK'):
+            for acc in BranchAccount.objects.select_related('branch').filter(type='BANK', branch__in=user_branches):
                 bid = str(acc.branch.branch_id)
                 accounts_data.setdefault(bid, []).append({
                     'id': acc.id,
@@ -3827,11 +3836,12 @@ class HQWallet(LoginRequiredMixin, View):
         except Exception:
             accounts_data = {}
         
-        # Get recent fund transfers with related data
+        # Get recent fund transfers with related data filtered by user hierarchy
         recent_transfers = FundTransfers.objects.select_related(
             'hq_transaction', 'branch_transaction__branch'
         ).filter(
-            hq_transaction__isnull=False  # Only show transfers initiated from HQ
+            hq_transaction__isnull=False,  # Only show transfers initiated from HQ
+            branch_transaction__branch__in=user_branches
         ).order_by('-transfer_date')[:10]
         
         # Calculate monthly income and expenses
@@ -3842,23 +3852,31 @@ class HQWallet(LoginRequiredMixin, View):
         today = datetime.now().date()
         first_day_of_month = today.replace(day=1)
         
-        # Total balances by account type
-        cash_balance = HeadquartersWallet.objects.filter(type='CASH').aggregate(total=Sum('balance'))['total'] or 0.00
-        account_balance = HeadquartersWallet.objects.filter(type='BANK').aggregate(total=Sum('balance'))['total'] or 0.00
-        # Calculate monthly income (credits)
+        # Total balances by account type filtered by logged-in user
+        cash_balance = HeadquartersWallet.objects.filter(type='CASH', created_by=request.user).aggregate(total=Sum('balance'))['total'] or 0.00
+        account_balance = HeadquartersWallet.objects.filter(type='BANK', created_by=request.user).aggregate(total=Sum('balance'))['total'] or 0.00
+        # Calculate monthly income (credits) filtered by user hierarchy
         monthly_income = HeadquartersTransactions.objects.filter(
             transaction_type='credit',
             transaction_date__date__gte=first_day_of_month
-        ).aggregate(total=Sum('amount'))['total'] or 0.00
+        ).filter(
+            Q(created_by=request.user) |
+            Q(fund_transfers__branch_transaction__branch__in=user_branches)
+        ).distinct().aggregate(total=Sum('amount'))['total'] or 0.00
         
-        # Calculate monthly expenses (debits)
+        # Calculate monthly expenses (debits) filtered by user hierarchy
         monthly_expenses = HeadquartersTransactions.objects.filter(
             transaction_type='debit',
             transaction_date__date__gte=first_day_of_month
-        ).aggregate(total=Sum('amount'))['total'] or 0.00
+        ).filter(
+            Q(created_by=request.user) |
+            Q(fund_transfers__branch_transaction__branch__in=user_branches)
+        ).distinct().aggregate(total=Sum('amount'))['total'] or 0.00
 
-        # Compute wallet summary across all HQ accounts
-        aggregates = HeadquartersWallet.objects.aggregate(
+        # Compute wallet summary across HQ accounts created by logged-in user
+        aggregates = HeadquartersWallet.objects.filter(
+            created_by=request.user
+        ).aggregate(
             total_balance=Sum('balance'),
             last_updated=Max('last_updated'),
             created_at=Min('created_at'),
@@ -3870,8 +3888,8 @@ class HQWallet(LoginRequiredMixin, View):
             'created_at': aggregates['created_at'],
         }
         
-        # Build HQ BANK accounts payload
-        bank_qs = HeadquartersWallet.objects.filter(type='BANK')
+        # Build HQ BANK accounts payload filtered by logged-in user
+        bank_qs = HeadquartersWallet.objects.filter(type='BANK', created_by=request.user)
         bank_accounts = []
         for acc in bank_qs:
             bank_accounts.append({
