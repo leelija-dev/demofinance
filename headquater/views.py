@@ -4947,8 +4947,12 @@ def hq_dashboard_data(request):
             labels.append(month_abbr[m])
             finance_labels.append(month_abbr[m])
             # status trends
-            applied_series.append(LoanApplication.objects.filter(submitted_at__gte=m_start, submitted_at__lt=m_next).count())
-            approved_series.append(LoanApplication.objects.filter(submitted_at__gte=m_start, submitted_at__lt=m_next, status='hq_approved').count())
+            applied_series.append(LoanApplication.objects.filter(submitted_at__gte=m_start, submitted_at__lt=m_next).filter(
+                Q(branch__in=user_branches) | Q(agent__in=user_agents)
+            ).count())
+            approved_series.append(LoanApplication.objects.filter(submitted_at__gte=m_start, submitted_at__lt=m_next, status='hq_approved').filter(
+                Q(branch__in=user_branches) | Q(agent__in=user_agents)
+            ).count())
             disbursed_series.append(
                 LoanApplication.objects.filter(
                     branch__status=True,
@@ -4956,13 +4960,19 @@ def hq_dashboard_data(request):
                     disbursed_at__gte=m_start,
                     disbursed_at__lt=m_next,
                     status__in=disbursed_statuses,
+                ).filter(
+                    Q(branch__in=user_branches) | Q(agent__in=user_agents)
                 ).count()
             )
 
             # financial trends
-            loan_sum = LoanApplication.objects.filter(submitted_at__gte=m_start, submitted_at__lt=m_next).aggregate(total=Sum('loan_details__loan_amount'))['total'] or 0
+            loan_sum = LoanApplication.objects.filter(submitted_at__gte=m_start, submitted_at__lt=m_next).filter(
+                Q(branch__in=user_branches) | Q(agent__in=user_agents)
+            ).aggregate(total=Sum('loan_details__loan_amount'))['total'] or 0
             loan_amount_series.append(float(loan_sum))
-            emi_sum = LoanEMISchedule.objects.filter(installment_date__gte=m_start, installment_date__lt=m_next).aggregate(total=Sum('installment_amount'))['total'] or 0
+            emi_sum = LoanEMISchedule.objects.filter(installment_date__gte=m_start, installment_date__lt=m_next).filter(
+                Q(loan_application__branch__in=user_branches) | Q(loan_application__agent__in=user_agents)
+            ).aggregate(total=Sum('installment_amount'))['total'] or 0
             emi_scheduled_series.append(float(emi_sum))
             emi_col_sum = EmiCollectionDetail.objects.filter(
                 verified_at__isnull=False,
@@ -4971,7 +4981,8 @@ def hq_dashboard_data(request):
                 collected=True,
                 status='verified',
             ).filter(
-                Q(collected_by_agent__isnull=False) | Q(collected_by_branch__isnull=False)
+                (Q(collected_by_agent__in=user_agents) | Q(collected_by_branch__branch__in=user_branches)) &
+                (Q(collected_by_agent__isnull=False) | Q(collected_by_branch__isnull=False))
             ).aggregate(total=Sum('amount_received'))['total'] or 0
             emi_collected_series.append(float(emi_col_sum))
     elif time_range == 'day':
@@ -4982,8 +4993,12 @@ def hq_dashboard_data(request):
             h_next = h_start + timedelta(hours=1)
             labels.append(f"{h:02d}")
             finance_labels.append(f"{h:02d}")
-            applied_series.append(LoanApplication.objects.filter(submitted_at__gte=h_start, submitted_at__lt=h_next).count())
-            approved_series.append(LoanApplication.objects.filter(submitted_at__gte=h_start, submitted_at__lt=h_next, status='hq_approved').count())
+            applied_series.append(LoanApplication.objects.filter(submitted_at__gte=h_start, submitted_at__lt=h_next).filter(
+                Q(branch__in=user_branches) | Q(agent__in=user_agents)
+            ).count())
+            approved_series.append(LoanApplication.objects.filter(submitted_at__gte=h_start, submitted_at__lt=h_next, status='hq_approved').filter(
+                Q(branch__in=user_branches) | Q(agent__in=user_agents)
+            ).count())
             disbursed_series.append(
                 LoanApplication.objects.filter(
                     branch__status=True,
@@ -4991,12 +5006,18 @@ def hq_dashboard_data(request):
                     disbursed_at__gte=h_start,
                     disbursed_at__lt=h_next,
                     status__in=disbursed_statuses,
+                ).filter(
+                    Q(branch__in=user_branches) | Q(agent__in=user_agents)
                 ).count()
             )
 
-            loan_sum = LoanApplication.objects.filter(submitted_at__gte=h_start, submitted_at__lt=h_next).aggregate(total=Sum('loan_details__loan_amount'))['total'] or 0
+            loan_sum = LoanApplication.objects.filter(submitted_at__gte=h_start, submitted_at__lt=h_next).filter(
+                Q(branch__in=user_branches) | Q(agent__in=user_agents)
+            ).aggregate(total=Sum('loan_details__loan_amount'))['total'] or 0
             loan_amount_series.append(float(loan_sum))
-            emi_sum = LoanEMISchedule.objects.filter(installment_date__gte=h_start, installment_date__lt=h_next).aggregate(total=Sum('installment_amount'))['total'] or 0
+            emi_sum = LoanEMISchedule.objects.filter(installment_date__gte=h_start, installment_date__lt=h_next).filter(
+                Q(loan_application__branch__in=user_branches) | Q(loan_application__agent__in=user_agents)
+            ).aggregate(total=Sum('installment_amount'))['total'] or 0
             emi_scheduled_series.append(float(emi_sum))
             emi_col_sum = EmiCollectionDetail.objects.filter(
                 verified_at__isnull=False,
@@ -5005,7 +5026,8 @@ def hq_dashboard_data(request):
                 collected=True,
                 status='verified',
             ).filter(
-                Q(collected_by_agent__isnull=False) | Q(collected_by_branch__isnull=False)
+                (Q(collected_by_agent__in=user_agents) | Q(collected_by_branch__branch__in=user_branches)) &
+                (Q(collected_by_agent__isnull=False) | Q(collected_by_branch__isnull=False))
             ).aggregate(total=Sum('amount_received'))['total'] or 0
             emi_collected_series.append(float(emi_col_sum))
     else:
@@ -5018,8 +5040,12 @@ def hq_dashboard_data(request):
             d_next = d_start + timedelta(days=1)
             labels.append(str(d))
             finance_labels.append(str(d))
-            applied_series.append(LoanApplication.objects.filter(submitted_at__gte=d_start, submitted_at__lt=d_next).count())
-            approved_series.append(LoanApplication.objects.filter(submitted_at__gte=d_start, submitted_at__lt=d_next, status='hq_approved').count())
+            applied_series.append(LoanApplication.objects.filter(submitted_at__gte=d_start, submitted_at__lt=d_next).filter(
+                Q(branch__in=user_branches) | Q(agent__in=user_agents)
+            ).count())
+            approved_series.append(LoanApplication.objects.filter(submitted_at__gte=d_start, submitted_at__lt=d_next, status='hq_approved').filter(
+                Q(branch__in=user_branches) | Q(agent__in=user_agents)
+            ).count())
             disbursed_series.append(
                 LoanApplication.objects.filter(
                     branch__status=True,
@@ -5027,12 +5053,18 @@ def hq_dashboard_data(request):
                     disbursed_at__gte=d_start,
                     disbursed_at__lt=d_next,
                     status__in=disbursed_statuses,
+                ).filter(
+                    Q(branch__in=user_branches) | Q(agent__in=user_agents)
                 ).count()
             )
 
-            loan_sum = LoanApplication.objects.filter(submitted_at__gte=d_start, submitted_at__lt=d_next).aggregate(total=Sum('loan_details__loan_amount'))['total'] or 0
+            loan_sum = LoanApplication.objects.filter(submitted_at__gte=d_start, submitted_at__lt=d_next).filter(
+                Q(branch__in=user_branches) | Q(agent__in=user_agents)
+            ).aggregate(total=Sum('loan_details__loan_amount'))['total'] or 0
             loan_amount_series.append(float(loan_sum))
-            emi_sum = LoanEMISchedule.objects.filter(installment_date__gte=d_start, installment_date__lt=d_next).aggregate(total=Sum('installment_amount'))['total'] or 0
+            emi_sum = LoanEMISchedule.objects.filter(installment_date__gte=d_start, installment_date__lt=d_next).filter(
+                Q(loan_application__branch__in=user_branches) | Q(loan_application__agent__in=user_agents)
+            ).aggregate(total=Sum('installment_amount'))['total'] or 0
             emi_scheduled_series.append(float(emi_sum))
             emi_col_sum = EmiCollectionDetail.objects.filter(
                 verified_at__isnull=False,
@@ -5041,7 +5073,8 @@ def hq_dashboard_data(request):
                 collected=True,
                 status='verified',
             ).filter(
-                Q(collected_by_agent__isnull=False) | Q(collected_by_branch__isnull=False)
+                (Q(collected_by_agent__in=user_agents) | Q(collected_by_branch__branch__in=user_branches)) &
+                (Q(collected_by_agent__isnull=False) | Q(collected_by_branch__isnull=False))
             ).aggregate(total=Sum('amount_received'))['total'] or 0
             emi_collected_series.append(float(emi_col_sum))
 
@@ -5074,7 +5107,9 @@ def hq_dashboard_data(request):
                 'date': (la.submitted_at.strftime('%Y-%m-%d') if la.submitted_at else ''),
                 'status': la.status,
             }
-            for la in LoanApplication.objects.order_by('-submitted_at')[:5]
+            for la in LoanApplication.objects.filter(
+                Q(branch__in=user_branches) | Q(agent__in=user_agents)
+            ).order_by('-submitted_at')[:5]
         ],
         'recentBranches': [
             {
@@ -5084,7 +5119,7 @@ def hq_dashboard_data(request):
                 'date': (b.created_at.strftime('%Y-%m-%d') if b.created_at else ''),
                 'status': 'Active' if b.status else 'Inactive',
             }
-            for b in (Branch.objects.filter(status=True)
+            for b in (user_branches.filter(status=True)
                                  .annotate(app_count=Count('loan_applications'))
                                  .order_by('-app_count', '-created_at')[:5])
         ],
