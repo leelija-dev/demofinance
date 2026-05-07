@@ -542,10 +542,11 @@
         if (categoryId) {
             // Use API endpoint that filters tenures by subcategory
             apiUrl = `/agent/api/loan-sub-category-tenure?subcategory_id=${categoryId}`;
-        } else {
-            // Use general API endpoint for all tenures
-            apiUrl = '/agent/api/loan-tenure';
-        }
+        } 
+        // else {
+        //     // Use general API endpoint for all tenures
+        //     apiUrl = '/agent/api/loan-tenure';
+        // }
         
         fetch(apiUrl)
             .then(response => {
