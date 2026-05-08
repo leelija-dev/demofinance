@@ -1193,6 +1193,10 @@ async function callDraftAPI(endpoint, method, data = null) {
                     console.log('form  :  ', form);
                     if (form) {
                         console.log('calling form submit........................');
+                        // Reset isSubmitting to allow the event to be processed
+                        if (typeof isSubmitting !== 'undefined') {
+                            isSubmitting = false;
+                        }
                         form.dispatchEvent(new Event('submit'));
                         console.log('called form submit........................');
                     } 
@@ -1219,7 +1223,7 @@ async function callDraftAPI(endpoint, method, data = null) {
             }
         });
     }
-    
+        
     // Make functions available globally
     window.showPreviewModal = showPreviewModal;
     window.hidePreviewModal = hidePreviewModal;

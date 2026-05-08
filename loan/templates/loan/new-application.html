@@ -839,7 +839,10 @@ document.getElementById('loan-application-form').addEventListener('submit', asyn
                     submitButton.disabled = false;
                     submitButton.innerHTML = originalButtonText;
                 }
-                window.location.href = "/agent/application/";
+                // Redirect based on user type
+                const isBranch = window.location.pathname.startsWith('/branch/');
+                const redirectUrl = isBranch ? "/branch/loan-pending/" : "/agent/application/";
+                window.location.href = redirectUrl;
             }, 1000);
 
             return; // prevent finally from running
