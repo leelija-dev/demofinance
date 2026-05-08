@@ -8,7 +8,7 @@ from django.urls import reverse
 from django.views.generic import ListView
 from rest_framework.response import Response
 from rest_framework import status
-from headquater.models import Branch
+from headquater.models import Branch, HeadquarterEmployee
 from branch.models import BranchEmployee
 from agent.models import Agent
 from loan.models import (
@@ -49,6 +49,8 @@ from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from main.pagination import AgentPagination
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
+
     
 # Loan Application Views
 class NewLoanApplication(AgentSessionRequiredMixin, TemplateView):
@@ -1562,23 +1564,58 @@ class LoanMainCategoryListAPI(APIView):
     def get(self, request):
         shop_status = request.GET.get('shop_status')
         
+        # Get the parent HQ user for the current user
+        parent_hq_user = self.get_parent_hq_user(request.user)
+        
+        # Base queryset filtered by parent HQ user
+        base_queryset = LoanMainCategory.objects.filter(Q(created_by=parent_hq_user) | Q(created_by__isnull=True))
+        
         if shop_status == 'inactive':
-            main_categories = LoanMainCategory.objects.filter(is_shop_active=False).order_by('name')
+            main_categories = base_queryset.filter(is_shop_active=False).order_by('name')
         elif shop_status == 'active':
-            main_categories = LoanMainCategory.objects.filter(is_shop_active=True).order_by('name')
+            main_categories = base_queryset.filter(is_shop_active=True).order_by('name')
         else:
-            # Default to all active categories if no shop_status specified
-            main_categories = LoanMainCategory.objects.filter(is_active=True).order_by('name')
+            # Default to all active categories created by parent HQ user
+            main_categories = base_queryset.filter(is_active=True).order_by('name')
+            
         data = [
             {
                 "id": category.main_category_id,
                 "name": category.name,
-                "category_count": LoanCategory.objects.filter(main_category=category, is_active=True).count(),
+                "category_count": LoanCategory.objects.filter(main_category=category, is_active=True, created_by=parent_hq_user).count(),
                 "is_shop_active": category.is_shop_active,
+                "created_by": category.created_by.username if category.created_by else None,
             }
             for category in main_categories
         ]
         return Response(data)
+    
+    def get_parent_hq_user(self, user):
+        """
+        Get the parent HQ user for the current user by tracing:
+        User → Agent/BranchEmployee → Branch → HeadquarterEmployee (created_by)
+        """
+        
+        # If user is already a HeadquarterEmployee, return them
+        if isinstance(user, HeadquarterEmployee):
+            return user
+            
+        # If user is an Agent, get their branch and find the HQ user who created the branch
+        try:
+            if isinstance(user, Agent):
+                branch = user.branch
+                # Return the HQ user who created this branch
+                return branch.created_by
+            elif isinstance(user, BranchEmployee):
+                # If user is a BranchEmployee, get their branch and find the HQ user who created it
+                branch = user.branch
+                return branch.created_by
+            else:
+                return None
+        except (AttributeError, Agent.DoesNotExist, BranchEmployee.DoesNotExist):
+            pass
+            
+        return None
 
 # Sub Categories API (filtered by main category)
 class LoanSubCategoryListAPI(APIView):
@@ -1587,21 +1624,68 @@ class LoanSubCategoryListAPI(APIView):
         if not main_category_id:
             return Response({"error": "main_category_id is required"}, status=400)
             
+        # Get the parent HQ user for the current user
+        parent_hq_user = self.get_parent_hq_user(request.user)
+            
         try:
-            main_category = LoanMainCategory.objects.get(main_category_id=main_category_id, is_active=True)
-            categories = LoanCategory.objects.filter(main_category=main_category, is_active=True).order_by('name')
+            # Get main categories created by parent HQ user or with null created_by
+            main_category = LoanMainCategory.objects.filter(
+                main_category_id=main_category_id, 
+                is_active=True
+            ).filter(Q(created_by=parent_hq_user) | Q(created_by__isnull=True)).first()
+            
+            if not main_category:
+                return Response({"error": "Main category not found"}, status=404)
+                
+            # Get categories created by parent HQ user or with null created_by
+            categories = LoanCategory.objects.filter(
+                main_category=main_category, 
+                is_active=True
+            ).filter(Q(created_by=parent_hq_user) | Q(created_by__isnull=True)).order_by('name')
             data = [
                 {
                     "id": category.category_id,
                     "name": category.name,
                     "main_category": main_category.name,
-                    "has_product_categories": ProductCategory.objects.filter(loan_category=category, is_active=True).exists()
+                    "created_by": category.created_by.username if category.created_by else None,
+                    "has_product_categories": ProductCategory.objects.filter(
+                    loan_category=category, 
+                    is_active=True
+                ).filter(Q(created_by=parent_hq_user) | Q(created_by__isnull=True)).exists()
                 }
                 for category in categories
             ]
             return Response(data)
         except LoanMainCategory.DoesNotExist:
             return Response({"error": "Main category not found"}, status=404)
+    
+    def get_parent_hq_user(self, user):
+        """
+        Get the parent HQ user for the current user by tracing:
+        User → Agent/BranchEmployee → Branch → HeadquarterEmployee (created_by)
+        """
+        
+        # If user is already a HeadquarterEmployee, return them
+        if isinstance(user, HeadquarterEmployee):
+            return user
+            
+        # If user is an Agent, get their branch and find the HQ user who created the branch
+        try:
+            if isinstance(user, Agent):
+                branch = user.branch
+                # Return the HQ user who created this branch
+                return branch.created_by
+            elif isinstance(user, BranchEmployee):
+                # If user is a BranchEmployee, get their branch and find the HQ user who created it
+                branch = user.branch
+                return branch.created_by
+            else:
+                # For other user types, try to get their associated agent/branch
+                return None
+        except (AttributeError, Agent.DoesNotExist, BranchEmployee.DoesNotExist):
+            pass
+            
+        return None
 
 # Product Main Category API
 class ProductCategoryListAPI(APIView):

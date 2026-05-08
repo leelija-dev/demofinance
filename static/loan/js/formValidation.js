@@ -67,6 +67,59 @@
     
     // Make clearFieldError available globally
     window.clearFieldError = clearFieldError;
+    
+    // Error popup function for account number validation
+    function showAccountNumberErrorPopup(message) {
+        // Create modal overlay
+        const modalOverlay = document.createElement('div');
+        modalOverlay.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm';
+        modalOverlay.id = 'account-number-error-modal';
+        
+        // Create modal content
+        const modalContent = document.createElement('div');
+        modalContent.className = 'bg-white dark:bg-gray-900 rounded-xl shadow-xl max-w-md w-full mx-4 p-6';
+        
+        modalContent.innerHTML = `
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-red-600 dark:text-red-400">Account Number Validation Error</h3>
+                <button type="button" onclick="closeAccountNumberErrorPopup()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-xl leading-none">&times;</button>
+            </div>
+            <div class="mb-6">
+                <p class="text-sm text-gray-700 dark:text-gray-300">${message}</p>
+            </div>
+            <div class="flex justify-end">
+                <button type="button" onclick="closeAccountNumberErrorPopup()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                    OK
+                </button>
+            </div>
+        `;
+        
+        modalOverlay.appendChild(modalContent);
+        document.body.appendChild(modalOverlay);
+        
+        // Add escape key listener
+        document.addEventListener('keydown', handleEscapeKey);
+    }
+    
+    // Function to close the error popup
+    function closeAccountNumberErrorPopup() {
+        const modal = document.getElementById('account-number-error-modal');
+        if (modal) {
+            modal.remove();
+        }
+        document.removeEventListener('keydown', handleEscapeKey);
+    }
+    
+    // Handle escape key for closing modal
+    function handleEscapeKey(e) {
+        if (e.key === 'Escape') {
+            closeAccountNumberErrorPopup();
+        }
+    }
+    
+    // Make functions available globally
+    window.showAccountNumberErrorPopup = showAccountNumberErrorPopup;
+    window.closeAccountNumberErrorPopup = closeAccountNumberErrorPopup;
 
     // Helper function for API calls
 async function callDraftAPI(endpoint, method, data = null) {
@@ -1129,15 +1182,22 @@ async function callDraftAPI(endpoint, method, data = null) {
         if (submitBtn) {
             submitBtn.addEventListener('click', function() {
                 // Trigger form submission 
+                console.log(typeof confirmSubmit);
                 if (typeof confirmSubmit === 'function') {
                     // Call confirmSubmit function from new-application-cards.html
+                    console.log('calling........................');
                     confirmSubmit();
+                    console.log('called........................');
                 } else {
                     const form = document.getElementById('loan-application-form');
+                    console.log('form  :  ', form);
                     if (form) {
+                        console.log('calling form submit........................');
                         form.dispatchEvent(new Event('submit'));
+                        console.log('called form submit........................');
                     } 
                 }
+                console.log('Hiding preview ...........................')
                 hidePreviewModal();
             });
         }
@@ -1172,6 +1232,48 @@ async function callDraftAPI(endpoint, method, data = null) {
         
         // Only show all errors during form submission
         window._showAllErrors = true;
+        
+        // Check account number validation first and show popup if there are errors
+        const accountNumberField = document.getElementById('account_number');
+        const confirmAccountNumberField = document.getElementById('confirm_account_number');
+        
+        if (accountNumberField) {
+            // Clear any existing errors first
+            clearFieldError(accountNumberField);
+            
+            // Only validate if value is provided (optional field)
+            if (accountNumberField.value.trim()) {
+                // Run custom validation on account number
+                const accountErrorMsg = customValidation(accountNumberField);
+                if (accountErrorMsg) {
+                    showFieldError(accountNumberField, accountErrorMsg);
+                    valid = false;
+                    showAccountNumberErrorPopup(accountErrorMsg);
+                }
+            }
+        }
+        
+        // Check confirm account number if account number is valid
+        if (valid && confirmAccountNumberField) {
+            clearFieldError(confirmAccountNumberField);
+            
+            // Only validate if value is provided (optional field)
+            if (confirmAccountNumberField.value.trim()) {
+                // Run custom validation on confirm account number
+                const confirmErrorMsg = customValidation(confirmAccountNumberField);
+                if (confirmErrorMsg) {
+                    showFieldError(confirmAccountNumberField, confirmErrorMsg);
+                    valid = false;
+                    showAccountNumberErrorPopup(confirmErrorMsg);
+                }
+            }
+        }
+        
+        // If account number validation failed, return early
+        if (!valid) {
+            setTimeout(() => { window._showAllErrors = false; }, 100);
+            return false;
+        }
         
         const requiredFields = form.querySelectorAll('input[required], select[required]');
         requiredFields.forEach(field => {
@@ -1278,8 +1380,10 @@ async function callDraftAPI(endpoint, method, data = null) {
         var form = document.getElementById('loan-application-form');
         if (continueBtn && form) {
             continueBtn.addEventListener('click', function(e) {
+                console.log("Cotinue Clicked");
                 e.preventDefault();
                 if (!validateAllFields()) {
+                    console.log("Validation failed");
                     // Optionally scroll to first error
                     const firstError = form.querySelector('.border-red-500');
                     if (firstError) firstError.scrollIntoView({behavior: 'smooth', block: 'center'});
