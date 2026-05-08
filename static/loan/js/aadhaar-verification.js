@@ -54,23 +54,23 @@ class AadhaarVerification {
             'status': 'VALID',
             'message': 'Aadhaar Card Exists',
             'care_of': '',
-            'full_address': 'BHAIRABPUR, Bhairabpur, Murshidabad, Indradanga, West Bengal, India, 742302',
-            'date_of_birth': '10-08-1998',
+            'full_address': 'Daulatabad, Daulatabad, Daulatabad, Murshidabad, West Bengal, India, 742302',
+            'date_of_birth': '19-10-2002',
             'email_hash': '',
             'gender': 'M',
-            'name': 'Sk Mujahid Kabir',
+            'name': 'Sahil Kabir',
             'address': {
                 '@entity': 'in.co.sandbox.kyc.aadhaar.okyc.address',
                 'country': 'India',
                 'district': 'Murshidabad',
                 'house': '',
-                'landmark': 'BHAIRABPUR',
+                'landmark': 'Daulatabad',
                 'pincode': 742302,
-                'post_office': 'Bhairabpur',
+                'post_office': 'Daulatabad',
                 'state': 'West Bengal',
                 'street': '',
                 'subdistrict': '',
-                'vtc': 'Indradanga'
+                'vtc': 'Daulatabad'
             },
             'year_of_birth': 1998,
             'mobile_hash': '32f570e493cc32d02565aa5f1cff567c612ba279d92ac6a060e160ad69b26465',
@@ -91,8 +91,8 @@ class AadhaarVerification {
         // Send OTP button
         const sendOTPBtn = document.getElementById('send-aadhaar-otp');
         if (sendOTPBtn) {
-            sendOTPBtn.addEventListener('click', () => this.sendOTP());
-            // sendOTPBtn.addEventListener('click', () => this.mockAadhaarVerification());
+            // sendOTPBtn.addEventListener('click', () => this.sendOTP());
+            sendOTPBtn.addEventListener('click', () => this.mockAadhaarVerification());
         }
 
         // Close OTP modal button
