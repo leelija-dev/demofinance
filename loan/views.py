@@ -1565,7 +1565,7 @@ class LoanMainCategoryListAPI(APIView):
         shop_status = request.GET.get('shop_status')
         
         # Get the parent HQ user for the current user
-        parent_hq_user = self.get_parent_hq_user(request.user)
+        parent_hq_user = self.get_parent_hq_user(request)
         
         # Base queryset filtered by parent HQ user
         base_queryset = LoanMainCategory.objects.filter(Q(created_by=parent_hq_user) | Q(created_by__isnull=True))
@@ -1590,28 +1590,34 @@ class LoanMainCategoryListAPI(APIView):
         ]
         return Response(data)
     
-    def get_parent_hq_user(self, user):
-        """
-        Get the parent HQ user for the current user by tracing:
-        User → Agent/BranchEmployee → Branch → HeadquarterEmployee (created_by)
-        """
-        
-        # If user is already a HeadquarterEmployee, return them
-        if isinstance(user, HeadquarterEmployee):
-            return user
-            
-        # If user is an Agent, get their branch and find the HQ user who created the branch
+    def get_parent_hq_user(self, request): 
         try:
-            if isinstance(user, Agent):
-                branch = user.branch
-                # Return the HQ user who created this branch
-                return branch.created_by
-            elif isinstance(user, BranchEmployee):
-                # If user is a BranchEmployee, get their branch and find the HQ user who created it
-                branch = user.branch
-                return branch.created_by
-            else:
-                return None
+            # Check for HQ user authentication (Django standard auth)
+            if hasattr(request.user, 'is_headquater_admin'):
+                # HQ user is directly authenticated
+                return request.user
+            
+            # Check for agent authentication (session-based)
+            agent_id = request.session.get('agent_id')
+            if agent_id:
+                try:
+                    agent = Agent.objects.get(agent_id=agent_id)
+                    # Agent's parent HQ user is the one who created their branch
+                    return agent.branch.created_by
+                except (Agent.DoesNotExist, AttributeError):
+                    pass
+            
+            # Check for branch employee authentication (session-based)
+            logged_user_id = request.session.get('logged_user_id')
+            if logged_user_id:
+                try:
+                    branch_employee = BranchEmployee.objects.get(id=logged_user_id)
+                    # Branch employee's parent HQ user is the one who created their branch
+                    return branch_employee.branch.created_by
+                except (BranchEmployee.DoesNotExist, AttributeError):
+                    pass
+            
+            return None
         except (AttributeError, Agent.DoesNotExist, BranchEmployee.DoesNotExist):
             pass
             
@@ -1625,7 +1631,7 @@ class LoanSubCategoryListAPI(APIView):
             return Response({"error": "main_category_id is required"}, status=400)
             
         # Get the parent HQ user for the current user
-        parent_hq_user = self.get_parent_hq_user(request.user)
+        parent_hq_user = self.get_parent_hq_user(request)
             
         try:
             # Get main categories created by parent HQ user or with null created_by
@@ -1659,29 +1665,34 @@ class LoanSubCategoryListAPI(APIView):
         except LoanMainCategory.DoesNotExist:
             return Response({"error": "Main category not found"}, status=404)
     
-    def get_parent_hq_user(self, user):
-        """
-        Get the parent HQ user for the current user by tracing:
-        User → Agent/BranchEmployee → Branch → HeadquarterEmployee (created_by)
-        """
-        
-        # If user is already a HeadquarterEmployee, return them
-        if isinstance(user, HeadquarterEmployee):
-            return user
-            
-        # If user is an Agent, get their branch and find the HQ user who created the branch
+    def get_parent_hq_user(self, request): 
         try:
-            if isinstance(user, Agent):
-                branch = user.branch
-                # Return the HQ user who created this branch
-                return branch.created_by
-            elif isinstance(user, BranchEmployee):
-                # If user is a BranchEmployee, get their branch and find the HQ user who created it
-                branch = user.branch
-                return branch.created_by
-            else:
-                # For other user types, try to get their associated agent/branch
-                return None
+            # Check for HQ user authentication (Django standard auth)
+            if hasattr(request.user, 'is_headquater_admin'):
+                # HQ user is directly authenticated
+                return request.user
+            
+            # Check for agent authentication (session-based)
+            agent_id = request.session.get('agent_id')
+            if agent_id:
+                try:
+                    agent = Agent.objects.get(agent_id=agent_id)
+                    # Agent's parent HQ user is the one who created their branch
+                    return agent.branch.created_by
+                except (Agent.DoesNotExist, AttributeError):
+                    pass
+            
+            # Check for branch employee authentication (session-based)
+            logged_user_id = request.session.get('logged_user_id')
+            if logged_user_id:
+                try:
+                    branch_employee = BranchEmployee.objects.get(id=logged_user_id)
+                    # Branch employee's parent HQ user is the one who created their branch
+                    return branch_employee.branch.created_by
+                except (BranchEmployee.DoesNotExist, AttributeError):
+                    pass
+            
+            return None
         except (AttributeError, Agent.DoesNotExist, BranchEmployee.DoesNotExist):
             pass
             

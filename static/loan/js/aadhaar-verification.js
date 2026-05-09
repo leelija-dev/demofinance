@@ -68,20 +68,21 @@ class AadhaarVerification {
                 'pincode': 742302,
                 'post_office': 'Daulatabad',
                 'state': 'West Bengal',
-                'street': '',
-                'subdistrict': '',
+                'street': 'Test Street',
+                'subdistrict': 'Test Sub District',
                 'vtc': 'Daulatabad'
             },
             'year_of_birth': 1998,
             'mobile_hash': '32f570e493cc32d02565aa5f1cff567c612ba279d92ac6a060e160ad69b26465',
-            'photo': 'data:image/png;base64,<your photo data>',
+            // 'photo': 'data:image/png;base64,<your photo data>',
             'share_code': '2345'
         };
+        this.verified = true;
         // Mock Aadhaar verification - just show success and populate data
-        this.showSuccess('Aadhaar verified successfully! Moving to next step...');
         this.populatePersonalInfo();
         // this.hideOTPSection();
         // Automatically move to next step after successful verification
+        this.showSuccess('Aadhaar verified successfully! Moving to next step...');
         setTimeout(() => {
             this.moveToNextStep();
         }, 1500);
@@ -244,6 +245,7 @@ class AadhaarVerification {
         this.populatePhoto(data.photo);
 
         // Sync with Alpine.js personalInfo object
+        console.log('this.syncWithAlpineJS()');
         this.syncWithAlpineJS();
 
         // Update hidden fields
@@ -534,17 +536,23 @@ class AadhaarVerification {
 
     syncWithAlpineJS() {
         // Check if Alpine.js loanApplication component exists
-        if (window.Alpine && window.Alpine.$store) {
+        console.log("Check if Alpine.js loanApplication component exists ---- ",window.Alpine && window.Alpine.$data);
+        console.log(window.Alpine)
+        console.log(window.Alpine.$data)        
+        if (window.Alpine && window.Alpine.$data) {
             // Find the loanApplication component
+            console.log("Find the loanApplication component")
             const appElement = document.querySelector('[x-data*="loanApplication"]');
             if (appElement) {
                 const alpineData = Alpine.$data(appElement);
                 if (alpineData && alpineData.personalInfo) {
                     // Extract data from API response
+                    console.log("Extract data from API response");
                     const data = this.personalData;
                     const addressData = data.address || {};
 
                     // Update Alpine.js personalInfo object
+                    console.log("Update Alpine.js personalInfo object");
                     alpineData.personalInfo = {
                         ...alpineData.personalInfo,
                         full_name: data.name || '',
@@ -556,6 +564,7 @@ class AadhaarVerification {
                     };
 
                     // Update Alpine.js addressData object
+                    console.log("Update Alpine.js addressData object")
                     if (alpineData.addressData) {
                         alpineData.addressData.permanent = {
                             ...alpineData.addressData.permanent,
@@ -568,6 +577,7 @@ class AadhaarVerification {
                         };
 
                         // If same address is checked, also update current address
+                        console.log("If same address is checked, also update current address");
                         if (alpineData.addressData.sameAddress) {
                             alpineData.addressData.current = {
                                 ...alpineData.addressData.current,
@@ -583,6 +593,7 @@ class AadhaarVerification {
                 }
 
                 // Update verification data in Alpine.js
+                console.log("Update verification data in Alpine.js");
                 if (alpineData.verificationData) {
                     alpineData.verificationData.aadhaar = this.verificationData.aadhaar;
                     alpineData.verificationData.mobile = this.verificationData.mobile;
@@ -590,6 +601,7 @@ class AadhaarVerification {
 
                 // Set OTP verified status
                 alpineData.otpVerified = this.verified === true;
+                console.log("alpineData.otpVerified ---- ",this.verified);
 
                 // Trigger Alpine reactivity
                 Alpine.$data(appElement);
@@ -644,12 +656,18 @@ class AadhaarVerification {
 
 
     moveToNextStep() {
+        console.log('Start moveToNextStep ------------------------------------------------');
         // Find the Alpine.js loanApplication component and trigger nextStep
         const appElement = document.querySelector('[x-data*="loanApplication"]');
+        console.log('appElement ------------------------------------------------');
         if (appElement && window.Alpine) {
+            console.log('appElement && window.Alpine ------------------------------------------------');
             const alpineData = Alpine.$data(appElement);
+            console.log('alpineData ------------------------------------------------');
             if (alpineData && alpineData.nextStep) {
+                console.log('alpineData && alpineData.nextStep ------------------------------------------------');
                 alpineData.nextStep();
+                console.log('alpineData.nextStep ------------------------------------------------');
             }
         }
     }
