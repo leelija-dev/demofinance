@@ -1603,8 +1603,37 @@ class UploadExcelView(View):
                     'missing_columns': missing_columns
                 })
             
+            # Convert datetime objects to strings before storing in session
+            def convert_datetime(obj):
+                if pd.isna(obj):
+                    return None
+                elif hasattr(obj, 'strftime'):  # datetime-like objects
+                    return obj.date().strftime('%Y-%m-%d')
+                elif isinstance(obj, (date, datetime)):
+                    return obj.date().strftime('%Y-%m-%d')
+                elif isinstance(obj, str):
+                    # Try to parse string date in any format and convert to YYYY-MM-DD
+                    try:
+                        parsed_date = pd.to_datetime(obj)
+                        if not pd.isna(parsed_date):
+                            # Extract only the date part to ensure YYYY-MM-DD format
+                            return parsed_date.date().strftime('%Y-%m-%d')
+                    except:
+                        pass  # If parsing fails, return original string
+                    return obj
+                else:
+                    return obj
+            
+            # Apply conversion to all data
+            excel_records = []
+            for record in df.to_dict('records'):
+                converted_record = {}
+                for key, value in record.items():
+                    converted_record[key] = convert_datetime(value)
+                excel_records.append(converted_record)
+            
             # Store DataFrame in session for processing
-            request.session['excel_data'] = df.to_dict('records')
+            request.session['excel_data'] = excel_records
             request.session['excel_columns'] = df.columns.tolist()
             
             messages.success(request, f'Successfully uploaded {len(df)} rows from {excel_file.name}. Click "Process Data" to import customer and loan information.')
