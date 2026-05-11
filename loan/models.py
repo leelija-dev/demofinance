@@ -5,7 +5,7 @@ from datetime import date, datetime
 from django.db import models
 from agent.models import Agent
 from django.utils import timezone
-from django.db.models import Q
+from django.db.models import Q, UniqueConstraint
 from headquater.models import Branch, HeadquarterEmployee
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.core.files.storage import default_storage
@@ -458,7 +458,8 @@ class DocumentReview(models.Model):
 
 class LoanMainCategory(models.Model):
     main_category_id = models.CharField(primary_key=True, max_length=50, editable=False, unique=True)
-    name = models.CharField(max_length=100, unique=True)
+    # name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100)
     is_active = models.BooleanField(default=True)
     is_shop_active = models.BooleanField(default=False)
     created_by = models.ForeignKey(HeadquarterEmployee, on_delete=models.SET_NULL, null=True, related_name='created_loan_main_categories')
@@ -469,6 +470,22 @@ class LoanMainCategory(models.Model):
         verbose_name = 'Loan Main Category'
         verbose_name_plural = 'Loan Main Categories'
         ordering = ['name']
+        constraints = [
+            # 1. When created_by has a value → unique together (created_by + name)
+            UniqueConstraint(
+                fields=['created_by', 'name'],
+                condition=Q(created_by__isnull=False),
+                name='unique_created_by_name_when_not_null'
+            ),
+            
+            # 2. When created_by is NULL → name must be unique by itself
+            UniqueConstraint(
+                fields=['name'],
+                condition=Q(created_by__isnull=True),
+                name='unique_name_when_created_by_null'
+            ),
+        ]
+
 
     def save(self, *args, **kwargs):
         if not self.main_category_id:

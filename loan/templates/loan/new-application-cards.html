@@ -2944,7 +2944,129 @@
         this.setPreviewValue("preview_collaterol", "Not uploaded"); // Assuming no collateral field
         this.setPreviewValue("preview_photo", this.documents.photo ? this.documents.photo.name : "Not uploaded");
         this.setPreviewValue("preview_signature", this.documents.signature ? this.documents.signature.name : "Not uploaded");
+
+        if(this.addressData.sameAddress){
+          this.hideCurrentAddressSections();
+        }else{
+          this.hideCurrentAddressSections('flex');
+        }
+        this.hideEmptyProductSections();
       },
+      
+      hideCurrentAddressSections(display = "none") {
+          // Check processing fees section - hide entire section if no fees
+          const currentAddressLine1Field = document.getElementById('preview_current_address_line_1');
+          console.log('******************1')
+          if (currentAddressLine1Field) {
+              // First check if processing fee field has data
+              const currentAddressSection = currentAddressLine1Field.parentElement;
+              console.log('******************2')
+              if(currentAddressSection) {
+                  const currentAddressContainer = currentAddressSection.parentElement;
+                  console.log('******************3')
+                  if(currentAddressContainer) {
+                      currentAddressContainer.style.display = display;
+                      const currentAddressSectionHR = currentAddressContainer.previousElementSibling;
+                      console.log('******************4')
+                      if (currentAddressSectionHR) {
+                          currentAddressSectionHR.style.display = display;
+                      }
+                      const currentAddressSectionDIV = currentAddressSectionHR.previousElementSibling;
+                      console.log('******************5')
+                      if (currentAddressSectionDIV) {
+                          currentAddressSectionDIV.style.display = display == 'flex' ? 'block' : display;
+                      }
+                  }
+              }
+          }
+        },
+    
+    hideEmptyProductSections() {
+        // Hide/show individual product field containers based on data
+        const productContainers = [
+            'preview_selected_product',
+            'preview_loan_percentage_container',
+            'preview_sale_price_container', 
+            'preview_processing_fee_container',
+            'preview_down_payment_container',
+            'preview_total_loan_amount_container',
+            'preview_product_main_category_container',
+            'preview_product_subcategory_container',
+            'preview_product_type_container'
+        ];
+        
+        productContainers.forEach(containerId => {
+            let container = document.getElementById(containerId);
+            if (!containerId.endsWith("_container")) {
+                container = container.parentElement;
+            }
+            if (container) {
+                const input = container.querySelector('input');
+                if (input && input.value && input.value.trim() !== '') {
+                    container.style.display = 'block';
+                } else {
+                    container.style.display = 'none';
+                }
+            }
+        });
+        
+        // Check processing fees section - hide entire section if no fees
+        const processingFeesContainer = document.getElementById('preview_processing_fees_container');
+        if (processingFeesContainer) {
+            // First check if processing fee field has data
+            const processingFeeField = document.getElementById('preview_processing_fee');
+            let hasProcessingFee = false;
+            
+            if (processingFeeField && processingFeeField.value && processingFeeField.value.trim() !== '') {
+                hasProcessingFee = true;
+            }
+            
+            // Also check Alpine data for additional fees
+            const modal = document.getElementById('preview-modal');
+            let hasAlpineFees = false;
+            
+            if (modal && window.Alpine) {
+                try {
+                    // Try to get Alpine data for the modal
+                    const alpineData = window.Alpine.$data(modal);
+                    if (alpineData && alpineData.processingFees && alpineData.processingFees.length > 0) {
+                        hasAlpineFees = true;
+                    }
+                } catch (e) {
+                    // Fallback to field checking if Alpine access fails
+                }
+            }
+            
+            // Show container only if there are any processing fees
+            if (hasProcessingFee || hasAlpineFees) {
+                processingFeesContainer.style.display = 'block';
+            } else {
+                processingFeesContainer.style.display = 'none';
+            }
+
+
+            const processingFeesSectionHR = processingFeesContainer.previousElementSibling;
+            if (processingFeesSectionHR) {
+                // Show entire section only if there are any processing fees
+                if (hasProcessingFee || hasAlpineFees) {
+                    processingFeesSectionHR.style.display = 'block';
+                } else {
+                    processingFeesSectionHR.style.display = 'none';
+                }
+            }
+
+
+            const processingFeesSectionDIV = processingFeesSectionHR.previousElementSibling;
+            if (processingFeesSectionDIV) {
+                // Show entire section only if there are any processing fees
+                if (hasProcessingFee || hasAlpineFees) {
+                    processingFeesSectionDIV.style.display = 'block';
+                } else {
+                    processingFeesSectionDIV.style.display = 'none';
+                }
+            }
+        }
+    },
 
       // Helper function to set preview field value
       setPreviewValue(fieldId, value) {

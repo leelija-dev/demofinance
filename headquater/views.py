@@ -2955,10 +2955,12 @@ def loan_management(request):
             main_category = get_object_or_404(LoanMainCategory, main_category_id=request.POST['main_category_id'])
             old_is_active = main_category.is_active
             main_category_form = LoanMainCategoryForm(request.POST, instance=main_category)
+            main_category_form.current_user = request.user
             main_category_modal_action = 'Edit'
             main_category_modal_title = 'Edit Loan Main Category'
         else:
             main_category_form = LoanMainCategoryForm(request.POST)
+            main_category_form.current_user = request.user
             main_category_modal_action = 'Add'
             main_category_modal_title = 'Add Loan Main Category'
         show_main_category_modal = True
@@ -2990,11 +2992,13 @@ def loan_management(request):
     elif edit_main_category_id:
         main_category = get_object_or_404(LoanMainCategory, main_category_id=edit_main_category_id)
         main_category_form = LoanMainCategoryForm(instance=main_category)
+        main_category_form.current_user = request.user
         main_category_modal_action = 'Edit'
         main_category_modal_title = 'Edit Loan Main Category'
         show_main_category_modal = True
     elif request.GET.get('add_main_category') == '1':
         main_category_form = LoanMainCategoryForm()
+        main_category_form.current_user = request.user
         main_category_modal_action = 'Add'
         main_category_modal_title = 'Add Loan Main Category'
         show_main_category_modal = True
