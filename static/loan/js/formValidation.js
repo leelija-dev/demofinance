@@ -1074,7 +1074,40 @@ async function callDraftAPI(endpoint, method, data = null) {
         });
 
         // Hide product-related sections if no data is found
+        if (sameAddressCheckbox && sameAddressCheckbox.checked) {
+            hideCurrentAddressSections();
+        }else{
+            hideCurrentAddressSections('flex');
+        }
         hideEmptyProductSections();
+    }
+    
+    function hideCurrentAddressSections(display = "none") {
+        // Check processing fees section - hide entire section if no fees
+        const currentAddressLine1Field = document.getElementById('preview_current_address_line_1');
+        console.log('******************1')
+        if (currentAddressLine1Field) {
+            // First check if processing fee field has data
+            const currentAddressSection = currentAddressLine1Field.parentElement;
+            console.log('******************2')
+            if(currentAddressSection) {
+                const currentAddressContainer = currentAddressSection.parentElement;
+                console.log('******************3')
+                if(currentAddressContainer) {
+                    currentAddressContainer.style.display = display;
+                    const currentAddressSectionHR = currentAddressContainer.previousElementSibling;
+                    console.log('******************4')
+                    if (currentAddressSectionHR) {
+                        currentAddressSectionHR.style.display = display;
+                    }
+                    const currentAddressSectionDIV = currentAddressSectionHR.previousElementSibling;
+                    console.log('******************5')
+                    if (currentAddressSectionDIV) {
+                        currentAddressSectionDIV.style.display = display == 'flex' ? 'block' : display;
+                    }
+                }
+            }
+        }
     }
     
     function hideEmptyProductSections() {

@@ -51,6 +51,39 @@ from main.pagination import AgentPagination
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 
+def get_parent_hq_user(request): 
+
+    try:
+        # Check for HQ user authentication (Django standard auth)
+        if hasattr(request.user, 'is_headquater_admin'):
+            # HQ user is directly authenticated
+            return request.user
+        
+        # Check for agent authentication (session-based)
+        agent_id = request.session.get('agent_id')
+        if agent_id:
+            try:
+                agent = Agent.objects.get(agent_id=agent_id)
+                # Agent's parent HQ user is the one who created their branch
+                return agent.branch.created_by
+            except (Agent.DoesNotExist, AttributeError):
+                pass
+        
+        # Check for branch employee authentication (session-based)
+        logged_user_id = request.session.get('logged_user_id')
+        if logged_user_id:
+            try:
+                branch_employee = BranchEmployee.objects.get(id=logged_user_id)
+                # Branch employee's parent HQ user is the one who created their branch
+                return branch_employee.branch.created_by
+            except (BranchEmployee.DoesNotExist, AttributeError):
+                pass
+        
+        return None
+    except (AttributeError, Agent.DoesNotExist, BranchEmployee.DoesNotExist):
+        pass
+        
+    return None
     
 # Loan Application Views
 class NewLoanApplication(AgentSessionRequiredMixin, TemplateView):
@@ -1565,7 +1598,7 @@ class LoanMainCategoryListAPI(APIView):
         shop_status = request.GET.get('shop_status')
         
         # Get the parent HQ user for the current user
-        parent_hq_user = self.get_parent_hq_user(request)
+        parent_hq_user = get_parent_hq_user(request)
         
         # Base queryset filtered by parent HQ user
         base_queryset = LoanMainCategory.objects.filter(Q(created_by=parent_hq_user) | Q(created_by__isnull=True))
@@ -1590,39 +1623,6 @@ class LoanMainCategoryListAPI(APIView):
         ]
         return Response(data)
     
-    def get_parent_hq_user(self, request): 
-        try:
-            # Check for HQ user authentication (Django standard auth)
-            if hasattr(request.user, 'is_headquater_admin'):
-                # HQ user is directly authenticated
-                return request.user
-            
-            # Check for agent authentication (session-based)
-            agent_id = request.session.get('agent_id')
-            if agent_id:
-                try:
-                    agent = Agent.objects.get(agent_id=agent_id)
-                    # Agent's parent HQ user is the one who created their branch
-                    return agent.branch.created_by
-                except (Agent.DoesNotExist, AttributeError):
-                    pass
-            
-            # Check for branch employee authentication (session-based)
-            logged_user_id = request.session.get('logged_user_id')
-            if logged_user_id:
-                try:
-                    branch_employee = BranchEmployee.objects.get(id=logged_user_id)
-                    # Branch employee's parent HQ user is the one who created their branch
-                    return branch_employee.branch.created_by
-                except (BranchEmployee.DoesNotExist, AttributeError):
-                    pass
-            
-            return None
-        except (AttributeError, Agent.DoesNotExist, BranchEmployee.DoesNotExist):
-            pass
-            
-        return None
-
 # Sub Categories API (filtered by main category)
 class LoanSubCategoryListAPI(APIView):
     def get(self, request):
@@ -1631,7 +1631,7 @@ class LoanSubCategoryListAPI(APIView):
             return Response({"error": "main_category_id is required"}, status=400)
             
         # Get the parent HQ user for the current user
-        parent_hq_user = self.get_parent_hq_user(request)
+        parent_hq_user = get_parent_hq_user(request)
             
         try:
             # Get main categories created by parent HQ user or with null created_by
@@ -1665,39 +1665,6 @@ class LoanSubCategoryListAPI(APIView):
         except LoanMainCategory.DoesNotExist:
             return Response({"error": "Main category not found"}, status=404)
     
-    def get_parent_hq_user(self, request): 
-        try:
-            # Check for HQ user authentication (Django standard auth)
-            if hasattr(request.user, 'is_headquater_admin'):
-                # HQ user is directly authenticated
-                return request.user
-            
-            # Check for agent authentication (session-based)
-            agent_id = request.session.get('agent_id')
-            if agent_id:
-                try:
-                    agent = Agent.objects.get(agent_id=agent_id)
-                    # Agent's parent HQ user is the one who created their branch
-                    return agent.branch.created_by
-                except (Agent.DoesNotExist, AttributeError):
-                    pass
-            
-            # Check for branch employee authentication (session-based)
-            logged_user_id = request.session.get('logged_user_id')
-            if logged_user_id:
-                try:
-                    branch_employee = BranchEmployee.objects.get(id=logged_user_id)
-                    # Branch employee's parent HQ user is the one who created their branch
-                    return branch_employee.branch.created_by
-                except (BranchEmployee.DoesNotExist, AttributeError):
-                    pass
-            
-            return None
-        except (AttributeError, Agent.DoesNotExist, BranchEmployee.DoesNotExist):
-            pass
-            
-        return None
-
 # Product Main Category API
 class ProductCategoryListAPI(APIView):
     def get(self, request):
@@ -1769,8 +1736,9 @@ class LoanDeductionsListAPI(APIView):
             return Response({"error": "main_category_id is required"}, status=400)
             
         try:
+            parent_hq_user = get_parent_hq_user(request)
             main_category = LoanMainCategory.objects.get(main_category_id=main_category_id, is_active=True)
-            deductions = Deductions.objects.filter(main_category=main_category, is_active=True).order_by('deduction_name')
+            deductions = Deductions.objects.filter(main_category=main_category, created_by=parent_hq_user, is_active=True).order_by('deduction_name')
             data = [
                 {
                     "id": deduction.deduction_id,
