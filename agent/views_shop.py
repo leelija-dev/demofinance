@@ -1,20 +1,23 @@
-from django.views.generic import TemplateView
-from django.views import View
-from django.http import HttpResponse, JsonResponse
-from django.core.paginator import Paginator
-from django.template.loader import render_to_string
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-from django.shortcuts import redirect
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from loan.models import Shop, ShopBankAccount
-from agent.models import Agent
-from django.core.exceptions import ValidationError
-from django.db import IntegrityError
-from django.db.utils import DataError
 import json
 import logging
+
+from django.db import IntegrityError
+from django.http import HttpResponse, JsonResponse
+from loan.models import Shop, ShopBankAccount, LoanApplication
+from agent.models import Agent
+from django.views import View
+from branch.models import BranchEmployee, BranchTransaction
+from django.db.utils import DataError
+from django.db.models import Q
+from django.shortcuts import redirect
+from django.views.generic import TemplateView
+from rest_framework.views import APIView
+from django.core.paginator import Paginator
+from django.template.loader import render_to_string
+from django.core.exceptions import ValidationError
+from rest_framework.response import Response
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +38,6 @@ class ShopLoansAPI(APIView):
             agent = Agent.objects.get(agent_id=agent_id)
             shop = Shop.objects.get(shop_id=shop_id, agent=agent)
 
-            from loan.models import LoanApplication
 
             loans_qs = (
                 LoanApplication.objects
@@ -89,9 +91,7 @@ class ShopTransactionsAPI(APIView):
             agent = Agent.objects.get(agent_id=agent_id)
             shop = Shop.objects.get(shop_id=shop_id, agent=agent)
 
-            from branch.models import BranchTransaction
 
-            from django.db.models import Q
             tx_qs = (
                 BranchTransaction.objects
                 .select_related('branch_account', 'disbursement_log', 'disbursement_log__loan_id')
@@ -163,7 +163,6 @@ class ShopView(TemplateView):
         
         if branch_user_id:
             try:
-                from branch.models import BranchEmployee
                 branch_employee = BranchEmployee.objects.get(
                     id=branch_user_id,
                     is_active=True
@@ -211,8 +210,10 @@ class ShopView(TemplateView):
         # Default is True (show active shops)
         show_active = self.request.GET.get('show_active', 'true') == 'true'
         
+        print('self.request -> ', self.request)
         # Check if user is authenticated as agent
         agent_id = self.request.session.get('agent_id')
+        branch_id = self.request.session.get('logged_user_branch_id')
         if agent_id:
             # Agent authenticated
             try:
@@ -268,17 +269,21 @@ class ShopView(TemplateView):
                 context['show_active'] = show_active
                 
         # Check if user is authenticated as branch employee
-        elif hasattr(self.request, 'branch_employee'):
+        elif branch_id:
             # Branch employee authenticated
             try:
-                branch_employee = self.request.branch_employee  # Set by the mixin
+                # branch_employee = self.request.branch_employee  # Set by the mixin
+                branch = BranchEmployee.objects.get(id=branch_id)
+                
+                # Get shops for the agent (agent-created) and branch-created shops where agent is assigned, showing active when switch is ON, inactive when switch is OFF
+                print("branch -> ", branch)
+                print("show_active -> ", show_active)
                 
                 # For branch users, show all shops (both agent-created and branch-created)
                 if show_active:
-                    shops_qs = Shop.objects.exclude(status='inactive').order_by('-created_at')
+                    shops_qs = Shop.objects.filter(branch_id=branch_id).exclude(status='inactive').order_by('-created_at')
                 else:
-                    shops_qs = Shop.objects.filter(status='inactive').order_by('-created_at')
-                
+                    shops_qs = Shop.objects.filter(branch_id=branch_id, status='inactive').order_by('-created_at')
                 context['shops'] = shops_qs
                 context['show_active'] = show_active
                 
@@ -326,7 +331,6 @@ class ShopDetailView(TemplateView):
         
         if branch_user_id:
             try:
-                from branch.models import BranchEmployee
                 branch_employee = BranchEmployee.objects.get(
                     id=branch_user_id,
                     is_active=True
@@ -401,8 +405,7 @@ class ShopDetailView(TemplateView):
             context['bank_accounts'] = ShopBankAccount.objects.filter(shop=shop).order_by('-created_at')
             
             # Get recent transactions for this shop
-            from branch.models import BranchTransaction
-            from django.db.models import Q
+            
             
             transactions_qs = (
                 BranchTransaction.objects
@@ -413,7 +416,6 @@ class ShopDetailView(TemplateView):
             context['transactions'] = transactions_qs
             
             # Get recent loans for this shop
-            from loan.models import LoanApplication
             
             loans_qs = (
                 LoanApplication.objects
@@ -542,7 +544,6 @@ class ShopCreateAPI(APIView):
                 return Response({'success': False, 'message': 'Authentication required.'}, status=401)
 
             try:
-                from branch.models import BranchEmployee
                 branch_employee = BranchEmployee.objects.get(
                     id=branch_user_id,
                     is_active=True
@@ -783,7 +784,6 @@ class ShopAssignAgentAPI(APIView):
             return Response({'success': False, 'message': 'Branch authentication required.'}, status=401)
 
         try:
-            from branch.models import BranchEmployee
             branch_employee = BranchEmployee.objects.get(
                 id=branch_user_id,
                 is_active=True
@@ -852,7 +852,6 @@ class BranchAgentsAPI(APIView):
             return Response({'success': False, 'message': 'Branch authentication required.'}, status=401)
 
         try:
-            from branch.models import BranchEmployee
             branch_employee = BranchEmployee.objects.get(
                 id=branch_user_id,
                 is_active=True
@@ -998,7 +997,6 @@ class ShopBankAccountCreateAPI(APIView):
         
         if branch_user_id:
             try:
-                from branch.models import BranchEmployee
                 branch_employee = BranchEmployee.objects.get(
                     id=branch_user_id,
                     is_active=True

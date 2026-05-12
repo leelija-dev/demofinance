@@ -667,7 +667,20 @@ class LoanMainCategoryForm(forms.ModelForm):
             qs = LoanMainCategory.objects.filter(name=name)
             if self.instance and self.instance.pk:
                 qs = qs.exclude(pk=self.instance.pk)
-            if qs.exists():
+            
+            # Check each existing category individually
+            isDuplicate = False
+            for existing_category in qs:
+                # Get current user - either from instance or from form data
+                current_user = getattr(self.instance, 'created_by', None)
+                if not current_user and hasattr(self, 'current_user'):
+                    current_user = self.current_user
+                
+                if existing_category.created_by is None:
+                    isDuplicate = True
+                if existing_category.created_by and current_user and existing_category.created_by == current_user:
+                    isDuplicate = True
+            if isDuplicate:    
                 raise forms.ValidationError("A main category with this name already exists.")
         return name
 
