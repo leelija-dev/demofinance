@@ -1453,6 +1453,7 @@ class TrialUserCreationForm(forms.Form):
         # Set trial expiry
         trial_user.trial_expiry_date = timezone.now() + timedelta(days=trial_duration)
         trial_user.role = super_admin_role
+        trial_user.demo_credit = 3
         trial_user.save()
         
         return trial_user, trial_password

@@ -515,7 +515,7 @@ class LoanCategory(models.Model):
         verbose_name = "Loan Category"
         verbose_name_plural = "Loan Categories"
         ordering = ['name']
-        unique_together = [('main_category', 'name')]
+        unique_together = [('main_category', 'name', 'created_by')]
     
     def save(self, *args, **kwargs):
         if not self.category_id:
@@ -585,7 +585,7 @@ class LoanTenure(models.Model):
         verbose_name = "Loan Tenure"
         verbose_name_plural = "Loan Tenures"
         ordering = ['value', 'unit']
-        unique_together = [('interest_rate', 'value', 'unit')]
+        unique_together = [('interest_rate', 'value', 'unit', 'created_by')]
 
     def save(self, *args, **kwargs):
         if not self.tenure_id:
@@ -676,7 +676,7 @@ class Deductions(models.Model):
     class Meta:
         verbose_name = 'Deduction'
         verbose_name_plural = 'Deductions'
-        unique_together = ('main_category', 'deduction_name', 'deduction_type')
+        unique_together = ('main_category', 'deduction_name', 'deduction_type', 'created_by')
 
     def save(self, *args, **kwargs):
         if not self.deduction_id:
@@ -862,7 +862,7 @@ class ProductSubCategory(models.Model):
         verbose_name = 'Product Sub Category'
         verbose_name_plural = 'Product Sub Categories'
         ordering = ['name']
-        unique_together = [('main_category', 'name')]
+        unique_together = [('main_category', 'name', 'created_by')]
 
     def save(self, *args, **kwargs):
         if not self.sub_category_id:
@@ -898,7 +898,7 @@ class Product(models.Model):
         verbose_name = 'Product'
         verbose_name_plural = 'Products'
         ordering = ['name']
-        unique_together = [('sub_category', 'name')]
+        unique_together = [('sub_category', 'name', 'created_by')]
 
     def save(self, *args, **kwargs):
         if not self.product_id:

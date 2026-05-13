@@ -1,0 +1,33 @@
+{% extends base_template %} {% load static %} {% block title %}New Loan Application{% endblock %} {% block page_id %}loanNewApplicationsv2{% endblock %} {% block content %}
+<div class="min-h-[60vh] flex items-center justify-center px-4 py-12">
+    <div class="max-w-lg w-full">
+        <div class="bg-white rounded-2xl shadow-xl dark:bg-gray-800 overflow-hidden">
+            <div class="px-8 py-2">
+                <div class="w-16 h-1 bg-gradient-to-r from-red-500 to-orange-500 mx-auto mb-6 rounded-full"></div>
+
+                <div class="bg-red-50 border-l-4 border-red-500 rounded-r-lg p-4 dark:bg-red-900/20 dark:border-red-400">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 text-red-500 mt-0.5 mr-3 flex-shrink-0 dark:text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                        <div>
+                            <p class="text-sm font-semibold text-red-800 dark:text-red-300 mb-1">
+                                Oops! Something went wrong
+                            </p>
+                            <p class="text-sm text-red-700 dark:text-red-400">
+                                {{ error_message }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 text-center">
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                        Please contact support if this issue persists
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
