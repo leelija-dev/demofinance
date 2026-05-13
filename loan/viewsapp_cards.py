@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.views.generic import TemplateView
 from django.urls import reverse
 
+from headquater.models import Branch, HeadquarterEmployee
 from loan.forms import AutoPaymentForm
 from loan.models import Agent, Shop
 
@@ -25,6 +26,7 @@ class NewLoanApplicationCardsView(AgentSessionRequiredMixin, TemplateView):
         }
 
         agent_id = request.session.get("agent_id")
+        headquarter_employee_id = request.user.id
 
         if agent_id:
             try:
@@ -40,6 +42,7 @@ class NewLoanApplicationCardsView(AgentSessionRequiredMixin, TemplateView):
                 shops = list(shops_qs)
                 context['agent_shops'] = shops
                 context['default_shop_id'] = shops[0].shop_id if len(shops) == 1 else ''
+                headquarter_employee_id = agent.branch.created_by 
             except Agent.DoesNotExist:
                 context["is_active"] = False
                 context["error_message"] = "Agent not found."
@@ -56,6 +59,18 @@ class NewLoanApplicationCardsView(AgentSessionRequiredMixin, TemplateView):
         print(request)
         context['page_title'] = 'New Loan Application - Card Based'
 
+        print(headquarter_employee_id)
+        headquarter_employee = HeadquarterEmployee.objects.filter(id=headquarter_employee_id).first()
+        if headquarter_employee:
+            demo_credit = headquarter_employee.demo_credit
+            context["demo_credit"] = demo_credit
+            trial_expiry_date = headquarter_employee.trial_expiry_date
+            if trial_expiry_date and trial_expiry_date >= timezone.now() and demo_credit==0:
+                context["is_active"] = False
+                context["error_message"] = "Demo credit exhausted."
+                self.template_name = 'loan/partials/demo-credit-expire.html'
+                return render(request, self.template_name, context)
+        print('context -> ', context)
         return render(request, self.template_name, context)
 
 

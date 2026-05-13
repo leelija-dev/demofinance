@@ -28,6 +28,7 @@ from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 
+from headquater.models import HeadquarterEmployee
 from loan.models import (
     CustomerDetail, CustomerAddress, CustomerLoanDetail, CustomerDocument,
     LoanCategory, LoanInterest, LoanApplication, LoanPeriod, LoanTenure,
@@ -390,6 +391,20 @@ class NewLoanApplicationAPIV2(APIView):
                                 shop_bank_account.save(update_fields=['current_balance', 'updated_at'])
                                 print("[Shop Bank Account] Done Updating Shop Bank Account ---------------------------------------------------")
 
+                    headquarter_employee_id = request.user.id
+                    if agent_id and agent:
+                        print("Agent found")
+                        headquarter_employee_id = agent.branch.created_by 
+                    if branch_manager_id and created_by_branch_manager:
+                        print("Branch manager found")
+                        headquarter_employee_id = created_by_branch_manager.created_by 
+                    print(headquarter_employee_id)
+                    headquarter_employee = HeadquarterEmployee.objects.filter(id=headquarter_employee_id).first()
+                    if headquarter_employee:
+                        demo_credit = headquarter_employee.demo_credit
+                        if demo_credit>0:
+                            headquarter_employee.demo_credit = demo_credit - 1
+                            headquarter_employee.save(update_fields=['demo_credit'])
 
                 # --- Generate Logo --------------------------------------------------
                 
