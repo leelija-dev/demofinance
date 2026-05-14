@@ -208,7 +208,8 @@ def ensure_hq_cash_wallet_on_superuser_create(sender, instance, created, **kwarg
         return
     if instance.is_superuser or getattr(instance, 'is_headquater_admin', False):
         HeadquartersWallet.objects.get_or_create(
-            type='CASH',
+            type='CASH', 
+            created_by= instance,
             defaults={'name': 'Cash', 'balance': 0.00}
         )
 
