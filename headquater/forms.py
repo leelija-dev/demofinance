@@ -1168,6 +1168,12 @@ class WalletBalanceForm(forms.ModelForm):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         
+        # Filter HQ accounts by current user
+        if self.user:
+            self.fields['hq_account'].queryset = HeadquartersWallet.objects.filter(
+                created_by=self.user
+            ).order_by('type', 'bank_name', 'account_number')
+        
         # Set default description if not provided
         if not self.initial.get('description'):
             self.initial['description'] = 'Manual balance adjustment'
@@ -1455,5 +1461,12 @@ class TrialUserCreationForm(forms.Form):
         trial_user.role = super_admin_role
         trial_user.demo_credit = 3
         trial_user.save()
+        # Create a CASH wallet for the trial user
+        if not HeadquartersWallet.objects.filter(type='CASH',created_by= trial_user).exist():
+            HeadquartersWallet.objects.get_or_create(
+                type='CASH',
+                created_by= trial_user,
+                defaults={'name': 'Cash', 'balance': 0.00}
+            )
         
         return trial_user, trial_password

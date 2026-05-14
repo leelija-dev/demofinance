@@ -3992,7 +3992,8 @@ class HQWallet(LoginRequiredMixin, View):
                     name=name,
                     bank_name=bank_name if inferred_type == 'BANK' else None,
                     account_number=account_number if inferred_type == 'BANK' else None,
-                    balance=initial_balance
+                    balance=initial_balance,
+                    created_by=request.user
                 )
 
                 # Create corresponding HQ transaction for opening balance
@@ -4151,8 +4152,8 @@ class HQWallet(LoginRequiredMixin, View):
                 selected_branch = None
 
         # Ensure a default CASH HQ account exists before binding transfer form
-        if not HeadquartersWallet.objects.filter(type='CASH').exists():
-            HeadquartersWallet.objects.get_or_create(type='CASH', defaults={'name': 'Cash', 'balance': 0.00})
+        if not HeadquartersWallet.objects.filter(type='CASH',created_by=request.user).exists():
+            HeadquartersWallet.objects.get_or_create(type='CASH', created_by=request.user, defaults={'name': 'Cash', 'balance': 0.00})
         transfer_form = self.transfer_form_class(
             request.POST,
             request=request,

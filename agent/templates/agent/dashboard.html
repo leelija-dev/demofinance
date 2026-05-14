@@ -86,7 +86,7 @@
       <!-- Donut chart with legend -->
       <div id="distributionChart" class="rounded-2xl p-3 bg-indigo-50 dark:bg-transparent border border-indigo-600 dark:border-indigo-400 h-48 flex">
         <div id="chartCanvas" class="w-1/2 h-full"></div>
-        <div class="w-1/2 flex items-center">
+        <div class="w-1/2 flex items-center" x-show="!statusDistribution.every(v => v === 0)">
           <ul class="space-y-2 w-full">
             <template x-for="(value, index) in statusDistribution" :key="index">
               <li class="flex items-center text-xs">
