@@ -190,7 +190,12 @@ STATICFILES_DIRS = [
 ]
 
 # Directory where collected static files will be stored (for production)
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+#STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+STATIC_ROOT = os.environ.get(
+    'STATIC_ROOT',
+    str(BASE_DIR / 'staticfiles')
+)
 
 # Media files (user uploaded files)
 MEDIA_URL = '/media/'
