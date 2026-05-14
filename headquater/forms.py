@@ -1462,7 +1462,7 @@ class TrialUserCreationForm(forms.Form):
         trial_user.demo_credit = 3
         trial_user.save()
         # Create a CASH wallet for the trial user
-        if not HeadquartersWallet.objects.filter(type='CASH',created_by= trial_user).exist():
+        if not HeadquartersWallet.objects.filter(type='CASH',created_by= trial_user).exists():
             HeadquartersWallet.objects.get_or_create(
                 type='CASH',
                 created_by= trial_user,
