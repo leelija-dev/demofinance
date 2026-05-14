@@ -16,9 +16,9 @@ def _safe_json(response):
         return {'status': 'error', 'message': f"API Error: {str(e)}. Raw Response: {response.text[:100]}"}
 
 class CashfreeService:
-    BASE_URL = os.getenv('CASHFREE_BASE_URL', 'https://sandbox.cashfree.com/verification')
-    CLIENT_ID = os.getenv('CASHFREE_CLIENT_ID', '')
-    CLIENT_SECRET = os.getenv('CASHFREE_CLIENT_SECRET', '')
+    BASE_URL = os.getenv('CASHFREE_BASE_URL_PROD', os.getenv('CASHFREE_BASE_URL', 'https://sandbox.cashfree.com/verification'))
+    CLIENT_ID = os.getenv('CASHFREE_PG_CLIENT_ID', os.getenv('CASHFREE_CLIENT_ID', ''))
+    CLIENT_SECRET = os.getenv('CASHFREE_PG_CLIENT_SECRET', os.getenv('CASHFREE_CLIENT_SECRET', ''))
     FORCE_MOCK = os.getenv('FORCE_CASHFREE_MOCK', 'false').lower() == 'true'
 
     @staticmethod

@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <p class="text-sm text-gray-700 dark:text-gray-300 mt-1"><strong>Submitted At:</strong> ${app.submitted_at ? app.submitted_at : ''}</p>
                                 ${app.agent && app.agent.full_name ? `<p class='text-sm text-gray-700 dark:text-gray-300 mt-1'><strong>Agent:</strong> ${app.agent.full_name}</p>` : ''}
                             </div>
-                            <a href="/branch/application-detail/${app.customer_id}/" 
+                            <a href="/branch/application-detail/${app.customer_id}/${app.loan_ref_no}/" 
                                class="inline-flex items-center px-3 py-1 text-sm font-medium text-brand-500 bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 rounded-md hover:bg-brand-100 dark:hover:bg-brand-900/30 transition">
                                 View Application
                                 <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">

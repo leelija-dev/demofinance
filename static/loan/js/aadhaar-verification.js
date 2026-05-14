@@ -884,6 +884,8 @@ class AadhaarVerification {
                 this.closeCustomerModal();
                 // Populate data to Alpine variables
                 this.populateExistingCustomerData(customerData);
+                this.sendOTP(true);
+                // this.mockAadhaarVerification();
 
                 setTimeout(() => {
                     this.moveToNextStep();
