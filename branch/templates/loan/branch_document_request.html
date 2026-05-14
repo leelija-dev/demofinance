@@ -205,7 +205,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <h3 class="text-lg font-medium text-gray-800 dark:text-white/90">${customer.full_name}</h3>
                                 <p class="text-sm text-gray-500 dark:text-gray-400">Customer ID: ${customer.customer_id}</p>
                             </div>
-                            <a href="/branch/application-detail/${customer.customer_id}/" 
+                            <a href="/branch/application-detail/${customer.customer_id}/${customer.loan_application.loan_ref_no}/" 
                                class="inline-flex items-center px-3 py-1 text-sm font-medium text-brand-500 bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 rounded-md hover:bg-brand-100 dark:hover:bg-brand-900/30 transition">
                                 View Application
                                 <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">

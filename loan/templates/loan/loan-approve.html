@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 noMsg.classList.add('hidden');
             }
             data.forEach(customer => {
-                // console.log(customer);
+                console.log(customer);
                 
                 let html = `<div class="mb-6 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
                     <div class="p-5 border-b border-gray-100 dark:border-gray-800 sm:p-6">
@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </p>
                                 ${customer.rejection_reason? `<p class="text-sm text-gray-700 dark:text-gray-300 mt-1"><strong>Reason:</strong> ${customer.rejection_reason}</p>` : ''}
                             </div>
-                            <a href="/agent/application-detail/${customer.customer.customer_id}/" 
+                            <a href="/agent/application-detail/${customer.customer.customer_id}/${customer.customer.loan_application.loan_ref_no}/" 
                                class="inline-flex items-center px-3 py-1 text-sm font-medium text-brand-500 bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 rounded-md hover:bg-brand-100 dark:hover:bg-brand-900/30 transition">
                                 View Application
                                 <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
