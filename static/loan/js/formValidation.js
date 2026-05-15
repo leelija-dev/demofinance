@@ -1211,9 +1211,16 @@ async function callDraftAPI(endpoint, method, data = null) {
         }
         
         // Submit form when clicking the Submit button
-        const submitBtn = document.getElementById('submit-preview');
-        if (submitBtn) {
-            submitBtn.addEventListener('click', function() {
+        const submitPreviewBtn = document.getElementById('submit-preview');
+        if (submitPreviewBtn) {
+            submitPreviewBtn.addEventListener('click', function() {
+                hidePreviewModal();
+                if (isSubmitting) return; // respect existing guard
+                if (submitPreviewBtn.disabled) return;
+                // Disable button immediately to prevent multiple clicks
+                submitPreviewBtn.disabled = true;
+                submitPreviewBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                showLoader();
                 // Trigger form submission 
                 console.log(typeof confirmSubmit);
                 if (typeof confirmSubmit === 'function') {

@@ -690,6 +690,10 @@ const submitPreviewBtn = document.getElementById('submit-preview');
 if (submitPreviewBtn) {
     submitPreviewBtn.addEventListener('click', () => {
         if (isSubmitting) return; // respect existing guard
+        if (submitPreviewBtn.disabled) return;
+        // Disable button immediately to prevent multiple clicks
+        submitPreviewBtn.disabled = true;
+        submitPreviewBtn.classList.add('opacity-50', 'cursor-not-allowed');
         // show loader immediately for UX; the submit handler will manage isSubmitting and final hide
         showLoader();
         const formEl = document.getElementById('loan-application-form');
@@ -820,6 +824,10 @@ document.getElementById('loan-application-form').addEventListener('submit', asyn
         setTimeout(() => {
             hideLoader();
             isSubmitting = false;
+            // Redirect based on user type
+            const isBranch = window.location.pathname.startsWith('/branch/');
+            const redirectUrl = isBranch ? "/branch/loan-pending/" : "/agent/application/";
+            window.location.href = redirectUrl;
         }, 1000); // optional small delay for smoother UX
 
         // Example redirect:
@@ -838,13 +846,31 @@ document.getElementById('loan-application-form').addEventListener('submit', asyn
             showToast('Please fix the errors below.', 'error');
         }
         hideLoader();
+        // Re-enable submit button on error
+        const submitPreviewBtn = document.getElementById('submit-preview');
+        if (submitPreviewBtn) {
+            submitPreviewBtn.disabled = false;
+            submitPreviewBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
     } else {
         showToast(result.message || 'An error occurred.', 'error');
+        // Re-enable submit button on error
+        const submitPreviewBtn = document.getElementById('submit-preview');
+        if (submitPreviewBtn) {
+            submitPreviewBtn.disabled = false;
+            submitPreviewBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
     }
 } catch (error) {
     console.error('Error submitting form:', error);
     showToast('Network error occurred. Please try again.', 'error');
     hideLoader();
+    // Re-enable submit button on error
+    const submitPreviewBtn = document.getElementById('submit-preview');
+    if (submitPreviewBtn) {
+        submitPreviewBtn.disabled = false;
+        submitPreviewBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
     // Auto-close modal (if open) and reload after 3 seconds
     setTimeout(() => {
         try {
