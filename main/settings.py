@@ -20,7 +20,9 @@ from dotenv import load_dotenv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-load_dotenv(BASE_DIR / '.env')
+# load_dotenv(BASE_DIR / '.env')
+if os.path.exists(BASE_DIR / ".env"):
+    load_dotenv(BASE_DIR / ".env")
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY')
@@ -190,7 +192,12 @@ STATICFILES_DIRS = [
 ]
 
 # Directory where collected static files will be stored (for production)
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+#STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+STATIC_ROOT = os.environ.get(
+    'STATIC_ROOT',
+    str(BASE_DIR / 'staticfiles')
+)
 
 # Media files (user uploaded files)
 MEDIA_URL = '/media/'
