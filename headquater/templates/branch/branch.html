@@ -46,9 +46,9 @@
                 <label for="status-filter" class="text-gray-600 dark:text-gray-300 whitespace-nowrap">Status:</label>
                 <select id="status-filter" name="status" onchange="this.form.submit()"
                     class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-boxdark dark:text-gray-200">
-                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
-                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
-                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active &nbsp;</option>
+                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive &nbsp;</option>
+                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All &nbsp;</option>
                 </select>
             </form>
         </div>

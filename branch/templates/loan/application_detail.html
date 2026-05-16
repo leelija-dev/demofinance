@@ -358,9 +358,12 @@ let rejectionReason = '';
 
 // Set currentCustomerId from URL on page load
 (function setCurrentCustomerIdFromUrl() {
-    const parts = window.location.pathname.split('/');
+    // const parts = window.location.pathname.split('/');
     // /branch/application-detail/<customer_id>/
-    currentCustomerId = parts[parts.length - 2] || '';
+    // currentCustomerId = parts[parts.length - 2] || '';
+    const parts = window.location.pathname.split('/');
+     // /branch/application-detail/<customer_id>/<loan_ref_no>/
+    currentCustomerId = parts[3] || '';
 })();
 
 function openDocumentRequestModal(documentType, documentName, customerId) {
