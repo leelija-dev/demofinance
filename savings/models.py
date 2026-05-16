@@ -10,6 +10,7 @@ from headquater.models import Branch, HeadquarterEmployee
 from branch.models import BranchEmployee
 from loan.models import CustomerDetail
 from django.db.models import Q
+from cloudinary_storage.storage import MediaCloudinaryStorage
 
 
 class SavingsAccountApplication(models.Model):
@@ -82,7 +83,7 @@ class SavingsAccountApplication(models.Model):
     nominee_relationship = models.CharField(max_length=100, null=True, blank=True)
     nominee_kyc_type = models.CharField(max_length=20, choices=NOMINEE_KYC_TYPES, null=True, blank=True)
     nominee_kyc_number = models.CharField(max_length=50, null=True, blank=True)
-    nominee_kyc_document = models.FileField(upload_to='static/nominee/kyc/', null=True, blank=True)
+    nominee_kyc_document = models.FileField(upload_to='static/nominee/kyc/', null=True, blank=True, storage=MediaCloudinaryStorage())
 
     rejection_reason = models.TextField(null=True, blank=True)
 

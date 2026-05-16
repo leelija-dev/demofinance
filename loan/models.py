@@ -10,6 +10,7 @@ from headquater.models import Branch, HeadquarterEmployee
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.core.files.storage import default_storage
 from django.db.models.fields.files import FieldFile
+from cloudinary_storage.storage import MediaCloudinaryStorage
 
 class LoanApplication(models.Model):
     STATUS_CHOICES = [
@@ -315,15 +316,15 @@ class CustomerLoanDetail(models.Model):
 class CustomerDocument(models.Model):
     loan_application = models.OneToOneField('LoanApplication', on_delete=models.CASCADE, null=True, blank=True, related_name='documents')
     savings_application = models.OneToOneField('savings.SavingsAccountApplication', on_delete=models.CASCADE, null=True, blank=True, related_name='documents')
-    id_proof = models.FileField(upload_to='static/customer/id_proof/')
-    guarantor_id_proof = models.FileField(upload_to='static/customer/guarantor_id_proof/', blank=True, null=True)
-    pan_card_document = models.FileField(upload_to='static/customer/pan_card/', blank=True, null=True)
-    id_proof_back = models.FileField(upload_to='static/customer/id_proof/', blank=True, null=True)
-    income_proof = models.FileField(upload_to='static/customer/income_proof/', blank=True, null=True)
-    photo = models.ImageField(upload_to='static/customer/photo/', blank=True, null=True)
-    signature = models.FileField(upload_to='static/customer/signature/', blank=True, null=True)
-    collateral = models.FileField(upload_to='static/customer/collateral/', blank=True, null=True)
-    residential_proof_file = models.FileField(upload_to='static/customer/residential_proof/', blank=True, null=True)
+    id_proof = models.FileField(upload_to='static/customer/id_proof/', storage=MediaCloudinaryStorage())
+    guarantor_id_proof = models.FileField(upload_to='static/customer/guarantor_id_proof/', blank=True, null=True, storage=MediaCloudinaryStorage())
+    pan_card_document = models.FileField(upload_to='static/customer/pan_card/', blank=True, null=True, storage=MediaCloudinaryStorage())
+    id_proof_back = models.FileField(upload_to='static/customer/id_proof/', blank=True, null=True, storage=MediaCloudinaryStorage())
+    income_proof = models.FileField(upload_to='static/customer/income_proof/', blank=True, null=True, storage=MediaCloudinaryStorage())
+    photo = models.ImageField(upload_to='static/customer/photo/', blank=True, null=True, storage=MediaCloudinaryStorage())
+    signature = models.FileField(upload_to='static/customer/signature/', blank=True, null=True, storage=MediaCloudinaryStorage())
+    collateral = models.FileField(upload_to='static/customer/collateral/', blank=True, null=True, storage=MediaCloudinaryStorage())
+    residential_proof_file = models.FileField(upload_to='static/customer/residential_proof/', blank=True, null=True, storage=MediaCloudinaryStorage())
     agent = models.ForeignKey(Agent, on_delete=models.SET_NULL, null=True, related_name='customer_documents')
     branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, related_name='customer_documents')
     submitted_at = models.DateTimeField(auto_now_add=True)
@@ -419,7 +420,7 @@ class DocumentReupload(models.Model):
     document_request = models.ForeignKey(DocumentRequest, on_delete=models.CASCADE, related_name='reuploads')
     loan_application = models.ForeignKey('LoanApplication', on_delete=models.CASCADE, null=True, blank=True, related_name='document_reuploads')
     document_type = models.CharField(max_length=30, choices=DocumentRequest.DOCUMENT_TYPES)
-    uploaded_file = models.FileField(upload_to='static/customer/reuploads/')
+    uploaded_file = models.FileField(upload_to='static/customer/reuploads/', storage=MediaCloudinaryStorage())
     agent_note = models.TextField(blank=True, null=True)
     uploaded_by = models.ForeignKey(Agent, on_delete=models.SET_NULL, null=True, related_name='document_reuploads')
     uploaded_at = models.DateTimeField(auto_now_add=True)

@@ -4,6 +4,8 @@ from headquater.models import Branch
 import os
 import uuid
 import re
+from cloudinary_storage.storage import MediaCloudinaryStorage
+from django.core.files.storage import default_storage
 
 def agent_photo_upload_path(instance, filename):
     ext = filename.split('.')[-1]
@@ -55,8 +57,8 @@ class Agent(models.Model):
     area = models.CharField(max_length=255)
     
     # File uploads
-    id_proof = models.FileField(upload_to=agent_id_proof_upload_path)
-    photo = models.ImageField(upload_to=agent_photo_upload_path, blank=True, null=True)
+    id_proof = models.FileField(upload_to=agent_id_proof_upload_path, storage=MediaCloudinaryStorage())
+    photo = models.ImageField(upload_to=agent_photo_upload_path, blank=True, null=True, storage=MediaCloudinaryStorage())
     
     # Status and timestamps
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')

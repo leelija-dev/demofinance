@@ -5,6 +5,7 @@ from django.conf import settings
 from agent.models import Agent
 from loan.models import LoanApplication, Shop
 # from headquater.models import Branch
+from cloudinary_storage.storage import MediaCloudinaryStorage
 
 # Create your models here.
 
@@ -117,7 +118,7 @@ class BranchEmployee(models.Model):
     email = models.EmailField(unique=True)
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
-    image = models.ImageField(upload_to='branch/profile/', blank=True, null=True)
+    image = models.ImageField(upload_to='branch/profile/', blank=True, null=True, storage=MediaCloudinaryStorage())
     phone_number = models.CharField(max_length=15, unique=True)
     address = models.TextField(blank=True, null=True)
     date_of_birth = models.DateField(blank=True, null=True)

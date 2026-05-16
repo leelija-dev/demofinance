@@ -53,6 +53,8 @@ INSTALLED_APPS = [
     # Third-party apps
     'whitenoise.runserver_nostatic',  # For serving static files in development
     'rest_framework',  # Added for DRF
+    'cloudinary',  # Cloudinary for image storage
+    'cloudinary_storage',  # Cloudinary storage backend
     
     # Local apps
     'main',  # Add this line to include the main app for management commands
@@ -194,6 +196,19 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 # MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_ROOT = os.environ.get('MEDIA_ROOT', BASE_DIR / 'media')
+
+# Cloudinary Configuration
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
+}
+
+# Use Cloudinary for media files if credentials are configured
+if all([os.environ.get('CLOUDINARY_CLOUD_NAME'), os.environ.get('CLOUDINARY_API_KEY'), os.environ.get('CLOUDINARY_API_SECRET')]):
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    # Cloudinary storage backend handles URL generation automatically
+    # Do not override MEDIA_URL - let Cloudinary handle it
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
