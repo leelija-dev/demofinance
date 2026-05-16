@@ -7,6 +7,7 @@ import os
 import uuid
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from cloudinary_storage.storage import MediaCloudinaryStorage
 
 # from branch.models import BranchTransaction
 
@@ -70,7 +71,8 @@ class HeadquarterEmployee(AbstractUser):
         null=True,
         blank=True,
         help_text='Profile Image of Headquater Employee',
-        storage=FileSystemStorage(location=os.path.join(settings.BASE_DIR, 'media'))
+        # storage=FileSystemStorage(location=os.path.join(settings.BASE_DIR, 'media'))
+        storage=MediaCloudinaryStorage()
     )
 
     address = models.TextField(blank=True, null=True)
@@ -280,7 +282,8 @@ class HeadquartersTransactions(models.Model):
         null=True,
         blank=True,
         help_text='Upload proof document for this transaction (e.g., bank receipt, UPI screenshot)',
-        storage=FileSystemStorage(location=os.path.join(settings.BASE_DIR, 'static'))
+        # storage=FileSystemStorage(location=os.path.join(settings.BASE_DIR, 'static'))
+        storage=MediaCloudinaryStorage()
     )
     reference_number = models.CharField(
         max_length=100,

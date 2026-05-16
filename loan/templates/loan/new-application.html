@@ -690,11 +690,12 @@ document.getElementById('loan-application-form').addEventListener('submit', asyn
             return;
         }
         isSubmitting = true;
-        const loader = document.getElementById('full-page-loader');
-        if (loader) {
-            loader.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-        }
+        showLoader();
+        //const loader = document.getElementById('full-page-loader');
+        //if (loader) {
+        //    loader.style.display = 'flex';
+        //    document.body.style.overflow = 'hidden';
+        //}
         
         // Clear previous errors and messages
         document.querySelectorAll('[id^="error-"]').forEach(el => {
@@ -830,10 +831,7 @@ document.getElementById('loan-application-form').addEventListener('submit', asyn
 
             // hide loader after small delay for smoother UX
             setTimeout(() => {
-                if (loader) {
-                    loader.style.display = 'none';
-                    document.body.style.overflow = '';
-                }
+                hideLoader();
                 isSubmitting = false;
                 if (submitButton) {
                     submitButton.disabled = false;
@@ -877,9 +875,11 @@ document.getElementById('loan-application-form').addEventListener('submit', asyn
                 submitButton.innerHTML = originalButtonText;
             }
             isSubmitting = false;
-            if (loader) {
-                loader.style.display = 'none';
-                document.body.style.overflow = '';
+            hideLoader();
+            const submitPreviewBtn = document.getElementById('submit-preview');
+            if (submitPreviewBtn) {
+                submitPreviewBtn.disabled = false;
+                submitPreviewBtn.classList.remove('opacity-50', 'cursor-not-allowed');
             }
         }
     }

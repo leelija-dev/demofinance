@@ -223,6 +223,12 @@ function calculateNetAmount() {
         }
     });
 
+    
+    if (downPayment <= 0){
+        document.getElementById('processing_fee').value = totalDeductions.toFixed(2);
+        document.getElementById('processing_fee_display').textContent = totalDeductions.toFixed(2);
+    } 
+
     const netAmount = disbursedAmount - (downPayment > 0 ? processingFee : totalDeductions);
     document.getElementById('net_amount').value = netAmount.toFixed(2);
 }
@@ -619,21 +625,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 //     </div>
                 // `;
             });
-            if(Array.isArray(decoded_shapshot)){
+            //if(Array.isArray(decoded_shapshot)){
             deductionDiv.innerHTML += `
                 <hr class="my-4 border-gray-200" />
 
                 <div class="deduction-row mb-3">
                     <label class="inline-flex items-center">
                         <span class="ml-2 text-sm font-medium text-gray-700">
-                            Total Processing Fee - ₹${loan.processing_fee}
+                            Total Processing Fee - ₹<span id="processing_fee_display">${loan.processing_fee}</span>
                         </span>
                     </label>
                 </div>
                 <input type="hidden" id="processing_fee" name="processing_fee" value="${loan.processing_fee}">
 
             `;
-            }
+            // }
 
             // down_payment ----------------------------
            if(Array.isArray(decoded_shapshot)){
