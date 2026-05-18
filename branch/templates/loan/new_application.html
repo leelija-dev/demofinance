@@ -667,25 +667,25 @@ if (fatherNameField) {
 
 
 // Hook preview modal submit button to trigger form submit with loader (no logic changes)
-const submitPreviewBtn = document.getElementById('submit-preview');
-if (submitPreviewBtn) {
-    submitPreviewBtn.addEventListener('click', () => {
-        if (isSubmitting) return; // respect existing guard
-        if (submitPreviewBtn.disabled) return;
-        // Disable button immediately to prevent multiple clicks
-        submitPreviewBtn.disabled = true;
-        submitPreviewBtn.classList.add('opacity-50', 'cursor-not-allowed');
-        // show loader immediately for UX; the submit handler will manage isSubmitting and final hide
-        showLoader();
-        const formEl = document.getElementById('loan-application-form');
-        if (formEl && typeof formEl.requestSubmit === 'function') {
-            formEl.requestSubmit();
-        } else if (formEl) {
-            const evt = new Event('submit', { bubbles: true, cancelable: true });
-            formEl.dispatchEvent(evt);
-        }
-    });
-}
+// const submitPreviewBtn = document.getElementById('submit-preview');
+// if (submitPreviewBtn) {
+//     submitPreviewBtn.addEventListener('click', () => {
+//         if (isSubmitting) return; // respect existing guard
+//         if (submitPreviewBtn.disabled) return;
+//         // Disable button immediately to prevent multiple clicks
+//         submitPreviewBtn.disabled = true;
+//         submitPreviewBtn.classList.add('opacity-50', 'cursor-not-allowed');
+//         // show loader immediately for UX; the submit handler will manage isSubmitting and final hide
+//         showLoader();
+//         const formEl = document.getElementById('loan-application-form');
+//         if (formEl && typeof formEl.requestSubmit === 'function') {
+//             formEl.requestSubmit();
+//         } else if (formEl) {
+//             const evt = new Event('submit', { bubbles: true, cancelable: true });
+//             formEl.dispatchEvent(evt);
+//         }
+//     });
+// }
 
 document.getElementById('loan-application-form').addEventListener('submit', async function(e) {
     e.preventDefault();
@@ -815,18 +815,19 @@ document.getElementById('loan-application-form').addEventListener('submit', asyn
         // window.location.href = "/success-page";
         return; // Important: exit so we don’t hit the finally block
     } else if (result.errors) {
+        isSubmitting = false;
         // Show field-specific errors
         for (const [field, msg] of Object.entries(result.errors)) {
             const errDiv = document.getElementById('error-' + field);
             if (errDiv) errDiv.textContent = msg;
         }
+        hideLoader();
         const formLevelMsg = result.errors.__all__ || result.errors.non_field_errors;
         if (formLevelMsg) {
             showToast(formLevelMsg, 'error');
         } else {
             showToast('Please fix the errors below.', 'error');
         }
-        hideLoader();
         // Re-enable submit button on error
         const submitPreviewBtn = document.getElementById('submit-preview');
         if (submitPreviewBtn) {
@@ -834,6 +835,8 @@ document.getElementById('loan-application-form').addEventListener('submit', asyn
             submitPreviewBtn.classList.remove('opacity-50', 'cursor-not-allowed');
         }
     } else {
+        isSubmitting = false;
+        hideLoader();
         showToast(result.message || 'An error occurred.', 'error');
         // Re-enable submit button on error
         const submitPreviewBtn = document.getElementById('submit-preview');
@@ -843,9 +846,10 @@ document.getElementById('loan-application-form').addEventListener('submit', asyn
         }
     }
 } catch (error) {
+    isSubmitting = false;
     console.error('Error submitting form:', error);
-    showToast('Network error occurred. Please try again.', 'error');
     hideLoader();
+    showToast('Network error occurred. Please try again.', 'error');
     // Re-enable submit button on error
     const submitPreviewBtn = document.getElementById('submit-preview');
     if (submitPreviewBtn) {
@@ -907,6 +911,7 @@ if (loanCategoryField) {
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="/static/loan/js/loan-application.js"></script>
 <!-- <script src="/static/loan/js/formValidation.js"></script> -->
-<script src="/static/loan/js/formValidation.js?v=4.0&cb=20250108&ts=1736356800"></script>
+{% comment %} <script src="/static/loan/js/formValidation.js?v=4.0&cb=20250108&ts=1736356800"></script> {% endcomment %}
+<script src="/static/loan/js/formValidation.js?v="+Date.now()></script>
 <script src="/static/main/js/main.js"></script>
 {% endblock %}
