@@ -1080,6 +1080,18 @@ async function callDraftAPI(endpoint, method, data = null) {
             hideCurrentAddressSections('flex');
         }
         hideEmptyProductSections();
+        let container = document.getElementById('preview_guarantor_id_proof');
+        if (container) {
+            container = container.parentElement;
+        }
+        if (container) {
+            const input = container.querySelector('input');
+            if (input && input.value && input.value.trim() !== '') {
+                container.style.display = 'block';
+            } else {
+                container.style.display = 'none';
+            }
+        }
     }
     
     function hideCurrentAddressSections(display = "none") {
