@@ -438,6 +438,12 @@ class DocumentReuploadBranchAPI(APIView):
                     return Response({'detail': f'{field} is required.'}, status=status.HTTP_400_BAD_REQUEST)
             if 'uploaded_file' not in files:
                 return Response({'detail': 'Document file is required.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Validate file is not empty
+            uploaded_file = files['uploaded_file']
+            if uploaded_file.size == 0:
+                return Response({'detail': 'Uploaded file is empty.'}, status=status.HTTP_400_BAD_REQUEST)
+            
             # Get customer and document request
             from loan.models import CustomerDetail, DocumentRequest, DocumentReupload
             try:
@@ -473,7 +479,7 @@ class DocumentReuploadBranchAPI(APIView):
             doc_type = data['document_type']
             field_name = field_map.get(doc_type)
             if customer_document and field_name:
-                setattr(customer_document, field_name, files['uploaded_file'])
+                setattr(customer_document, field_name, getattr(reupload, 'uploaded_file', None))
                 customer_document.save()
             # Mark document request as resolved
             document_request.mark_as_resolved()
