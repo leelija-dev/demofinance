@@ -3334,6 +3334,7 @@
               }
             }, 1000);
           } else {
+            hideLoader();
             // Show error message
             const errMsg =
               (result && result.message) ||
@@ -3347,6 +3348,7 @@
             }
           }
         } catch (error) {
+          hideLoader();
           console.error("Submit error:", error);
           const errMsg = "Network error occurred. Please try again.";
           if (typeof window.showToast === "function") {
@@ -3356,6 +3358,7 @@
           }
         } finally {
           this.isSubmitting = false;
+          hideLoader();
         }
       },
     };

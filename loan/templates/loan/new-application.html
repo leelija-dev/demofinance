@@ -847,6 +847,7 @@ document.getElementById('loan-application-form').addEventListener('submit', asyn
         } 
         
         if (result.errors) {
+            hideLoader();
             // Field-specific errors
             for (const [field, msg] of Object.entries(result.errors)) {
                 const errDiv = document.getElementById('error-' + field);
@@ -862,9 +863,11 @@ document.getElementById('loan-application-form').addEventListener('submit', asyn
                 showToast('Please fix the errors below.', 'error');
             }
         } else {
+            hideLoader();
             showToast(result.message || 'An error occurred while submitting the form.', 'error');
         }
-    } catch (error) {
+    } catch (error) {   
+        hideLoader();
         console.error('Error submitting form:', error);
         showToast('Network error occurred. Please check your connection and try again.', 'error');
     } finally {
