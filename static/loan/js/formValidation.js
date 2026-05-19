@@ -1042,6 +1042,7 @@ async function callDraftAPI(endpoint, method, data = null) {
         for (const [fieldName, value] of formData.entries()) {
             const previewField = document.getElementById('preview_' + fieldName);
             if (!previewField) continue;
+            console.log('fieldName  ->  ', fieldName);
 
             if (
                 fieldName.includes('_proof') ||
