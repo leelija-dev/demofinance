@@ -1042,6 +1042,7 @@ async function callDraftAPI(endpoint, method, data = null) {
         for (const [fieldName, value] of formData.entries()) {
             const previewField = document.getElementById('preview_' + fieldName);
             if (!previewField) continue;
+            console.log('fieldName  ->  ', fieldName);
 
             if (
                 fieldName.includes('_proof') ||
@@ -1079,19 +1080,8 @@ async function callDraftAPI(endpoint, method, data = null) {
         }else{
             hideCurrentAddressSections('flex');
         }
+        hideEmptyInputFields(formData.entries());
         hideEmptyProductSections();
-        let container = document.getElementById('preview_guarantor_id_proof');
-        if (container) {
-            container = container.parentElement;
-        }
-        if (container) {
-            const input = container.querySelector('input');
-            if (input && input.value && input.value.trim() !== '') {
-                container.style.display = 'block';
-            } else {
-                container.style.display = 'none';
-            }
-        }
     }
     
     function hideCurrentAddressSections(display = "none") {
@@ -1122,6 +1112,45 @@ async function callDraftAPI(endpoint, method, data = null) {
         }
     }
     
+    function hideEmptyInputFields(formDataEntries){
+        const extraFieldNames = ['guarantor_name', 'guarantor_id_proof', 'total_processing_fees_indian'];
+        const fieldNames = Array.from(formDataEntries, ([fieldName]) => fieldName).concat(extraFieldNames);
+        
+
+        for (const fieldName of fieldNames) {
+            const previewField = document.getElementById('preview_' + fieldName);
+            if (!previewField) continue;
+            container = previewField.parentElement;
+
+            if (container) {
+                const input = container.querySelector('input');
+                if (input && input.value && input.value.trim() !== '') {
+                    container.style.display = 'block';
+                } else {
+                    container.style.display = 'none';
+                }
+                if(fieldName === 'account_number'){
+                    hideEmptyBankSectionHeader(container.style.display);
+                }
+            }
+        }
+    }
+
+    function hideEmptyBankSectionHeader(display = 'block'){
+        const previewField = document.getElementById('preview_account_number' );
+        if (!previewField) return;
+        inputContainer = previewField.parentElement;
+        if (!inputContainer) return;
+        container = inputContainer.parentElement;
+        if (!container) return;
+        const sectionHR = container.previousElementSibling;
+        if (!sectionHR) return;
+        const sectionDIV = sectionHR.previousElementSibling;
+        if (!sectionDIV) return;
+        sectionHR.style.display = display;
+        sectionDIV.style.display = display;        
+    }
+
     function hideEmptyProductSections() {
         // Hide/show individual product field containers based on data
         const productContainers = [

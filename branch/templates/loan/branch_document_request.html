@@ -137,7 +137,8 @@ document.getElementById('documentUploadForm').addEventListener('submit', functio
             setTimeout(()=>{
             closeDocumentUploadModal();
             // Redirect to loan pending application page
-            window.location.href = '/branch/loan-pending/';
+            // window.location.href = '/branch/loan-pending/';
+            window.location.reload();
             }, 1000)
         } else {
             showToast('Error: ' + (data.detail || data.message));

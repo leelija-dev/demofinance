@@ -1123,7 +1123,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Document Review History</h3>
                         </div>
                         <div class="p-5 space-y-4 sm:p-6">`;
-                    agentReviews.forEach(review => {
+                    agentReviews.reverse().forEach(review => {
                         let bgClass = 'bg-gray-50 dark:bg-gray-900/20';
                         if (review.decision === 'approved') bgClass = 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800';
                         else if (review.decision === 'rejected' || review.decision === 'request_again') bgClass = 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800';
@@ -1180,17 +1180,26 @@ document.addEventListener('DOMContentLoaded', function () {
                 );
             }
             
+            console.log(data.document_reuploads);
             // Also check if any existing reviews are not approved
             if (!hasPendingDocuments && data.document_reuploads && Array.isArray(data.document_reuploads)) {
-                hasPendingDocuments = data.document_reuploads.some(reupload => {
-                    if (reupload.reviews && reupload.reviews.length > 0) {
-                        // Check if the latest review is not approved
-                        const latestReview = reupload.reviews[reupload.reviews.length - 1];
-                        return latestReview.decision !== 'approved';
+                // hasPendingDocuments = data.document_reuploads.some(reupload => {
+                //     if (reupload.reviews && reupload.reviews.length > 0) {
+                //         // Check if the latest review is not approved
+                //         const latestReview = reupload.reviews[reupload.reviews.length - 1];
+                //         return latestReview.decision !== 'approved';
+                //     }
+                //     return false;
+                // });
+                const document_reuploads_length = data.document_reuploads.length;
+                if (document_reuploads_length > 0) {
+                    const reupload = data.document_reuploads.reverse()[document_reuploads_length -1];
+                    if(reupload.reviews.length > 0){
+                        hasPendingDocuments = reupload.reviews[0].decision !== 'approved';
                     }
-                    return false;
-                });
+                }
             }
+            console.log('hasPendingDocuments ->', hasPendingDocuments);
             if(window.dflag != 'details' && window.from_agent != '1'){
             if (!["rejected_by_branch", "reject", "branch_approved", "hq_resubmitted", "document_requested", "document_requested_by_hq", "hq_approved", "hq_document_accepted", "success", "active", "disbursed"].includes(data.status) && !hasPendingDocuments) {
                 html += `
