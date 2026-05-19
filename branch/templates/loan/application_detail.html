@@ -1191,7 +1191,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 //     }
                 //     return false;
                 // });
-                hasPendingDocuments = data.document_reuploads.reverse()[data.document_reuploads.length -1].reviews[0].decision !== 'approved';
+                const document_reuploads_length = data.document_reuploads.length;
+                if (document_reuploads_length > 0) {
+                    const reupload = data.document_reuploads.reverse()[document_reuploads_length -1];
+                    if(reupload.reviews.length > 0){
+                        hasPendingDocuments = reupload.reviews[0].decision !== 'approved';
+                    }
+                }
             }
             console.log('hasPendingDocuments ->', hasPendingDocuments);
             if(window.dflag != 'details' && window.from_agent != '1'){

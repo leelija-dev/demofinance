@@ -695,8 +695,10 @@ document.addEventListener('DOMContentLoaded', function () {
             e.preventDefault();
             const docType = btn.value;
             let label = '';
-            if (docType === 'id_proof') label = 'ID Proof (Aadhar/PAN)';
+            if (docType === 'id_proof') label = 'ID Proof (Aadhar/PAN) (Front)';
+            else if (docType === 'id_proof_back') label = 'ID Proof (Aadhar/PAN) (Back)';
             else if (docType === 'income_proof') label = 'Income Proof';
+            else if (docType === 'pan_card_document') label = 'PAN Card';
             else if (docType === 'photo') label = 'Passport Photo';
             else if (docType === 'signature') label = 'Digital Signature';
             else if (docType === 'collateral') label = 'Collateral Documents';
