@@ -42,7 +42,7 @@ class NewLoanApplicationCardsView(AgentSessionRequiredMixin, TemplateView):
                 shops = list(shops_qs)
                 context['agent_shops'] = shops
                 context['default_shop_id'] = shops[0].shop_id if len(shops) == 1 else ''
-                headquarter_employee_id = agent.branch.created_by 
+                headquarter_employee_id = agent.branch.created_by.id 
             except Agent.DoesNotExist:
                 context["is_active"] = False
                 context["error_message"] = "Agent not found."
@@ -54,12 +54,8 @@ class NewLoanApplicationCardsView(AgentSessionRequiredMixin, TemplateView):
             context['agent_shops'] = []
             context['default_shop_id'] = ''
 
-        print(context)
-        print(self.template_name)
-        print(request)
         context['page_title'] = 'New Loan Application - Card Based'
 
-        print(headquarter_employee_id)
         headquarter_employee = HeadquarterEmployee.objects.filter(id=headquarter_employee_id).first()
         if headquarter_employee:
             demo_credit = headquarter_employee.demo_credit
