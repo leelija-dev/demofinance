@@ -4529,16 +4529,7 @@ class BranchSavingsDocumentUploadAPI(APIView):
         )
 
 
-
-        setattr(customer_document, field_name, uploaded_file)
-
-        customer_document.branch = branch
-
-        customer_document.save()
-
-
-
-        DocumentReupload.objects.create(
+        documentReuploaded =  DocumentReupload.objects.create(
 
             document_request=doc_request,
 
@@ -4552,6 +4543,11 @@ class BranchSavingsDocumentUploadAPI(APIView):
 
         )
 
+        setattr(customer_document, field_name, getattr(documentReuploaded, 'uploaded_file', None))
+
+        customer_document.branch = branch
+
+        customer_document.save()
 
 
         if savings_app.status == 'document_requested':
