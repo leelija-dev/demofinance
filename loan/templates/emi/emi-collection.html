@@ -113,6 +113,10 @@
                             </th>
                             <th scope="col"
                                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Action
                             </th>
                         </tr>
@@ -1705,6 +1709,181 @@
     }
 
 
+    // ---- Date filter hook: fetch ALL EMIs by date from server ----
+    // Override AgentFilters to use server-side API when date filter is set
+    const dateFilterInput = document.getElementById('dateFilter');
+    const loanSearchInput = document.getElementById('loanSearch');
+    const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+
+    async function fetchEmisByDate(dateStr, loanSearch) {
+      const params = new URLSearchParams();
+      if (dateStr) params.set('date', dateStr);
+      if (loanSearch) params.set('loan', loanSearch);
+      
+      try {
+        const resp = await fetch(`/agent/api/emi-by-date/?${params.toString()}`);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const data = await resp.json();
+        return Array.isArray(data) ? data : [];
+      } catch (err) {
+        console.error('Failed to fetch EMIs by date:', err);
+        return [];
+      }
+    }
+
+    function renderEmiRows(emis) {
+      const tbody = document.getElementById('emi-collect-tbody');
+      const noMsg = document.getElementById('no-emi-collect');
+      if (!tbody) return;
+      
+      tbody.innerHTML = '';
+      
+      if (!emis || emis.length === 0) {
+        if (noMsg) noMsg.classList.remove('hidden');
+        return;
+      }
+      
+      if (noMsg) noMsg.classList.add('hidden');
+
+      emis.forEach(collectEMI => {
+        const statusClass = collectEMI.collection_status === 'verified' ? 'bg-green-100 text-green-700 border-green-300' :
+                            collectEMI.collection_status === 'collected' ? 'bg-yellow-100 text-yellow-700 border-yellow-300' :
+                            collectEMI.collection_status === 'rejected' ? 'bg-red-100 text-red-700 border-red-300' :
+                            collectEMI.collection_status === 'overdue' ? 'bg-orange-100 text-orange-700 border-orange-300' :
+                            'bg-gray-100 text-gray-600 border-gray-300';
+        const statusLabel = collectEMI.collection_status === 'verified' ? 'Verified' :
+                            collectEMI.collection_status === 'collected' ? 'Collected' :
+                            collectEMI.collection_status === 'rejected' ? 'Rejected' :
+                            collectEMI.collection_status === 'overdue' ? 'Overdue' : 'Pending';
+        const btnLabel = (collectEMI.collection_status === 'verified' || collectEMI.collection_status === 'collected') ? 'Collected' :
+                         collectEMI.collection_status === 'rejected' ? 'Re-collect' : 'Collect';
+        const btnDisabled = (collectEMI.collection_status === 'verified' || collectEMI.collection_status === 'collected') ? 'disabled' : '';
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="px-6 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">${collectEMI.assignment_id || ''}</p></td>
+          <td class="px-6 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">${collectEMI.loan_ref_no || ''}</p></td>
+          <td class="px-6 py-2"><p class="text-blue-500 text-theme-sm dark:text-blue-400"><a href="/agent/application-detail/${collectEMI.customer_id || ''}/${collectEMI.loan_ref_no || ''}/">${collectEMI.customer_name || ''}</a></p></td>
+          <td class="px-6 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">${collectEMI.branch_name || ''}</p></td>
+          <td class="px-6 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">${window.formatDateDisplay ? window.formatDateDisplay(collectEMI.installment_date) : (collectEMI.installment_date || '')}</p></td>
+          <td class="px-6 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">${collectEMI.principal_amount}</p></td>
+          <td class="px-6 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">${collectEMI.interest_amount}</p></td>
+          <td class="px-6 py-2"><p class="text-blue-700 font-semibold text-theme-sm dark:text-blue-400">₹${collectEMI.installment_amount}</p></td>
+          <td class="px-6 py-2"><span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusClass}">${statusLabel}</span></td>
+          <td class="px-6 py-2">
+            <div class="flex items-center gap-2">
+              <a href="#" class="btn-collect inline-block px-3 py-1 text-sm rounded ${btnDisabled ? 'cursor-not-allowed bg-green-100 border border-green-500 text-green-700' : 'bg-brand-500 text-white hover:bg-brand-600'}" 
+                 data-assignment-id="${collectEMI.assignment_id}"
+                 data-emi-id="${collectEMI.emi || collectEMI.reschedule_emi || ''}"
+                 data-installment-amount="${collectEMI.installment_amount}"
+                 data-principal-amount="${collectEMI.principal_amount}"
+                 data-interest-amount="${collectEMI.interest_amount}"
+                 data-loan-ref-no="${collectEMI.loan_ref_no || ''}"
+                 data-can-collect="${collectEMI.can_collect ? '1' : '0'}"
+                 data-is-reschedule="${collectEMI.reschedule_emi ? '1' : '0'}"
+                 data-collection-status="${collectEMI.collection_status}"
+                 ${btnDisabled}>${btnLabel}</a>
+              <button type="button" class="btn-view-current-emi inline-flex items-center justify-center h-8 w-8 rounded border border-gray-300 text-gray-600 hover:text-gray-800 hover:border-gray-400"
+                  data-assignment-id="${collectEMI.assignment_id}"
+                  data-loan-ref-no="${collectEMI.loan_ref_no || ''}"
+                  data-installment-date="${collectEMI.installment_date || ''}"
+                  data-installment-amount="${collectEMI.installment_amount}"
+                  data-principal-amount="${collectEMI.principal_amount}"
+                  data-interest-amount="${collectEMI.interest_amount}"
+                  data-is-reschedule="${collectEMI.reschedule_emi ? '1' : '0'}"
+                  aria-label="View Current EMI">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+              </button>
+            </div>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+
+      // Update loanRefs for suggestions
+      try {
+        const tds2 = Array.from(document.querySelectorAll('#emi-collect-tbody tr td:nth-child(2)'));
+        window.loanRefs = [...new Set(tds2.map(td => (td.textContent || '').trim()).filter(Boolean))];
+      } catch (e) { /* noop */ }
+    }
+
+    // Setup date filter listener
+    if (dateFilterInput) {
+      dateFilterInput.addEventListener('change', async function() {
+        const dateVal = this.value.trim();
+        const loanVal = loanSearchInput ? loanSearchInput.value.trim() : '';
+        if (dateVal) {
+          // Format date from flatpickr to YYYY-MM-DD
+          let formattedDate = dateVal;
+          // If flatpickr gives 'd M Y' format, convert to YYYY-MM-DD
+          const fp = dateFilterInput._flatpickr;
+          if (fp && fp.selectedDates && fp.selectedDates.length > 0) {
+            const d = fp.selectedDates[0];
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            formattedDate = `${y}-${m}-${day}`;
+          }
+          const emis = await fetchEmisByDate(formattedDate, loanVal);
+          renderEmiRows(emis);
+        }
+      });
+      
+      // Also on blur in case user typed
+      dateFilterInput.addEventListener('blur', async function() {
+        const dateVal = this.value.trim();
+        if (!dateVal) return;
+        const loanVal = loanSearchInput ? loanSearchInput.value.trim() : '';
+        let formattedDate = dateVal;
+        const fp = dateFilterInput._flatpickr;
+        if (fp && fp.selectedDates && fp.selectedDates.length > 0) {
+          const d = fp.selectedDates[0];
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          formattedDate = `${y}-${m}-${day}`;
+        }
+        const emis = await fetchEmisByDate(formattedDate, loanVal);
+        renderEmiRows(emis);
+      });
+    }
+
+    // Hook loan search to also filter when date is set
+    if (loanSearchInput) {
+      loanSearchInput.addEventListener('input', async function() {
+        const dateVal = dateFilterInput ? dateFilterInput.value.trim() : '';
+        if (!dateVal) return; // only filter combined with date
+        const loanVal = this.value.trim();
+        let formattedDate = dateVal;
+        const fp = dateFilterInput._flatpickr;
+        if (fp && fp.selectedDates && fp.selectedDates.length > 0) {
+          const d = fp.selectedDates[0];
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          formattedDate = `${y}-${m}-${day}`;
+        }
+        const emis = await fetchEmisByDate(formattedDate, loanVal);
+        renderEmiRows(emis);
+      });
+    }
+
+    // Clear filters: reset to initial view
+    if (clearFiltersBtn) {
+      clearFiltersBtn.addEventListener('click', function() {
+        if (dateFilterInput) {
+          const fp = dateFilterInput._flatpickr;
+          if (fp) fp.clear();
+          dateFilterInput.value = '';
+        }
+        if (loanSearchInput) loanSearchInput.value = '';
+        // Reload page to get initial infinite-scroll view
+        window.location.reload();
+      });
+    }
+
     // Build loanRefs from current table rows (Loan No is column 2)
       const tds = Array.from(document.querySelectorAll('#emi-collect-tbody tr td:nth-child(2)'));
       window.loanRefs = [...new Set(tds.map(td => (td.textContent || '').trim()).filter(Boolean))];
@@ -1729,6 +1908,13 @@
           getLoanRefs: () => window.loanRefs || [],
           columnIndex: { loan: 2, date: 5, status: 0 },
           enableDatePicker: true,
+          // Override: when a date is set, use our server-side fetch instead of client-side filter
+          onDateChange: async (dateStr) => {
+            if (dateStr) {
+              const emis = await fetchEmisByDate(dateStr, loanSearchInput ? loanSearchInput.value.trim() : '');
+              renderEmiRows(emis);
+            }
+          }
         });
         window._collectionFiltersInit = true;
       }

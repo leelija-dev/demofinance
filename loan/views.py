@@ -1997,6 +1997,76 @@ class EmiCollectionListAPIView(APIView):
         serializer = EMICollectSerializer(first_by_loan, many=True)
         return Response(serializer.data)
 
+
+class EmiCollectionByDateAPIView(APIView):
+    """
+    Returns ALL assigned EMIs for the logged-in agent filtered by installment date.
+    Includes all collection statuses: pending, overdue, collected, verified, rejected.
+    """
+
+    def get(self, request):
+        agent_id = request.session.get('agent_id')
+        date_str = request.GET.get('date', '').strip()
+        loan_search = request.GET.get('loan', '').strip()
+
+        if not date_str:
+            return Response([], status=status.HTTP_200_OK)
+
+        # Normalize date parsing
+        from datetime import datetime
+        try:
+            if '-' in date_str:
+                parts = date_str.split('-')
+                if len(parts) == 3:
+                    # Try DD-MM-YYYY
+                    filter_date = datetime.strptime(date_str, '%d-%m-%Y').date()
+                else:
+                    filter_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            else:
+                filter_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except (ValueError, IndexError):
+            try:
+                filter_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            except ValueError:
+                return Response({'error': 'Invalid date format. Use YYYY-MM-DD or DD-MM-YYYY.'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+        qs = (
+            EmiAgentAssign.objects
+            .select_related(
+                'agent',
+                'emi',
+                'emi__loan_application',
+                'emi__loan_application__customer',
+                'reschedule_emi',
+                'reschedule_emi__loan_application',
+                'reschedule_emi__loan_application__customer',
+                'assigned_by',
+                'assigned_by__branch'
+            )
+            .filter(installment_date=filter_date)
+            .order_by('emi__loan_application__loan_ref_no', 'installment_date', 'emi__id')
+        )
+
+        # Exclude loans with pending/approved close requests
+        qs = qs.exclude(
+            Q(emi__loan_application__close_requests__status__in=['pending', 'approved'])
+            | Q(reschedule_emi__loan_application__close_requests__status__in=['pending', 'approved'])
+        ).distinct()
+
+        if agent_id:
+            qs = qs.filter(agent__agent_id=agent_id)
+
+        if loan_search:
+            qs = qs.filter(
+                Q(emi__loan_application__loan_ref_no__icontains=loan_search)
+                | Q(reschedule_emi__loan_application__loan_ref_no__icontains=loan_search)
+            )
+
+        serializer = EMICollectSerializer(qs, many=True)
+        return Response(serializer.data)
+
+
 class CollectedEMIView(AgentSessionRequiredMixin, TemplateView):
     template_name = 'emi/collected-emi.html'
 

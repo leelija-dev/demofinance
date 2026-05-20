@@ -322,6 +322,8 @@ class EMICollectSerializer(serializers.ModelSerializer):
     customer_id = serializers.SerializerMethodField()
     branch_name = serializers.SerializerMethodField()
     can_collect = serializers.SerializerMethodField()
+    collection_status = serializers.SerializerMethodField()
+    is_overdue = serializers.SerializerMethodField()
 
     class Meta:
         model = EmiAgentAssign
@@ -366,6 +368,59 @@ class EMICollectSerializer(serializers.ModelSerializer):
             return getattr(la_branch, 'branch_name', None)
         except Exception:
             return None
+
+    def get_collection_status(self, obj):
+        """
+        Returns the collection status of this assigned EMI:
+          - 'verified': collected & branch-verified
+          - 'collected': collected but not yet verified
+          - 'rejected': collected but rejected by branch
+          - 'overdue': installment date passed, no collection record
+          - 'pending': not yet collected, installment date is today or future
+        """
+        from django.utils import timezone
+
+        emi_obj = obj.emi or getattr(obj, 'reschedule_emi', None)
+        if not emi_obj:
+            return 'pending'
+
+        # Determine the latest collection record for this EMI (original or rescheduled)
+        latest_collection = None
+        if obj.emi_id:
+            latest_collection = (
+                EmiCollectionDetail.objects
+                .filter(emi=emi_obj)
+                .order_by('-collected_at')
+                .first()
+            )
+        elif getattr(obj, 'reschedule_emi_id', None):
+            latest_collection = (
+                EmiCollectionDetail.objects
+                .filter(reschedule_emi=emi_obj)
+                .order_by('-collected_at')
+                .first()
+            )
+
+        if latest_collection:
+            return latest_collection.status  # one of: 'collected', 'verified', 'rejected', 'pending'
+
+        # No collection record → check if overdue
+        today = timezone.now().date()
+        if emi_obj.installment_date < today:
+            return 'overdue'
+
+        return 'pending'
+
+    def get_is_overdue(self, obj):
+        """Returns True if the EMI installment date has passed and it's not yet collected."""
+        from django.utils import timezone
+
+        emi_obj = obj.emi or getattr(obj, 'reschedule_emi', None)
+        if not emi_obj:
+            return False
+
+        today = timezone.now().date()
+        return emi_obj.installment_date < today
 
     def get_can_collect(self, obj):
         """Return True only if the immediately previous EMI for this loan is verified.
