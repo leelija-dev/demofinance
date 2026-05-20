@@ -24,18 +24,20 @@ class AgentSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
         photo = getattr(instance, 'photo', None)
         if photo:
-            path = photo.name
-            if path.startswith('media/'):
-                path = path[6:]
-            data['photo'] = f'/media/{path}'
+            # path = photo.name
+            # if path.startswith('media/'):
+            #     path = path[6:]
+            # data['photo'] = f'/media/{path}'
+            data['photo'] = photo.url
         else:
             data['photo'] = None
         id_proof = getattr(instance, 'id_proof', None)
         if id_proof:
-            path = id_proof.name
-            if path.startswith('media/'):
-                path = path[6:]
-            data['id_proof'] = f'/media/{path}'
+            # path = id_proof.name
+            # if path.startswith('media/'):
+            #     path = path[6:]
+            # data['id_proof'] = f'/media/{path}'
+            data['id_proof'] = id_proof.url
         else:
             data['id_proof'] = None
         return data

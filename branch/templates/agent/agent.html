@@ -122,7 +122,8 @@ function renderAgentRow(agent) {
   // If agent.photo is set, ensure it starts with '/' for static serving
   let photoUrl = '';
   if (agent.photo) {
-    photoUrl = agent.photo.startsWith('/') ? agent.photo : '/' + agent.photo;
+    // photoUrl = agent.photo.startsWith('/') ? agent.photo : '/' + agent.photo;
+    photoUrl = agent.photo;
     // console.log(photoUrl);
     
   }
