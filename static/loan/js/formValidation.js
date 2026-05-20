@@ -1081,6 +1081,7 @@ async function callDraftAPI(endpoint, method, data = null) {
             hideCurrentAddressSections('flex');
         }
         hideEmptyInputFields(formData.entries());
+        
         hideEmptyProductSections();
     }
     
