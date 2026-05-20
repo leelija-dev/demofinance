@@ -1776,10 +1776,6 @@ class EmiCollectView(AgentSessionRequiredMixin, TemplateView):
                 'assigned_by__branch'
             )
             .order_by('emi__loan_application__loan_ref_no', 'installment_date', 'emi__id')
-            .filter(
-                Q(emi__installment_date=today) |
-                Q(reschedule_emi__installment_date=today)
-            )
         )
 
         qs = qs.exclude(
