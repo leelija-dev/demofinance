@@ -319,6 +319,7 @@ class LoanDisbursedListSerializer(serializers.ModelSerializer):
 class EMICollectSerializer(serializers.ModelSerializer):
     loan_ref_no = serializers.SerializerMethodField()
     customer_name = serializers.SerializerMethodField()
+    customer_id = serializers.SerializerMethodField()
     branch_name = serializers.SerializerMethodField()
     can_collect = serializers.SerializerMethodField()
 
@@ -331,6 +332,15 @@ class EMICollectSerializer(serializers.ModelSerializer):
             emi_obj = obj.emi or getattr(obj, 'reschedule_emi', None)
             loan_app = getattr(emi_obj, 'loan_application', None)
             return getattr(loan_app, 'loan_ref_no', None)
+        except Exception:
+            return None
+
+    def get_customer_id(self, obj):
+        try:
+            emi_obj = obj.emi or getattr(obj, 'reschedule_emi', None)
+            loan_app = getattr(emi_obj, 'loan_application', None)
+            customer = getattr(loan_app, 'customer', None)
+            return getattr(customer, 'customer_id', None)
         except Exception:
             return None
 

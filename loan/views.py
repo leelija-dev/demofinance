@@ -1761,6 +1761,7 @@ class EmiCollectView(AgentSessionRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         agent_id = self.request.session.get('agent_id')
 
+        today = timezone.now().date()
         qs = (
             EmiAgentAssign.objects
             .select_related(
@@ -1775,6 +1776,10 @@ class EmiCollectView(AgentSessionRequiredMixin, TemplateView):
                 'assigned_by__branch'
             )
             .order_by('emi__loan_application__loan_ref_no', 'installment_date', 'emi__id')
+            .filter(
+                Q(emi__installment_date=today) |
+                Q(reschedule_emi__installment_date=today)
+            )
         )
 
         qs = qs.exclude(
@@ -1831,6 +1836,7 @@ class EmiCollectView(AgentSessionRequiredMixin, TemplateView):
             page_obj = paginator.page(1)
 
         serializer = EMICollectSerializer(page_obj.object_list, many=True)
+        print('serializer.data   -> ', serializer.data)
         context['rows'] = serializer.data
         context['page_obj'] = page_obj
         context['has_next'] = page_obj.has_next()

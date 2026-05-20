@@ -2,7 +2,7 @@
 <tr>
     <td class="px-6 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ collectEMI.assignment_id }}</p></td>
     <td class="px-6 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ collectEMI.loan_ref_no|default_if_none:"" }}</p></td>
-    <td class="px-6 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ collectEMI.customer_name|default_if_none:"" }}</p></td>
+    <td class="px-6 py-2"><p class="text-blue-500 text-theme-sm dark:text-blue-400"><a href="/agent/application-detail/{{collectEMI.customer_id}}/{{collectEMI.loan_ref_no}}/">{{ collectEMI.customer_name|default_if_none:"" }}</a></p></td>
     <td class="px-6 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ collectEMI.branch_name|default_if_none:"" }}</p></td>
     <td class="px-6 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ collectEMI.installment_date|default_if_none:"" }}</p></td>
     <td class="px-6 py-2"><p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ collectEMI.principal_amount }}</p></td>
