@@ -1,11 +1,50 @@
 // Expose a tiny helper onto window
-window.AgentFilters = (function() {
+window.AgentFilters = (function () {
+  /** Canonical YYYY-MM-DD for comparisons (timezone-neutral for plain dates). */
+  function normalizeDateText(value) {
+    const raw = (value || '').trim();
+    if (!raw) return '';
+
+    let s = raw;
+    if (s.includes('T')) {
+      s = s.split('T')[0].trim();
+    }
+
+    let m = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+    if (m) {
+      const d = String(m[1]).padStart(2, '0');
+      const mon = String(m[2]).padStart(2, '0');
+      const y = String(m[3]);
+      return `${y}-${mon}-${d}`;
+    }
+
+    m = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+    if (m) {
+      const y = String(m[1]);
+      const mon = String(m[2]).padStart(2, '0');
+      const d = String(m[3]).padStart(2, '0');
+      return `${y}-${mon}-${d}`;
+    }
+
+    const parsed = new Date(raw);
+    if (!Number.isNaN(parsed.getTime())) {
+      const y = String(parsed.getFullYear());
+      const mon = String(parsed.getMonth() + 1).padStart(2, '0');
+      const d = String(parsed.getDate()).padStart(2, '0');
+      return `${y}-${mon}-${d}`;
+    }
+
+    return raw.toLowerCase();
+  }
+
   function applyFilters(tableBody, noDataEl, idx, state) {
     if (!tableBody) return;
     const allRows = Array.from(tableBody.querySelectorAll('tr'));
     // Treat rows with '.details-row' as children of the preceding main row
     const mainRows = allRows.filter(r => !r.classList.contains('details-row'));
     let visible = 0;
+
+    const filterDateNorm = state.date ? normalizeDateText(state.date) : '';
 
     mainRows.forEach(row => {
       // Loan filter (substring match)
@@ -18,18 +57,18 @@ window.AgentFilters = (function() {
 
       // Date filter (exact match after display formatting)
       let okDate = true;
-      if (state.date) {
+      if (filterDateNorm) {
         const cell = row.querySelector(`td:nth-child(${idx.date})`);
         const txt = (cell ? cell.textContent.trim() : '');
-        okDate = (txt === state.date);
+        okDate = normalizeDateText(txt) === filterDateNorm;
       }
 
       // Status filter (exact, lowercase)
       let okStatus = true;
       if (state.status && idx.status > 0) {
         const cell = row.querySelector(`td:nth-child(${idx.status})`);
-        const txt = (cell ? cell.textContent.trim().toLowerCase() : '');
-        okStatus = (txt === state.status);
+        const cellTxt = (cell ? cell.textContent.trim().toLowerCase() : '');
+        okStatus = (cellTxt === state.status);
       }
 
       const show = okLoan && okDate && okStatus;
@@ -42,7 +81,6 @@ window.AgentFilters = (function() {
           detailsRow.style.display = 'none';
           detailsRow.classList.remove('expanded');
         } else {
-          // Only show if it was expanded
           detailsRow.style.display = detailsRow.classList.contains('expanded') ? 'table-row' : 'none';
         }
       }
@@ -75,20 +113,40 @@ window.AgentFilters = (function() {
     } = opts || {};
 
     const tableBody = document.querySelector(tableBodySelector);
-    const noDataEl = document.querySelector(noDataSelector);
-    const dateInput = document.querySelector(dateInputSelector);
-    const loanInput = document.querySelector(loanInputSelector);
-    const statusSelect = document.querySelector(statusSelectSelector);
-    const clearBtn = document.querySelector(clearBtnSelector);
-    const searchIcon = document.querySelector(searchIconSelector);
-    const clearSearchBtn = document.querySelector(clearSearchBtnSelector);
-    const suggestionsEl = document.querySelector(suggestionsBoxSelector);
+    const noDataEl = noDataSelector ? document.querySelector(noDataSelector) : null;
+    const dateInput = dateInputSelector ? document.querySelector(dateInputSelector) : null;
+    const loanInput = loanInputSelector ? document.querySelector(loanInputSelector) : null;
+    const statusSelect = statusSelectSelector ? document.querySelector(statusSelectSelector) : null;
+    const clearBtn = clearBtnSelector ? document.querySelector(clearBtnSelector) : null;
+    const searchIcon = searchIconSelector ? document.querySelector(searchIconSelector) : null;
+    const clearSearchBtn = clearSearchBtnSelector ? document.querySelector(clearSearchBtnSelector) : null;
+    const suggestionsEl = suggestionsBoxSelector ? document.querySelector(suggestionsBoxSelector) : null;
 
     const state = { date: '', loan: '', status: '' };
 
-    // Setup date picker
+    function runFilters() {
+      applyFilters(tableBody, noDataEl, columnIndex, state);
+    }
+
+    // Allow list pages (e.g. infinite scroll) to re-apply active filters after new rows render
+    window.AgentFilters.refresh = runFilters;
+
+    // Setup date picker — use onChange because native "change" is not always fired by flatpickr
+    let datePicker = null;
     if (enableDatePicker && typeof flatpickr !== 'undefined' && dateInput) {
-      flatpickr(dateInput, { dateFormat: 'd M Y', allowInput: true });
+      datePicker = flatpickr(dateInput, {
+        dateFormat: 'd M Y',
+        allowInput: true,
+        onChange: (_dates, dateStr) => {
+          state.date = (dateStr || dateInput.value || '').trim();
+          runFilters();
+        },
+      });
+    }
+
+    function syncDateFromInput() {
+      state.date = (dateInput ? dateInput.value : '').trim();
+      runFilters();
     }
 
     // Loan suggestions
@@ -112,7 +170,7 @@ window.AgentFilters = (function() {
         if (searchIcon) searchIcon.classList.toggle('hidden', !!state.loan);
         renderSuggestions(state.loan);
         showSuggestions();
-        applyFilters(tableBody, noDataEl, columnIndex, state);
+        runFilters();
       });
     }
     if (suggestionsEl) {
@@ -124,7 +182,7 @@ window.AgentFilters = (function() {
         state.loan = val.toLowerCase();
         if (clearSearchBtn) clearSearchBtn.classList.remove('hidden');
         if (searchIcon) searchIcon.classList.add('hidden');
-        applyFilters(tableBody, noDataEl, columnIndex, state);
+        runFilters();
         hideSuggestions();
       });
       document.addEventListener('click', e => {
@@ -138,30 +196,33 @@ window.AgentFilters = (function() {
         state.loan = '';
         clearSearchBtn.classList.add('hidden');
         if (searchIcon) searchIcon.classList.remove('hidden');
-        applyFilters(tableBody, noDataEl, columnIndex, state);
+        runFilters();
       });
     }
 
-    // Date filter
     if (dateInput) {
-      dateInput.addEventListener('change', () => {
-        state.date = (dateInput.value || '').trim();
-        applyFilters(tableBody, noDataEl, columnIndex, state);
+      dateInput.addEventListener('input', syncDateFromInput);
+      dateInput.addEventListener('change', syncDateFromInput);
+      dateInput.addEventListener('blur', syncDateFromInput);
+      dateInput.addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') syncDateFromInput();
       });
     }
 
-    // Status filter
     if (statusSelect) {
       statusSelect.addEventListener('change', () => {
         state.status = (statusSelect.value || '').trim().toLowerCase();
-        applyFilters(tableBody, noDataEl, columnIndex, state);
+        runFilters();
       });
     }
 
-    // Clear all filters
     if (clearBtn) {
       clearBtn.addEventListener('click', () => {
-        if (dateInput) dateInput.value = '';
+        if (datePicker) {
+          try { datePicker.clear(); } catch (e) { /* noop */ }
+        } else if (dateInput) {
+          dateInput.value = '';
+        }
         if (loanInput) loanInput.value = '';
         if (statusSelect) statusSelect.value = '';
         state.date = '';
@@ -169,12 +230,11 @@ window.AgentFilters = (function() {
         state.status = '';
         if (clearSearchBtn) clearSearchBtn.classList.add('hidden');
         if (searchIcon) searchIcon.classList.remove('hidden');
-        applyFilters(tableBody, noDataEl, columnIndex, state);
+        runFilters();
       });
     }
 
-    // Initial apply so "No data" reflects current table
-    applyFilters(tableBody, noDataEl, columnIndex, state);
+    runFilters();
   }
 
   return { init };

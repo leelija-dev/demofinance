@@ -809,6 +809,9 @@
                         const tds2 = Array.from(document.querySelectorAll('#emi-collect-tbody tr td:nth-child(2)'));
                         window.loanRefs = [...new Set(tds2.map(td => (td.textContent || '').trim()).filter(Boolean))];
                     } catch (e) { /* noop */ }
+                    if (window.AgentFilters && typeof window.AgentFilters.refresh === 'function') {
+                        window.AgentFilters.refresh();
+                    }
                 }
             });
         }
@@ -1754,7 +1757,7 @@
           clearSearchBtnSelector: '#clearSearchBtn',
           suggestionsBoxSelector: '#loanSuggestions',
           getLoanRefs: () => window.loanRefs || [],
-          columnIndex: { loan: 2, date: 8, status: 0 },
+          columnIndex: { loan: 2, date: 5, status: 0 },
           enableDatePicker: true,
         });
         window._collectionFiltersInit = true;
