@@ -2565,7 +2565,7 @@ class HQLoanListView(LoginRequiredMixin, TemplateView):
             status_filter = 'all'
             qs = base_qs
 
-        context['loan_applications'] = qs
+        context['loan_applications'] = qs.order_by('-submitted_at')
         context['status_filter'] = status_filter
         context['selected_branch_id'] = selected_branch_id
         context['branches'] = user_branches.order_by('branch_name')  # Provide only user's branches for filter UI
