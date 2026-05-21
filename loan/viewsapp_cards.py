@@ -79,6 +79,9 @@ class NewLoanApplicationCardsView(AgentSessionRequiredMixin, TemplateView):
             context["demo_credit"] = demo_credit
             trial_expiry_date = headquarter_employee.trial_expiry_date
             print('get trial_expiry_date ->', trial_expiry_date)
+            print('trial_expiry_date >= timezone.now()   -> ', trial_expiry_date >= timezone.now())
+            print('demo_credit==0  -> ', demo_credit==0)
+            print('trial_expiry_date and trial_expiry_date >= timezone.now() and demo_credit==0   -> ', trial_expiry_date and trial_expiry_date >= timezone.now() and demo_credit==0)
             if trial_expiry_date and trial_expiry_date >= timezone.now() and demo_credit==0:
                 context["is_active"] = False
                 context["error_message"] = "Demo credit exhausted."
