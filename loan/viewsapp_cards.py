@@ -24,12 +24,13 @@ class NewLoanApplicationCardsView(AgentSessionRequiredMixin, TemplateView):
             "branch_manager_id": request.session.get("logged_user_id"),
             "base_template": "agent/base.html",
         }
+        print('context agent init ->', context)
 
         agent_id = request.session.get("agent_id")
         headquarter_employee_id = request.user.id
 
         if agent_id:
-            try:
+            # try:
                 agent = Agent.objects.get(agent_id=agent_id)
                 if agent.status == "inactive":
                     context["is_active"] = False
@@ -43,11 +44,11 @@ class NewLoanApplicationCardsView(AgentSessionRequiredMixin, TemplateView):
                 context['agent_shops'] = shops
                 context['default_shop_id'] = shops[0].shop_id if len(shops) == 1 else ''
                 headquarter_employee_id = agent.branch.created_by.id 
-            except Agent.DoesNotExist:
-                context["is_active"] = False
-                context["error_message"] = "Agent not found."
-                context['agent_shops'] = []
-                context['default_shop_id'] = ''
+            # except Agent.DoesNotExist:
+            #     context["is_active"] = False
+            #     context["error_message"] = "Agent not found."
+            #     context['agent_shops'] = []
+            #     context['default_shop_id'] = ''
         else:
             context["is_active"] = False
             context["error_message"] = "Authentication required."
@@ -69,7 +70,7 @@ class NewLoanApplicationCardsView(AgentSessionRequiredMixin, TemplateView):
                 context["error_message"] = "Demo credit exhausted."
                 self.template_name = 'loan/partials/demo-credit-expire.html'
                 return render(request, self.template_name, context)
-        print('context -> ', context)
+        print('context agent end -> ', context)
         return render(request, self.template_name, context)
 
 

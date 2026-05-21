@@ -69,7 +69,7 @@
     </td>
 </tr>
 {% empty %}
-{% if page_obj.number == 1 %}
+{% if page_obj.number == 1 or not applications %}
 <tr>
     <td class="px-4 py-8 text-center text-gray-500 dark:text-gray-400" colspan="11">No pending applications</td>
 </tr>

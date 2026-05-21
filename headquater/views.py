@@ -3365,7 +3365,7 @@ class LoanDisbursementList(LoginRequiredMixin, TemplateView):
             'loan_details__loan_category', 
             'loan_details__tenure', 
             'loan_details__interest_rate'
-        )
+        ).order_by('-submitted_at')
         return context
 
 @require_permissions_for_class('loan.view_disbursementlog')
