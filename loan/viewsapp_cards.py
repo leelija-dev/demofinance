@@ -27,23 +27,32 @@ class NewLoanApplicationCardsView(AgentSessionRequiredMixin, TemplateView):
         print('context agent init ->', context)
 
         agent_id = request.session.get("agent_id")
+        print('get agent_id ->', agent_id)
         headquarter_employee_id = request.user.id
+        print('get headquarter_employee_id ->', headquarter_employee_id)
 
         if agent_id:
+            # temporaryly removed the try catch for debugging.
             # try:
                 agent = Agent.objects.get(agent_id=agent_id)
+                print('get agent ->', agent)
                 if agent.status == "inactive":
                     context["is_active"] = False
                     context["error_message"] = (
                         "Cannot create loan application. Agent is currently inactive."
                     )
+                print('context agent after agent.status check ->', context['is_active'])
 
                 # Active shops for this agent (exclude inactive shops)
                 shops_qs = Shop.objects.filter(agent__agent_id=agent_id).exclude(status='inactive').order_by('name')
+                print('get shops_qs ->', shops_qs)
                 shops = list(shops_qs)
+                print('get shops ->', shops)
                 context['agent_shops'] = shops
                 context['default_shop_id'] = shops[0].shop_id if len(shops) == 1 else ''
+                print('context after shops ->', context)
                 headquarter_employee_id = agent.branch.created_by.id 
+                print('get headquarter_employee_id ->', headquarter_employee_id)
             # except Agent.DoesNotExist:
             #     context["is_active"] = False
             #     context["error_message"] = "Agent not found."
@@ -54,21 +63,27 @@ class NewLoanApplicationCardsView(AgentSessionRequiredMixin, TemplateView):
             context["error_message"] = "Authentication required."
             context['agent_shops'] = []
             context['default_shop_id'] = ''
+            print('context after else ->', context)
 
         context['page_title'] = 'New Loan Application - Card Based'
+        print('context after page_title ->', context)
 
 
         headquarter_employee = None
         if headquarter_employee_id:
             headquarter_employee = HeadquarterEmployee.objects.filter(id=headquarter_employee_id).first()
+        print('get headquarter_employee ->', headquarter_employee)
         if headquarter_employee:
             demo_credit = headquarter_employee.demo_credit
+            print('get demo_credit ->', demo_credit)
             context["demo_credit"] = demo_credit
             trial_expiry_date = headquarter_employee.trial_expiry_date
+            print('get trial_expiry_date ->', trial_expiry_date)
             if trial_expiry_date and trial_expiry_date >= timezone.now() and demo_credit==0:
                 context["is_active"] = False
                 context["error_message"] = "Demo credit exhausted."
                 self.template_name = 'loan/partials/demo-credit-expire.html'
+                print('context demo credit expire -> ', context)
                 return render(request, self.template_name, context)
         print('context agent end -> ', context)
         return render(request, self.template_name, context)
