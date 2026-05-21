@@ -56,7 +56,10 @@ class NewLoanApplicationCardsView(AgentSessionRequiredMixin, TemplateView):
 
         context['page_title'] = 'New Loan Application - Card Based'
 
-        headquarter_employee = HeadquarterEmployee.objects.filter(id=headquarter_employee_id).first()
+
+        headquarter_employee = None
+        if headquarter_employee_id:
+            headquarter_employee = HeadquarterEmployee.objects.filter(id=headquarter_employee_id).first()
         if headquarter_employee:
             demo_credit = headquarter_employee.demo_credit
             context["demo_credit"] = demo_credit
