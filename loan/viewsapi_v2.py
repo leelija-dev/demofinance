@@ -394,10 +394,10 @@ class NewLoanApplicationAPIV2(APIView):
                     headquarter_employee_id = request.user.id
                     if agent_id and agent:
                         print("Agent found")
-                        headquarter_employee_id = agent.branch.created_by 
+                        headquarter_employee_id = agent.branch.created_by.id 
                     if branch_manager_id and created_by_branch_manager:
                         print("Branch manager found")
-                        headquarter_employee_id = created_by_branch_manager.created_by 
+                        headquarter_employee_id = created_by_branch_manager.created_by
                     print(headquarter_employee_id)
                     headquarter_employee = HeadquarterEmployee.objects.filter(id=headquarter_employee_id).first()
                     if headquarter_employee:

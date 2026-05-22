@@ -1262,7 +1262,13 @@ async function callDraftAPI(endpoint, method, data = null) {
                 // Disable button immediately to prevent multiple clicks
                 submitPreviewBtn.disabled = true;
                 submitPreviewBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                showLoader();
+                // showLoader();
+                const fullPageLoader = document.getElementById('full-page-loader');
+                if (fullPageLoader) {
+                    fullPageLoader.style.display = 'flex';
+                }
+                document.body.style.overflow = 'hidden';
+
                 // Trigger form submission 
                 console.log(typeof confirmSubmit);
                 if (typeof confirmSubmit === 'function') {
