@@ -861,6 +861,7 @@ class BranchApplicationDetailAPI(APIView):
                     'income_proof': get_best_document(loan_app, 'income_proof', documents.income_proof),
                     'photo': get_best_document(loan_app, 'photo', documents.photo),
                     'signature': get_best_document(loan_app, 'signature', documents.signature),
+                    'guarantor_id_proof': get_best_document(loan_app, 'guarantor_id_proof', documents.guarantor_id_proof),
                     'collateral': get_best_document(loan_app, 'collateral', documents.collateral),
                     'residential_proof_file': get_best_document(loan_app, 'residential_proof', documents.residential_proof_file),
                 }
@@ -889,6 +890,7 @@ class BranchApplicationDetailAPI(APIView):
                 'voter_number':  self._get_customer_details(customer, is_old_loan, customer_detail_snapshot, 'voter_number'), 
                 'status': loan_app.status,
                 'submitted_at': loan_app.submitted_at,
+                'customer_submitted_at': self._get_customer_details(customer, is_old_loan, customer_detail_snapshot, 'submitted_at'),
                 'branch_rejection_reason': customer.branch_rejection_reason,
                 'agent': AgentSerializer(agent).data if agent else None,
                 'loans': CustomerLoanDetailSerializer(loans, many=True).data,

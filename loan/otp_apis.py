@@ -253,29 +253,16 @@ class SendAadhaarOTPAPI(APIView):
                     import os
 
                     def get_latest_document(loan_application, doc_type, original_file):
-                        # Special handling for residential proof: check both possible doc_type values
+                        imagePath = original_file.url if original_file else None 
                         reupload = DocumentReupload.objects.filter(
                             loan_application=loan_application,
                             document_type=doc_type
                         ).order_by('-uploaded_at').first()
-                        print("reupload ->", reupload)
-                        if reupload and reupload.uploaded_file and os.path.exists(str(reupload.uploaded_file)):
-                            try:
-                                with open(str(reupload.uploaded_file), 'rb') as f:
-                                    return base64.b64encode(f.read()).decode('utf-8')
-                            except Exception:
-                                print("reupload exception ->", reupload)
-                                pass
-                        # Fall back to original file
-                        if original_file and hasattr(original_file, 'path') and os.path.exists(str(original_file.path)):
-                            try:
-                                with open(str(original_file.path), 'rb') as f:
-                                    return base64.b64encode(f.read()).decode('utf-8')
-                            except Exception as e:
-                                print("original file exception ->", original_file, e)
-                                raise e
-                        print("reupload none ->", reupload)
-                        return None
+                        imagePath = reupload.uploaded_file if reupload else imagePath 
+                        if not imagePath: return None  
+                        response = requests.head(imagePath)
+                        if response.status_code != 200: return None
+                        return imagePath
 
                     documents_data = {}
                     # Find the latest loan application for this customer to get documents

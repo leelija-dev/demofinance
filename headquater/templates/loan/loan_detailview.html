@@ -42,10 +42,12 @@
                     <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Full Name</label><p class="text-sm text-gray-800 dark:text-white">{{ app.customer.full_name }}</p></div>
                     <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Date of Birth</label><p class="text-sm text-gray-800 dark:text-white">{{ app.customer.date_of_birth }}</p></div>
                     <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Gender</label><p class="text-sm text-gray-800 dark:text-white">{{ app.customer.gender }}</p></div>
+                    <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Father Name</label><p class="text-sm text-gray-800 dark:text-white">{{ app.customer.father_name }}</p></div>
                     <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Contact</label><p class="text-sm text-gray-800 dark:text-white">{{ app.customer.contact }}</p></div>
                     <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Email</label><p class="text-sm text-gray-800 dark:text-white">{{ app.customer.email|default:'-' }}</p></div>
                     <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Aadhar Number</label><p class="text-sm text-gray-800 dark:text-white">{{ app.customer.adhar_number }}</p></div>
                     <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">PAN Number</label><p class="text-sm text-gray-800 dark:text-white">{{ app.customer.pan_number }}</p></div>
+                    <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Guarantor Name</label><p class="text-sm text-gray-800 dark:text-white">{{ app.customer.guarantor_name }}</p></div>
                     <div><label class="text-sm font-medium text-gray-500 dark:text-gray-400">Loan Status</label>
                         {% if app.status == 'pending' %}
                             <span class="inline-block px-2 py-1 text-xs font-semibold rounded-2xl bg-orange-400 text-white">Pending</span>
@@ -370,6 +372,30 @@
                         </div>
                     </div>
                 </div>
+                <!-- Guarantor Id Proof -->
+                {% if documents.guarantor_id_proof %}
+                <div class="space-y-3">
+                    <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">Guarantor Id Proof</h4>
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Property Documents</span>
+                            <span class="text-xs {% if documents.guarantor_id_proof %}text-success-500 dark:text-success-500{% else %}text-gray-500 dark:text-gray-500{% endif %}">{% if documents.guarantor_id_proof %}✓ Uploaded{% else %}Optional{% endif %}</span>
+                        </div>
+                        <div class="flex gap-2">
+                            {% if documents.guarantor_id_proof %}
+                                <!-- <a href="/media/{{ documents.guarantor_id_proof }}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition"><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> View Document</a> -->
+                                <a href="{{ documents.guarantor_id_proof.url }}" target="_blank" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-brand-500 dark:text-white bg-brand-50 dark:bg-gray-700 border border-brand-200 dark:border-gray-700 rounded-md hover:bg-brand-500 hover:text-white dark:hover:bg-gray-600 transition"><svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> View Document</a>
+                            {% endif %}
+                            {% if not from_loan_close_requests %}
+                            <form method="post" action="" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" name="request_doc" value="guarantor_id_proof" class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium {% if requested_docs and 'guarantor_id_proof' in requested_docs %}text-gray-500 bg-gray-100{% else %}text-white bg-brand-500{% endif %} dark:bg-error-900/20 border border-brand-500 dark:border-gray-800 rounded-md hover:bg-error-100 dark:hover:bg-error-900/30 transition" {% if requested_docs and 'guarantor_id_proof' in requested_docs %}disabled{% endif %} title="{% if requested_docs and 'guarantor_id_proof' in requested_docs %}Document already requested{% endif %}">Request Document</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
                 <!-- Collateral -->
                 {% if documents.collateral %}
                 <div class="space-y-3">

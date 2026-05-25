@@ -1366,11 +1366,21 @@
               <input type="file" class="form-input" @change="handleFileUpload($event, 'guarantor_id_proof')" accept="image/*,.pdf" />
               <input type="hidden" name="guarantor_id_proof" :value="documents.guarantor_id_proof" />
               <div class="error-message" x-show="errors.guarantor_id_proof" x-text="errors.guarantor_id_proof"></div>
+              <template x-if="documents.guarantor_id_proof && customerType.guarantor_id_proof === 'existing'">
+                <div class="mt-2 text-sm">
+                  Existing file: <a :href="documents.guarantor_id_proof" target="_blank" class="text-blue-600 underline">View</a>
+                </div>
+              </template>
             </div>
             <div class="form-group">
               <label class="form-label">ID Proof (Front) <span class="text-red-500">*</span></label>
               <input type="file" class="form-input" @change="handleFileUpload($event, 'id_proof')" accept="image/*,.pdf" />
               <input type="hidden" name="id_proof" :value="documents.id_proof" />
+              <template x-if="documents.id_proof && customerType.id_proof === 'existing'">
+                <div class="mt-2 text-sm">
+                  Existing file: <a :href="documents.id_proof" target="_blank" class="text-blue-600 underline">View</a>
+                </div>
+              </template>
               <div class="error-message" x-show="errors.id_proof" x-text="errors.id_proof"></div>
             </div>
 
@@ -1378,18 +1388,33 @@
               <label class="form-label">ID Proof (Back)</label>
               <input type="file" class="form-input" @change="handleFileUpload($event, 'id_proof_back')" accept="image/*,.pdf" />
               <input type="hidden" name="id_proof_back" :value="documents.id_proof_back" />
+              <template x-if="documents.id_proof_back && customerType.id_proof_back === 'existing'">
+                <div class="mt-2 text-sm">
+                  Existing file: <a :href="documents.id_proof_back" target="_blank" class="text-blue-600 underline">View</a>
+                </div>
+              </template>
             </div>
 
             <div class="form-group">
               <label class="form-label">PAN Card</label>
               <input type="file" class="form-input" @change="handleFileUpload($event, 'pan_card')" accept="image/*,.pdf" />
               <input type="hidden" name="pan_card_document" :value="documents.pan_card" />
+              <template x-if="documents.pan_card && customerType.pan_card === 'existing'">
+                <div class="mt-2 text-sm">
+                  Existing file: <a :href="documents.pan_card" target="_blank" class="text-blue-600 underline">View</a>
+                </div>
+              </template>
             </div>
 
             <div class="form-group">
               <label class="form-label">Photograph <span class="text-red-500">*</span></label>
               <input type="file" class="form-input" @change="handleFileUpload($event, 'photo')" accept="image/*" />
               <input type="hidden" name="photo" :value="documents.photo" />
+              <template x-if="documents.photo && customerType.photo === 'existing'">
+                <div class="mt-2 text-sm">
+                  Existing file: <a :href="documents.photo" target="_blank" class="text-blue-600 underline">View</a>
+                </div>
+              </template>
               <div class="error-message" x-show="errors.photo" x-text="errors.photo"></div>
             </div>
 
@@ -1397,6 +1422,11 @@
               <label class="form-label">Signature <span class="text-red-500">*</span></label>
               <input type="file" class="form-input" @change="handleFileUpload($event, 'signature')" accept="image/*" />
               <input type="hidden" name="signature" :value="documents.signature" />
+              <template x-if="documents.signature && customerType.signature === 'existing'">
+                <div class="mt-2 text-sm">
+                  Existing file: <a :href="documents.signature" target="_blank" class="text-blue-600 underline">View</a>
+                </div>
+              </template>
               <div class="error-message" x-show="errors.signature" x-text="errors.signature"></div>
             </div>
 
@@ -1404,6 +1434,11 @@
               <label class="form-label">Income Proof</label>
               <input type="file" class="form-input" @change="handleFileUpload($event, 'income_proof')" accept="image/*,.pdf" />
               <input type="hidden" name="income_proof" :value="documents.income_proof" />
+              <template x-if="documents.income_proof && customerType.income_proof === 'existing'">
+                <div class="mt-2 text-sm">
+                  Existing file: <a :href="documents.income_proof" target="_blank" class="text-blue-600 underline">View</a>
+                </div>
+              </template>
             </div>
           </div>
 
@@ -2062,7 +2097,14 @@
       panVerificationStatus: null, // null, 'checking', 'linked', 'not_linked'
 
       // Customer type toggle
-      customerType: "new", // 'new' or 'existing'
+      customerType: {
+        guarantor_id_proof: "new",
+        id_proof: "new",
+        id_proof_back: "new",
+        pan_card: "new",
+        photo: "new",
+        signature: "new",
+      }, // 'new' or 'existing'
 
       // Existing customer data
       selectedCustomerId: null,
@@ -2962,7 +3004,7 @@
         this.setPreviewValue("preview_current_country", this.addressData.current.country);
         this.setPreviewValue("preview_current_post_code", this.addressData.current.post_code);
         this.setPreviewValue("preview_residential_proof_type", this.documents.residential_proof_type);
-        this.setPreviewValue("preview_residential_proof_file", this.documents.residential_proof_file ? this.documents.residential_proof_file.name : "Not uploaded");
+        this.setPreviewDocumentValue("preview_residential_proof_file", this.documents.residential_proof_file);
 
         // Loan Details
         this.setPreviewValue("preview_loan_category", this.loanData.loan_category);
@@ -3018,14 +3060,14 @@
         this.setPreviewValue("preview_ifsc_code", this.bankDetails.ifsc_code);
 
         // Documents
-        this.setPreviewValue("preview_guarantor_id_proof", this.documents.guarantor_id_proof ? this.documents.guarantor_id_proof.name : "Not uploaded");
-        this.setPreviewValue("preview_id_proof", this.documents.id_proof ? this.documents.id_proof.name : "Not uploaded");
-        this.setPreviewValue("preview_id_proof_back", this.documents.id_proof_back ? this.documents.id_proof_back.name : "Not uploaded");
-        this.setPreviewValue("preview_pan_card_document", this.documents.pan_card ? this.documents.pan_card.name : "Not uploaded");
-        this.setPreviewValue("preview_income_proof", this.documents.income_proof ? this.documents.income_proof.name : "Not uploaded");
-        this.setPreviewValue("preview_collaterol", "Not uploaded"); // Assuming no collateral field
-        this.setPreviewValue("preview_photo", this.documents.photo ? this.documents.photo.name : "Not uploaded");
-        this.setPreviewValue("preview_signature", this.documents.signature ? this.documents.signature.name : "Not uploaded");
+        this.setPreviewDocumentValue("preview_guarantor_id_proof", this.documents.guarantor_id_proof);
+        this.setPreviewDocumentValue("preview_id_proof", this.documents.id_proof);
+        this.setPreviewDocumentValue("preview_id_proof_back", this.documents.id_proof_back);
+        this.setPreviewDocumentValue("preview_pan_card_document", this.documents.pan_card);
+        this.setPreviewDocumentValue("preview_income_proof", this.documents.income_proof);
+        this.setPreviewDocumentValue("preview_collaterol", "Not uploaded"); // Assuming no collateral field
+        this.setPreviewDocumentValue("preview_photo", this.documents.photo);
+        this.setPreviewDocumentValue("preview_signature", this.documents.signature);
 
         if (this.addressData.sameAddress) {
           this.hideCurrentAddressSections();
@@ -3186,6 +3228,20 @@
         }
       },
 
+      // Helper function to set preview field value
+      setPreviewDocumentValue(fieldId, filePath) {
+        const field = document.getElementById(fieldId);
+        let elementValue = "N/A";
+        if (typeof filePath === 'string') {
+          elementValue = filePath == "Not uploaded" || filePath.includes("cloudinary") ? filePath : "N/A";
+        }
+        else if (typeof filePath === "object") {
+          elementValue = filePath ? filePath.name : "Not Uploaded";
+        }
+        if (field) {
+          field.value = elementValue;
+        }
+      },
       // Helper function to set preview field value
       setPreviewValue(fieldId, value) {
         const field = document.getElementById(fieldId);

@@ -92,8 +92,8 @@ class AadhaarVerification {
         // Send OTP button
         const sendOTPBtn = document.getElementById('send-aadhaar-otp');
         if (sendOTPBtn) {
-            // sendOTPBtn.addEventListener('click', () => this.sendOTP());
-            sendOTPBtn.addEventListener('click', () => this.mockAadhaarVerification());
+            sendOTPBtn.addEventListener('click', () => this.sendOTP());
+            // sendOTPBtn.addEventListener('click', () => this.mockAadhaarVerification());
         }
 
         // Close OTP modal button
@@ -884,8 +884,8 @@ class AadhaarVerification {
                 this.closeCustomerModal();
                 // Populate data to Alpine variables
                 this.populateExistingCustomerData(customerData);
-                this.sendOTP(true);
-                // this.mockAadhaarVerification();
+                // this.sendOTP(true);
+                this.mockAadhaarVerification();
 
                 setTimeout(() => {
                     this.moveToNextStep();
@@ -973,13 +973,13 @@ class AadhaarVerification {
                 console.log('customerData.documents_data', customerData.documents_data)
                 console.log('alpineData.documents', alpineData.documents)
                 if (customerData.documents_data && alpineData.documents) {
-                    this.handleFileOfExixtingCustomer(customerData.documents_data.guarantor_id_proof, 'guarantor_id_proof', alpineData.documents);
-                    this.handleFileOfExixtingCustomer(customerData.documents_data.id_proof, 'id_proof', alpineData.documents);
-                    this.handleFileOfExixtingCustomer(customerData.documents_data.id_proof_back, 'id_proof_back', alpineData.documents);
-                    this.handleFileOfExixtingCustomer(customerData.documents_data.pan_card_document, 'pan_card', alpineData.documents);
-                    this.handleFileOfExixtingCustomer(customerData.documents_data.photo, 'photo', alpineData.documents);
-                    this.handleFileOfExixtingCustomer(customerData.documents_data.signature, 'signature', alpineData.documents);
-                    this.handleFileOfExixtingCustomer(customerData.documents_data.income_proof, 'income_proof', alpineData.documents);
+                    this.handleFileOfExixtingCustomer(customerData.documents_data.guarantor_id_proof, 'guarantor_id_proof', alpineData.documents, alpineData.customerType);
+                    this.handleFileOfExixtingCustomer(customerData.documents_data.id_proof, 'id_proof', alpineData.documents, alpineData.customerType);
+                    this.handleFileOfExixtingCustomer(customerData.documents_data.id_proof_back, 'id_proof_back', alpineData.documents, alpineData.customerType);
+                    this.handleFileOfExixtingCustomer(customerData.documents_data.pan_card_document, 'pan_card', alpineData.documents, alpineData.customerType);
+                    this.handleFileOfExixtingCustomer(customerData.documents_data.photo, 'photo', alpineData.documents, alpineData.customerType);
+                    this.handleFileOfExixtingCustomer(customerData.documents_data.signature, 'signature', alpineData.documents, alpineData.customerType);
+                    this.handleFileOfExixtingCustomer(customerData.documents_data.income_proof, 'income_proof', alpineData.documents, alpineData.customerType);
                 }
 
                 // Store photo data for display
@@ -1004,45 +1004,14 @@ class AadhaarVerification {
             }
         }
     }
-    handleFileOfExixtingCustomer(file, documentType, alpineDataDocuments) {
-        // Helper function to convert base64 to File object
-        function base64ToFile(base64, filename, mimeType) {
-            const byteCharacters = atob(base64);
-            const byteArrays = [];
-            
-            for (let offset = 0; offset < byteCharacters.length; offset += 512) {
-                const slice = byteCharacters.slice(offset, offset + 512);
-                const byteNumbers = new Array(slice.length);
-                for (let i = 0; i < slice.length; i++) {
-                    byteNumbers[i] = slice.charCodeAt(i);
-                }
-                const byteArray = new Uint8Array(byteNumbers);
-                byteArrays.push(byteArray);
-            }
-            
-            const blob = new Blob(byteArrays, {type: mimeType});
-            return new File([blob], filename, {type: mimeType});
-        }
-
-        if (file) {
-            let fileObj;
-            if (typeof file === 'string') {
-                // Convert base64 string to File object, assuming JPEG format
-                fileObj = base64ToFile(file, documentType + '.jpg', 'image/jpeg');
-            } else {
-                // Already a File object
-                fileObj = file;
-            }
-            
-            // Store file in documents object
-            alpineDataDocuments[documentType] = fileObj;
-
-            // Clear any existing error for this document type
+    handleFileOfExixtingCustomer(fileUrl, documentType, alpineDataDocuments, alpineDataCustomerType) {
+        if (fileUrl) {
+            alpineDataDocuments[documentType] = fileUrl;
             if (alpineDataDocuments.errors && alpineDataDocuments.errors[documentType]) {
                 alpineDataDocuments.errors[documentType] = null;
             }
-
-            console.log(`File populated: ${documentType}`, fileObj);
+            alpineDataCustomerType[documentType] = 'existing';
+            console.log(`File populated: ${documentType}`, fileUrl);
         }
     }
 }

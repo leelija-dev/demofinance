@@ -1344,6 +1344,7 @@ class AgentApplicationDetailAPI(APIView):
                 'income_proof': get_latest_document(loan_app, 'income_proof', documents.income_proof),
                 'photo': get_latest_document(loan_app, 'photo', documents.photo),
                 'signature': get_latest_document(loan_app, 'signature', documents.signature),
+                'guarantor_id_proof': get_latest_document(loan_app, 'guarantor_id_proof', documents.guarantor_id_proof),
                 'collateral': get_latest_document(loan_app, 'collateral', documents.collateral),
                 'residential_proof_file': get_latest_document(loan_app, 'residential_proof', documents.residential_proof_file),
             }
@@ -1374,6 +1375,7 @@ class AgentApplicationDetailAPI(APIView):
             'voter_number':  self._get_customer_details(customer, is_old_loan, customer_detail_snapshot, 'voter_number'), 
             'status': loan_app.status,
             'submitted_at': loan_app.submitted_at,
+            'customer_submitted_at': self._get_customer_details(customer, is_old_loan, customer_detail_snapshot, 'submitted_at'),
             'agent': AgentSerializer(agent).data if agent else None,
             'shop': {
                 'shop_id': loan_app.shop.shop_id,

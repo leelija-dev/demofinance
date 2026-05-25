@@ -2633,6 +2633,7 @@ class HQLoanDetailView(LoginRequiredMixin, TemplateView):
             'photo': get_approved_document(app, 'photo', documents.photo if documents else None),
             'signature': get_approved_document(app, 'signature', documents.signature if documents else None),
             'collateral': get_approved_document(app, 'collateral', documents.collateral if documents else None),
+            'guarantor_id_proof': get_approved_document(app, 'guarantor_id_proof', documents.guarantor_id_proof if documents else None),
             'residential_proof_file': get_approved_document(app, 'residential_proof', documents.residential_proof_file if documents else None),
         }
 

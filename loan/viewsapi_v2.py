@@ -127,7 +127,7 @@ class NewLoanApplicationAPIV2(APIView):
                 rate_of_interest_decimal = interest_instance.rate_of_interest if interest_instance else None
 
                 # Check required document files
-                self._check_required_document_files(files, errors)
+                self._check_required_document_files(files, errors, data, existing_customer)
 
                 # Check if got any error then return response with the errors
                 if errors:
@@ -289,6 +289,7 @@ class NewLoanApplicationAPIV2(APIView):
                     #     id_proof=files.get('id_proof'),
                     #     income_proof=files.get('income_proof'),
                     #     photo=files.get('photo'),
+                    # Build document kwargs, reusing previously uploaded files if not provided in the request
                     document_kwargs = dict(
                         loan_application=loan_application,
                         guarantor_id_proof=files.get('guarantor_id_proof'),
@@ -307,6 +308,18 @@ class NewLoanApplicationAPIV2(APIView):
                     # Only add PAN card document if provided
                     if files.get('pan_card_document'):
                         document_kwargs['pan_card_document'] = files.get('pan_card_document')
+                        
+                    # If any required file is missing, attempt to reuse from the most recent CustomerDocument
+                    required_keys = ['guarantor_id_proof', 'id_proof', 'id_proof_back', 'photo', 'signature', 'collateral', 'residential_proof_file', 'income_proof', 'pan_card_document']
+                    if existing_customer:
+                        # Get the latest document associated with this customer (excluding the current one)
+                        previous_doc = CustomerDocument.objects.filter(
+                            loan_application__customer=existing_customer
+                        ).exclude(loan_application=loan_application).order_by('-id').first()
+                        if previous_doc:
+                            for key in required_keys:
+                                if not document_kwargs.get(key) and getattr(previous_doc, key, None):
+                                    document_kwargs[key] = getattr(previous_doc, key)
                         
                     if agent:
                         document_kwargs['agent'] = agent
@@ -655,8 +668,13 @@ class NewLoanApplicationAPIV2(APIView):
                 errors['tenure_months'] = 'Invalid loan tenure.'
         return loan_category_instance, interest_instance, tenure_instance
 
-    def _check_required_document_files(self, files:MultiValueDict, errors:dict):
-        required_doc_files = ['guarantor_id_proof','id_proof', 'photo', 'signature']
+    def _check_required_document_files(self, files:MultiValueDict, errors:dict, data:QueryDict, existing_customer:Optional[CustomerDetail]):
+        required_doc_files = []
+        if existing_customer:
+            for file_field in ['guarantor_id_proof','id_proof', 'photo', 'signature']:
+                if not files.get(file_field) and data.get(file_field) :
+                    continue
+                required_doc_files.append(file_field)
         missing_files = [f for f in required_doc_files if not files.get(f)]
         if missing_files:
             errors['documents'] = f'Missing required document files: {", ".join(missing_files)}'
