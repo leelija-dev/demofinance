@@ -245,7 +245,7 @@ class HQSavingsBranchApprovedListView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         qs = (
             SavingsAccountApplication.objects
-            .filter(status__in=['branch_approved', 'branch_resubmitted', 'document_requested_by_hq', 'resubmitted'])
+            .filter(status__in=['branch_approved', 'branch_resubmitted', 'document_requested_by_hq', 'resubmitted'], branch__created_by=self.request.user)
             .select_related('customer', 'branch', 'agent')
             .order_by('-submitted_at')
         )
@@ -313,7 +313,7 @@ class HQSavingsSurrenderRequestsListView(LoginRequiredMixin, TemplateView):
 
             SavingsAccountApplication.objects
 
-            .filter(account_id__isnull=False, status='hq_approved', surrender_status='processing')
+            .filter(account_id__isnull=False, status='hq_approved', surrender_status='processing', branch__created_by=self.request.user)
 
             .select_related('customer', 'branch', 'agent')
 
@@ -352,7 +352,7 @@ class HQSavingsSurrenderRequestsListView(LoginRequiredMixin, TemplateView):
 
         context['paginator'] = paginator
 
-        context['branches'] = Branch.objects.all().order_by('branch_name')
+        context['branches'] = Branch.objects.filter(created_by=self.request.user).order_by('branch_name')
         context['selected_branch_id'] = branch_id
         context['selected_product_type'] = product_type
         context['q'] = q
@@ -569,7 +569,7 @@ class HQSavingsAllOpenedAccountsListView(LoginRequiredMixin, TemplateView):
         account_status = (self.request.GET.get('account_status') or '').strip().lower()
         q = (self.request.GET.get('q') or '').strip()
 
-        qs = SavingsAccountApplication.objects.filter(account_id__isnull=False)
+        qs = SavingsAccountApplication.objects.filter(account_id__isnull=False, branch__created_by=self.request.user)
 
         if product_type in {'rd', 'fd'}:
             qs = qs.filter(product_type=product_type)
@@ -614,8 +614,8 @@ class HQSavingsAllOpenedAccountsListView(LoginRequiredMixin, TemplateView):
         context['accounts_title'] = 'All Opened Accounts'
         context['accounts_page_id'] = 'hqSavingsAllOpenedAccounts'
         context['from_source'] = 'accounts_all'
-        context['branches'] = Branch.objects.all().order_by('branch_name')
-        agents_qs = Agent.objects.filter(status='active').order_by('full_name')
+        context['branches'] = Branch.objects.filter(created_by=self.request.user).order_by('branch_name')
+        agents_qs = Agent.objects.filter(status='active', branch__created_by=self.request.user).order_by('full_name')
         if branch_id:
             agents_qs = agents_qs.filter(branch_id=branch_id)
         context['agents'] = agents_qs
@@ -721,7 +721,7 @@ class HQSavingsHQApprovedListView(LoginRequiredMixin, TemplateView):
 
         qs = (
             SavingsAccountApplication.objects
-            .filter(status='hq_approved')
+            .filter(status='hq_approved', branch__created_by=self.request.user)
             .select_related('customer', 'branch', 'agent')
             .order_by('-hq_approved_at', '-submitted_at')
         )
@@ -771,8 +771,8 @@ class HQSavingsHQApprovedListView(LoginRequiredMixin, TemplateView):
         context['page_obj'] = page_obj
         context['paginator'] = paginator
 
-        context['branches'] = Branch.objects.all().order_by('branch_name')
-        agents_qs = Agent.objects.filter(status='active').order_by('full_name')
+        context['branches'] = Branch.objects.filter(created_by=self.request.user).order_by('branch_name')
+        agents_qs = Agent.objects.filter(status='active', branch__created_by=self.request.user).order_by('full_name')
         if branch_id:
             agents_qs = agents_qs.filter(branch_id=branch_id)
         context['agents'] = agents_qs
@@ -800,7 +800,7 @@ class HQSavingsRejectedListView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         qs = (
             SavingsAccountApplication.objects
-            .filter(status='hq_rejected')
+            .filter(status='hq_rejected', branch__created_by=self.request.user)
             .select_related('customer', 'branch', 'agent')
             .order_by('-last_update', '-submitted_at')
         )
@@ -1006,9 +1006,9 @@ class HQSavingsDocumentRequestAPI(LoginRequiredMixin, View):
 @login_required
 @require_permission('savings.change_savingtype')
 def saving_management(request):
-    saving_types = SavingType.objects.all().order_by('name')
-    one_time_deposits = OneTimeDeposit.objects.all().order_by('deposit_amount', 'tenure', 'tenure_unit', 'payable_amount')
-    daily_products = DailyProduct.objects.all().order_by('deposit_amount', 'interest_rate', 'tenure', 'tenure_unit')
+    saving_types = SavingType.objects.filter(created_by=request.user).order_by('name')
+    one_time_deposits = OneTimeDeposit.objects.filter(created_by=request.user).order_by('deposit_amount', 'tenure', 'tenure_unit', 'payable_amount')
+    daily_products = DailyProduct.objects.filter(created_by=request.user).order_by('deposit_amount', 'interest_rate', 'tenure', 'tenure_unit')
 
     show_type_modal = False
     show_one_time_modal = False

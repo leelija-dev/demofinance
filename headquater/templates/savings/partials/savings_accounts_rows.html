@@ -29,7 +29,7 @@
     <td class="px-4 py-2 flex gap-2">
         <a href="{% url 'hq:hq_savings_application_detail' a.application_id %}?from={{ from_source|default:'' }}" class="inline-flex items-center justify-center rounded-md bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 transition">View</a>
         
-        {% if a.status == 'inactive' or a.withdraw_date or a.withdraw_amount %}
+        <!-- {% if a.status == 'inactive' or a.withdraw_date or a.withdraw_amount %}
         <span class="inline-flex items-center gap-1 text-xs font-semibold rounded-2xl text-red-700">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M3 6h18" />
@@ -39,7 +39,7 @@
                     <path d="M14 11v6" />
                 </svg>
             </span>
-        {% endif %}
+        {% endif %} -->
     </td>
 </tr>
 {% empty %}

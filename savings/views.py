@@ -6155,7 +6155,7 @@ class BranchCustomerLookupAPI(APIView):
             if offset < 0:
                 offset = 0
 
-            qs = CustomerDetail.objects.all()
+            qs = CustomerDetail.objects.filter(branch=self.request.branch_employee.branch)
             if q_norm:
                 qs = qs.filter(
                     Q(customer_id__icontains=q_norm)
