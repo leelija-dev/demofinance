@@ -38,7 +38,7 @@ from django.conf import settings
 from django.utils import timezone
 from django.utils.timezone import make_aware
 from zoneinfo import ZoneInfo
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # for PDF generation
 import asyncio
@@ -3850,7 +3850,7 @@ class GetDraftAPI(APIView):
             # Get all drafts for this user (latest first)
             drafts_qs = (
                 LoanApplicationDraft.objects
-                .filter(user_id=user_id, user_type=user_type)
+                .filter(user_id=user_id, user_type=user_type, created_at__gte=timezone.now() - timedelta(days=7))
                 .order_by('-created_at')
             )
 

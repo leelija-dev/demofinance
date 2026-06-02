@@ -2702,7 +2702,7 @@
             if (alpineData) {
               // Set PAN verification status to linked
               alpineData.panVerificationStatus = "linked";
-              this.showSuccess("PAN verified successfully! PAN is linked to Aadhaar.");
+              showToast("PAN verified successfully! PAN is linked to Aadhaar.", 'success');
 
               // You could also populate some mock PAN data if needed
               if (alpineData.personalInfo && alpineData.personalInfo.pan_number) {
@@ -2799,6 +2799,8 @@
             this.bankVerificationStatus = "verified";
             this.bankVerificationData = data.data;
             this.bankVerificationMessage = data.message;
+            showToast(data.message, 'success');
+
 
             // Auto-populate bank details from verification
             if (data.data) {

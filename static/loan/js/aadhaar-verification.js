@@ -82,7 +82,7 @@ class AadhaarVerification {
         this.populatePersonalInfo();
         // this.hideOTPSection();
         // Automatically move to next step after successful verification
-        this.showSuccess('Aadhaar verified successfully! Moving to next step...');
+        showToast('Aadhaar verified successfully! Moving to next step...');
         setTimeout(() => {
             this.moveToNextStep();
         }, 1500);
@@ -361,10 +361,11 @@ class AadhaarVerification {
                     this.showCustomerDetailsPopup(data.customer_data, data.loan_history, data.customer_blocked);
                 } else {
                     // Proceed with OTP verification
-                    this.otpSent = true;
-                    this.showSuccess('OTP sent to your Aadhaar-linked mobile number');
-                    this.startCountdown();
-                    this.showOTPSection();
+                    this.mockAadhaarVerification();
+                    // this.otpSent = true;
+                    // this.showSuccess('OTP sent to your Aadhaar-linked mobile number');
+                    // this.startCountdown();
+                    // this.showOTPSection();
                 }
             } else {
                 const isNewApplicationCardsFlow = window.location && window.location.pathname && window.location.pathname.includes('new-application-cards');
@@ -420,7 +421,7 @@ class AadhaarVerification {
                 this.personalData = data.aadhaar_data || {};
                 if(this.personalData.message != null && this.personalData.message != 'Invalid OTP'){
                     this.verified = true;
-                    this.showSuccess('Aadhaar verified successfully! Moving to next step...');
+                    showToast('Aadhaar verified successfully! Moving to next step...');
                     this.populatePersonalInfo();
                     this.hideOTPSection();
                     // Automatically move to next step after successful verification
