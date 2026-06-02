@@ -164,52 +164,67 @@ async function callDraftAPI(endpoint, method, data = null) {
         // Mark that the current form state comes from a draft selection
         window.CURRENT_FORM_FROM_DRAFT = true;
 
-        Object.keys(data).forEach(key => {
-            const field = document.querySelector(`[name='${key}']`);
-            if (!field) return;
+        
 
-            // Date of birth: also update flatpickr if present
-            if (key === 'date_of_birth') {
-                try {
-                    field.value = data[key];
-                    if (field._flatpickr) {
-                        field._flatpickr.setDate(field.value || null, true);
-                    }
-                } catch (e) {
-                    console.warn('Failed to apply draft date_of_birth', e);
-                }
-                return;
-            }
+        // Trigger loan category change to load tenure options based on drafted category
+        const loanCategoryEl = document.getElementById('loan_category');
+        loanCategoryEl.value = data['loan_category'];
+        console.log(loanCategoryEl.value, "loanCategoryEl.value")
+        if (loanCategoryEl && loanCategoryEl.value) {
+            loanCategoryEl.dispatchEvent(new Event('change'));
+        }
+        setTimeout(() => {
+            Object.keys(data).forEach(key => {
+                console.log('key    ->  ', key);
+                const field = document.querySelector(`[name='${key}']`);
+                if (!field) return;
 
-            if (field.type === 'file') {
-                // Cannot set file input value programmatically; just clear and
-                // optionally store filename hint for UI (if helper exists).
-                field.value = '';
-                const draftFilename = data[key + '_filename'] || data[key] || null;
-                if (typeof window.setFileDraftHint === 'function') {
+                // Date of birth: also update flatpickr if present
+                if (key === 'date_of_birth') {
                     try {
-                        window.setFileDraftHint(field, draftFilename || null);
+                        field.value = data[key];
+                        if (field._flatpickr) {
+                            field._flatpickr.setDate(field.value || null, true);
+                        }
                     } catch (e) {
-                        console.warn('setFileDraftHint failed', e);
+                        console.warn('Failed to apply draft date_of_birth', e);
                     }
-                } else if (draftFilename) {
-                    field.dataset.draftFilename = draftFilename;
+                    return;
                 }
-            } else if (field.type === 'checkbox') {
-                const val = data[key];
-                const isChecked = val === 'on' || val === true || val === 'true' || val === 1 || val === '1';
-                field.checked = !!isChecked;
-                if (field.id === 'same-address' || field.name === 'same_address') {
-                    // Reuse existing behavior for toggling current address
-                    if (typeof window.toggleCurrentAddress === 'function') {
-                        window.toggleCurrentAddress(field);
-                    }
-                }
-            } else {
-                field.value = data[key];
-            }
-        });
 
+                if (field.type === 'file') {
+                    // Cannot set file input value programmatically; just clear and
+                    // optionally store filename hint for UI (if helper exists).
+                    field.value = '';
+                    const draftFilename = data[key + '_filename'] || data[key] || null;
+                    if (typeof window.setFileDraftHint === 'function') {
+                        try {
+                            window.setFileDraftHint(field, draftFilename || null);
+                        } catch (e) {
+                            console.warn('setFileDraftHint failed', e);
+                        }
+                    } else if (draftFilename) {
+                        field.dataset.draftFilename = draftFilename;
+                    }
+                } else if (field.type === 'checkbox') {
+                    const val = data[key];
+                    const isChecked = val === 'on' || val === true || val === 'true' || val === 1 || val === '1';
+                    field.checked = !!isChecked;
+                    if (field.id === 'same-address' || field.name === 'same_address') {
+                        // Reuse existing behavior for toggling current address
+                        if (typeof window.toggleCurrentAddress === 'function') {
+                            window.toggleCurrentAddress(field);
+                        }
+                    }
+                } else {
+                    field.value = data[key];
+                }
+            });
+        const tenureMonthsEl = document.getElementById('tenure_months');
+        console.log(tenureMonthsEl.value, "tenureMonthsEl.value")
+        if (tenureMonthsEl && tenureMonthsEl.value) {
+            tenureMonthsEl.dispatchEvent(new Event('change'));
+        }
         // Ensure current address section reflects same-address state, if used
         const sameAddressCheckboxEl = document.getElementById('same-address');
         if (sameAddressCheckboxEl && typeof window.toggleCurrentAddress === 'function') {
@@ -217,6 +232,13 @@ async function callDraftAPI(endpoint, method, data = null) {
         }
 
         // Trigger any dependent calculations (like EMI) after values are set
+        independentEmiCalculation();
+        }, 150);
+
+    }
+
+
+    function independentEmiCalculation() {
         setTimeout(() => {
             try {
                 const loanAmountEl = document.getElementById('loan_amount');
