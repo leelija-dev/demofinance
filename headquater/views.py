@@ -15,7 +15,7 @@ from django.db import transaction, IntegrityError
 from branch.models import BranchEmployee, BranchAccount, BranchTransaction, AgentDeposit
 from agent.models import Agent
 from .models import HeadquarterEmployee, Role, Branch, HeadquartersWallet, HeadquartersTransactions, FundTransfers
-from .forms import (HQEmployeeRegistrationForm, HQPasswordChangeForm, RoleUserRegistrationForm, 
+from .forms import (HQEmployeeRegistrationForm, HQPasswordChangeForm, ReactivateTrialUserForm, RoleUserRegistrationForm, 
                    HQAuthenticationForm, RoleForm, UserEditForm, BranchForm, BranchManagerForm, 
                    LoanMainCategoryForm, LoanCategoryForm, LoanInterestForm, LoanTenureForm, DeductionForm, 
                    ProductCategoryForm, ProductSubCategoryForm, ProductForm,
@@ -775,6 +775,30 @@ class CreateTrialUserView(LoginRequiredMixin, View):
             messages.error(request, 'Please correct the errors below.')
         
         return render(request, self.template_name, {'form': form})
+
+
+class ReactivateTrialUserView(LoginRequiredMixin, View):
+    """View for reactivating an expired trial user with a new trial duration"""
+    template_name = 'hq/reactivate_trial_user.html'
+    
+    def get(self, request):
+        form = ReactivateTrialUserForm()
+        return render(request, self.template_name, {'form': form})
+    
+    def post(self, request):
+        form = ReactivateTrialUserForm(request.POST)
+        if form.is_valid():
+            try:
+                trial_user = form.reactivate_trial_user()
+                messages.success(request, f'Trial user reactivated successfully! Email: {trial_user.email}, New expiry: {trial_user.trial_expiry_date.strftime("%Y-%m-%d %H:%M")}')
+                return redirect('hq:reactivate_trial_user')
+            except Exception as e:
+                messages.error(request, f'Error reactivating trial user: {str(e)}')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+        
+        return render(request, self.template_name, {'form': form})
+
 
 #==========================================================================================
 #                                 ROLE OPERATIONS STARTS                                  #

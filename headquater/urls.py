@@ -20,6 +20,7 @@ from .views import (
     EmiLoanListView,
     EmiScheduleView,
     CreateTrialUserView,
+    ReactivateTrialUserView,
 )
 
 from .savingviews import (
@@ -52,6 +53,7 @@ urlpatterns = [
     path('logout/', HQLogoutView.as_view(), name='logout'),
     path('profile/', ProfileView.as_view(), name='profile'),
     path('create-trial-user/', CreateTrialUserView.as_view(), name='create_trial_user'),
+    path('reactivate-trial-user/', ReactivateTrialUserView.as_view(), name='reactivate_trial_user'),
     
     path('role-management/', RoleManagementView.as_view(), name='role_management'),
     # path('roles/', role_list, name='role_list'),
