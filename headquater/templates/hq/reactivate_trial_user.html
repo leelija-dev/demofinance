@@ -1,127 +1,121 @@
-{% extends 'hq/base.html' %}
+{% extends "hq/base.html" %}
 {% load static %}
-
-{% block title %}Reactivate Trial User{% endblock %}
-
-{% block page_id %}reactivate_trial_user{% endblock %}
-
+{% block title %}
+    Reactivate Trial User
+{% endblock title %}
+{% block page_id %}
+    reactivate_trial_user
+{% endblock page_id %}
 {% block content %}
-<div class="p-6">
-    <div class="max-w-4xl mx-auto">
-        <!-- Page Header -->
-        <div class="mb-6">
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
-                <i class="fas fa-user-check mr-3 text-green-600"></i>
-                Reactivate Trial User
-            </h1>
-            <p class="text-gray-600 dark:text-gray-400 mt-2">Reactivate an expired trial user with a new trial duration</p>
-        </div>
-
-        <!-- Info Alert -->
-        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
-            <div class="flex">
-                <div class="flex-shrink-0">
-                    <i class="fas fa-exclamation-triangle text-yellow-400"></i>
-                </div>
-                <div class="ml-3">
-                    <p class="text-sm text-yellow-700">
-                        <strong>Note:</strong> This will reactivate an expired trial user. The user will regain admin privileges for the new trial duration. Only users whose trial has already expired can be reactivated.
-                    </p>
+    <div class="p-6">
+        <div class="max-w-4xl mx-auto">
+            <!-- Page Header -->
+            <div class="mb-6">
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
+                    <i class="fas fa-user-check mr-3 text-green-600"></i>
+                    Reactivate Trial User
+                </h1>
+                <p class="text-gray-600 dark:text-gray-400 mt-2">Reactivate an expired trial user with a new trial duration</p>
+            </div>
+            <!-- Info Alert -->
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-yellow-700">
+                            <strong>Note:</strong> This will reactivate an expired trial user. The user will regain admin privileges for the new trial duration. Only users whose trial has already expired can be reactivated.
+                        </p>
+                    </div>
                 </div>
             </div>
-        </div>
-
-        <!-- Main Card -->
-        <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg">
-            <div class="p-6">
-                <form method="post">
-                    {% csrf_token %}
-                    
-                    <!-- Form Fields -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                        <!-- Email Field -->
-                        <div>
-                            <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                <i class="fas fa-envelope mr-2"></i>{{ form.email.label }}
-                            </label>
-                            {{ form.email }}
-                            {% if form.email.errors %}
-                                <div class="mt-1 text-sm text-red-600">
-                                    {% for error in form.email.errors %}
-                                        <span class="block">{{ error }}</span>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                            <p class="mt-1 text-sm text-gray-500">Enter the email address of the expired trial user</p>
+            <!-- Main Card -->
+            <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg">
+                <div class="p-6">
+                    <form method="post">
+                        {% csrf_token %}
+                        <!-- Form Fields -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <!-- Email Field -->
+                            <div>
+                                <label for="{{ form.email.id_for_label }}"
+                                       class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <i class="fas fa-envelope mr-2"></i>{{ form.email.label }}
+                                </label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <div class="mt-1 text-sm text-red-600">
+                                        {% for error in form.email.errors %}<span class="block">{{ error }}</span>{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <p class="mt-1 text-sm text-gray-500">Enter the email address of the expired trial user</p>
+                            </div>
+                            <!-- Trial Duration Field -->
+                            <div>
+                                <label for="{{ form.trial_duration.id_for_label }}"
+                                       class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <i class="fas fa-calendar-alt mr-2"></i>{{ form.trial_duration.label }}
+                                </label>
+                                {{ form.trial_duration }}
+                                {% if form.trial_duration.errors %}
+                                    <div class="mt-1 text-sm text-red-600">
+                                        {% for error in form.trial_duration.errors %}<span class="block">{{ error }}</span>{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <p class="mt-1 text-sm text-gray-500">Number of days for the new trial period (1-365)</p>
+                            </div>
                         </div>
-
-                        <!-- Trial Duration Field -->
-                        <div>
-                            <label for="{{ form.trial_duration.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                <i class="fas fa-calendar-alt mr-2"></i>{{ form.trial_duration.label }}
-                            </label>
-                            {{ form.trial_duration }}
-                            {% if form.trial_duration.errors %}
-                                <div class="mt-1 text-sm text-red-600">
-                                    {% for error in form.trial_duration.errors %}
-                                        <span class="block">{{ error }}</span>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                            <p class="mt-1 text-sm text-gray-500">Number of days for the new trial period (1-365)</p>
+                        <!-- Action Buttons -->
+                        <div class="flex justify-between items-center">
+                            <a href="{% url 'hq:dashboard' %}"
+                               class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600">
+                                <i class="fas fa-arrow-left mr-2"></i>
+                                Back to Dashboard
+                            </a>
+                            <button type="submit"
+                                    class="inline-flex items-center px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                <i class="fas fa-user-check mr-2"></i>
+                                Reactivate Trial User
+                            </button>
                         </div>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="flex justify-between items-center">
-                        <a href="{% url 'hq:dashboard' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600">
-                            <i class="fas fa-arrow-left mr-2"></i>
-                            Back to Dashboard
-                        </a>
-                        <button type="submit" class="inline-flex items-center px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                            <i class="fas fa-user-check mr-2"></i>
-                            Reactivate Trial User
-                        </button>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
-        </div>
-
-        <!-- Information Card -->
-        <div class="mt-6 bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center">
-                <i class="fas fa-info-circle text-green-500 mr-2"></i>
-                How Reactivation Works
-            </h3>
-            <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-                <li class="flex items-start">
-                    <i class="fas fa-check text-green-500 mr-2 mt-1"></i>
-                    <span>Only expired trial users can be reactivated</span>
-                </li>
-                <li class="flex items-start">
-                    <i class="fas fa-check text-green-500 mr-2 mt-1"></i>
-                    <span>The user's account will be set to active again</span>
-                </li>
-                <li class="flex items-start">
-                    <i class="fas fa-check text-green-500 mr-2 mt-1"></i>
-                    <span>A new trial expiry date will be set based on the specified duration</span>
-                </li>
-                <li class="flex items-start">
-                    <i class="fas fa-check text-green-500 mr-2 mt-1"></i>
-                    <span>The user's original email and password remain unchanged</span>
-                </li>
-                <li class="flex items-start">
-                    <i class="fas fa-check text-green-500 mr-2 mt-1"></i>
-                    <span>If the user is still active and not expired, reactivation will be rejected</span>
-                </li>
-            </ul>
+            <!-- Information Card -->
+            <div class="mt-6 bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center">
+                    <i class="fas fa-info-circle text-green-500 mr-2"></i>
+                    How Reactivation Works
+                </h3>
+                <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                    <li class="flex items-start">
+                        <i class="fas fa-check text-green-500 mr-2 mt-1"></i>
+                        <span>Only expired trial users can be reactivated</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check text-green-500 mr-2 mt-1"></i>
+                        <span>The user's account will be set to active again</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check text-green-500 mr-2 mt-1"></i>
+                        <span>A new trial expiry date will be set based on the specified duration</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check text-green-500 mr-2 mt-1"></i>
+                        <span>The user's original email and password remain unchanged</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check text-green-500 mr-2 mt-1"></i>
+                        <span>If the user is still active and not expired, reactivation will be rejected</span>
+                    </li>
+                </ul>
+            </div>
         </div>
     </div>
-</div>
-{% endblock %}
-
+{% endblock content %}
 {% block extra_js %}
-<script>
+    <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Auto-focus on email field
     const emailField = document.getElementById('{{ form.email.id_for_label }}');
@@ -142,5 +136,5 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
-</script>
-{% endblock %}
+    </script>
+{% endblock extra_js %}

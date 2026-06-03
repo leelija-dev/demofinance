@@ -1643,14 +1643,20 @@ function loanApplication() {
             );
 
             // Loan Details
+            const selectedLoanCategory = this.loanCategories.find(
+                (cat) => cat.id === this.loanData.loan_category,
+            );
             this.setPreviewValue(
                 "preview_loan_category",
-                this.loanData.loan_category,
+                selectedLoanCategory ? selectedLoanCategory.name : this.loanData.loan_category,
             );
             this.setPreviewValue("preview_loan_amount", this.loanData.loan_amount);
+            const selectedTenure = this.loanTenures.find(
+                (t) => t.id == this.loanData.tenure_months,
+            );
             this.setPreviewValue(
                 "preview_tenure_months",
-                this.loanData.tenure_months,
+                selectedTenure ? selectedTenure.display : this.loanData.tenure_months,
             );
             this.setPreviewValue(
                 "preview_loan_purpose",
