@@ -1366,6 +1366,7 @@ class AgentApplicationDetailAPI(APIView):
             'customer_id': customer.customer_id if customer else '',
             'full_name':  self._get_customer_details(customer, is_old_loan, customer_detail_snapshot, 'full_name'),
             'father_name': self._get_customer_details(customer, is_old_loan, customer_detail_snapshot, 'father_name'),
+            'guarantor_name': self._get_customer_details(customer, is_old_loan, customer_detail_snapshot, 'guarantor_name'),
             'date_of_birth': self._get_customer_details(customer, is_old_loan, customer_detail_snapshot, 'date_of_birth'),
             'gender': self._get_customer_details(customer, is_old_loan, customer_detail_snapshot, 'gender'),
             'contact': self._get_customer_details(customer, is_old_loan, customer_detail_snapshot, 'contact'),
