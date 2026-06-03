@@ -3,33 +3,22 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
-    />
+    <meta name="description"
+          content="{% block meta_description %}Profile Management Platform{% endblock meta_description %}">
+    <meta name="keywords"
+          content="{% block meta_keywords %}profile, management, finance, loans{% endblock meta_keywords %}">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>{% block title %}{% endblock %}</title>
-
-     
-
+    <title>
+      {% block title %}{% endblock title %}
+    </title>
     <!-- Favicon -->
-    <link
-      rel="icon"
-      type="image/x-icon"
-      href="{% static 'branch/images/logo/logo.svg' %}"
-    />
-
+    <link rel="icon" type="image/x-icon" href="{% static 'branch/images/logo/logo.svg' %}" />
     <!-- Alpine.js Core -->
-    <script
-      defer
-      src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"
-    ></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
     <!-- Alpine.js Persist Plugin -->
-    <script
-      defer
-      src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.14.9/dist/cdn.min.js"
-    ></script>
-
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.14.9/dist/cdn.min.js"></script>
     <!-- <script>
         document.addEventListener('alpine:init', () => {
             if (window.Alpine && window.Alpine.persist) {
@@ -40,21 +29,13 @@
             }
         });
     </script> -->
-
     <!-- Flatpickr CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-
-    
-    
     <!-- Custom CSS -->
     <link href="{% static 'branch/css/style.css' %}" rel="stylesheet" />
     <!-- <link href="{% static 'branch/css/input.css' %}" rel="stylesheet"> -->
     <link rel="stylesheet" href="{% static 'main/css/output.css' %}" />
     <link rel="stylesheet" href="{% static 'main/css/chart-custom-css/chart-imp.css' %}" />
-
-
-    
-
     <!-- <style>
         [x-cloak] {
             display: none !important;
@@ -68,74 +49,41 @@
             background-color: #111827; /* dark gray */
         }
     </style> -->
-
-    
-
     <!-- flatpickr date picker -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-
-    {% block extra_head %}{% endblock %}
+    {% block extra_head %}{% endblock extra_head %}
   </head>
-
-  <body
-    data-url-namespace="agent"
-    x-data="{ 
-      page: '{% block page_id %}dashboard{% endblock %}', 
-      loaded: true, 
-      darkMode: false, 
-      stickyMenu: false, 
-      sidebarToggle: false, 
-      scrollTop: false
-    }"
-    x-init="
-      darkMode = JSON.parse(localStorage.getItem('darkMode'));
-      $watch('darkMode', value => localStorage.setItem('darkMode', JSON.stringify(value)))"
-    :class="{'dark bg-gray-900': darkMode === true}"
-  >
+  <body data-url-namespace="agent" x-data="{ page: '{% spaceless %}{% block page_id %}dashboard{% endblock page_id %}{% endspaceless %}', loaded: true, darkMode: false, stickyMenu: false, sidebarToggle: false, scrollTop: false }" x-init=" darkMode = JSON.parse(localStorage.getItem('darkMode')); $watch('darkMode', value => localStorage.setItem('darkMode', JSON.stringify(value)))" :class="{'dark bg-gray-900': darkMode === true}">
     <!-- ===== Preloader Start ===== -->
-    {% include 'partials/agent-preloader.html' %}
+    {% include "partials/agent-preloader.html" %}
     <!-- ===== Preloader End ===== -->
-
     <!-- ===== Page Wrapper Start ===== -->
     <div class="flex h-screen overflow-hidden">
-      <!-- <aside
-        class="absolute left-0 top-0 z-[600] flex h-screen w-72.5 flex-col overflow-y-hidden bg-black duration-300 ease-linear dark:bg-boxdark lg:static lg:translate-x-0"
-        :class="{'translate-x-0': sidebarToggle, '-translate-x-full': !sidebarToggle}">
+      <!-- <aside class="absolute left-0 top-0 z-[600] flex h-screen w-72.5 flex-col overflow-y-hidden bg-black duration-300 ease-linear dark:bg-boxdark lg:static lg:translate-x-0" :class="{'translate-x-0': sidebarToggle, '-translate-x-full': !sidebarToggle}">
     </aside> -->
       <!-- ===== Sidebar Start ===== -->
-      {% include 'agent/sidebar.html' %}
+      {% include "agent/sidebar.html" %}
       <!-- ===== Sidebar End ===== -->
-
       <!-- ===== Content Area Start ===== -->
-      <div
-        class="relative flex flex-col flex-1 overflow-x-hidden overflow-y-auto"
-      >
+      <div class="relative flex flex-col flex-1 overflow-x-hidden overflow-y-auto">
         <!-- Small Device Overlay Start -->
-        {% include 'partials/agent-overlay.html' %}
+        {% include "partials/agent-overlay.html" %}
         <!-- Small Device Overlay End -->
-
         <!-- ===== Header Start ===== -->
-        {% include 'agent/header.html' %}
+        {% include "agent/header.html" %}
         <!-- ===== Header End ===== -->
-
         <!-- ===== Main Content Start ===== -->
-        <main>{% block content %}{% endblock %}</main>
+        <main>
+          {% block content %}{% endblock content %}
+        </main>
         <!-- ===== Main Content End ===== -->
       </div>
       <!-- ===== Content Area End ===== -->
     </div>
     <!-- ===== Page Wrapper End ===== -->
-
     <!-- Toast Notification -->
-    <div
-      id="toast-container"
-      class="fixed top-5 right-5 z-999999 space-y-2"
-    ></div>
-
-   
-
-
+    <div id="toast-container" class="fixed top-5 right-5 z-999999 space-y-2"></div>
     <script>
       window.showToast = function (message, type = "success") {
         const toastContainer = document.getElementById("toast-container");
@@ -215,7 +163,6 @@
         } catch (e) {}
       });
     </script>
-
     <script>
       // Global helper: format a date-like value as 'DD Mon YYYY' (e.g., '11 Nov 2025')
       window.formatDateDisplay = function(value) {
@@ -241,14 +188,10 @@
         return s;
       };
     </script>
-
-
-
     <!-- Flatpickr JS -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    
     {% block extra_js %}
-    <script type="module" src="{% static 'dist/js/main.js' %}"></script>
-    {% endblock %}
+      <script type="module" src="{% static 'dist/js/main.js' %}"></script>
+    {% endblock extra_js %}
   </body>
 </html>
