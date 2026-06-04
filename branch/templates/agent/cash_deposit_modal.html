@@ -436,6 +436,10 @@
       enable = false;
     }
     if (confirmBtn) confirmBtn.disabled = !enable;
+    if (status.textContent.length > 0)  {
+      cb.checked = false;
+      setDepositInputsDisabled(!!cb.checked);
+    }
   }
 
   function recalcDepositTotals(){
