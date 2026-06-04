@@ -1145,7 +1145,7 @@ class DisbursedByHQAPI(APIView):
         branch = branch_manager.branch
         # Fetch pending loan applications for this branch
         pending_statuses = ['disbursed']
-        applications = LoanApplication.objects.filter(branch=branch, status__in=pending_statuses).select_related('customer', 'agent')
+        applications = LoanApplication.objects.filter(branch=branch, status__in=pending_statuses).select_related('customer', 'agent').order_by('-disbursed_at')
         serializer = LoanDisbursedListSerializer(applications, many=True)
         return Response(serializer.data)
 
@@ -1964,6 +1964,8 @@ class WalletView(TemplateView):
                 account_number = tx.branch_account.account_number
                 bank_name = tx.branch_account.bank_name
 
+            if tx.code == 'DOWN_PAYMENT': 
+                continue
             all_combined_transactions.append({
                 'type': 'branch_transaction',
                 'object': tx,
@@ -2085,8 +2087,8 @@ class WalletView(TemplateView):
         ).order_by('-created_at')    # Latest first
         
         # Calculate monthly expenses (debits) from disbursement logs
-        today = datetime.now().date()
-        first_day_of_month = today.replace(day=1)
+        now = timezone.localtime()
+        first_day_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         monthly_disbursements = DisbursementLog.objects.filter(
             disbursed_by_id=branch_id,
             created_at__gte=first_day_of_month

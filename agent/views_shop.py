@@ -102,9 +102,14 @@ class ShopTransactionsAPI(APIView):
             tx_data = []
             for tx in tx_qs:
                 loan = getattr(getattr(tx, 'disbursement_log', None), 'loan_id', None)
+                # Toggle for shop perspective: non-DOWN_PAYMENT codes invert CREDIT↔DEBIT
+                if getattr(tx, 'code', '') != 'DOWN_PAYMENT':
+                    display_type = 'CREDIT' if tx.transaction_type == 'DEBIT' else 'DEBIT'
+                else:
+                    display_type = tx.transaction_type
                 tx_data.append({
                     'transaction_id': tx.transaction_id,
-                    'transaction_type': tx.transaction_type,
+                    'transaction_type': display_type,
                     'amount': str(tx.amount) if tx.amount is not None else '',
                     'purpose': tx.purpose,
                     'code': tx.code,
@@ -413,7 +418,17 @@ class ShopDetailView(TemplateView):
                 .filter((Q(disbursement_log__loan_id__shop=shop) | Q(shop=shop)))
                 .order_by('-transaction_date')[:20]
             )
-            context['transactions'] = transactions_qs
+            # Toggle transaction_type: if code is not 'DOWN_PAYMENT', invert CREDIT↔DEBIT
+            # from the shop's perspective (e.g. a DEBIT for disbursement is money IN for the shop)
+            toggled_transactions = []
+            for tx in transactions_qs:
+                if getattr(tx, 'code', '') != 'DOWN_PAYMENT':
+                    tx_type = 'CREDIT' if tx.transaction_type == 'DEBIT' else 'DEBIT'
+                else:
+                    tx_type = tx.transaction_type
+                tx.display_transaction_type = tx_type
+                toggled_transactions.append(tx)
+            context['transactions'] = toggled_transactions
             
             # Get recent loans for this shop
             

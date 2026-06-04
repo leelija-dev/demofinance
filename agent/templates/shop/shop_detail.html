@@ -267,18 +267,18 @@
                     {{ transaction.transaction_date|date:"Y-m-d H:i" }}
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if transaction.transaction_type == 'CREDIT' %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200{% else %}bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200{% endif %}">
-                      {{ transaction.transaction_type }}
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if transaction.display_transaction_type == 'CREDIT' %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200{% else %}bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200{% endif %}">
+                      {{ transaction.display_transaction_type }}
                     </span>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                     ₹{{ transaction.amount|default:"0"|floatformat:2 }}
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                    {{ transaction.disbursement_log.loan_id.loan_ref_no|default:"-" }}
+                    {% firstof transaction.disbursement_log.loan_id.loan_ref_no transaction.loan_application.loan_ref_no "-" %}
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                    {{ transaction.disbursement_log.loan_id.customer.full_name|default:"-" }}
+                    {% firstof transaction.disbursement_log.loan_id.customer.full_name transaction.loan_application.customer.full_name "-" %}
                   </td>
                 </tr>
                 {% endfor %}
