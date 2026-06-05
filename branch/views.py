@@ -6402,6 +6402,23 @@ class AgentDepositReceiveAPIView(APIView):
                             description=desc,
                             created_by=received_by,
                         )
+                    
+                    # others -> COA 123
+                    if dep.others_amount and dep.others_amount > 0:
+                        desc = f"Others EMI deposit received from {getattr(agent, 'full_name', 'Agent')} (Deposit ID: {dep.deposit_id})"
+                        coa_others = ChartOfAccount.objects.filter(code='125').first()
+                        BranchTransaction.objects.create(
+                            branch=branch,
+                            branch_account=account_for_txn,
+                            disbursement_log=None,
+                            mode=payment_mode,
+                            transaction_type='CREDIT',
+                            purpose=(coa_others.head_of_account if coa_others else 'Others EMI'),
+                            code=(coa_others.code if coa_others else '125'),
+                            amount=dep.others_amount,
+                            description=desc,
+                            created_by=received_by,
+                        )
 
             return Response({
                 'deposit_id': dep.deposit_id,
