@@ -108,7 +108,59 @@
         <button class="pwa-instructions-close" id="pwaInstructionsClose">Got It</button>
     </div>
     <script src="{% static 'agent/js/pwa-installation.js' %}"></script>
+    <!-- CSRF Refresh Script: Prevents 403 errors on idle page (session/Cookie expiry) -->
+    <script>
+        /**
+         * Read a cookie value by name.
+         */
+        function getCookie(name) {
+            if (!document.cookie || document.cookie === '') return null;
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.startsWith(name + '=')) {
+                    return decodeURIComponent(cookie.substring(name.length + 1));
+                }
+            }
+            return null;
+        }
+
+        /**
+         * Before the form is submitted, refresh the CSRF hidden input value
+         * from the current csrftoken cookie. This ensures the token is always
+         * valid even if the page has been left idle for a long time.
+         */
+        (function() {
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function() {
+                    const csrfInput = this.querySelector('[name="csrfmiddlewaretoken"]');
+                    const currentToken = getCookie('csrftoken');
+                    if (csrfInput && currentToken) {
+                        csrfInput.value = currentToken;
+                    }
+                });
+            }
+        })();
+
+        /**
+         * Keep the session alive by sending a lightweight HEAD request
+         * every 25 minutes (well before the 30-minute session expiry).
+         * This prevents the CSRF token from being rotated due to session expiry.
+         */
+        (function() {
+            // 25 minutes = 25 * 60 * 1000 ms
+            const KEEPALIVE_INTERVAL = 25 * 60 * 1000;
+            setInterval(function() {
+                fetch('/agent/login/', {
+                    method: 'HEAD',
+                    cache: 'no-store'
+                }).catch(function() {
+                    // Silently ignore keepalive errors
+                });
+            }, KEEPALIVE_INTERVAL);
+        })();
+    </script>
 </body>
 
-</html> 
-
+</html>

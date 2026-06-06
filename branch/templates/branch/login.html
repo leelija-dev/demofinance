@@ -59,6 +59,21 @@
             </button>
         </form>
         <script>
+        /**
+         * Read a cookie value by name.
+         */
+        function getCookie(name) {
+            if (!document.cookie || document.cookie === '') return null;
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.startsWith(name + '=')) {
+                    return decodeURIComponent(cookie.substring(name.length + 1));
+                }
+            }
+            return null;
+        }
+
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const email = document.getElementById('email').value;
@@ -66,12 +81,14 @@
             const errorDiv = document.getElementById('login-error');
             errorDiv.classList.add('hidden');
             errorDiv.textContent = '';
+            // Refresh CSRF token from cookie before submitting (handles idle page expiry)
+            const csrfToken = getCookie('csrftoken') || document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
             try {
                 const response = await fetch('/branch/api/branch_manager/login/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
+                        'X-CSRFToken': csrfToken
                     },
                     body: JSON.stringify({ email, password })
                 });
@@ -87,6 +104,22 @@
                 errorDiv.classList.remove('hidden');
             }
         });
+
+        /**
+         * Keep the session alive by sending a lightweight HEAD request
+         * every 25 minutes (well before the 30-minute session expiry).
+         */
+        (function() {
+            const KEEPALIVE_INTERVAL = 25 * 60 * 1000;
+            setInterval(function() {
+                fetch('/branch/login/', {
+                    method: 'HEAD',
+                    cache: 'no-store'
+                }).catch(function() {
+                    // Silently ignore keepalive errors
+                });
+            }, KEEPALIVE_INTERVAL);
+        })();
         </script>
     </div>
     {% endblock %}

@@ -88,6 +88,49 @@
       class="fixed bottom-5 right-5 z-50 space-y-2"
     ></div>
 
+    <!-- CSRF Refresh Script: Prevents 403 errors when page is left idle for long periods -->
+    <script>
+        /**
+         * Read a cookie value by name.
+         */
+        function getCookie(name) {
+            if (!document.cookie || document.cookie === '') return null;
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.startsWith(name + '=')) {
+                    return decodeURIComponent(cookie.substring(name.length + 1));
+                }
+            }
+            return null;
+        }
+
+        // Refresh CSRF hidden input from cookie just before form submission
+        (function() {
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function() {
+                    const csrfInput = this.querySelector('[name="csrfmiddlewaretoken"]');
+                    const currentToken = getCookie('csrftoken');
+                    if (csrfInput && currentToken) {
+                        csrfInput.value = currentToken;
+                    }
+                });
+            }
+        })();
+
+        // Keep session alive with a HEAD request every 25 minutes
+        (function() {
+            const KEEPALIVE_INTERVAL = 25 * 60 * 1000;
+            setInterval(function() {
+                fetch('/hq/login/', {
+                    method: 'HEAD',
+                    cache: 'no-store'
+                }).catch(function() {});
+            }, KEEPALIVE_INTERVAL);
+        })();
+    </script>
+
     <script>
       window.showToast = function (message, type = "success") {
         const toastContainer = document.getElementById("hq-toast-container");

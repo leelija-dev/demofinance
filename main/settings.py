@@ -239,3 +239,9 @@ SESSION_SAVE_EVERY_REQUEST = True  # Update session expiry on every request
 SESSION_COOKIE_SECURE = True  # Only send cookies over HTTPS in production
 SESSION_COOKIE_HTTPONLY = True  # Prevent XSS attacks via JavaScript
 SESSION_COOKIE_SAMESITE = 'Lax'  # CSRF protection - allows safe cross-site requests
+
+# CSRF settings - CSRF cookie should last longer than session to avoid stale token issues
+CSRF_COOKIE_AGE = None  # CSRF token lasts as long as browser session (not tied to server session expiry)
+CSRF_COOKIE_SECURE = True  # Only send CSRF cookie over HTTPS
+CSRF_COOKIE_HTTPONLY = False  # Must be False so JavaScript can read it to refresh the token
+CSRF_COOKIE_SAMESITE = 'Lax'
