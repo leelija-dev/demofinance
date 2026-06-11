@@ -540,7 +540,7 @@ class NewLoanApplicationAPIV2(APIView):
                             import os
                             logo_base64 = None
                             try:
-                                logo_path = os.path.join(settings.BASE_DIR, 'static', 'main', 'images', 'company-logo.png')
+                                logo_path = os.path.join(settings.BASE_DIR, 'static', setting.COMPANY_LOGO_URL)
                                 if os.path.exists(logo_path):
                                     with open(logo_path, 'rb') as logo_file:
                                         logo_data = logo_file.read()
@@ -626,7 +626,7 @@ class NewLoanApplicationAPIV2(APIView):
                         import os
                         logo_base64 = None
                         try:
-                            logo_path = os.path.join(settings.BASE_DIR, 'static', 'main', 'images', 'company-logo.png')
+                            logo_path = os.path.join(settings.BASE_DIR, 'static', setting.COMPANY_LOGO_URL)
                             if os.path.exists(logo_path):
                                 with open(logo_path, 'rb') as logo_file:
                                     logo_data = logo_file.read()

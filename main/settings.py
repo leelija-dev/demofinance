@@ -100,6 +100,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'main.context_processors.settings_context',  # Expose Django settings in templates
             ],
         },
     },
@@ -245,3 +246,14 @@ CSRF_COOKIE_AGE = None  # CSRF token lasts as long as browser session (not tied 
 CSRF_COOKIE_SECURE = True  # Only send CSRF cookie over HTTPS
 CSRF_COOKIE_HTTPONLY = False  # Must be False so JavaScript can read it to refresh the token
 CSRF_COOKIE_SAMESITE = 'Lax'
+
+
+
+# Company Branding Settings
+COMPANY_NAME = "LEELIJA FINANCE"
+COMPANY_NAME_INIT = " ".join([word[0].upper() for word in COMPANY_NAME.split()])
+COMPANY_LOGO = "leelija-Photoroom.png"   # ← This is what you asked to store
+# COMPANY_LOGO = "company-logo.png"   # ← This is what you asked to store
+
+# Optional: Full path for easier use
+COMPANY_LOGO_URL = f"main/images/{COMPANY_LOGO}"

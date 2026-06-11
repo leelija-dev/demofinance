@@ -203,7 +203,7 @@ def _send_savings_application_email_in_background(application_id: str):
             import os
             logo_base64 = None
             try:
-                logo_path = os.path.join(settings.BASE_DIR, 'static', 'main', 'images', 'company-logo.png')
+                logo_path = os.path.join(settings.BASE_DIR, 'static', settings.COMPANY_LOGO_URL)
                 if os.path.exists(logo_path):
                     with open(logo_path, 'rb') as logo_file:
                         logo_data = logo_file.read()
@@ -230,6 +230,7 @@ def _send_savings_application_email_in_background(application_id: str):
                 'tenure_unit': tenure_unit,
                 'generated_date': timezone.now().astimezone(ZoneInfo('Asia/Kolkata')).strftime('%B %d, %Y at %I:%M %p'),
                 'logo_base64': logo_base64,
+                'settings': settings,
             }
             html_content = render_to_string('savings-application-pdf/savings-application-pdf.html', pdf_context)
             pdf_content = _generate_pdf_for_savings_application(html_content)
@@ -293,7 +294,7 @@ class SavingsApplicationPDFDownloadAPI(APIView):
         import os
         logo_base64 = None
         try:
-            logo_path = os.path.join(settings.BASE_DIR, 'static', 'main', 'images', 'company-logo.png')
+            logo_path = os.path.join(settings.BASE_DIR, 'static', settings.COMPANY_LOGO_URL)
             if os.path.exists(logo_path):
                 with open(logo_path, 'rb') as logo_file:
                     logo_data = logo_file.read()
@@ -320,6 +321,7 @@ class SavingsApplicationPDFDownloadAPI(APIView):
             'tenure_unit': tenure_unit,
             'generated_date': timezone.now().astimezone(ZoneInfo('Asia/Kolkata')).strftime('%B %d, %Y at %I:%M %p'),
             'logo_base64': logo_base64,
+            'settings': settings,
         }
         html_content = render_to_string('savings-application-pdf/savings-application-pdf.html', pdf_context)
         pdf_bytes = _generate_pdf_for_savings_application(html_content)

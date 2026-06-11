@@ -1561,7 +1561,7 @@ class DisbursementSubmitAPIView(APIView):
                 
                 # Create plain text version
                 message_text = (
-                    "SUNDARAM FINANCE\n"
+                    "{setting.COMPANY_NAME}\n"
                     "==================\n\n"
                     "Loan Disbursement Notification\n\n"
                     f"Reference No: {context['loan_ref_no']}\n"
@@ -1571,7 +1571,7 @@ class DisbursementSubmitAPIView(APIView):
                     f"Disbursement Mode: {context['disb_mode']}\n"
                     f"Bank Name: {context['bank_name']}\n"
                     f"Account/UPI: {context['account_number']}\n\n"
-                    "Thank you for choosing Sundaram Finance.\n"
+                    "Thank you for choosing {setting.COMPANY_NAME.title()}.\n"
                 )
                 
                 # Create HTML version
@@ -1608,7 +1608,7 @@ class DisbursementSubmitAPIView(APIView):
                             import os
                             logo_base64 = None
                             try:
-                                logo_path = os.path.join(settings.BASE_DIR, 'static', 'main', 'images', 'company-logo.png')
+                                logo_path = os.path.join(settings.BASE_DIR, 'static', 'main', 'images', 'leejija-full-logo.png')
                                 if os.path.exists(logo_path):
                                     with open(logo_path, 'rb') as logo_file:
                                         logo_data = logo_file.read()
@@ -2490,7 +2490,7 @@ class GenerateLoanPDFAPI(APIView):
             import os
             logo_base64 = None
             try:
-                logo_path = os.path.join(settings.BASE_DIR, 'static', 'main', 'images', 'company-logo.png')
+                logo_path = os.path.join(settings.BASE_DIR, 'static', setting.COMPANY_LOGO_URL)
                 if os.path.exists(logo_path):
                     with open(logo_path, 'rb') as logo_file:
                         logo_data = logo_file.read()
@@ -4119,7 +4119,7 @@ class receiveEmiDetailAPI(APIView):
                         subject = f"EMI Payment Received - Ref: {loan_application.loan_ref_no}"
 
                         message_text = (
-                            "SUNDARAM FINANCE\n"
+                            "{setting.COMPANY_NAME}\n"
                             "==================\n\n"
                             "EMI Payment Receipt\n\n"
                             f"Reference No: {loan_application.loan_ref_no}\n"

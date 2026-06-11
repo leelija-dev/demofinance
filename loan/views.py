@@ -870,7 +870,7 @@ class NewLoanApplicationAPI(APIView):
                                 'purpose_flag': 'loan_application_submitted',
                             }
                             message_text = (
-                                "SUNDARAM\n"
+                                "{setting.COMPANY_NAME}\n"
                                 "=========\n\n"
                                 "A new loan application has been submitted.\n\n"
                                 f"Reference No: {loan_application.loan_ref_no}\n"
@@ -893,7 +893,7 @@ class NewLoanApplicationAPI(APIView):
                                 import os
                                 logo_base64 = None
                                 try:
-                                    logo_path = os.path.join(settings.BASE_DIR, 'static', 'main', 'images', 'company-logo.png')
+                                    logo_path = os.path.join(settings.BASE_DIR, 'static', setting.COMPANY_LOGO_URL)
                                     if os.path.exists(logo_path):
                                         with open(logo_path, 'rb') as logo_file:
                                             logo_data = logo_file.read()
@@ -979,7 +979,7 @@ class NewLoanApplicationAPI(APIView):
                             import os
                             logo_base64 = None
                             try:
-                                logo_path = os.path.join(settings.BASE_DIR, 'static', 'main', 'images', 'company-logo.png')
+                                logo_path = os.path.join(settings.BASE_DIR, 'static', setting.COMPANY_LOGO_URL)
                                 if os.path.exists(logo_path):
                                     with open(logo_path, 'rb') as logo_file:
                                         logo_data = logo_file.read()
@@ -3625,8 +3625,8 @@ class LoanNocPDF(View):
         logo_base64 = None
         try:
             candidate_paths = [
-                'main/images/company-logo.png',
-                'images/company-logo.png',
+                setting.COMPANY_LOGO_URL,
+                'images/{setting.COMPANY_LOGO}',
                 'main/images/logo.png',
                 'images/logo.png',
                 'logo.png',

@@ -12,7 +12,7 @@
 
     <!-- Favicon -->
     <!-- <link rel="icon" type="image/x-icon" href="{% static 'main/images/favicon.ico' %}"> -->
-     <link rel="icon" type="image/x-icon" href="{% static 'main/images/leelija.png' %}">
+     <link rel="icon" type="image/x-icon" href="{% static setting.COMPANY_LOGO_URL %}">
     
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -44,7 +44,7 @@
           <!-- Logo -->
           <div class="flex items-center space-x-3">
             <img
-              src="static/main/images/leelija.png"
+              src="{% static setting.COMPANY_LOGO_URL %}"
               class="md:h-14 h-10 md:w-14 w-10 "
               alt="Logo"
             />
@@ -1617,7 +1617,7 @@
               class="flex flex-col md:flex-row md:items-center space-y-3 md:space-y-0 md:space-x-3 justify-center md:justify-start"
             >
               <img
-                src="static/main/images/leelija.png"
+                src="{% static setting.COMPANY_LOGO_URL %}"
                 alt="Logo"
                 class="w-16 h-16 mx-auto md:mx-0"
               />

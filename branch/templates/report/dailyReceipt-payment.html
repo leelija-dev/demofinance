@@ -687,7 +687,8 @@
 
             const doc = new (window.jspdf && window.jspdf.jsPDF ? window.jspdf.jsPDF : jsPDF)('p', 'pt', 'a4');
             // Header texts
-            const headerLeft = 'Sundaram(K S S F)';
+            const headerLeftNameInit = '{{setting.COMPANY_NAME_INIT}}';
+            const headerLeft = '{{setting.COMPANY_NAME}}('+headerLeftNameInit+')';
             const headerRight = 'Downloaded: ' + new Date().toLocaleString();
 
             const pageWidth = doc.internal.pageSize.getWidth();

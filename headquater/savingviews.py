@@ -77,7 +77,7 @@ def _send_savings_surrender_approved_email_in_background(application_id: str, pr
 
         subject = f"Savings Surrender Approved - {app.account_id or app.application_id}"
         message_text = (
-            "SUNDARAM\n"
+            "{setting.COMPANY_NAME}\n"
             "========\n\n"
             "Savings surrender request approved.\n\n"
             f"Application ID: {app.application_id}\n"
@@ -89,7 +89,7 @@ def _send_savings_surrender_approved_email_in_background(application_id: str, pr
 
         message_html = (
             "<div style=\"font-family:Arial,sans-serif;line-height:1.5;\">"
-            "<h2 style=\"margin:0 0 8px 0;\">SUNDARAM</h2>"
+            "<h2 style=\"margin:0 0 8px 0;\">{setting.COMPANY_NAME}</h2>"
             "<p style=\"margin:0 0 12px 0;\">Savings surrender request approved.</p>"
             "<table style=\"border-collapse:collapse;\">"
             f"<tr><td style=\"padding:4px 10px 4px 0;\"><b>Application ID</b></td><td style=\"padding:4px 0;\">{app.application_id}</td></tr>"
@@ -98,7 +98,7 @@ def _send_savings_surrender_approved_email_in_background(application_id: str, pr
             f"<tr><td style=\"padding:4px 10px 4px 0;\"><b>Payout</b></td><td style=\"padding:4px 0;\">₹{principal_amount} (Principal Only)</td></tr>"
             f"<tr><td style=\"padding:4px 10px 4px 0;\"><b>Approved On</b></td><td style=\"padding:4px 0;\">{timezone.now().date().strftime('%d/%m/%Y')}</td></tr>"
             "</table>"
-            "<p style=\"margin-top:16px;color:#666;font-size:12px;\">This is an automated notification from Sundaram Savings Management System.</p>"
+            "<p style=\"margin-top:16px;color:#666;font-size:12px;\">This is an automated notification from {setting.COMPANY_NAME} Savings Management System.</p>"
             "</div>"
         )
 
@@ -194,7 +194,7 @@ def _send_savings_hq_approved_email_in_background(application_id: str) -> None:
         }
 
         message_text = (
-            "SUNDARAM\n"
+            "{setting.COMPANY_NAME}\n"
             "========\n\n"
             "Savings account approved successfully.\n\n"
             f"Application ID: {context['application_id']}\n"

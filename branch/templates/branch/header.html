@@ -134,18 +134,18 @@
         <div class="w-fit dark:hidden flex gap-2 items-center">
           <img
             class="h-12 w-12"
-            src="{% static 'main/images/company-logo.png' %}"
+            src="{% static setting.COMPANY_LOGO_URL %}"
             alt="Logo"
           /><span class="text-[1.4rem] font-semibold text-[#4d4d4d] xs:block hidden"
-            >Sundaram</span
+            >{{setting.COMPANY_NAME}}</span
           >
         </div>
         <div class="w-fit hidden dark:flex gap-2 items-center">
           <img
             class="h-12 w-12"
-            src="{% static 'main/images/company-logo.png' %}"
+            src="{% static setting.COMPANY_LOGO_URL %}"
             alt="Logo"
-          /><span class="text-[1.4rem] font-semibold text-white xs:block hidden">Sundaram</span>
+          /><span class="text-[1.4rem] font-semibold text-white xs:block hidden">{{setting.COMPANY_NAME}}</span>
         </div>
       </a>
     </div>
