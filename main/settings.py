@@ -250,10 +250,14 @@ CSRF_COOKIE_SAMESITE = 'Lax'
 
 
 # Company Branding Settings
-COMPANY_NAME = "LEELIJA FINANCE"
+COMPANY_NAME = os.environ.get('COMPANY_NAME', 'LEELIJA FINANCE')
 COMPANY_NAME_INIT = " ".join([word[0].upper() for word in COMPANY_NAME.split()])
-COMPANY_LOGO = "leelija-Photoroom.png"   # ← This is what you asked to store
-# COMPANY_LOGO = "company-logo.png"   # ← This is what you asked to store
+COMPANY_LOGO = os.environ.get('COMPANY_LOGO', 'leelija-Photoroom.png')   # ← This is what you asked to store
+# COMPANY_LOGO = os.environ.get('COMPANY_LOGO', 'company-logo.png')   # ← This is what you asked to store
+COMPANY_LOGO_TRANSPARENT = os.environ.get('COMPANY_LOGO_TRANSPARENT', 'leelija-Photoroom.png')   
+COMPANY_CONTACT = os.environ.get('COMPANY_CONTACT', '70031 50015')
+COMPANY_EMAIL = os.environ.get('COMPANY_EMAIL', 'nidhisoft542@gmail.com')
 
 # Optional: Full path for easier use
 COMPANY_LOGO_URL = f"main/images/{COMPANY_LOGO}"
+COMPANY_LOGO_TRANSPARENT_URL = f"main/images/{COMPANY_LOGO_TRANSPARENT}"

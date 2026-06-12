@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import TemplateView, CreateView, FormView, View
 from django.contrib.auth.views import LoginView, PasswordResetView, PasswordResetConfirmView, PasswordChangeView
@@ -4737,6 +4738,7 @@ def loan_close_request_action(request, request_id):
                     'request_id': lcr.request_id,
                     'approved_at': lcr.approved_at,
                     'branch_name': getattr(lcr.branch, 'branch_name', ''),
+                    'settings': settings
                 }
                 # HTML and text body
                 html_content = render_to_string('loan/loan_close_email.html', context)
@@ -4744,7 +4746,7 @@ def loan_close_request_action(request, request_id):
                     f"Dear {context['customer_name']}, your loan close request "
                     f"{lcr.request_id} for {la.loan_ref_no} has been approved."
                 )
-                from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', None) or 'no-reply@sundaram.local'
+                from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', None) 
                 msg = EmailMultiAlternatives(subject, text_content, from_email, [recipient])
                 msg.attach_alternative(html_content, "text/html")
 

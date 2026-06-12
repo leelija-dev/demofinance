@@ -187,7 +187,7 @@ def _send_savings_application_email_in_background(application_id: str):
 
         subject = f"New Savings Application Received - Ref: {savings_app.application_id}"
         message_text = (
-            "SUNDARAM\n"
+            "{settings.COMPANY_NAME}\n"
             "=========\n\n"
             "A new savings application has been submitted.\n\n"
             f"Application ID: {savings_app.application_id}\n"

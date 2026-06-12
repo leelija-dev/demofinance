@@ -78,7 +78,7 @@
         {% else %}
         <div style="width: 50px; height: 50px; background-color: #005baa; border-radius: 4px; margin-right: 10px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">S</div>
         {% endif %}
-        <h2>{{setting.COMPANY_NAME}}</h2>
+        <h2>{{settings.COMPANY_NAME}}</h2>
     </div>
 
     {% if purpose_flag == 'savings_hq_approved' %}
@@ -121,7 +121,7 @@
     {% endif %}
 
     <div class="footer">
-        This is an automated notification from {{setting.COMPANY_NAME.title()}} Savings Management System.
+        This is an automated notification from {{settings.COMPANY_NAME.title()}} Savings Management System.
     </div>
 </div>
 </body>

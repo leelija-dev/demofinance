@@ -868,9 +868,10 @@ class NewLoanApplicationAPI(APIView):
                                 'loan_amount': data.get('loan_amount'),
                                 'sub_header': 'New Loan Application Submitted',
                                 'purpose_flag': 'loan_application_submitted',
+                                'settings':settings,
                             }
                             message_text = (
-                                "{setting.COMPANY_NAME}\n"
+                                "{settings.COMPANY_NAME}\n"
                                 "=========\n\n"
                                 "A new loan application has been submitted.\n\n"
                                 f"Reference No: {loan_application.loan_ref_no}\n"
@@ -893,7 +894,7 @@ class NewLoanApplicationAPI(APIView):
                                 import os
                                 logo_base64 = None
                                 try:
-                                    logo_path = os.path.join(settings.BASE_DIR, 'static', setting.COMPANY_LOGO_URL)
+                                    logo_path = os.path.join(settings.BASE_DIR, 'static', settings.COMPANY_LOGO_URL)
                                     if os.path.exists(logo_path):
                                         with open(logo_path, 'rb') as logo_file:
                                             logo_data = logo_file.read()
@@ -916,6 +917,7 @@ class NewLoanApplicationAPI(APIView):
                                     'address': address_kwargs,
                                     'generated_date': timezone.now().astimezone(ZoneInfo('Asia/Kolkata')).strftime('%B %d, %Y at %I:%M %p'),
                                     'logo_base64': logo_base64,
+                                    'settings': settings,
                                 }
                                 # Debug: Print customer date_of_birth info
                                 print(f"[PDF Debug] Customer date_of_birth: {customer.date_of_birth}, type: {type(customer.date_of_birth)}")
@@ -979,7 +981,7 @@ class NewLoanApplicationAPI(APIView):
                             import os
                             logo_base64 = None
                             try:
-                                logo_path = os.path.join(settings.BASE_DIR, 'static', setting.COMPANY_LOGO_URL)
+                                logo_path = os.path.join(settings.BASE_DIR, 'static', settings.COMPANY_LOGO_URL)
                                 if os.path.exists(logo_path):
                                     with open(logo_path, 'rb') as logo_file:
                                         logo_data = logo_file.read()
@@ -1001,6 +1003,7 @@ class NewLoanApplicationAPI(APIView):
                                 'address': address_kwargs,
                                 'generated_date': timezone.now().astimezone(ZoneInfo('Asia/Kolkata')).strftime('%B %d, %Y at %I:%M %p'),
                                 'logo_base64': logo_base64,
+                                'settings': settings,
                             }
                             html_content = render_to_string('loan-application-pdf/loan-application-pdf.html', pdf_context)
                             download_pdf_content = self._generate_pdf_for_email(html_content)
@@ -3625,8 +3628,8 @@ class LoanNocPDF(View):
         logo_base64 = None
         try:
             candidate_paths = [
-                setting.COMPANY_LOGO_URL,
-                'images/{setting.COMPANY_LOGO}',
+                settings.COMPANY_LOGO_URL,
+                'images/{settings.COMPANY_LOGO}',
                 'main/images/logo.png',
                 'images/logo.png',
                 'logo.png',

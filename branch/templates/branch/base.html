@@ -16,7 +16,8 @@
             {% endblock title %}
         </title>
         <!-- Favicon -->
-        <link rel="icon" type="image/x-icon" href="{% static 'branch/images/logo/logo.svg' %}">
+        {% comment %} <link rel="icon" type="image/x-icon" href="{% static 'branch/images/logo/logo.svg' %}"> {% endcomment %}
+        <link rel="icon" type="image/x-icon" href="{% static setting.COMPANY_LOGO_TRANSPARENT_URL %}">
         <!-- Alpine.js Core -->
         <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
         <!-- Alpine.js Persist Plugin -->

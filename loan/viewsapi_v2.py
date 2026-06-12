@@ -447,6 +447,7 @@ class NewLoanApplicationAPIV2(APIView):
                     'address': address_kwargs,
                     'generated_date': timezone.now().astimezone(ZoneInfo('Asia/Kolkata')).strftime('%B %d, %Y at %I:%M %p'),
                     'logo_base64': logo_base64,
+                    'settings': settings,
                 }
                 if product:
                     pdf_context['loan_detail']['product'] = product.sub_category.main_category.name, product.sub_category.name, product.name
@@ -901,7 +902,7 @@ class NewLoanApplicationAPIV2(APIView):
         import os
         logo_base64: Optional[str] = None
         try:
-            logo_path = os.path.join(settings.BASE_DIR, 'static', setting.COMPANY_LOGO_URL)
+            logo_path = os.path.join(settings.BASE_DIR, 'static', settings.COMPANY_LOGO_URL)
             if os.path.exists(logo_path):
                 with open(logo_path, 'rb') as logo_file:
                     logo_data = logo_file.read()
@@ -952,9 +953,10 @@ class NewLoanApplicationAPIV2(APIView):
                     'loan_amount': data.get('loan_amount'),
                     'sub_header': 'New Loan Application Submitted',
                     'purpose_flag': 'loan_application_submitted',
+                    'settings': settings,
                 }
                 message_text = (
-                    "{setting.COMPANY_NAME}\n"
+                    "{settings.COMPANY_NAME}\n"
                     "=========\n\n"
                     "A new loan application has been submitted.\n\n"
                     f"Reference No: {loan_application.loan_ref_no}\n"

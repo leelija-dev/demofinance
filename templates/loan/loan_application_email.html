@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>New Loan Application Notification</title>
+    <link rel="icon" type="image/x-icon" href="{% static settings.COMPANY_LOGO_TRANSPARENT_URL %}">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -89,7 +90,7 @@
         {% else %}
         <div style="width: 50px; height: 50px; background-color: #005baa; border-radius: 4px; margin-right: 10px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">S</div>
         {% endif %}
-        <h2>{{setting.COMPANY_NAME}}</h2>
+        <h2>{{settings.COMPANY_NAME}}</h2>
     </div>
     {% if purpose_flag == 'loan_application_submitted' %}
     <div style="font-size:15px;letter-spacing:1px;">{{ sub_header|default:'New Loan Application Received' }} - {{ loan_ref_no }}</div>
@@ -231,7 +232,7 @@
      {% endif %}
      {% endif %}
     <div class="footer">
-        This is an automated notification from {{setting.COMPANY_NAME.title()}} Loan Management System.
+        This is an automated notification from {{settings.COMPANY_NAME.title()}} Loan Management System.
     </div>
 </div>
 </body>

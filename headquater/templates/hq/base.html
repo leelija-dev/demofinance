@@ -15,7 +15,8 @@
       {% endblock title %}
     </title>
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="{% static 'hq/images/logo/logo.svg' %}" />
+    {% comment %} <link rel="icon" type="image/x-icon" href="{% static 'hq/images/logo/logo.svg' %}" /> {% endcomment %}
+    <link rel="icon" type="image/x-icon" href="{% static setting.COMPANY_LOGO_TRANSPARENT_URL %}">
     {% block extra_head %}
     {% endblock extra_head %}
     <!-- Alpine.js Core -->
