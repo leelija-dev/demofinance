@@ -4,3 +4,6 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
 # m h dom mon dow user  command
 0 0 * * *   root    /app/cronjobs/update_overdue_emis.sh >> /var/log/cron.log 2>&1
+
+# Run clear_trial_headquater_user_data.py every day at 1 AM
+0 1 * * *   root    /app/cronjobs/clear_trial_headquater_user_data.sh >> /var/log/cron.log 2>&1
