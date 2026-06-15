@@ -153,7 +153,6 @@ class Command(BaseCommand):
             'loan_close_requests_deleted': 0,
             'loan_application_drafts_deleted': 0,
             'loan_reschedule_logs_deleted': 0,
-            'deductions_deleted': 0,
             'loan_applications_deleted': 0,
 
             # Delete all (savings-related)
@@ -169,22 +168,22 @@ class Command(BaseCommand):
             # Delete all (HQ transactional)
             'hq_transactions_deleted': 0,
             'fund_transfers_deleted': 0,
-
-            # Delete user-created products/config (only those specifically created by trial user)
-            'one_time_deposits_deleted': 0,
-            'daily_products_deleted': 0,
         }
 
         with transaction.atomic():
             # ================================================================
-            # DELETE LOAN-RELATED DATA (cascade from loan apps)
+            # DELETE LOAN-RELATED DATA
+            # Deletion order matters:
+            #   1. Delete child rows that FK to LoanApplication
+            #   2. Delete LoanApplication itself
+            #   3. Delete CustomerDetail (LoanApplication has FK customer→CustomerDetail,
+            #      so CustomerDetail can only be deleted AFTER LoanApplication is gone
+            #      to avoid FK nullification)
             # ================================================================
             if loan_ref_nos:
-                # --- Customer-level data (shared across loans per customer) ---
-                # Get all customer IDs from these loan applications
-                loan_app_objects = list(loan_apps)  # materialize
+                # --- STEP 1: Delete children of LoanApplication ---
 
-                # 1. CustomerDocument (one-to-one with loan application)
+                # 1a. CustomerDocument (OneToOne FK to LoanApplication)
                 qs = CustomerDocument.objects.filter(loan_application__in=loan_ref_nos)
                 count = qs.count()
                 if count:
@@ -192,7 +191,7 @@ class Command(BaseCommand):
                         qs.delete()
                     stats['customer_documents_deleted'] += count
 
-                # 2. CustomerLoanDetail
+                # 1b. CustomerLoanDetail (FK to LoanApplication)
                 qs = CustomerLoanDetail.objects.filter(loan_application__in=loan_ref_nos)
                 count = qs.count()
                 if count:
@@ -200,7 +199,7 @@ class Command(BaseCommand):
                         qs.delete()
                     stats['customer_loan_details_deleted'] += count
 
-                # 3. CustomerAddress
+                # 1c. CustomerAddress (FK to LoanApplication + OneToOne to CustomerDetail)
                 qs = CustomerAddress.objects.filter(loan_application__in=loan_ref_nos)
                 count = qs.count()
                 if count:
@@ -208,15 +207,7 @@ class Command(BaseCommand):
                         qs.delete()
                     stats['customer_addresses_deleted'] += count
 
-                # 4. CustomerDetail
-                qs = CustomerDetail.objects.filter(loan_application__in=loan_ref_nos)
-                count = qs.count()
-                if count:
-                    if not dry_run:
-                        qs.delete()
-                    stats['customer_details_deleted'] += count
-
-                # 5. CustomerAccount (references customer detail, but we can filter via loan_application)
+                # 1d. CustomerAccount (OneToOne FK to LoanApplication)
                 qs = CustomerAccount.objects.filter(loan_application__in=loan_ref_nos)
                 count = qs.count()
                 if count:
@@ -224,7 +215,7 @@ class Command(BaseCommand):
                         qs.delete()
                     stats['customer_accounts_deleted'] += count
 
-                # 6. LoanEMISchedule
+                # 1e. LoanEMISchedule (FK to LoanApplication)
                 qs = LoanEMISchedule.objects.filter(loan_application__in=loan_ref_nos)
                 count = qs.count()
                 if count:
@@ -232,7 +223,7 @@ class Command(BaseCommand):
                         qs.delete()
                     stats['loan_emi_schedules_deleted'] += count
 
-                # 7. LoanEMIReschedule
+                # 1f. LoanEMIReschedule (FK to LoanApplication)
                 qs = LoanEMIReschedule.objects.filter(loan_application__in=loan_ref_nos)
                 count = qs.count()
                 if count:
@@ -240,7 +231,7 @@ class Command(BaseCommand):
                         qs.delete()
                     stats['loan_emi_reschedules_deleted'] += count
 
-                # 8. LoanPeriod
+                # 1g. LoanPeriod (FK to LoanApplication)
                 qs = LoanPeriod.objects.filter(loan_application__in=loan_ref_nos)
                 count = qs.count()
                 if count:
@@ -248,15 +239,15 @@ class Command(BaseCommand):
                         qs.delete()
                     stats['loan_periods_deleted'] += count
 
-                # 9. DisbursementLog
-                qs = DisbursementLog.objects.filter(loan_application__in=loan_ref_nos)
+                # 1h. DisbursementLog (FK loan_id to LoanApplication)
+                qs = DisbursementLog.objects.filter(loan_id__in=loan_ref_nos)
                 count = qs.count()
                 if count:
                     if not dry_run:
                         qs.delete()
                     stats['disbursement_logs_deleted'] += count
 
-                # 10. DocumentRequest
+                # 1i. DocumentRequest (FK to LoanApplication)
                 qs = DocumentRequest.objects.filter(loan_application__in=loan_ref_nos)
                 count = qs.count()
                 if count:
@@ -264,31 +255,35 @@ class Command(BaseCommand):
                         qs.delete()
                     stats['document_requests_deleted'] += count
 
-                # 11. DocumentReupload
-                qs = DocumentReupload.objects.filter(document_request__loan_application__in=loan_ref_nos)
+                # 1j. DocumentReupload (FK to LoanApplication)
+                qs = DocumentReupload.objects.filter(loan_application__in=loan_ref_nos)
                 count = qs.count()
                 if count:
                     if not dry_run:
                         qs.delete()
                     stats['document_reuploads_deleted'] += count
 
-                # 12. DocumentReview
-                qs = DocumentReview.objects.filter(document_request__loan_application__in=loan_ref_nos)
+                # 1k. DocumentReview (FK to LoanApplication)
+                qs = DocumentReview.objects.filter(loan_application__in=loan_ref_nos)
                 count = qs.count()
                 if count:
                     if not dry_run:
                         qs.delete()
                     stats['document_reviews_deleted'] += count
 
-                # 13. EmiAgentAssign
-                qs = EmiAgentAssign.objects.filter(loan_application__in=loan_ref_nos)
+                # 1l. EmiAgentAssign (FK via emi__loan_application or reschedule_emi__loan_application)
+                from django.db.models import Q
+                qs = EmiAgentAssign.objects.filter(
+                    Q(emi__loan_application__in=loan_ref_nos) |
+                    Q(reschedule_emi__loan_application__in=loan_ref_nos)
+                )
                 count = qs.count()
                 if count:
                     if not dry_run:
                         qs.delete()
                     stats['emi_agent_assigns_deleted'] += count
 
-                # 14. EmiCollectionDetail
+                # 1m. EmiCollectionDetail (FK to LoanApplication)
                 qs = EmiCollectionDetail.objects.filter(loan_application__in=loan_ref_nos)
                 count = qs.count()
                 if count:
@@ -296,7 +291,7 @@ class Command(BaseCommand):
                         qs.delete()
                     stats['emi_collection_details_deleted'] += count
 
-                # 15. LoanCloseRequest
+                # 1n. LoanCloseRequest (FK to LoanApplication)
                 qs = LoanCloseRequest.objects.filter(loan_application__in=loan_ref_nos)
                 count = qs.count()
                 if count:
@@ -304,7 +299,7 @@ class Command(BaseCommand):
                         qs.delete()
                     stats['loan_close_requests_deleted'] += count
 
-                # 16. LoanRescheduleLog
+                # 1o. LoanRescheduleLog (FK to LoanApplication)
                 qs = LoanRescheduleLog.objects.filter(loan_application__in=loan_ref_nos)
                 count = qs.count()
                 if count:
@@ -312,20 +307,26 @@ class Command(BaseCommand):
                         qs.delete()
                     stats['loan_reschedule_logs_deleted'] += count
 
-                # 17. Deductions (user-created ones under these loans)
-                qs = Deductions.objects.filter(loan_application__in=loan_ref_nos)
-                count = qs.count()
-                if count:
-                    if not dry_run:
-                        qs.delete()
-                    stats['deductions_deleted'] += count
+                # 1p. Deductions — master data (no loan_application FK), skipped
 
-                # 18. Finally, delete LoanApplication itself
+                # --- STEP 2: Delete LoanApplication itself ---
                 count = len(loan_ref_nos)
                 if count:
                     if not dry_run:
                         loan_apps.delete()
                     stats['loan_applications_deleted'] += count
+
+                # --- STEP 3: Delete CustomerDetail (reverse FK: LoanApplication.customer)
+                #     Only now safe because LoanApplications referencing these customers are gone.
+                qs = CustomerDetail.objects.filter(
+                    loan_applications__isnull=True,
+                    branch__in=branch_ids,
+                )
+                count = qs.count()
+                if count:
+                    if not dry_run:
+                        qs.delete()
+                    stats['customer_details_deleted'] += count
 
             # ================================================================
             # DELETE SAVINGS-RELATED DATA
@@ -356,8 +357,23 @@ class Command(BaseCommand):
 
             # ================================================================
             # DELETE BRANCH TRANSACTIONAL DATA (under trial user's branches)
+            #
+            # FundTransfers FK to BranchTransaction via branch_transaction field.
+            # Delete FundTransfers that reference these BranchTransactions FIRST,
+            # then delete BranchTransaction itself.
             # ================================================================
             if branch_ids:
+                # 0. Delete FundTransfers linked to these branch transactions FIRST
+                #    (before BranchTransactions are deleted)
+                qs = FundTransfers.objects.filter(
+                    branch_transaction__branch__in=branch_ids
+                )
+                count = qs.count()
+                if count:
+                    if not dry_run:
+                        qs.delete()
+                    stats['fund_transfers_deleted'] += count
+
                 # 1. AgentDepositDenomination (cascade from AgentDeposit)
                 qs = AgentDepositDenomination.objects.filter(deposit__branch__in=branch_ids)
                 count = qs.count()
@@ -382,9 +398,7 @@ class Command(BaseCommand):
                         qs.delete()
                     stats['branch_transactions_deleted'] += count
 
-                # 4. LoanApplicationDraft (linked via user_id - agent/branch IDs under these branches)
-                #    We can't easily filter by branch, so skip. But we can filter by branch_ids
-                #    through the branch employee IDs. For now, delete drafts related to these branches.
+                # 4. LoanApplicationDraft — delete drafts by branch employee IDs and agent IDs
                 from branch.models import BranchEmployee
                 branch_emp_ids = list(
                     BranchEmployee.objects.filter(branch__in=branch_ids)
@@ -419,30 +433,43 @@ class Command(BaseCommand):
 
             # ================================================================
             # DELETE HQ TRANSACTIONAL DATA (created by trial user)
+            #
+            # FundTransfers has:
+            #   - created_by (CharField storing transaction_id string)
+            #   - hq_transaction (FK to HeadquartersTransactions, on_delete=SET_NULL)
+            #
+            # Delete FundTransfers FIRST (while we still have the transaction IDs),
+            # then delete HeadquartersTransactions.
             # ================================================================
             for trial_user in expired_trial_users:
-                # 1. HeadquartersTransactions
+                # Step 1: Collect HQ transaction IDs created by this trial user
+                #         BEFORE deleting them (needed for FundTransfers.created_by lookup)
+                user_txn_ids = list(
+                    HeadquartersTransactions.objects.filter(created_by=trial_user)
+                    .values_list('transaction_id', flat=True)
+                )
+
+                # Step 2: Delete FundTransfers linked to these transactions.
+                #         FundTransfers.created_by stores the transaction_id (CharField).
+                #         Also delete FundTransfers that FK to these HQ transactions.
+                if user_txn_ids:
+                    qs = FundTransfers.objects.filter(
+                        Q(created_by__in=user_txn_ids) |
+                        Q(hq_transaction__in=user_txn_ids)
+                    )
+                    count = qs.count()
+                    if count:
+                        if not dry_run:
+                            qs.delete()
+                        stats['fund_transfers_deleted'] += count
+
+                # Step 3: Now delete HeadquartersTransactions
                 qs = HeadquartersTransactions.objects.filter(created_by=trial_user)
                 count = qs.count()
                 if count:
                     if not dry_run:
                         qs.delete()
                     stats['hq_transactions_deleted'] += count
-
-                # 2. FundTransfers (where created_by matches transaction ID)
-                #    These are linked via hq_transaction or branch_transaction.
-                #    Delete by created_by matching trial user's transaction IDs
-                user_txn_ids = list(
-                    HeadquartersTransactions.objects.filter(created_by=trial_user)
-                    .values_list('transaction_id', flat=True)
-                )
-                if user_txn_ids:
-                    qs = FundTransfers.objects.filter(created_by__in=user_txn_ids)
-                    count = qs.count()
-                    if count:
-                        if not dry_run:
-                            qs.delete()
-                        stats['fund_transfers_deleted'] += count
 
             # ================================================================
             # RESET CURRENT BALANCE (not delete)
@@ -471,26 +498,6 @@ class Command(BaseCommand):
                     if not dry_run:
                         qs.update(balance=0)
                     stats['hq_wallets_reset'] += count
-
-            # ================================================================
-            # DELETE USER-CREATED PRODUCTS/CONFIG (only trial-user-created ones)
-            # ================================================================
-            for trial_user in expired_trial_users:
-                # OneTimeDeposit
-                qs = OneTimeDeposit.objects.filter(created_by=trial_user)
-                count = qs.count()
-                if count:
-                    if not dry_run:
-                        qs.delete()
-                    stats['one_time_deposits_deleted'] += count
-
-                # DailyProduct
-                qs = DailyProduct.objects.filter(created_by=trial_user)
-                count = qs.count()
-                if count:
-                    if not dry_run:
-                        qs.delete()
-                    stats['daily_products_deleted'] += count
 
             if dry_run:
                 transaction.set_rollback(True)
@@ -523,7 +530,6 @@ class Command(BaseCommand):
         _print_stat(self, stats, 'emi_collection_details_deleted', 'EmiCollectionDetails')
         _print_stat(self, stats, 'loan_close_requests_deleted', 'LoanCloseRequests')
         _print_stat(self, stats, 'loan_reschedule_logs_deleted', 'LoanRescheduleLogs')
-        _print_stat(self, stats, 'deductions_deleted', 'Deductions')
         _print_stat(self, stats, 'loan_application_drafts_deleted', 'LoanApplicationDrafts')
 
         self.stdout.write(self.style.NOTICE("  [SAVINGS-RELATED DATA DELETED]"))
@@ -539,10 +545,6 @@ class Command(BaseCommand):
         self.stdout.write(self.style.NOTICE("  [HQ TRANSACTIONAL DATA DELETED]"))
         _print_stat(self, stats, 'hq_transactions_deleted', 'HQTransactions')
         _print_stat(self, stats, 'fund_transfers_deleted', 'FundTransfers')
-
-        self.stdout.write(self.style.NOTICE("  [TRIAL-USER-CREATED PRODUCTS DELETED]"))
-        _print_stat(self, stats, 'one_time_deposits_deleted', 'OneTimeDeposits')
-        _print_stat(self, stats, 'daily_products_deleted', 'DailyProducts')
 
         self.stdout.write(self.style.SUCCESS("=" * 60))
 
