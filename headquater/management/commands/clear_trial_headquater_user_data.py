@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 from zoneinfo import ZoneInfo
 
@@ -272,7 +273,6 @@ class Command(BaseCommand):
                     stats['document_reviews_deleted'] += count
 
                 # 1l. EmiAgentAssign (FK via emi__loan_application or reschedule_emi__loan_application)
-                from django.db.models import Q
                 qs = EmiAgentAssign.objects.filter(
                     Q(emi__loan_application__in=loan_ref_nos) |
                     Q(reschedule_emi__loan_application__in=loan_ref_nos)
