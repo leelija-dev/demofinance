@@ -26,6 +26,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.db import close_old_connections
 
 from .decorators import require_permissions_for_class, require_permission
+from demo.hq import branch_created_by_filter_decorator
 from .forms import SavingTypeForm, OneTimeDepositForm, DailyProductForm
 
 from savings.models import SavingType, OneTimeDeposit, DailyProduct, SavingsAccountApplication, SavingsCollection, SavingsAgentAssign
@@ -36,6 +37,22 @@ from agent.models import Agent
 from branch.models import BranchEmployee, BranchAccount, BranchTransaction
 
 from savings.views import _get_rd_interest_as_of
+
+
+def _get_branch_filter(self, field='branch__created_by'):
+    """
+    Helper to safely get branch filter from the decorator.
+    Checks if 'get_branch_filter' method was added by the decorator.
+    Falls back to {} if decorator is not applied.
+    
+    Usage (only in class-based views with @branch_created_by_filter_decorator):
+        qs = Model.objects.filter(**_get_branch_filter(self))
+        Branch.objects.filter(**_get_branch_filter(self, field='created_by'))
+    """
+    getter = getattr(self, 'get_branch_filter', None)
+    if getter:
+        return getter(field)
+    return {}
 
 
 def _send_savings_surrender_approved_email_in_background(application_id: str, principal_amount: str) -> None:
@@ -231,6 +248,7 @@ def _send_savings_hq_approved_email_in_background(application_id: str) -> None:
 
 
 @require_permissions_for_class('savings.view_savingsaccountapplication')
+@branch_created_by_filter_decorator
 class HQSavingsBranchApprovedListView(LoginRequiredMixin, TemplateView):
     template_name = 'savings/savings_branch_approved.html'
 
@@ -246,7 +264,7 @@ class HQSavingsBranchApprovedListView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         qs = (
             SavingsAccountApplication.objects
-            .filter(status__in=['branch_approved', 'branch_resubmitted', 'document_requested_by_hq', 'resubmitted'], branch__created_by=self.request.user)
+            .filter(status__in=['branch_approved', 'branch_resubmitted', 'document_requested_by_hq', 'resubmitted'], **_get_branch_filter(self))
             .select_related('customer', 'branch', 'agent')
             .order_by('-submitted_at')
         )
@@ -280,6 +298,7 @@ class HQSavingsBranchApprovedListView(LoginRequiredMixin, TemplateView):
 
 
 @require_permissions_for_class('savings.view_savingsaccountapplication')
+@branch_created_by_filter_decorator
 class HQSavingsSurrenderRequestsListView(LoginRequiredMixin, TemplateView):
 
     template_name = 'savings/surrender_requests.html'
@@ -314,7 +333,7 @@ class HQSavingsSurrenderRequestsListView(LoginRequiredMixin, TemplateView):
 
             SavingsAccountApplication.objects
 
-            .filter(account_id__isnull=False, status='hq_approved', surrender_status='processing', branch__created_by=self.request.user)
+            .filter(account_id__isnull=False, status='hq_approved', surrender_status='processing', **_get_branch_filter(self))
 
             .select_related('customer', 'branch', 'agent')
 
@@ -353,7 +372,7 @@ class HQSavingsSurrenderRequestsListView(LoginRequiredMixin, TemplateView):
 
         context['paginator'] = paginator
 
-        context['branches'] = Branch.objects.filter(created_by=self.request.user).order_by('branch_name')
+        context['branches'] = Branch.objects.filter(**_get_branch_filter(self, field='created_by')).order_by('branch_name')
         context['selected_branch_id'] = branch_id
         context['selected_product_type'] = product_type
         context['q'] = q
@@ -550,6 +569,7 @@ class HQSavingsSurrenderAccountDetailView(LoginRequiredMixin, TemplateView):
 
 
 @require_permissions_for_class('savings.view_savingsaccountapplication')
+@branch_created_by_filter_decorator
 class HQSavingsAllOpenedAccountsListView(LoginRequiredMixin, TemplateView):
     template_name = 'savings/savings_accounts_all.html'
 
@@ -570,7 +590,7 @@ class HQSavingsAllOpenedAccountsListView(LoginRequiredMixin, TemplateView):
         account_status = (self.request.GET.get('account_status') or '').strip().lower()
         q = (self.request.GET.get('q') or '').strip()
 
-        qs = SavingsAccountApplication.objects.filter(account_id__isnull=False, branch__created_by=self.request.user)
+        qs = SavingsAccountApplication.objects.filter(account_id__isnull=False, **_get_branch_filter(self))
 
         if product_type in {'rd', 'fd'}:
             qs = qs.filter(product_type=product_type)
@@ -615,8 +635,8 @@ class HQSavingsAllOpenedAccountsListView(LoginRequiredMixin, TemplateView):
         context['accounts_title'] = 'All Opened Accounts'
         context['accounts_page_id'] = 'hqSavingsAllOpenedAccounts'
         context['from_source'] = 'accounts_all'
-        context['branches'] = Branch.objects.filter(created_by=self.request.user).order_by('branch_name')
-        agents_qs = Agent.objects.filter(status='active', branch__created_by=self.request.user).order_by('full_name')
+        context['branches'] = Branch.objects.filter(**_get_branch_filter(self, field='created_by')).order_by('branch_name')
+        agents_qs = Agent.objects.filter(status='active', **_get_branch_filter(self)).order_by('full_name')
         if branch_id:
             agents_qs = agents_qs.filter(branch_id=branch_id)
         context['agents'] = agents_qs
@@ -701,6 +721,7 @@ class HQSavingsFDAccountsListView(LoginRequiredMixin, TemplateView):
 
 
 @require_permissions_for_class('savings.view_savingsaccountapplication')
+@branch_created_by_filter_decorator
 class HQSavingsHQApprovedListView(LoginRequiredMixin, TemplateView):
     template_name = 'savings/savings_hq_approved.html'
 
@@ -722,7 +743,7 @@ class HQSavingsHQApprovedListView(LoginRequiredMixin, TemplateView):
 
         qs = (
             SavingsAccountApplication.objects
-            .filter(status='hq_approved', branch__created_by=self.request.user)
+            .filter(status='hq_approved', **_get_branch_filter(self))
             .select_related('customer', 'branch', 'agent')
             .order_by('-hq_approved_at', '-submitted_at')
         )
@@ -772,8 +793,8 @@ class HQSavingsHQApprovedListView(LoginRequiredMixin, TemplateView):
         context['page_obj'] = page_obj
         context['paginator'] = paginator
 
-        context['branches'] = Branch.objects.filter(created_by=self.request.user).order_by('branch_name')
-        agents_qs = Agent.objects.filter(status='active', branch__created_by=self.request.user).order_by('full_name')
+        context['branches'] = Branch.objects.filter(**_get_branch_filter(self, field='created_by')).order_by('branch_name')
+        agents_qs = Agent.objects.filter(status='active', **_get_branch_filter(self)).order_by('full_name')
         if branch_id:
             agents_qs = agents_qs.filter(branch_id=branch_id)
         context['agents'] = agents_qs
@@ -786,6 +807,7 @@ class HQSavingsHQApprovedListView(LoginRequiredMixin, TemplateView):
 
 
 @require_permissions_for_class('savings.view_savingsaccountapplication')
+@branch_created_by_filter_decorator
 class HQSavingsRejectedListView(LoginRequiredMixin, TemplateView):
     template_name = 'savings/savings_rejected.html'
 
@@ -801,7 +823,7 @@ class HQSavingsRejectedListView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         qs = (
             SavingsAccountApplication.objects
-            .filter(status='hq_rejected', branch__created_by=self.request.user)
+            .filter(status='hq_rejected', **_get_branch_filter(self))
             .select_related('customer', 'branch', 'agent')
             .order_by('-last_update', '-submitted_at')
         )

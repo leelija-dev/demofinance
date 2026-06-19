@@ -1,162 +1,188 @@
 {% extends 'hq/base.html' %}
 {% load static %}
-{% block title %}Wallet Dashboard{% endblock %}
-
-{% block page_id %}hqWallet{% endblock %}
-
+{% block title %}
+    Wallet Dashboard
+{% endblock title %}
+{% block page_id %}
+    hqWallet
+{% endblock page_id %}
 {% block extra_head %}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-{% endblock %}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+{% endblock extra_head %}
 {% block content %}
-<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
-    <!-- Header -->
-    <div class="mb-8">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Wallet Dashboard</h1>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Manage your wallet transactions and view balance history</p>
-            </div>
-            <div class="flex items-center gap-3">
-                <button onclick="document.getElementById('balanceModal').classList.remove('hidden')" 
-                        class="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                    Add Funds
-                </button>
-                <button onclick="document.getElementById('transferModal').classList.remove('hidden')" 
-                        class="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                    </svg>
-                    Transfer to Branch
-                </button>
-                <div class="relative">
-                    <button id="menuButton" type="button" onclick="toggleMenu()"
-                      class="p-2 rounded-lg bg-gray-200 hover:bg-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 transition flex items-center justify-center">
-                      <!-- Larger Vertical Ellipsis Icon -->
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700 dark:text-gray-300" viewBox="0 0 24 24"
-                        fill="currentColor">
-                        <path
-                          d="M12 5a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm0 9a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm0 9a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" />
-                      </svg>
+    <div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Wallet Dashboard</h1>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Manage your wallet transactions and view balance history</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="document.getElementById('balanceModal').classList.remove('hidden')"
+                            class="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             class="h-5 w-5"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Add Funds
                     </button>
-                
-                    <!-- Dropdown Menu -->
-                    <div id="menuDropdown"
-                      class="hidden absolute right-0 mt-2 w-max p-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-100 dark:border-gray-700 z-50">
-                      <ul class="py-1 text-sm text-gray-700 dark:text-gray-200">
-                        <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700" onclick="openAddAccountModal()">Add Account</a></li>
-                      </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Stats Cards -->
-        <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <!-- Total Balance -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Balance</p>
-                        <p class="mt-1 text-2xl font-semibold text-blue-600 dark:text-blue-400">
-                            <span class="balance-amount"></span>₹{{ wallet.balance|default:"0.00"|floatformat:2 }}</span>
-                        </p>
-                    </div>
-                    <div class="p-3 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                    <button onclick="document.getElementById('transferModal').classList.remove('hidden')"
+                            class="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             class="h-5 w-5"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                         </svg>
-                    </div>
-                </div>
-                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                    Updated: {{ wallet.last_updated|date:"M d, Y H:i" }}
-                </p>
-            </div>
-            
-            <!-- Cash Balance -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Cash</p>
-                        <p class="mt-1 text-2xl font-semibold text-green-600 dark:text-green-400">
-                            ₹{{ cash_balance|default:"0.00"|floatformat:2 }}
-                        </p>
-                    </div>
-                    <div class="p-3 rounded-full bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 8h6m-5 0a3 3 0 110 6H9l3 3m-3-6h6m6 1a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                    </div>
-                </div>
-                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                    Updated: {{ wallet.last_updated|date:"M d, Y H:i" }}
-                </p>
-            </div>
-            
-            <!-- Bank Balance -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Bank Balance</p>
-                        <p class="mt-1 text-2xl font-semibold text-purple-600 dark:text-purple-400">
-                            ₹{{ account_balance|default:"0.00"|floatformat:2 }}
-                        </p>
-                    </div>
-                    <div class="p-3 rounded-full bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                        </svg>
-                    </div>
-                </div>
-                <div class="flex items-center ">
-                    <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                        Updated: {{ wallet.last_updated|date:"M d, Y H:i" }}
-                    </p>
-                    <button type="button" onclick="AllAccountModal()" title="All Account" class="flex items-center justify-center gap-8 px-2 pt-2 text-purple-600 dark:text-purple-400 text-sm font-medium rounded-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor" class="w-5">
-                            <path d="M528 320C528 434.9 434.9 528 320 528C205.1 528 112 434.9 112 320C112 205.1 205.1 112 320 112C434.9 112 528 205.1 528 320zM64 320C64 461.4 178.6 576 320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320zM451.3 331.3C457.5 325.1 457.5 314.9 451.3 308.7L347.3 204.7C342.7 200.1 335.8 198.8 329.9 201.2C324 203.6 320 209.5 320 216L320 288L216 288C202.7 288 192 298.7 192 312L192 328C192 341.3 202.7 352 216 352L320 352L320 424C320 430.5 323.9 436.3 329.9 438.8C335.9 441.3 342.8 439.9 347.3 435.3z"/>
-                        </svg>
+                        Transfer to Branch
                     </button>
+                    <div class="relative">
+                        <button id="menuButton"
+                                type="button"
+                                onclick="toggleMenu()"
+                                class="p-2 rounded-lg bg-gray-200 hover:bg-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 transition flex items-center justify-center">
+                            <!-- Larger Vertical Ellipsis Icon -->
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 class="h-5 w-5 text-gray-700 dark:text-gray-300"
+                                 viewBox="0 0 24 24"
+                                 fill="currentColor">
+                                <path d="M12 5a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm0 9a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm0 9a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" />
+                            </svg>
+                        </button>
+                        <!-- Dropdown Menu -->
+                        <div id="menuDropdown"
+                             class="hidden absolute right-0 mt-2 w-max p-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-100 dark:border-gray-700 z-50">
+                            <ul class="py-1 text-sm text-gray-700 dark:text-gray-200">
+                                <li>
+                                    <a href="#"
+                                       class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                       onclick="openAddAccountModal()">Add Account</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <script id="hqBankAccountsData" type="application/json">{{ hq_bank_accounts_json|safe }}</script>
-
-            <div id="allAccountsModal" class="hidden w-full fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center backdrop-blur-[32px] transition-opacity z-99999 overflow-y-auto">
-                <div class="absolute inset-0 bg-black/50" onclick="CloseAllAccountModal()"></div>
-                <div class="relative mx-auto mt-16 w-[90%] max-w-3xl bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
-                    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">HQ Bank Accounts</h3>
-                        <button type="button" onclick="CloseAllAccountModal()" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            <!-- Stats Cards -->
+            <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Total Balance -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Balance</p>
+                            <p class="mt-1 text-2xl font-semibold text-blue-600 dark:text-blue-400">
+                                <span class="balance-amount"></span>₹{{ wallet.balance|default:"0.00"|floatformat:2 }}</span>
+                            </p>
+                        </div>
+                        <div class="p-3 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 class="h-6 w-6"
+                                 fill="none"
+                                 viewBox="0 0 24 24"
+                                 stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Updated: {{ wallet.last_updated|date:"M d, Y H:i" }}</p>
+                </div>
+                <!-- Cash Balance -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Cash</p>
+                            <p class="mt-1 text-2xl font-semibold text-green-600 dark:text-green-400">₹{{ cash_balance|default:"0.00"|floatformat:2 }}</p>
+                        </div>
+                        <div class="p-3 rounded-full bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 class="h-6 w-6"
+                                 fill="none"
+                                 viewBox="0 0 24 24"
+                                 stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 8h6m-5 0a3 3 0 110 6H9l3 3m-3-6h6m6 1a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Updated: {{ wallet.last_updated|date:"M d, Y H:i" }}</p>
+                </div>
+                <!-- Bank Balance -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Bank Balance</p>
+                            <p class="mt-1 text-2xl font-semibold text-purple-600 dark:text-purple-400">₹{{ account_balance|default:"0.00"|floatformat:2 }}</p>
+                        </div>
+                        <div class="p-3 rounded-full bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 class="h-6 w-6"
+                                 fill="none"
+                                 viewBox="0 0 24 24"
+                                 stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="flex items-center ">
+                        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Updated: {{ wallet.last_updated|date:"M d, Y H:i" }}</p>
+                        <button type="button"
+                                onclick="AllAccountModal()"
+                                title="All Account"
+                                class="flex items-center justify-center gap-8 px-2 pt-2 text-purple-600 dark:text-purple-400 text-sm font-medium rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor" class="w-5">
+                                <path d="M528 320C528 434.9 434.9 528 320 528C205.1 528 112 434.9 112 320C112 205.1 205.1 112 320 112C434.9 112 528 205.1 528 320zM64 320C64 461.4 178.6 576 320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320zM451.3 331.3C457.5 325.1 457.5 314.9 451.3 308.7L347.3 204.7C342.7 200.1 335.8 198.8 329.9 201.2C324 203.6 320 209.5 320 216L320 288L216 288C202.7 288 192 298.7 192 312L192 328C192 341.3 202.7 352 216 352L320 352L320 424C320 430.5 323.9 436.3 329.9 438.8C335.9 441.3 342.8 439.9 347.3 435.3z" />
+                            </svg>
                         </button>
                     </div>
-                    <div class="px-6 py-4 overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead class="bg-gray-50 dark:bg-gray-800">
-                                <tr>
-                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
-                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Bank</th>
-                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Account No.</th>
-                                    <th class="px-3 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Balance</th>
-                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Updated</th>
-                                </tr>
-                            </thead>
-                            <tbody id="bankAccountsTbody" class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700"></tbody>
-                        </table>
-                        <div id="bankAccountsEmpty" class="hidden py-8 text-center text-sm text-gray-500 dark:text-gray-400">No bank accounts found.</div>
-                    </div>
-                    <div class="flex justify-end px-6 py-4 border-t border-gray-200 dark:border-gray-700">
-                        <!-- <button type="button" onclick="CloseAllAccountModal()" class="px-4 py-2 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-100">Close</button> -->
+                </div>
+                <script id="hqBankAccountsData" type="application/json">{{ hq_bank_accounts_json|safe }}</script>
+                <div id="allAccountsModal"
+                     class="hidden w-full fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center backdrop-blur-[32px] transition-opacity z-99999 overflow-y-auto">
+                    <div class="absolute inset-0 bg-black/50" onclick="CloseAllAccountModal()"></div>
+                    <div class="relative mx-auto mt-16 w-[90%] max-w-3xl bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+                        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">HQ Bank Accounts</h3>
+                            <button type="button"
+                                    onclick="CloseAllAccountModal()"
+                                    class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                     class="h-6 w-6"
+                                     fill="none"
+                                     viewBox="0 0 24 24"
+                                     stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="px-6 py-4 overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                <thead class="bg-gray-50 dark:bg-gray-800">
+                                    <tr>
+                                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
+                                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Bank</th>
+                                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Account No.</th>
+                                        <th class="px-3 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Balance</th>
+                                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Updated</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bankAccountsTbody"
+                                       class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                                </tbody>
+                            </table>
+                            <div id="bankAccountsEmpty" class="hidden py-8 text-center text-sm text-gray-500 dark:text-gray-400">No bank accounts found.</div>
+                        </div>
+                        <div class="flex justify-end px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+                            <!-- <button type="button"
+         onclick="CloseAllAccountModal()"
+         class="px-4 py-2 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-100">Close</button> -->
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <script>
+                <script>
                 // function maskAccount(num){
                 //     if(!num) return '';
                 //     const s = String(num);
@@ -197,476 +223,417 @@
                 function CloseAllAccountModal(){
                     document.getElementById('allAccountsModal').classList.add('hidden');
                 }
-            </script>
-            
-            <!-- Quick Stats -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Transactions</p>
-                        <p class="mt-1 text-2xl font-semibold text-orange-600 dark:text-orange-400">
-                            {% with hqtransaction|length as total_transactions %}
-                            {{ total_transactions|default:0 }}
-                            {% endwith %}
-                        </p>
+                </script>
+                <!-- Quick Stats -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Transactions</p>
+                            <p class="mt-1 text-2xl font-semibold text-orange-600 dark:text-orange-400">
+                                {% with hqtransaction|length as total_transactions %}
+                                    {{ total_transactions|default:0 }}
+                                {% endwith %}
+                            </p>
+                        </div>
+                        <div class="p-3 rounded-full bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 class="h-6 w-6"
+                                 fill="none"
+                                 viewBox="0 0 24 24"
+                                 stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                        </div>
                     </div>
-                    <div class="p-3 rounded-full bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                        </svg>
-                    </div>
-                </div>
-                <!-- <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    <!-- <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
                     {{ pending_transactions|default:0 }} pending
                 </p> -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Transaction History Section -->
-<div class="mt-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-    <!-- Header -->
-    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 pb-2 lg:mb-0">
-            Transactions History
-        </h3>
-
-        <!-- Filters -->
-        <div class="flex flex-col gap-3 lg:flex-wrap lg:flex-row lg:gap-4 xl:flex-nowrap xl:gap-3">
-            <!-- Search -->
-            <div class="w-full lg:flex-1 xl:w-auto">
-                <input id="hqTxSearch" type="text" placeholder="Search..."
-                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white" />
-            </div>
-
-            <!-- Type Filter -->
-            <div class="w-full lg:w-36">
-                <select id="hqTxType"
-                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                    <option value="">Type</option>
-                    <option value="credit">Credit</option>
-                    <option value="debit">Debit</option>
-                </select>
-            </div>
-
-            <!-- Code Filter -->
-            <div class="w-full lg:w-40">
-                <select id="hqTxCode"
-                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                    <option value="">Code</option>
-                    {% for tx in hqtransaction %}
-                        {% if tx.code %}
-                            <option value="{{ tx.code }}">{{ tx.code }}</option>
-                        {% endif %}
-                    {% endfor %}
-                </select>
-            </div>
-
-            <!-- Purpose Filter -->
-            <div class="w-full lg:w-48">
-                <select id="hqTxPurpose"
-                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                    <option value="">Purpose</option>
-                    {% for tx in hqtransaction %}
-                        {% if tx.purpose %}
-                            <option value="{{ tx.purpose }}">{{ tx.purpose|truncatewords:3 }}</option>
-                        {% endif %}
-                    {% endfor %}
-                </select>
-            </div>
-
-            <!-- Branch Filter -->
-            <div class="w-full lg:w-48">
-                <select id="hqTxBranch"
-                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                    <option value="">Branch</option>
-                </select>
-            </div>
-
-            <!-- Date Filter -->
-            <div class="w-full lg:w-64 flex items-center relative">
-                <input id="hqTxDateFrom" type="text"
-                    class="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                    placeholder="Select date range" readonly />
-                <div class="absolute inset-y-0 left-0 flex items-center pointer-events-none pl-3">
-                    <svg class="fill-gray-700 dark:fill-gray-400" width="20" height="20" viewBox="0 0 20 20"
-                        fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path fill-rule="evenodd" clip-rule="evenodd"
-                            d="M6.66683 1.54199C7.08104 1.54199 7.41683 1.87778 7.41683 2.29199V3.00033H12.5835V2.29199C12.5835 1.87778 12.9193 1.54199 13.3335 1.54199C13.7477 1.54199 14.0835 1.87778 14.0835 2.29199V3.00033L15.4168 3.00033C16.5214 3.00033 17.4168 3.89576 17.4168 5.00033V7.50033V15.8337C17.4168 16.9382 16.5214 17.8337 15.4168 17.8337H4.5835C3.47893 17.8337 2.5835 16.9382 2.5835 15.8337V7.50033V5.00033C2.5835 3.89576 3.47893 3.00033 4.5835 3.00033L5.91683 3.00033V2.29199C5.91683 1.87778 6.25262 1.54199 6.66683 1.54199ZM6.66683 4.50033H4.5835C4.30735 4.50033 4.0835 4.72418 4.0835 5.00033V6.75033H15.9168V5.00033C15.9168 4.72418 15.693 4.50033 15.4168 4.50033H13.3335H6.66683ZM15.9168 8.25033H4.0835V15.8337C4.0835 16.1098 4.30735 16.3337 4.5835 16.3337H15.4168C15.693 16.3337 15.9168 16.1098 15.9168 15.8337V8.25033Z">
-                        </path>
-                    </svg>
                 </div>
-                <input id="hqTxDateTo" type="hidden" />
-            </div>
-
-            <!-- Reset Button -->
-            <div class="w-full lg:w-auto">
-                <button id="hqTxReset" type="button"
-                    class="w-full md:w-auto group inline-flex items-center justify-center gap-2 px-3.5 py-2 text-sm font-medium rounded-md border border-gray-300 bg-white text-gray-700 shadow-sm hover:bg-blue-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 dark:hover:bg-blue-900/40">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="#000000" viewBox="0 0 512 512"
-                        class="h-4 w-4 transition-transform duration-500 group-hover:rotate-[360deg]">
-                        <path
-                            d="M64,256H34A222,222,0,0,1,430,118.15V85h30V190H355V160h67.27A192.21,192.21,0,0,0,256,64C150.13,64,64,150.13,64,256Zm384,0c0,105.87-86.13,192-192,192A192.21,192.21,0,0,1,89.73,352H157V322H52V427H82V393.85A222,222,0,0,0,478,256Z" />
-                    </svg>
-                    Reset
-                </button>
             </div>
         </div>
-    </div>
-    
-    {% if hqtransaction %}
-        <div class="px-5 py-4">
-            <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700" id="txTableWrapper">
-                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead class="bg-gray-50 dark:bg-gray-800">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Type</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Code</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Purpose</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Branch</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Reference</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider w-64">Description</th>
-                            <th scope="col" class="px-2 py-3 gap-6 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider flex items-center justify-between">
-                                <p>Amount</p>
-                                <a href="#" class="text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
-                                    View All
-                                </a>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                        <tr id="hqTxEmptyRow" class="hidden">
-                            <td colspan="8" class="px-6 py-6 text-center text-red-500 dark:text-gray-400">
-                                No wallet transactions found
-                            </td>
-                        </tr>
-                        {% for transaction in hqtransaction %}
-                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700"
-                            data-type="{{ transaction.transaction_type }}"
-                            data-code="{% if transaction.code %}{{ transaction.code }}{% else %}-{% endif %}"
-                            data-purpose="{% if transaction.purpose %}{{ transaction.purpose }}{% else %}-{% endif %}"
-                            data-date="{{ transaction.transaction_date|date:'Y-m-d' }}"
-                            data-branch="{{ transaction.branch_name|default:'-' }}"
-                            data-reference="{% if transaction.reference_number %}{{ transaction.reference_number }}{% else %}-{% endif %}"
-                            data-description="{% if transaction.description %}{{ transaction.description }}{% else %}-{% endif %}">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{{ transaction.transaction_date|date:"M d, Y H:i" }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                    {% if transaction.transaction_type == 'credit' %}
-                                        bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
-                                    {% else %}
-                                        bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200
-                                    {% endif %}">
-                                    {{ transaction.get_transaction_type_display }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                {% if transaction.code %}
-                                    <span class="font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs">
-                                        {{ transaction.code }}
-                                    </span>
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                {% if transaction.purpose %}
-                                    {{ transaction.purpose }}
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                {% if transaction.branch_name %}
-                                    {{ transaction.branch_name }}
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                {% if transaction.reference_number %}
-                                    {{ transaction.reference_number }}
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </td>
-                            <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300 whitespace-normal break-words max-w-[24rem]">
-                                <div class="flex items-center gap-2">
-                                    <!-- Always show description -->
-                                    <span class="flex-1">{{ transaction.description|default:'-' }}</span>
-                                    
-                                    <!-- Show document icon only if proof document exists -->
-                                    {% if transaction.proof_document %}
-                                        {% with transaction.proof_document.name as filename %}
-                                            {% if filename %}
-                                                {% with filename|cut:"hq/transaction_proof/" as clean_filename %}
-                                                    <a href="/static/hq/transaction_proof/{{ clean_filename }}" 
-                                                       target="_blank" 
-                                                       class="text-blue-600 hover:text-blue-800 dark:text-blue-400 flex items-center gap-1 shrink-0"
-                                                       title="View proof document">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                                        </svg>
-                                                    </a>
-                                                {% endwith %}
+        <!-- Transaction History Section -->
+        <div class="mt-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <!-- Header -->
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 pb-2 lg:mb-0">Transactions History</h3>
+                <!-- Filters -->
+                <div class="flex flex-col gap-3 lg:flex-wrap lg:flex-row lg:gap-4 xl:flex-nowrap xl:gap-3">
+                    <!-- Search -->
+                    <div class="w-full lg:flex-1 xl:w-auto">
+                        <input id="hqTxSearch"
+                               type="text"
+                               placeholder="Search..."
+                               class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white" />
+                    </div>
+                    <!-- Type Filter -->
+                    <div class="w-full lg:w-36">
+                        <select id="hqTxType"
+                                class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                            <option value="">Type</option>
+                            <option value="credit">Credit</option>
+                            <option value="debit">Debit</option>
+                        </select>
+                    </div>
+                    <!-- Code Filter -->
+                    <div class="w-full lg:w-40">
+                        <select id="hqTxCode"
+                                class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                            <option value="">Code</option>
+                            {% for tx in hqtransaction %}
+                                {% if tx.code %}<option value="{{ tx.code }}">{{ tx.code }}</option>{% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <!-- Purpose Filter -->
+                    <div class="w-full lg:w-48">
+                        <select id="hqTxPurpose"
+                                class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                            <option value="">Purpose</option>
+                            {% for tx in hqtransaction %}
+                                {% if tx.purpose %}<option value="{{ tx.purpose }}">{{ tx.purpose|truncatewords:3 }}</option>{% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <!-- Branch Filter -->
+                    <div class="w-full lg:w-48">
+                        <select id="hqTxBranch"
+                                class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                            <option value="">Branch</option>
+                        </select>
+                    </div>
+                    <!-- Date Filter -->
+                    <div class="w-full lg:w-64 flex items-center relative">
+                        <input id="hqTxDateFrom"
+                               type="text"
+                               class="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                               placeholder="Select date range"
+                               readonly />
+                        <div class="absolute inset-y-0 left-0 flex items-center pointer-events-none pl-3">
+                            <svg class="fill-gray-700 dark:fill-gray-400"
+                                 width="20"
+                                 height="20"
+                                 viewBox="0 0 20 20"
+                                 fill="none"
+                                 xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" clip-rule="evenodd" d="M6.66683 1.54199C7.08104 1.54199 7.41683 1.87778 7.41683 2.29199V3.00033H12.5835V2.29199C12.5835 1.87778 12.9193 1.54199 13.3335 1.54199C13.7477 1.54199 14.0835 1.87778 14.0835 2.29199V3.00033L15.4168 3.00033C16.5214 3.00033 17.4168 3.89576 17.4168 5.00033V7.50033V15.8337C17.4168 16.9382 16.5214 17.8337 15.4168 17.8337H4.5835C3.47893 17.8337 2.5835 16.9382 2.5835 15.8337V7.50033V5.00033C2.5835 3.89576 3.47893 3.00033 4.5835 3.00033L5.91683 3.00033V2.29199C5.91683 1.87778 6.25262 1.54199 6.66683 1.54199ZM6.66683 4.50033H4.5835C4.30735 4.50033 4.0835 4.72418 4.0835 5.00033V6.75033H15.9168V5.00033C15.9168 4.72418 15.693 4.50033 15.4168 4.50033H13.3335H6.66683ZM15.9168 8.25033H4.0835V15.8337C4.0835 16.1098 4.30735 16.3337 4.5835 16.3337H15.4168C15.693 16.3337 15.9168 16.1098 15.9168 15.8337V8.25033Z">
+                                </path>
+                            </svg>
+                        </div>
+                        <input id="hqTxDateTo" type="hidden" />
+                    </div>
+                    <!-- Reset Button -->
+                    <div class="w-full lg:w-auto">
+                        <button id="hqTxReset"
+                                type="button"
+                                class="w-full md:w-auto group inline-flex items-center justify-center gap-2 px-3.5 py-2 text-sm font-medium rounded-md border border-gray-300 bg-white text-gray-700 shadow-sm hover:bg-blue-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 dark:hover:bg-blue-900/40">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 fill="#000000"
+                                 viewBox="0 0 512 512"
+                                 class="h-4 w-4 transition-transform duration-500 group-hover:rotate-[360deg]">
+                                <path d="M64,256H34A222,222,0,0,1,430,118.15V85h30V190H355V160h67.27A192.21,192.21,0,0,0,256,64C150.13,64,64,150.13,64,256Zm384,0c0,105.87-86.13,192-192,192A192.21,192.21,0,0,1,89.73,352H157V322H52V427H82V393.85A222,222,0,0,0,478,256Z" />
+                            </svg>
+                            Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% if hqtransaction %}
+                <div class="px-5 py-4">
+                    <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700" id="txTableWrapper">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-800">
+                                <tr>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date</th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Type</th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Code</th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Purpose</th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Branch</th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Reference</th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider w-64">Description</th>
+                                    <th scope="col"
+                                        class="px-2 py-3 gap-6 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider flex items-center justify-between">
+                                        <p>Amount</p>
+                                        <a href="#"
+                                           class="text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">View All</a>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                <tr id="hqTxEmptyRow" class="hidden">
+                                    <td colspan="8" class="px-6 py-6 text-center text-red-500 dark:text-gray-400">No wallet transactions found</td>
+                                </tr>
+                                {% for transaction in hqtransaction %}
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700"
+                                        data-type="{{ transaction.transaction_type }}"
+                                        data-code="{% if transaction.code %}{{ transaction.code }}{% else %}-{% endif %}"
+                                        data-purpose="{% if transaction.purpose %}{{ transaction.purpose }}{% else %}-{% endif %}"
+                                        data-date="{{ transaction.transaction_date|date:'Y-m-d' }}"
+                                        data-branch="{{ transaction.branch_name|default:'-' }}"
+                                        data-reference="{% if transaction.reference_number %}{{ transaction.reference_number }}{% else %}-{% endif %}"
+                                        data-description="{% if transaction.description %}{{ transaction.description }}{% else %}-{% endif %}">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{{ transaction.transaction_date|date:"M d, Y H:i" }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if transaction.transaction_type == 'credit' %} bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 {% else %} bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 {% endif %}">
+                                                {{ transaction.get_transaction_type_display }}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                                            {% if transaction.code %}
+                                                <span class="font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs">{{ transaction.code }}</span>
+                                            {% else %}
+                                                -
                                             {% endif %}
-                                        {% endwith %}
-                                    {% endif %}
-                                </div>
-                            </td>
-                            <td class="px-2 py-4 whitespace-nowrap text-sm font-semibold {% if transaction.transaction_type == 'credit' %} text-green-700 dark:text-green-200 {% else %} text-red-600 dark:text-red-200 {% endif %}">
-                                {% if transaction.transaction_type == 'credit' %}
-                                    + ₹ {{ transaction.amount|floatformat:2 }}
-                                {% else %}
-                                    - ₹ {{ transaction.amount|floatformat:2 }}
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    {% else %}
-        <!-- Empty state remains the same -->
-        <div class="p-8 text-center">
-            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No transactions yet</h3>
-            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Your transaction history will appear here.</p>
-            <div class="mt-4 flex justify-center space-x-3">
-                <button onclick="document.getElementById('balanceModal').classList.remove('hidden')" 
-                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    Add Funds
-                </button>
-                <button onclick="document.getElementById('transferModal').classList.remove('hidden')" 
-                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                    Transfer to Branch
-                </button>
-            </div>
-        </div>
-    {% endif %}
-</div>
-
-    <!-- Transfer to Branch Modal -->
-<div id="transferModal" class="hidden fixed inset-0 z-99999 bg-gray-400/50 backdrop-blur-[32px] overflow-y-auto h-full w-full flex items-center justify-center">
-    <div class="relative p-5 border w-full max-w-md shadow-lg rounded-2xl bg-white dark:bg-gray-800">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Transfer to Branch</h3>
-            <button type="button" onclick="closeTransferModal()" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-2xl">&times;</button>
-        </div>
-        
-        <form method="post" action="{% url 'hq:wallet' %}" id="transferForm" enctype="multipart/form-data" onsubmit="return handleTransferSubmit(this);" data-hq-balance="{{ wallet.balance|default:'0'|floatformat:2 }}">
-            {% csrf_token %}
-            <input type="hidden" name="transfer_submit" value="1">
-            
-            <!-- Form Errors -->
-            {% if transfer_form.non_field_errors %}
-                <div class="mb-4 p-3 bg-red-50 text-red-700 rounded-md text-sm">
-                    {% for error in transfer_form.non_field_errors %}
-                        <p>{{ error }}</p>
-                    {% endfor %}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                                            {% if transaction.purpose %}
+                                                {{ transaction.purpose }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                                            {% if transaction.branch_name %}
+                                                {{ transaction.branch_name }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                                            {% if transaction.reference_number %}
+                                                {{ transaction.reference_number }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300 whitespace-normal break-words max-w-[24rem]">
+                                            <div class="flex items-center gap-2">
+                                                <!-- Always show description -->
+                                                <span class="flex-1">{{ transaction.description|default:'-' }}</span>
+                                                <!-- Show document icon only if proof document exists -->
+                                                {% if transaction.proof_document %}
+                                                    {% with transaction.proof_document.name as filename %}
+                                                        {% if filename %}
+                                                            {% with filename|cut:"hq/transaction_proof/" as clean_filename %}
+                                                                <a href="/static/hq/transaction_proof/{{ clean_filename }}"
+                                                                   target="_blank"
+                                                                   class="text-blue-600 hover:text-blue-800 dark:text-blue-400 flex items-center gap-1 shrink-0"
+                                                                   title="View proof document">
+                                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                                                        </path>
+                                                                    </svg>
+                                                                </a>
+                                                            {% endwith %}
+                                                        {% endif %}
+                                                    {% endwith %}
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td class="px-2 py-4 whitespace-nowrap text-sm font-semibold {% if transaction.transaction_type == 'credit' %} text-green-700 dark:text-green-200 {% else %} text-red-600 dark:text-red-200 {% endif %}">
+                                            {% if transaction.transaction_type == 'credit' %}
+                                                + ₹ {{ transaction.amount|floatformat:2 }}
+                                            {% else %}
+                                                - ₹ {{ transaction.amount|floatformat:2 }}
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% else %}
+                <!-- Empty state remains the same -->
+                <div class="p-8 text-center">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No transactions yet</h3>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Your transaction history will appear here.</p>
+                    <div class="mt-4 flex justify-center space-x-3">
+                        <button onclick="document.getElementById('balanceModal').classList.remove('hidden')"
+                                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Add Funds
+                        </button>
+                        <button onclick="document.getElementById('transferModal').classList.remove('hidden')"
+                                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                            Transfer to Branch
+                        </button>
+                    </div>
                 </div>
             {% endif %}
-            
-            <div class="space-y-4">
-                <!-- Branch Selection -->
-                <div>
-                    <label for="{{ transfer_form.branch.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        {{ transfer_form.branch.label }}
-                    </label>
-                    {{ transfer_form.branch }}
-                    {% if transfer_form.branch.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ transfer_form.branch.errors.0 }}</p>
-                    {% endif %}
-                </div>
-
-                <!-- HQ Account -->
-                <div>
-                    <label for="{{ transfer_form.hq_account.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        {{ transfer_form.hq_account.label }} (From)
-                    </label>
-                    {{ transfer_form.hq_account }}
-                    {% if transfer_form.hq_account.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ transfer_form.hq_account.errors.0 }}</p>
-                    {% endif %}
-                </div>
-
-                <!-- Payment Mode -->
-                <div id="paymentModeContainer">
-                    <label for="{{ transfer_form.payment_mode.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        {{ transfer_form.payment_mode.label }} (To)
-                    </label>
-                    {{ transfer_form.payment_mode }}
-                    {% if transfer_form.payment_mode.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ transfer_form.payment_mode.errors.0 }}</p>
-                    {% endif %}
-                </div>
-
-                <!-- Bank Method (only when Bank) -->
-                <div id="bankMethodContainer" class="hidden">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        {{ transfer_form.transfer_bank_payment_method.label }}
-                    </label>
-                    {{ transfer_form.transfer_bank_payment_method }}
-                    {% if transfer_form.transfer_bank_payment_method.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ transfer_form.transfer_bank_payment_method.errors.0 }}</p>
-                    {% endif %}
-                </div>
-                
-                <!-- Accounts (hidden on Cash) -->
-                <div id="accountsContainer" class="hidden">
-                    <label for="{{ transfer_form.accounts.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        {{ transfer_form.accounts.label }}
-                    </label>
-                    {{ transfer_form.accounts }}
-                    {% if transfer_form.accounts.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ transfer_form.accounts.errors.0 }}</p>
-                    {% endif %}
-                </div>
-                
-                <!-- Amount -->
-                <div>
-                    <label for="{{ transfer_form.amount.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        {{ transfer_form.amount.label }}
-                    </label>
-                    <div class="relative rounded-md shadow-sm">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <!-- <span class="text-gray-500 sm:text-sm mr-6">₹ </span> -->
-                        </div>
-                        {{ transfer_form.amount }}
-                    </div>
-                    <p id="hqTransferAmountError" class="mt-1 text-sm text-red-600 hidden"></p>
-                    {% if transfer_form.amount.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ transfer_form.amount.errors.0 }}</p>
-                    {% endif %}
-                </div>
-                
-                <!-- Purpose (Chart of Account) - Required -->
-                <div>
-                    <label for="{{ transfer_form.purpose_account.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        {{ transfer_form.purpose_account.label }} *
-                    </label>
-                    {{ transfer_form.purpose_account }}
-                    {% if transfer_form.purpose_account.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ transfer_form.purpose_account.errors.0 }}</p>
-                    {% endif %}
-                </div>
-                
-                <!-- Submit Button -->
-                <div class="pt-2">
-                    <button type="submit" name="transfer_submit" class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        Transfer Funds
-                    </button>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
-
-    <!-- Add Balance Modal -->
-        <div id="balanceModal" class="hidden fixed inset-0 z-99999 bg-gray-400/50 backdrop-blur-[32px] overflow-y-auto h-full w-full flex items-center justify-center">
+        </div>
+        <!-- Transfer to Branch Modal -->
+        <div id="transferModal"
+             class="hidden fixed inset-0 z-99999 bg-gray-400/50 backdrop-blur-[32px] overflow-y-auto h-full w-full flex items-center justify-center">
             <div class="relative p-5 border w-full max-w-md shadow-lg rounded-2xl bg-white dark:bg-gray-800">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Add/Update Balance</h3>
-                    <button type="button" onclick="closeBalanceModal()" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-2xl">&times;</button>
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Transfer to Branch</h3>
+                    <button type="button"
+                            onclick="closeTransferModal()"
+                            class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-2xl">&times;</button>
                 </div>
-                
-                <!-- Form with CSRF and prevent double submission -->
-                <form method="post" action="{% url 'hq:wallet' %}" id="balanceForm" onsubmit="return handleFormSubmit(this);" enctype="multipart/form-data">
+                <form method="post"
+                      action="{% url 'hq:wallet' %}"
+                      id="transferForm"
+                      enctype="multipart/form-data"
+                      onsubmit="return handleTransferSubmit(this);"
+                      data-hq-balance="{{ wallet.balance|default:'0'|floatformat:2 }}">
                     {% csrf_token %}
-                    
+                    <input type="hidden" name="transfer_submit" value="1">
                     <!-- Form Errors -->
-                    {% if form.non_field_errors %}
-                        <div class="mb-4 p-4 bg-red-50 text-red-700 rounded-lg">
-                            {% for error in form.non_field_errors %}
-                                <p>{{ error }}</p>
-                            {% endfor %}
+                    {% if transfer_form.non_field_errors %}
+                        <div class="mb-4 p-3 bg-red-50 text-red-700 rounded-md text-sm">
+                            {% for error in transfer_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
                         </div>
                     {% endif %}
-                    
                     <div class="space-y-4">
-                        <!-- Transaction Type -->
+                        <!-- Branch Selection -->
                         <div>
-                            <label for="id_transaction_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                Transaction Type *
-                            </label>
-                            {{ form.transaction_type }}
-                            {% if form.transaction_type.errors %}
-                                <p class="mt-1 text-sm text-red-600">{{ form.transaction_type.errors.0 }}</p>
-                            {% endif %}
-                        </div>
-                        
-                        <!-- Amount -->
-                        <div>
-                            <label for="id_amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                Amount *
-                            </label>
-                            {{ form.amount }}
-                            {% if form.amount.errors %}
-                                <p class="mt-1 text-sm text-red-600">{{ form.amount.errors.0 }}</p>
-                            {% endif %}
+                            <label for="{{ transfer_form.branch.id_for_label }}"
+                                   class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ transfer_form.branch.label }}</label>
+                            {{ transfer_form.branch }}
+                            {% if transfer_form.branch.errors %}<p class="mt-1 text-sm text-red-600">{{ transfer_form.branch.errors.0 }}</p>{% endif %}
                         </div>
                         <!-- HQ Account -->
                         <div>
-                          <label for="{{ form.hq_account.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            {{ form.hq_account.label }} *
-                          </label>
-                          {{ form.hq_account }}
-                          {% if form.hq_account.errors %}
-                            <p class="mt-1 text-sm text-red-600">{{ form.hq_account.errors.0 }}</p>
-                          {% endif %}
+                            <label for="{{ transfer_form.hq_account.id_for_label }}"
+                                   class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ transfer_form.hq_account.label }} (From)</label>
+                            {{ transfer_form.hq_account }}
+                            {% if transfer_form.hq_account.errors %}<p class="mt-1 text-sm text-red-600">{{ transfer_form.hq_account.errors.0 }}</p>{% endif %}
+                        </div>
+                        <!-- Payment Mode -->
+                        <div id="paymentModeContainer">
+                            <label for="{{ transfer_form.payment_mode.id_for_label }}"
+                                   class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ transfer_form.payment_mode.label }} (To)</label>
+                            {{ transfer_form.payment_mode }}
+                            {% if transfer_form.payment_mode.errors %}<p class="mt-1 text-sm text-red-600">{{ transfer_form.payment_mode.errors.0 }}</p>{% endif %}
+                        </div>
+                        <!-- Bank Method (only when Bank) -->
+                        <div id="bankMethodContainer" class="hidden">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ transfer_form.transfer_bank_payment_method.label }}</label>
+                            {{ transfer_form.transfer_bank_payment_method }}
+                            {% if transfer_form.transfer_bank_payment_method.errors %}<p class="mt-1 text-sm text-red-600">{{ transfer_form.transfer_bank_payment_method.errors.0 }}</p>{% endif %}
+                        </div>
+                        <!-- Accounts (hidden on Cash) -->
+                        <div id="accountsContainer" class="hidden">
+                            <label for="{{ transfer_form.accounts.id_for_label }}"
+                                   class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ transfer_form.accounts.label }}</label>
+                            {{ transfer_form.accounts }}
+                            {% if transfer_form.accounts.errors %}<p class="mt-1 text-sm text-red-600">{{ transfer_form.accounts.errors.0 }}</p>{% endif %}
+                        </div>
+                        <!-- Amount -->
+                        <div>
+                            <label for="{{ transfer_form.amount.id_for_label }}"
+                                   class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ transfer_form.amount.label }}</label>
+                            <div class="relative rounded-md shadow-sm">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <!-- <span class="text-gray-500 sm:text-sm mr-6">₹ </span> -->
+                                </div>
+                                {{ transfer_form.amount }}
+                            </div>
+                            <p id="hqTransferAmountError" class="mt-1 text-sm text-red-600 hidden"></p>
+                            {% if transfer_form.amount.errors %}<p class="mt-1 text-sm text-red-600">{{ transfer_form.amount.errors.0 }}</p>{% endif %}
                         </div>
                         <!-- Purpose (Chart of Account) - Required -->
                         <div>
-                            <label for="{{ form.purpose_account.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                {{ form.purpose_account.label }} *
-                            </label>
-                            {{ form.purpose_account }}
-                            {% if form.purpose_account.errors %}
-                                <p class="mt-1 text-sm text-red-600">{{ form.purpose_account.errors.0 }}</p>
-                            {% endif %}
+                            <label for="{{ transfer_form.purpose_account.id_for_label }}"
+                                   class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ transfer_form.purpose_account.label }} *</label>
+                            {{ transfer_form.purpose_account }}
+                            {% if transfer_form.purpose_account.errors %}<p class="mt-1 text-sm text-red-600">{{ transfer_form.purpose_account.errors.0 }}</p>{% endif %}
                         </div>
-        
-                        <!-- Optional Reference Number -->
-                        <div>
-                            <label for="id_reference_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                Reference Number (Optional)
-                            </label>
-                            {{ form.reference_number }}
-                            {% if form.reference_number.errors %}
-                                <p class="mt-1 text-sm text-red-600">{{ form.reference_number.errors.0 }}</p>
-                            {% endif %}
-                        </div>
-                        
-                        <!-- Optional Proof Document -->
-                        <div>
-                            <label for="id_proof_document" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                Proof Document (Optional)
-                            </label>
-                            {{ form.proof_document }}
-                            <p class="mt-1 text-xs text-gray-500">{{ form.proof_document.help_text }}</p>
-                            {% if form.proof_document.errors %}
-                                <p class="mt-1 text-sm text-red-600">{{ form.proof_document.errors.0 }}</p>
-                            {% endif %}
-                        </div>
-                        
-                        <!-- Description (Additional notes) -->
-                        <div>
-                            <label for="id_description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                Description (Optional)
-                            </label>
-                            {{ form.description }}
-                            {% if form.description.errors %}
-                                <p class="mt-1 text-sm text-red-600">{{ form.description.errors.0 }}</p>
-                            {% endif %}
-                        </div>
-                        
                         <!-- Submit Button -->
                         <div class="pt-2">
-                            <button type="submit" class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-brand-500 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500">
+                            <button type="submit"
+                                    name="transfer_submit"
+                                    class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                Transfer Funds
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- Add Balance Modal -->
+        <div id="balanceModal"
+             class="hidden fixed inset-0 z-99999 bg-gray-400/50 backdrop-blur-[32px] overflow-y-auto h-full w-full flex items-center justify-center">
+            <div class="relative p-5 border w-full max-w-md shadow-lg rounded-2xl bg-white dark:bg-gray-800">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Add/Update Balance</h3>
+                    <button type="button"
+                            onclick="closeBalanceModal()"
+                            class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-2xl">&times;</button>
+                </div>
+                <!-- Form with CSRF and prevent double submission -->
+                <form method="post"
+                      action="{% url 'hq:wallet' %}"
+                      id="balanceForm"
+                      onsubmit="return handleFormSubmit(this);"
+                      enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <!-- Form Errors -->
+                    {% if form.non_field_errors %}
+                        <div class="mb-4 p-4 bg-red-50 text-red-700 rounded-lg">
+                            {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+                        </div>
+                    {% endif %}
+                    <div class="space-y-4">
+                        <!-- Transaction Type -->
+                        <div>
+                            <label for="id_transaction_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Transaction Type *</label>
+                            {{ form.transaction_type }}
+                            {% if form.transaction_type.errors %}<p class="mt-1 text-sm text-red-600">{{ form.transaction_type.errors.0 }}</p>{% endif %}
+                        </div>
+                        <!-- Amount -->
+                        <div>
+                            <label for="id_amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount *</label>
+                            {{ form.amount }}
+                            {% if form.amount.errors %}<p class="mt-1 text-sm text-red-600">{{ form.amount.errors.0 }}</p>{% endif %}
+                        </div>
+                        <!-- HQ Account -->
+                        <div>
+                            <label for="{{ form.hq_account.id_for_label }}"
+                                   class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ form.hq_account.label }} *</label>
+                            {{ form.hq_account }}
+                            {% if form.hq_account.errors %}<p class="mt-1 text-sm text-red-600">{{ form.hq_account.errors.0 }}</p>{% endif %}
+                        </div>
+                        <!-- Purpose (Chart of Account) - Required -->
+                        <div>
+                            <label for="{{ form.purpose_account.id_for_label }}"
+                                   class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ form.purpose_account.label }} *</label>
+                            {{ form.purpose_account }}
+                            {% if form.purpose_account.errors %}<p class="mt-1 text-sm text-red-600">{{ form.purpose_account.errors.0 }}</p>{% endif %}
+                        </div>
+                        <!-- Optional Reference Number -->
+                        <div>
+                            <label for="id_reference_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Reference Number (Optional)</label>
+                            {{ form.reference_number }}
+                            {% if form.reference_number.errors %}<p class="mt-1 text-sm text-red-600">{{ form.reference_number.errors.0 }}</p>{% endif %}
+                        </div>
+                        <!-- Optional Proof Document -->
+                        <div>
+                            <label for="id_proof_document" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Proof Document (Optional)</label>
+                            {{ form.proof_document }}
+                            <p class="mt-1 text-xs text-gray-500">{{ form.proof_document.help_text }}</p>
+                            {% if form.proof_document.errors %}<p class="mt-1 text-sm text-red-600">{{ form.proof_document.errors.0 }}</p>{% endif %}
+                        </div>
+                        <!-- Description (Additional notes) -->
+                        <div>
+                            <label for="id_description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description (Optional)</label>
+                            {{ form.description }}
+                            {% if form.description.errors %}<p class="mt-1 text-sm text-red-600">{{ form.description.errors.0 }}</p>{% endif %}
+                        </div>
+                        <!-- Submit Button -->
+                        <div class="pt-2">
+                            <button type="submit"
+                                    class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-brand-500 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500">
                                 Process Transaction
                             </button>
                         </div>
@@ -674,128 +641,121 @@
                 </form>
             </div>
         </div>
-
-
-      <!-- Add HQ Account Modal -->
-      <div id="hqAddAccountModal" class="hidden">
-          <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center backdrop-blur-[32px] transition-opacity z-99999 overflow-y-auto"> 
-              <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md">
-                  <div class="flex items-center justify-between py-4 border-b border-gray-200 dark:border-gray-700">
-                      <h3 class="text-lg font-medium text-gray-900 dark:text-white">Add Account</h3>
-                      <button type="button" onclick="closeAddAccountModal()"
-                          class="rounded-md bg-white dark:bg-gray-800 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
-                          <span class="sr-only">Close</span>
-                          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                      </button>
-                  </div>
-                  
-                  <form id="addAccountForm" method="post" action="{% url 'hq:wallet' %}">
-                      {% csrf_token %}
-                      <input type="hidden" name="hq_add_account" value="1" />
-                      <div class="py-4 max-h-[70vh] overflow-y-auto">
-                          <div class="space-y-4">
-                              {% if hq_wallet_form %}
-                            <!-- HeadquartersWalletForm Fields -->
-                            <div>
-                                <label for="{{ hq_wallet_form.name.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                                    Account Name *
-                                </label>
-                                {{ hq_wallet_form.name }}
-                                {% if hq_wallet_form.name.errors %}
-                                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ hq_wallet_form.name.errors.0 }}</p>
+        <!-- Add HQ Account Modal -->
+        <div id="hqAddAccountModal" class="hidden">
+            <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center backdrop-blur-[32px] transition-opacity z-99999 overflow-y-auto">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md">
+                    <div class="flex items-center justify-between py-4 border-b border-gray-200 dark:border-gray-700">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Add Account</h3>
+                        <button type="button"
+                                onclick="closeAddAccountModal()"
+                                class="rounded-md bg-white dark:bg-gray-800 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
+                            <span class="sr-only">Close</span>
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    <form id="addAccountForm" method="post" action="{% url 'hq:wallet' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="hq_add_account" value="1" />
+                        <div class="py-4 max-h-[70vh] overflow-y-auto">
+                            <div class="space-y-4">
+                                {% if hq_wallet_form %}
+                                    <!-- HeadquartersWalletForm Fields -->
+                                    <div>
+                                        <label for="{{ hq_wallet_form.name.id_for_label }}"
+                                               class="block text-sm font-medium text-gray-700 dark:text-gray-200">Account Name *</label>
+                                        {{ hq_wallet_form.name }}
+                                        {% if hq_wallet_form.name.errors %}<p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ hq_wallet_form.name.errors.0 }}</p>{% endif %}
+                                    </div>
+                                    <div>
+                                        <label for="{{ hq_wallet_form.bank_name.id_for_label }}"
+                                               class="block text-sm font-medium text-gray-700 dark:text-gray-200">Bank Name *</label>
+                                        {{ hq_wallet_form.bank_name }}
+                                        {% if hq_wallet_form.bank_name.errors %}<p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ hq_wallet_form.bank_name.errors.0 }}</p>{% endif %}
+                                    </div>
+                                    <div>
+                                        <label for="{{ hq_wallet_form.account_number.id_for_label }}"
+                                               class="block text-sm font-medium text-gray-700 dark:text-gray-200">Account Number *</label>
+                                        {{ hq_wallet_form.account_number }}
+                                        {% if hq_wallet_form.account_number.errors %}<p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ hq_wallet_form.account_number.errors.0 }}</p>{% endif %}
+                                    </div>
+                                    <div>
+                                        <label for="hq_account_amount" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Amount *</label>
+                                        <input type="number"
+                                               id="hq_account_amount"
+                                               name="amount"
+                                               required
+                                               min="0"
+                                               step="0.01"
+                                               placeholder="Enter initial amount"
+                                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white" />
+                                    </div>
+                                {% else %}
+                                    <!-- Fallback to existing markup until form is passed in context -->
+                                    <!-- Account Name (fallback) -->
+                                    <div>
+                                        <label for="accountName" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Account Name *</label>
+                                        <input type="text"
+                                               id="accountName"
+                                               name="name"
+                                               required
+                                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                                               placeholder="Enter account name" />
+                                    </div>
+                                    <!-- Account Number (fallback) -->
+                                    <div>
+                                        <label for="accountNumber" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Account Number *</label>
+                                        <input type="text"
+                                               id="accountNumber"
+                                               name="account_number"
+                                               required
+                                               placeholder="Enter account number"
+                                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white" />
+                                    </div>
+                                    <!-- Bank Name (fallback) -->
+                                    <div>
+                                        <label for="bankName" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Bank Name *</label>
+                                        <input type="text"
+                                               id="bankName"
+                                               name="bank_name"
+                                               required
+                                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                                               placeholder="Enter bank name" />
+                                    </div>
+                                    <!-- Amount (fallback) -->
+                                    <div>
+                                        <label for="fallback_hq_account_amount" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Amount *</label>
+                                        <input type="number"
+                                               id="fallback_hq_account_amount"
+                                               name="amount"
+                                               required
+                                               min="0"
+                                               step="0.01"
+                                               placeholder="Enter initial amount"
+                                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white" />
+                                    </div>
                                 {% endif %}
                             </div>
-
-                            <div>
-                                <label for="{{ hq_wallet_form.bank_name.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                                    Bank Name *
-                                </label>
-                                {{ hq_wallet_form.bank_name }}
-                                {% if hq_wallet_form.bank_name.errors %}
-                                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ hq_wallet_form.bank_name.errors.0 }}</p>
-                                {% endif %}
-                            </div>
-
-                            <div>
-                                <label for="{{ hq_wallet_form.account_number.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                                    Account Number *
-                                </label>
-                                {{ hq_wallet_form.account_number }}
-                                {% if hq_wallet_form.account_number.errors %}
-                                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ hq_wallet_form.account_number.errors.0 }}</p>
-                                {% endif %}
-                            </div>
-
-                            <div>
-                                <label for="hq_account_amount" class="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                                    Amount *
-                                </label>
-                                <input type="number" id="hq_account_amount" name="amount" required min="0" step="0.01"
-                                       placeholder="Enter initial amount"
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white" />
-                            </div>
-                            {% else %}
-                            <!-- Fallback to existing markup until form is passed in context -->
-                            <!-- Account Name (fallback) -->
-                            <div>
-                                <label for="accountName" class="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                                    Account Name *
-                                </label>
-                                <input type="text" id="accountName" name="name" required
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                                    placeholder="Enter account name" />
-                            </div>
-
-                            <!-- Account Number (fallback) -->
-                            <div>
-                                <label for="accountNumber" class="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                                    Account Number *
-                                </label>
-                                <input type="text" id="accountNumber" name="account_number" required
-                                    placeholder="Enter account number"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white" />
-                            </div>
-
-                            <!-- Bank Name (fallback) -->
-                            <div>
-                                <label for="bankName" class="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                                    Bank Name *
-                                </label>
-                                <input type="text" id="bankName" name="bank_name" required
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                                    placeholder="Enter bank name" />
-                            </div>
-                            <!-- Amount (fallback) -->
-                            <div>
-                                <label for="fallback_hq_account_amount" class="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                                    Amount *
-                                </label>
-                                <input type="number" id="fallback_hq_account_amount" name="amount" required min="0" step="0.01"
-                                       placeholder="Enter initial amount"
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white" />
-                            </div>
-                            {% endif %}
-                          </div>
-                      </div>
-                      
-                      <div class="flex justify-end gap-2 pt-4">
-                          <button type="button" onclick="closeAddAccountModal()"
-                              class="rounded-md px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600">
-                              Cancel
-                          </button>
-                          <button type="submit" id="submitBtn"
-                              class="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
-                              Submit
-                          </button>
-                      </div>
-                  </form>
-              </div>
-          </div>
-      </div>
-    
-    <script>
+                        </div>
+                        <div class="flex justify-end gap-2 pt-4">
+                            <button type="button"
+                                    onclick="closeAddAccountModal()"
+                                    class="rounded-md px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600">
+                                Cancel
+                            </button>
+                            <button type="submit"
+                                    id="submitBtn"
+                                    class="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                                Submit
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <script>
         // Track if form has been submitted to prevent double submission
         let formSubmitted = false;
         
@@ -1238,10 +1198,8 @@ async function handleTransferSubmit(form) {
             document.getElementById('hqAddAccountModal').classList.add('hidden');
             document.body.classList.remove('overflow-hidden');
         }
-    </script>
-
-
-<script>
+        </script>
+        <script>
 (function () {
   const $ = (sel) => document.querySelector(sel);
   const $$ = (sel) => Array.from(document.querySelectorAll(sel));
@@ -1516,8 +1474,8 @@ async function handleTransferSubmit(form) {
   });
 
 })();
-</script>
-    {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-{% endblock %}
-{% endblock %}
+        </script>
+        {% block extra_js %}
+            <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+        {% endblock extra_js %}
+    {% endblock content %}

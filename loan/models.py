@@ -586,7 +586,7 @@ class LoanTenure(models.Model):
         verbose_name = "Loan Tenure"
         verbose_name_plural = "Loan Tenures"
         ordering = ['value', 'unit']
-        unique_together = [('interest_rate', 'value', 'unit', 'created_by')]
+        unique_together = [('interest_rate', 'value', 'unit')]
 
     def save(self, *args, **kwargs):
         if not self.tenure_id:

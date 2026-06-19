@@ -19,6 +19,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from .views import landing_page, TrialCheckView
+# from demo.hq import urls as demo_hq_urls
 
 urlpatterns = [
     path('', landing_page, name='landing'),
@@ -30,6 +31,10 @@ urlpatterns = [
     path('savings/', include('savings.urls', namespace='savings')),
     path('data-import/', include('data_import.urls', namespace='data_import')),
 ]
+if settings.IS_DEMO:
+    urlpatterns += [
+        path('hq/', include('demo.hq.urls', namespace='hq')),
+    ]
 
 # Serve static and media files in development
 if settings.DEBUG:

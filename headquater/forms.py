@@ -1,5 +1,7 @@
 from django import forms
+from django.conf import settings
 from django.contrib.auth.forms import UserCreationForm, PasswordChangeForm, AuthenticationForm
+
 from django.contrib.auth import authenticate, get_user_model
 from .models import HeadquarterEmployee, Role, Branch, HeadquartersTransactions, HeadquartersWallet, FundTransfers
 from branch.models import BranchEmployee, BranchAccount
@@ -661,26 +663,15 @@ class LoanMainCategoryForm(forms.ModelForm):
             }),
         }
 
+    from demo.hq import check_demo_duplicate_loan_main_category_in_form
+    @check_demo_duplicate_loan_main_category_in_form()
     def clean_name(self):
         name = self.cleaned_data.get('name')
         if name:
             qs = LoanMainCategory.objects.filter(name=name)
             if self.instance and self.instance.pk:
                 qs = qs.exclude(pk=self.instance.pk)
-            
-            # Check each existing category individually
-            isDuplicate = False
-            for existing_category in qs:
-                # Get current user - either from instance or from form data
-                current_user = getattr(self.instance, 'created_by', None)
-                if not current_user and hasattr(self, 'current_user'):
-                    current_user = self.current_user
-                
-                if existing_category.created_by is None:
-                    isDuplicate = True
-                if existing_category.created_by and current_user and existing_category.created_by == current_user:
-                    isDuplicate = True
-            if isDuplicate:    
+            if qs.exists():
                 raise forms.ValidationError("A main category with this name already exists.")
         return name
 
@@ -783,16 +774,15 @@ class LoanTenureForm(forms.ModelForm):
             }),
         }
 
+    from demo.hq import headquater_form_demo_filter_queryset
+    @headquater_form_demo_filter_queryset('interest_rate')
     def __init__(self, *args, **kwargs):
-        main_category = kwargs.pop('main_category', None)
-        user = kwargs.pop('user', None)
+        self.main_category = kwargs.pop('main_category', None)
+        self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        # Filter by active status and user if provided
         qs = LoanInterest.objects.filter(is_active=True)
-        if user is not None:
-            qs = qs.filter(created_by=user)
-        if main_category is not None:
-            qs = qs.filter(main_category=main_category)
+        if self.main_category is not None:
+            qs = qs.filter(main_category=self.main_category)
         self.fields['interest_rate'].queryset = qs
         self.fields['interest_rate'].empty_label = "Select an interest rate"
 
@@ -824,22 +814,18 @@ class ProductCategoryForm(forms.ModelForm):
             }),
         }
 
+    from demo.hq import headquater_form_demo_filter_queryset
+    @headquater_form_demo_filter_queryset({'loan_category', 'loan_main_category'})
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user', None)
+        self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        if user:
-            self.fields['loan_category'].queryset = LoanCategory.objects.filter(is_active=True, created_by=user)
-        else:
-            self.fields['loan_category'].queryset = LoanCategory.objects.filter(is_active=True)
+        self.fields['loan_category'].queryset = LoanCategory.objects.filter(is_active=True)
         self.fields['loan_category'].empty_label = "Select loan category"
         self.fields['loan_category'].label_from_instance = lambda obj: obj.name
         self.fields['loan_category'].widget.attrs.update({
             'class': 'dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30',
         })
-        if user:
-            self.fields['loan_main_category'].queryset = LoanMainCategory.objects.filter(Q(is_active=True) & (Q(created_by=user) | Q(created_by__isnull=True)))
-        else:
-            self.fields['loan_main_category'].queryset = LoanMainCategory.objects.filter(is_active=True)
+        self.fields['loan_main_category'].queryset = LoanMainCategory.objects.filter(is_active=True)
         self.fields['loan_main_category'].empty_label = "Select loan main category"
         self.fields['loan_main_category'].widget.attrs.update({
             'class': 'dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30',
@@ -862,13 +848,12 @@ class ProductSubCategoryForm(forms.ModelForm):
             }),
         }
 
+    from demo.hq import headquater_form_demo_filter_queryset
+    @headquater_form_demo_filter_queryset('main_category')
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user', None)
+        self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        if user:
-            self.fields['main_category'].queryset = ProductCategory.objects.filter(is_active=True, created_by=user)
-        else:
-            self.fields['main_category'].queryset = ProductCategory.objects.filter(is_active=True)
+        self.fields['main_category'].queryset = ProductCategory.objects.filter(is_active=True)
         self.fields['main_category'].empty_label = "Select main product"
 
 class ProductForm(forms.ModelForm):
@@ -894,13 +879,12 @@ class ProductForm(forms.ModelForm):
             }),
         }
 
+    from demo.hq import headquater_form_demo_filter_queryset
+    @headquater_form_demo_filter_queryset('sub_category')
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user', None)
+        self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        if user:
-            self.fields['sub_category'].queryset = ProductSubCategory.objects.filter(is_active=True, created_by=user)
-        else:
-            self.fields['sub_category'].queryset = ProductSubCategory.objects.filter(is_active=True)
+        self.fields['sub_category'].queryset = ProductSubCategory.objects.filter(is_active=True)
         self.fields['sub_category'].empty_label = "Select sub category"
 
 # Savings Management Forms
@@ -1164,15 +1148,13 @@ class WalletBalanceForm(forms.ModelForm):
         model = HeadquartersTransactions
         fields = ['transaction_type', 'amount', 'description', 'purpose_account', 'reference_number', 'proof_document']
 
+    from demo.hq import headquater_form_demo_filter_queryset
+    @headquater_form_demo_filter_queryset('hq_account')
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         
-        # Filter HQ accounts by current user
-        if self.user:
-            self.fields['hq_account'].queryset = HeadquartersWallet.objects.filter(
-                created_by=self.user
-            ).order_by('type', 'bank_name', 'account_number')
+        self.fields['hq_account'].queryset = HeadquartersWallet.objects.order_by('type', 'bank_name', 'account_number')
         
         # Set default description if not provided
         if not self.initial.get('description'):
@@ -1296,25 +1278,23 @@ class BranchTransferForm(forms.ModelForm):
             # }),
         }
 
+    from demo.hq import headquater_form_demo_filter_queryset
+    @headquater_form_demo_filter_queryset({'branch', 'hq_account'})
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         self.wallet = kwargs.pop('wallet', None)
+        self.user = self.request.user if self.request.user else None
         selected_branch = kwargs.pop('selected_branch', None)
         super().__init__(*args, **kwargs)
         
         # Set branch queryset to active branches created by logged-in HQ user only
-        if 'branch' in self.fields and self.request:
-            self.fields['branch'].queryset = Branch.objects.filter(
-                status=True, 
-                created_by=self.request.user
-            ).order_by('branch_id', 'branch_name')
+        if 'branch' in self.fields:
+            self.fields['branch'].queryset = Branch.objects.filter(status=True).order_by('branch_id', 'branch_name')
         
         # Keep HQ accounts created by logged-in user available in select to avoid invalid choice errors.
         # We will enforce alignment with payment mode in clean().
-        if 'hq_account' in self.fields and self.request:
-            self.fields['hq_account'].queryset = HeadquartersWallet.objects.filter(
-                created_by=self.request.user
-            ).order_by('type', 'bank_name', 'account_number')
+        if 'hq_account' in self.fields:
+            self.fields['hq_account'].queryset = HeadquartersWallet.objects.order_by('type', 'bank_name', 'account_number')
         
         # Set accounts based on selected branch
         if 'accounts' in self.fields:
@@ -1393,160 +1373,3 @@ class BranchTransferForm(forms.ModelForm):
         instance = super().save(commit=False)
         instance.branch = self.cleaned_data['branch']
         return instance
-
-class TrialUserCreationForm(forms.Form):
-    """Form for creating trial users with custom email and duration"""
-    email = forms.EmailField(
-        label="Email Address",
-        widget=forms.EmailInput(attrs={
-            'class': 'w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white',
-            'placeholder': 'Enter email for trial user'
-        })
-    )
-    trial_duration = forms.IntegerField(
-        label="Trial Duration (Days)",
-        min_value=1,
-        max_value=365,
-        initial=7,
-        widget=forms.NumberInput(attrs={
-            'class': 'w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white',
-            'placeholder': 'Number of days'
-        })
-    )
-    
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        User = get_user_model()
-        
-        if User.objects.filter(email=email).exists():
-            raise forms.ValidationError("A user with this email already exists.")
-        
-        return email
-    
-    def create_trial_user(self):
-        """Create a trial user based on form data"""
-        from django.contrib.auth import get_user_model
-        from datetime import datetime, timedelta
-        from django.utils import timezone
-        
-        User = get_user_model()
-        email = self.cleaned_data['email']
-        trial_duration = self.cleaned_data['trial_duration']
-        
-        # Generate username and password
-        trial_username = email.split('@')[0] + "_admin"
-        trial_password = email.split('@')[0] + "@trial2026"
-        
-        # Get or create Super Admin role
-        super_admin_role, _ = Role.objects.get_or_create(
-            name='Super Admin',
-            defaults={'role_type': 'super_admin'}
-        )
-        
-        # Create trial user
-        trial_user = User.objects.create_user(
-            username=trial_username,
-            email=email,
-            password=trial_password,
-            first_name='Trial',
-            last_name='Admin',
-            is_headquater_admin=True,
-            is_staff=True,
-            is_superuser=True,
-            is_active=True
-        )
-        
-        # Set trial expiry
-        trial_user.trial_expiry_date = timezone.now() + timedelta(days=trial_duration)
-        trial_user.role = super_admin_role
-        trial_user.demo_credit = 3
-        trial_user.save()
-        # Create a CASH wallet for the trial user
-        if not HeadquartersWallet.objects.filter(type='CASH',created_by= trial_user).exists():
-            HeadquartersWallet.objects.get_or_create(
-                type='CASH',
-                created_by= trial_user,
-                defaults={'name': 'Cash', 'balance': 0.00}
-            )
-        
-        return trial_user, trial_password
-
-
-class ReactivateTrialUserForm(forms.Form):
-    """Form for reactivating an expired trial user"""
-    email = forms.EmailField(
-        label="Email Address",
-        widget=forms.EmailInput(attrs={
-            'class': 'w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white',
-            'placeholder': 'Enter email of expired trial user'
-        })
-    )
-    trial_duration = forms.IntegerField(
-        label="Trial Duration (Days)",
-        min_value=1,
-        max_value=365,
-        initial=7,
-        widget=forms.NumberInput(attrs={
-            'class': 'w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white',
-            'placeholder': 'Number of days'
-        })
-    )
-    
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        from django.contrib.auth import get_user_model
-        User = get_user_model()
-        
-        try:
-            user = User.objects.get(email=email)
-        except User.DoesNotExist:
-            raise forms.ValidationError("No user found with this email.")
-        
-        # Check if user is a trial user (has trial_expiry_date)
-        if not hasattr(user, 'trial_expiry_date') or not user.trial_expiry_date:
-            raise forms.ValidationError("This user is not a trial user.")
-        
-        # Check if user is still active (not yet expired)
-        from django.utils import timezone
-        if user.is_active and user.trial_expiry_date > timezone.now():
-            raise forms.ValidationError("This trial user is still active and has not expired yet.")
-        
-        return email
-    
-    def reactivate_trial_user(self):
-        """Reactivate an expired trial user with a new trial duration"""
-        from django.contrib.auth import get_user_model
-        from datetime import timedelta
-        from django.utils import timezone
-        
-        User = get_user_model()
-        email = self.cleaned_data['email']
-        trial_duration = self.cleaned_data['trial_duration']
-        
-        trial_user = User.objects.get(email=email)
-        
-        # Reactivate user
-        trial_user.is_active = True
-        trial_user.demo_credit = 3
-        trial_user.trial_expiry_date = timezone.now() + timedelta(days=trial_duration)
-        trial_user.save(update_fields=['is_active', 'demo_credit', 'trial_expiry_date'])
-        
-        # Reactivate all branches created by this trial user
-        from headquater.models import Branch
-        from agent.models import Agent
-        
-        branches_reactivated = Branch.objects.filter(
-            created_by=trial_user,
-            status=False
-        ).update(status=True)
-        
-        # Reactivate all agents under those branches
-        agents_reactivated = Agent.objects.filter(
-            branch__created_by=trial_user,
-            status='inactive'
-        ).update(status='active')
-        
-        if branches_reactivated > 0 or agents_reactivated > 0:
-            print(f"Cascade reactivate: {branches_reactivated} branches and {agents_reactivated} agents reactivated")
-        
-        return trial_user

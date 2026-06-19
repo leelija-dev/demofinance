@@ -79,7 +79,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'headquater.middleware.TrialUserExpiryMiddleware',  # Trial user expiry check
+    'demo.hq.middleware.TrialUserExpiryMiddleware',  # Trial user expiry check
 ]
 
 # Simplified static file serving for production with WhiteNoise
@@ -93,6 +93,7 @@ TEMPLATES = [
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
             BASE_DIR / 'templates',  # Add project-level templates directory
+            BASE_DIR,  # For demo templates directory
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -100,7 +101,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'main.context_processors.settings_context',  # Expose Django settings in templates
+                'main.utils.settings_context',  # Expose Django settings in templates
             ],
         },
     },
@@ -261,3 +262,6 @@ COMPANY_EMAIL = os.environ.get('COMPANY_EMAIL', 'nidhisoft542@gmail.com')
 # Optional: Full path for easier use
 COMPANY_LOGO_URL = f"main/images/{COMPANY_LOGO}"
 COMPANY_LOGO_TRANSPARENT_URL = f"main/images/{COMPANY_LOGO_TRANSPARENT}"
+
+
+IS_DEMO = os.environ.get('IS_DEMO', False).strip().lower() == "true"
