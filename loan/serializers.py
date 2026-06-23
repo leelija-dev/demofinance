@@ -280,11 +280,12 @@ class LoanDisbursedListSerializer(serializers.ModelSerializer):
         periods = LoanPeriod.objects.filter(loan_application=obj)
         return LoanPeriodSerializer(periods, many=True).data
 
+    from demo.loan.serializer_decorator import get_branch_created_by_decorator
+    @get_branch_created_by_decorator
     def get_deductions(self, obj):
-        # deductions = Deductions.objects.all()
         loans = self.get_loans(obj)
         main_category = loans[0].get('loan_category').get('main_category') if loans else None
-        deductions = Deductions.objects.filter(main_category = main_category, created_by = obj.branch.created_by)
+        deductions = Deductions.objects.filter(main_category=main_category)
         return DeductionSerializer(deductions, many=True).data
 
     def get_shop(self, obj):

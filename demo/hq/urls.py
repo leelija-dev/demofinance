@@ -4,7 +4,7 @@ from django.conf import settings
 from .views import CreateTrialUserView, ReactivateTrialUserView
 
 
-app_name = 'hq'
+app_name = 'hq-demo'
 
 # handler403 = permission_denied_view
 

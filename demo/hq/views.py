@@ -20,7 +20,7 @@ class CreateTrialUserView(LoginRequiredMixin, View):
             try:
                 trial_user, trial_password = form.create_trial_user()
                 messages.success(request, f"Trial user created successfully! Email: {trial_user.email}, Password: {trial_password}")
-                return redirect("hq:create_trial_user")
+                return redirect("hq_demo:create_trial_user")
             except Exception as e:
                 messages.error(request, f"Error creating trial user: {str(e)}")
         else:

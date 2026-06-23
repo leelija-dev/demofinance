@@ -2,6 +2,7 @@ import uuid
 
 from decimal import Decimal, ROUND_HALF_UP
 from datetime import date, datetime
+from django.conf import settings
 from django.db import models
 from agent.models import Agent
 from django.utils import timezone
@@ -488,7 +489,17 @@ class LoanMainCategory(models.Model):
         ]
 
 
+    def clean(self):
+        super().clean()
+        
+        # Enforce global uniqueness if NOT in demo mode
+        if not getattr(settings, 'IS_DEMO', False):
+            duplicate_exists = LoanMainCategory.objects.filter(name__iexact=self.name).exclude(pk=self.pk).exists()
+            if duplicate_exists:
+                raise ValidationError({'name': 'This name must be globally unique when demo mode is disabled.'})
+
     def save(self, *args, **kwargs):
+        self.full_clean() # Forces clean() execution before database insertion
         if not self.main_category_id:
             short_uuid = str(uuid.uuid4())[:8].upper()
             self.main_category_id = f"LoanMAIN-{short_uuid}"
@@ -516,9 +527,26 @@ class LoanCategory(models.Model):
         verbose_name = "Loan Category"
         verbose_name_plural = "Loan Categories"
         ordering = ['name']
-        unique_together = [('main_category', 'name', 'created_by')]
+        unique_together = [('main_category', 'name')]
     
+    def clean(self):
+        super().clean()
+        
+        # Enforce the 3-column constraint in application logic if IS_DEMO is True
+        if getattr(settings, 'IS_DEMO', False):
+            queryset = LoanCategory.objects.filter(main_category=self.main_category, name=self.name, created_by=self.created_by)
+            
+            # Exclude current instance if updating
+            if self.pk:
+                queryset = queryset.exclude(pk=self.pk)
+                
+            if queryset.exists():
+                raise ValidationError(
+                    "The combination of main_category, name, and created_by must be unique in Demo mode."
+                )
+
     def save(self, *args, **kwargs):
+        self.full_clean() # Forces clean() execution before database insertion
         if not self.category_id:
             short_uuid = str(uuid.uuid4())[:8].upper()
             self.category_id = f"LoanCAT-{short_uuid}"
@@ -549,9 +577,26 @@ class LoanInterest(models.Model):
         verbose_name = "Loan Interest Rate"
         verbose_name_plural = "Loan Interest Rates"
         ordering = ['rate_of_interest']
-        unique_together = [('main_category', 'rate_of_interest', 'created_by')]
+        unique_together = [('main_category', 'rate_of_interest')]
     
+    def clean(self):
+        super().clean()
+        
+        # Enforce the 3-column constraint in application logic if IS_DEMO is True
+        if getattr(settings, 'IS_DEMO', False):
+            queryset = LoanInterest.objects.filter(main_category=self.main_category, rate_of_interest=self.rate_of_interest, created_by=self.created_by)
+            
+            # Exclude current instance if updating
+            if self.pk:
+                queryset = queryset.exclude(pk=self.pk)
+                
+            if queryset.exists():
+                raise ValidationError(
+                    "The combination of main_category, rate_of_interest, and created_by must be unique in Demo mode."
+                )
+
     def save(self, *args, **kwargs):
+        self.full_clean() # Forces clean() execution before database insertion
         if not self.interest_id:
             short_uuid = str(uuid.uuid4())[:8].upper()
             self.interest_id = f"LoanINT-{short_uuid}"
@@ -588,7 +633,24 @@ class LoanTenure(models.Model):
         ordering = ['value', 'unit']
         unique_together = [('interest_rate', 'value', 'unit')]
 
+    def clean(self):
+        super().clean()
+        
+        # Enforce the 3-column constraint in application logic if IS_DEMO is True
+        if getattr(settings, 'IS_DEMO', False):
+            queryset = LoanTenure.objects.filter(interest_rate=self.interest_rate, value=self.value, unit=self.unit, created_by=self.created_by)
+            
+            # Exclude current instance if updating
+            if self.pk:
+                queryset = queryset.exclude(pk=self.pk)
+                
+            if queryset.exists():
+                raise ValidationError(
+                    "The combination of interest_rate, value, unit, and created_by must be unique in Demo mode."
+                )
+
     def save(self, *args, **kwargs):
+        self.full_clean() # Forces clean() execution before database insertion
         if not self.tenure_id:
             short_uuid = str(uuid.uuid4())[:8].upper()
             self.tenure_id = f"TEN-{short_uuid}"
@@ -677,9 +739,26 @@ class Deductions(models.Model):
     class Meta:
         verbose_name = 'Deduction'
         verbose_name_plural = 'Deductions'
-        unique_together = ('main_category', 'deduction_name', 'deduction_type', 'created_by')
+        unique_together = ('main_category', 'deduction_name', 'deduction_type')
+    
+    def clean(self):
+        super().clean()
+        
+        # Enforce the 3-column constraint in application logic if IS_DEMO is True
+        if getattr(settings, 'IS_DEMO', False):
+            queryset = LoanTenure.objects.filter(main_category=self.main_category, deduction_name=self.deduction_name, deduction_type=self.deduction_type, created_by=self.created_by)
+            
+            # Exclude current instance if updating
+            if self.pk:
+                queryset = queryset.exclude(pk=self.pk)
+                
+            if queryset.exists():
+                raise ValidationError(
+                    "The combination of main_category, deduction_name, deduction_type, and created_by must be unique in Demo mode."
+                )        
 
     def save(self, *args, **kwargs):
+        self.full_clean() # Forces clean() execution before database insertion
         if not self.deduction_id:
             short_uuid = str(uuid.uuid4())[:8].upper()
             self.deduction_id = f"DED-{short_uuid}"
@@ -863,9 +942,26 @@ class ProductSubCategory(models.Model):
         verbose_name = 'Product Sub Category'
         verbose_name_plural = 'Product Sub Categories'
         ordering = ['name']
-        unique_together = [('main_category', 'name', 'created_by')]
+        unique_together = [('main_category', 'name')]
+    
+    def clean(self):
+        super().clean()
+        
+        # Enforce the 3-column constraint in application logic if IS_DEMO is True
+        if getattr(settings, 'IS_DEMO', False):
+            queryset = LoanTenure.objects.filter(main_category=self.main_category, name=self.name, created_by=self.created_by)
+            
+            # Exclude current instance if updating
+            if self.pk:
+                queryset = queryset.exclude(pk=self.pk)
+                
+            if queryset.exists():
+                raise ValidationError(
+                    "The combination of main_category, name, and created_by must be unique in Demo mode."
+                )                
 
     def save(self, *args, **kwargs):
+        self.full_clean() # Forces clean() execution before database insertion
         if not self.sub_category_id:
             short_uuid = str(uuid.uuid4())[:8].upper()
             self.sub_category_id = f"PRODSUB-{short_uuid}"
@@ -899,9 +995,28 @@ class Product(models.Model):
         verbose_name = 'Product'
         verbose_name_plural = 'Products'
         ordering = ['name']
-        unique_together = [('sub_category', 'name', 'created_by')]
+        unique_together = [('sub_category', 'name')]
+    
+    def clean(self):
+        super().clean()
+        
+        # Enforce the 3-column constraint in application logic if IS_DEMO is True
+        if getattr(settings, 'IS_DEMO', False):
+            queryset = LoanTenure.objects.filter(sub_category=self.sub_category, name=self.name, created_by=self.created_by)
+            
+            # Exclude current instance if updating
+            if self.pk:
+                queryset = queryset.exclude(pk=self.pk)
+                
+            if queryset.exists():
+                raise ValidationError(
+                    "The combination of sub_category, name, and created_by must be unique in Demo mode."
+                )        
+
+        
 
     def save(self, *args, **kwargs):
+        self.full_clean() # Forces clean() execution before database insertion
         if not self.product_id:
             short_uuid = str(uuid.uuid4())[:8].upper()
             self.product_id = f"PROD-{short_uuid}"

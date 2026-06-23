@@ -33,7 +33,7 @@ urlpatterns = [
 ]
 if settings.IS_DEMO:
     urlpatterns += [
-        path('hq/', include('demo.hq.urls', namespace='hq')),
+        path('hq-demo/', include('demo.hq.urls', namespace='hq_demo')),
     ]
 
 # Serve static and media files in development

@@ -14,7 +14,7 @@ class NewLoanApplicationCardsView(TemplateView):
     }
 
     from demo.demo_credit import check_demo_credit
-    @check_demo_credit(BranchEmployee)
+    @check_demo_credit(True)
     def get(self, request, *args, **kwargs):
         context = (self.parent_context | {}) | {
             "is_active": True,

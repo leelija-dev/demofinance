@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import TemplateView, CreateView, FormView, View
 from django.contrib.auth.views import LoginView, PasswordResetView, PasswordResetConfirmView, PasswordChangeView
@@ -12,7 +11,7 @@ from django.contrib.auth import get_user_model
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponseRedirect, HttpResponse
 from django.contrib.auth.hashers import make_password
-from django.db import transaction, IntegrityError
+from django.db import transaction
 from branch.models import BranchEmployee, BranchAccount, BranchTransaction, AgentDeposit
 from agent.models import Agent
 from .models import HeadquarterEmployee, Role, Branch, HeadquartersWallet, HeadquartersTransactions, FundTransfers
@@ -77,26 +76,6 @@ def _log_loan_action(actor, loan_app, action):
     except Exception:
         return
 
-from demo.hq.decorators import check_demo_mode
-@check_demo_mode
-def _get_filter_kwargs(ref, isBranch=False, isNullable=False):
-    """
-    If the decorator above is deleted, this function defaults 
-    to a safe no-op filter.
-    """
-    return Q()
-
-from demo.hq.decorators import apply_demo_filter
-@apply_demo_filter
-def _get_filtered_response(self, qs):
-    """
-    If the decorator above is deleted, this function defaults 
-    to returning the original QuerySet completely unmodified.
-    """
-    return qs
-
-
-
 
 @require_permission('loan.view_productcategory')
 def product_management(request):
@@ -104,9 +83,9 @@ def product_management(request):
     edit_sub_id = (request.GET.get('edit_sub') or '').strip()
     edit_product_id = (request.GET.get('edit_product') or '').strip()
 
-    main_category_form = ProductCategoryForm(user=request.user)
-    sub_category_form = ProductSubCategoryForm(user=request.user)
-    product_form = ProductForm(user=request.user)
+    main_category_form = ProductCategoryForm()
+    sub_category_form = ProductSubCategoryForm()
+    product_form = ProductForm()
 
     edit_main_form = None
     edit_sub_form = None
@@ -117,25 +96,25 @@ def product_management(request):
     open_add_product_modal = False
 
     if edit_main_id:
-        edit_main_obj = ProductCategory.objects.filter(_get_filter_kwargs(request), main_category_id=edit_main_id).first()
+        edit_main_obj = ProductCategory.objects.filter(main_category_id=edit_main_id).first()
         if edit_main_obj:
-            edit_main_form = ProductCategoryForm(instance=edit_main_obj, user=request.user)
+            edit_main_form = ProductCategoryForm(instance=edit_main_obj)
 
     if edit_sub_id:
-        edit_sub_obj = ProductSubCategory.objects.filter(_get_filter_kwargs(request), sub_category_id=edit_sub_id).first()
+        edit_sub_obj = ProductSubCategory.objects.filter(sub_category_id=edit_sub_id).first()
         if edit_sub_obj:
-            edit_sub_form = ProductSubCategoryForm(instance=edit_sub_obj, user=request.user)
+            edit_sub_form = ProductSubCategoryForm(instance=edit_sub_obj)
 
     if edit_product_id:
-        edit_product_obj = Product.objects.filter(_get_filter_kwargs(request), product_id=edit_product_id).first()
+        edit_product_obj = Product.objects.filter(product_id=edit_product_id).first()
         if edit_product_obj:
-            edit_product_form = ProductForm(instance=edit_product_obj, user=request.user)
+            edit_product_form = ProductForm(instance=edit_product_obj)
 
     if request.method == 'POST':
         form_type = (request.POST.get('form_type') or '').strip()
 
         if form_type == 'main_category':
-            main_category_form = ProductCategoryForm(request.POST, user=request.user)
+            main_category_form = ProductCategoryForm(request.POST)
             if main_category_form.is_valid():
                 obj = main_category_form.save(commit=False)
                 obj.created_by = request.user
@@ -151,7 +130,7 @@ def product_management(request):
             if not edit_obj:
                 messages.error(request, 'Main product not found.')
                 return redirect('hq:product_management')
-            edit_main_form = ProductCategoryForm(request.POST, instance=edit_obj, user=request.user)
+            edit_main_form = ProductCategoryForm(request.POST, instance=edit_obj)
             if edit_main_form.is_valid():
                 edit_main_form.save()
                 messages.success(request, 'Main product updated successfully!')
@@ -160,7 +139,7 @@ def product_management(request):
 
         elif form_type == 'main_category_toggle':
             target_id = (request.POST.get('toggle_id') or '').strip()
-            obj = ProductCategory.objects.filter(_get_filter_kwargs(request), main_category_id=target_id).first()
+            obj = ProductCategory.objects.filter(main_category_id=target_id).first()
             if not obj:
                 messages.error(request, 'Main product not found.')
                 return redirect('hq:product_management')
@@ -172,7 +151,7 @@ def product_management(request):
             return redirect('hq:product_management')
 
         elif form_type == 'sub_category':
-            sub_category_form = ProductSubCategoryForm(request.POST, user=request.user)
+            sub_category_form = ProductSubCategoryForm(request.POST)
             if sub_category_form.is_valid():
                 obj = sub_category_form.save(commit=False)
                 obj.created_by = request.user
@@ -188,7 +167,7 @@ def product_management(request):
             if not edit_obj:
                 messages.error(request, 'Product category not found.')
                 return redirect('hq:product_management')
-            edit_sub_form = ProductSubCategoryForm(request.POST, instance=edit_obj, user=request.user)
+            edit_sub_form = ProductSubCategoryForm(request.POST, instance=edit_obj)
             if edit_sub_form.is_valid():
                 edit_sub_form.save()
                 messages.success(request, 'Product category updated successfully!')
@@ -197,7 +176,7 @@ def product_management(request):
 
         elif form_type == 'sub_category_toggle':
             target_id = (request.POST.get('toggle_id') or '').strip()
-            obj = ProductSubCategory.objects.filter(_get_filter_kwargs(request), sub_category_id=target_id).first()
+            obj = ProductSubCategory.objects.filter(sub_category_id=target_id).first()
             if not obj:
                 messages.error(request, 'Product category not found.')
                 return redirect('hq:product_management')
@@ -208,7 +187,7 @@ def product_management(request):
             return redirect('hq:product_management')
 
         elif form_type == 'product':
-            product_form = ProductForm(request.POST, user=request.user)
+            product_form = ProductForm(request.POST)
             if product_form.is_valid():
                 obj = product_form.save(commit=False)
                 obj.created_by = request.user
@@ -224,7 +203,7 @@ def product_management(request):
             if not edit_obj:
                 messages.error(request, 'Product not found.')
                 return redirect('hq:product_management')
-            edit_product_form = ProductForm(request.POST, instance=edit_obj, user=request.user)
+            edit_product_form = ProductForm(request.POST, instance=edit_obj)
             if edit_product_form.is_valid():
                 edit_product_form.save()
                 messages.success(request, 'Product updated successfully!')
@@ -233,7 +212,7 @@ def product_management(request):
 
         elif form_type == 'product_toggle':
             target_id = (request.POST.get('toggle_id') or '').strip()
-            obj = Product.objects.filter(_get_filter_kwargs(request), product_id=target_id).first()
+            obj = Product.objects.filter(product_id=target_id).first()
             if not obj:
                 messages.error(request, 'Product not found.')
                 return redirect('hq:product_management')
@@ -242,15 +221,9 @@ def product_management(request):
             messages.success(request, 'Product status updated successfully!')
             return redirect('hq:product_management')
 
-    main_categories = ProductCategory.objects.select_related('loan_main_category', 'loan_category').filter(
-        _get_filter_kwargs(request)
-    ).order_by('name')
-    sub_categories = ProductSubCategory.objects.select_related('main_category').filter(
-        _get_filter_kwargs(request)
-    ).order_by('main_category__name', 'name')
-    products = Product.objects.select_related('sub_category', 'sub_category__main_category').filter(
-        _get_filter_kwargs(request)
-    ).order_by(
+    main_categories = ProductCategory.objects.select_related('loan_main_category', 'loan_category').all().order_by('name')
+    sub_categories = ProductSubCategory.objects.select_related('main_category').all().order_by('main_category__name', 'name')
+    products = Product.objects.select_related('sub_category', 'sub_category__main_category').all().order_by(
         'sub_category__main_category__name',
         'sub_category__name',
         'name',
@@ -278,8 +251,6 @@ def product_management(request):
 class HQDashboardView(LoginRequiredMixin, TemplateView):
     template_name = 'hq/dashboard.html'
 
-    from demo.hq import hq_dashboard_branch_filter
-    @hq_dashboard_branch_filter
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
@@ -309,7 +280,7 @@ class HQDashboardView(LoginRequiredMixin, TemplateView):
                 context['can_delete_users'] = self.request.user.role.can_delete_users(self.request.user)
                 context['is_super_admin'] = self.request.user.role.is_super_admin(self.request.user)
         
-        # Add HQ approved loan count to context (global/unfiltered counts)
+        # Add HQ approved loan count to context
         context['hq_approved_count'] = LoanApplication.objects.filter(status='hq_approved').count()
         # context['loan_applications'] = LoanApplication.objects.all()
         context['pending_loan_count'] = LoanApplication.objects.filter(status='branch_approved').count()
@@ -334,8 +305,7 @@ class HQAgentListView(LoginRequiredMixin, TemplateView):
         status_filter = (self.request.GET.get('status') or 'active').strip().lower()
         q = (self.request.GET.get('q') or '').strip()
 
-        # Filter agents from branches created by the logged-in HQ employee
-        agents_qs = Agent.objects.select_related('branch').filter(_get_filter_kwargs(self.request, True))
+        agents_qs = Agent.objects.select_related('branch').all()
         if status_filter == 'active':
             agents_qs = agents_qs.filter(status='active')
         elif status_filter == 'inactive':
@@ -375,7 +345,7 @@ class HQAgentListView(LoginRequiredMixin, TemplateView):
         context['paginator'] = paginator
         context['page_links'] = page_links
         context['query_string'] = query_string
-        context['branches'] = Branch.objects.filter(_get_filter_kwargs(self.request)).order_by('branch_name')
+        context['branches'] = Branch.objects.all().order_by('branch_name')
         context['selected_branch_id'] = branch_id
         context['status_filter'] = status_filter
         context['q'] = q
@@ -385,8 +355,6 @@ class HQAgentListView(LoginRequiredMixin, TemplateView):
 class HQCustomerListView(LoginRequiredMixin, TemplateView):
     template_name = 'customer/customer-list.html'
 
-    from demo.hq import hq_branch_context_filter
-    @hq_branch_context_filter({'branches', 'agents'})
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
@@ -397,8 +365,6 @@ class HQCustomerListView(LoginRequiredMixin, TemplateView):
         agent_id = (self.request.GET.get('agent_id') or '').strip()
 
         qs = CustomerDetail.objects.select_related('branch', 'agent').all()
-        # cheking for any filter added into this by the decorator and execute it
-        qs = _get_filtered_response(self, qs)
 
         if branch_id:
             qs = qs.filter(branch__branch_id=branch_id)
@@ -454,17 +420,14 @@ class HQCustomerListView(LoginRequiredMixin, TemplateView):
 class HQCustomerDetailView(LoginRequiredMixin, TemplateView):
     template_name = 'customer/customer-detail.html'
 
-    from demo.hq import hq_branch_context_filter
-    @hq_branch_context_filter({})
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         customer_id = self.kwargs.get('customer_id')
 
-        
-        qs =CustomerDetail.objects.select_related('address', 'account', 'branch', 'agent')
-        # cheking for any filter added into this by the decorator and execute it
-        qs = _get_filtered_response(self, qs)
-        customer = get_object_or_404(qs, customer_id=customer_id)
+        customer = get_object_or_404(
+            CustomerDetail.objects.select_related('address', 'account', 'branch', 'agent'),
+            customer_id=customer_id,
+        )
 
         loan_applications = (
             LoanApplication.objects
@@ -1310,8 +1273,7 @@ def branch_list(request):
     # Filter branches by status: active (default), inactive, or all
     status_filter = (request.GET.get('status') or 'active').lower()
 
-    # Filter branches by the logged-in HQ employee (only show branches they created)
-    branches = Branch.objects.filter(_get_filter_kwargs(request)).prefetch_related('employees')
+    branches = Branch.objects.all().prefetch_related('employees')
     if status_filter == 'active':
         branches = branches.filter(status=True)
     elif status_filter == 'inactive':
@@ -2504,8 +2466,6 @@ def branch_activity_summary(request, branch_id):
 class HQLoanListView(LoginRequiredMixin, TemplateView):
     template_name = 'loan/loan_list.html'
 
-    from demo.hq import hq_branch_context_filter
-    @hq_branch_context_filter('branches')
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # Read status filter from query params: all | request | approve | reject
@@ -2524,12 +2484,9 @@ class HQLoanListView(LoginRequiredMixin, TemplateView):
                 ],
                 ever_branch_approved=True,
             )
-        ).select_related('customer', 'branch', 'agent').order_by('-submitted_at')
-        
-        # cheking for any filter added into this by the decorator and execute it
-        base_qs = _get_filtered_response(self, base_qs)
+        ).select_related('customer', 'branch', 'agent')
 
-        # Apply branch filter if provided (only from user's branches)
+        # Apply branch filter if provided
         if selected_branch_id:
             base_qs = base_qs.filter(branch__branch_id=selected_branch_id)
 
@@ -2566,16 +2523,7 @@ class HQLoanDetailView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         loan_ref_no = self.kwargs.get('loan_ref_no')
-        
-        # Get branches and agents created by the logged-in HQ user
-        user_branches = Branch.objects.filter(_get_filter_kwargs(self.request))
-        user_branch_ids = user_branches.values_list('branch_id', flat=True)
-        user_agents = Agent.objects.filter(branch_id__in=user_branch_ids)
-        
-        # Filter loan application to only show those from user's branches or agents
-        app = LoanApplication.objects.select_related('customer', 'branch', 'agent').filter(
-            Q(branch__in=user_branches) | Q(agent__in=user_agents)
-        ).get(loan_ref_no=loan_ref_no)
+        app = LoanApplication.objects.select_related('customer', 'branch', 'agent').get(loan_ref_no=loan_ref_no)
         context['app'] = app
 
         context['customer_account'] = getattr(app.customer, 'account', None)
@@ -2613,7 +2561,6 @@ class HQLoanDetailView(LoginRequiredMixin, TemplateView):
             'photo': get_approved_document(app, 'photo', documents.photo if documents else None),
             'signature': get_approved_document(app, 'signature', documents.signature if documents else None),
             'collateral': get_approved_document(app, 'collateral', documents.collateral if documents else None),
-            'guarantor_id_proof': get_approved_document(app, 'guarantor_id_proof', documents.guarantor_id_proof if documents else None),
             'residential_proof_file': get_approved_document(app, 'residential_proof', documents.residential_proof_file if documents else None),
         }
 
@@ -2665,16 +2612,7 @@ class HQLoanApproveRejectView(LoginRequiredMixin, View):
         if not request.user.is_authenticated:
             return HttpResponseForbidden('Authentication required')
         action = request.POST.get('action')
-        
-        # Get branches and agents created by the logged-in HQ user
-        user_branches = Branch.objects.filter(_get_filter_kwargs(request))
-        user_branch_ids = user_branches.values_list('branch_id', flat=True)
-        user_agents = Agent.objects.filter(branch_id__in=user_branch_ids)
-        
-        # Filter loan application to only allow actions on user's branches/agents
-        loan_app = LoanApplication.objects.filter(
-            Q(branch__in=user_branches) | Q(agent__in=user_agents)
-        ).get(loan_ref_no=loan_ref_no)
+        loan_app = LoanApplication.objects.get(loan_ref_no=loan_ref_no)
         if loan_app.status in ['document_requested', 'document_requested_by_hq']:
             return JsonResponse({'success': False, 'error': 'Cannot approve/reject while documents are requested.'}, status=400)
         if DocumentRequest.objects.filter(loan_application=loan_app, is_resolved=False).exists():
@@ -2705,15 +2643,7 @@ class HQDocumentRequestAPI(View):
         if not (loan_ref_no and document_type and reason):
             return JsonResponse({'success': False, 'error': 'Missing required fields.'}, status=400)
         try:
-            # Get branches and agents created by the logged-in HQ user
-            user_branches = Branch.objects.filter(_get_filter_kwargs(request))
-            user_branch_ids = user_branches.values_list('branch_id', flat=True)
-            user_agents = Agent.objects.filter(branch_id__in=user_branch_ids)
-            
-            # Filter loan application to only allow actions on user's branches/agents
-            loan_app = LoanApplication.objects.filter(
-                Q(branch__in=user_branches) | Q(agent__in=user_agents)
-            ).get(loan_ref_no=loan_ref_no)
+            loan_app = LoanApplication.objects.get(loan_ref_no=loan_ref_no)
             DocumentRequest.objects.create(
                 loan_application=loan_app,
                 document_type=document_type,
@@ -2834,9 +2764,7 @@ def loan_management(request):
         selected_main_category = LoanMainCategory.objects.filter(main_category_id=selected_main_category_id).first()
 
     from django.db.models import Case, When, IntegerField, Q
-    main_categories = LoanMainCategory.objects.filter(
-        _get_filter_kwargs(request, False, True)
-    ).annotate(
+    main_categories = LoanMainCategory.objects.annotate(
         _display_order=Case(
             When(name='Personal Loans', then=0),
             When(name='Home & Property Loans', then=1),
@@ -2849,11 +2777,11 @@ def loan_management(request):
 
     active_main_categories = main_categories.filter(is_active=True)
 
-    categories = LoanCategory.objects.select_related('main_category').filter(_get_filter_kwargs(request)).filter(Q(main_category__isnull=True) | Q(main_category__is_active=True))
-    interests = LoanInterest.objects.filter(_get_filter_kwargs(request)).filter(Q(main_category__isnull=True) | Q(main_category__is_active=True))
-    tenures = LoanTenure.objects.select_related('interest_rate').filter(_get_filter_kwargs(request)).filter(Q(interest_rate__main_category__isnull=True) | Q(interest_rate__main_category__is_active=True))
-    deductions = Deductions.objects.filter(_get_filter_kwargs(request)).filter(Q(main_category__isnull=True) | Q(main_category__is_active=True))
-    late_fees = LateFeeSetting.objects.filter(_get_filter_kwargs(request)).filter(Q(main_category__isnull=True) | Q(main_category__is_active=True))
+    categories = LoanCategory.objects.select_related('main_category').filter(Q(main_category__isnull=True) | Q(main_category__is_active=True))
+    interests = LoanInterest.objects.filter(Q(main_category__isnull=True) | Q(main_category__is_active=True))
+    tenures = LoanTenure.objects.select_related('interest_rate').filter(Q(interest_rate__main_category__isnull=True) | Q(interest_rate__main_category__is_active=True))
+    deductions = Deductions.objects.filter(Q(main_category__isnull=True) | Q(main_category__is_active=True))
+    late_fees = LateFeeSetting.objects.filter(Q(main_category__isnull=True) | Q(main_category__is_active=True))
 
     if selected_main_category and selected_main_category.is_active:
         categories = categories.filter(main_category=selected_main_category)
@@ -2872,10 +2800,10 @@ def loan_management(request):
 
     show_assign_unmapped_modal = False
     unmapped_target_main_category = None
-    unmapped_categories = LoanCategory.objects.filter(_get_filter_kwargs(request), main_category__isnull=True).order_by('name')
-    unmapped_interests = LoanInterest.objects.filter(_get_filter_kwargs(request), main_category__isnull=True).order_by('rate_of_interest')
-    unmapped_deductions = Deductions.objects.filter(_get_filter_kwargs(request), main_category__isnull=True).order_by('deduction_name')
-    unmapped_late_fees = LateFeeSetting.objects.filter(_get_filter_kwargs(request), main_category__isnull=True).order_by('-created_at')
+    unmapped_categories = LoanCategory.objects.filter(main_category__isnull=True).order_by('name')
+    unmapped_interests = LoanInterest.objects.filter(main_category__isnull=True).order_by('rate_of_interest')
+    unmapped_deductions = Deductions.objects.filter(main_category__isnull=True).order_by('deduction_name')
+    unmapped_late_fees = LateFeeSetting.objects.filter(main_category__isnull=True).order_by('-created_at')
 
     if request.method == 'POST' and post_form_type == 'assign_unmapped':
         target_main_category_id = (request.POST.get('target_main_category_id') or '').strip()
@@ -2893,25 +2821,25 @@ def loan_management(request):
             if not (category_ids or interest_ids or deduction_ids or late_fee_ids):
                 messages.error(request, 'Please select at least one item to assign.')
             else:
-                LoanCategory.objects.filter(_get_filter_kwargs(request), main_category__isnull=True, category_id__in=category_ids).update(
+                LoanCategory.objects.filter(main_category__isnull=True, category_id__in=category_ids).update(
                     main_category=unmapped_target_main_category,
                     is_active=unmapped_target_main_category.is_active,
                 )
-                LoanInterest.objects.filter(_get_filter_kwargs(request), main_category__isnull=True, interest_id__in=interest_ids).update(
+                LoanInterest.objects.filter(main_category__isnull=True, interest_id__in=interest_ids).update(
                     main_category=unmapped_target_main_category,
                     is_active=unmapped_target_main_category.is_active,
                 )
-                Deductions.objects.filter(_get_filter_kwargs(request), main_category__isnull=True, deduction_id__in=deduction_ids).update(
+                Deductions.objects.filter(main_category__isnull=True, deduction_id__in=deduction_ids).update(
                     main_category=unmapped_target_main_category,
                     is_active=unmapped_target_main_category.is_active,
                 )
-                LateFeeSetting.objects.filter(_get_filter_kwargs(request), main_category__isnull=True, id__in=late_fee_ids).update(
+                LateFeeSetting.objects.filter(main_category__isnull=True, id__in=late_fee_ids).update(
                     main_category=unmapped_target_main_category,
                     is_active=unmapped_target_main_category.is_active,
                 )
 
                 if interest_ids:
-                    LoanTenure.objects.filter(_get_filter_kwargs(request), interest_rate__interest_id__in=interest_ids).update(
+                    LoanTenure.objects.filter(interest_rate__interest_id__in=interest_ids).update(
                         is_active=unmapped_target_main_category.is_active,
                     )
 
@@ -2936,12 +2864,10 @@ def loan_management(request):
             main_category = get_object_or_404(LoanMainCategory, main_category_id=request.POST['main_category_id'])
             old_is_active = main_category.is_active
             main_category_form = LoanMainCategoryForm(request.POST, instance=main_category)
-            main_category_form.current_user = request.user
             main_category_modal_action = 'Edit'
             main_category_modal_title = 'Edit Loan Main Category'
         else:
             main_category_form = LoanMainCategoryForm(request.POST)
-            main_category_form.current_user = request.user
             main_category_modal_action = 'Add'
             main_category_modal_title = 'Add Loan Main Category'
         show_main_category_modal = True
@@ -2973,13 +2899,11 @@ def loan_management(request):
     elif edit_main_category_id:
         main_category = get_object_or_404(LoanMainCategory, main_category_id=edit_main_category_id)
         main_category_form = LoanMainCategoryForm(instance=main_category)
-        main_category_form.current_user = request.user
         main_category_modal_action = 'Edit'
         main_category_modal_title = 'Edit Loan Main Category'
         show_main_category_modal = True
     elif request.GET.get('add_main_category') == '1':
         main_category_form = LoanMainCategoryForm()
-        main_category_form.current_user = request.user
         main_category_modal_action = 'Add'
         main_category_modal_title = 'Add Loan Main Category'
         show_main_category_modal = True
@@ -3009,10 +2933,6 @@ def loan_management(request):
 
             if request.POST.get('category_id'):
                 cat.main_category = original_main_category
-            elif selected_main_category:
-                # Always set main_category from URL parameter when creating new category
-                # This ensures it's set even when the form field is disabled
-                cat.main_category = selected_main_category
 
             cat.save()
             messages.success(request, f"Loan category {modal_action.lower()}ed successfully!")
@@ -3021,11 +2941,6 @@ def loan_management(request):
             return redirect('hq:loan_management')
         else:
             messages.error(request, "Failed to save loan category. Please check the form.")
-            # If there's a validation error and we have a selected main category, 
-            # ensure the form maintains the preselected and readonly state
-            if not request.POST.get('category_id') and selected_main_category:
-                form.fields['main_category'].widget.attrs['readonly'] = True
-                form.fields['main_category'].widget.attrs['disabled'] = True
     elif category_id:
         category = get_object_or_404(LoanCategory, category_id=category_id)
         form = LoanCategoryForm(instance=category)
@@ -3033,17 +2948,7 @@ def loan_management(request):
         modal_title = 'Edit Loan Category'
         show_modal = True
     elif request.GET.get('add') == '1':
-        # Preselect main_category if provided in URL
-        initial_data = {}
-        if selected_main_category:
-            initial_data['main_category'] = selected_main_category
-        form = LoanCategoryForm(initial=initial_data)
-        
-        # Make main_category field readonly if preselected
-        if selected_main_category:
-            form.fields['main_category'].widget.attrs['readonly'] = True
-            form.fields['main_category'].widget.attrs['disabled'] = True
-        
+        form = LoanCategoryForm()
         modal_action = 'Add'
         modal_title = 'Add Loan Category'
         show_modal = True
@@ -3069,19 +2974,14 @@ def loan_management(request):
         if selected_main_category:
             interest_form.instance.main_category = selected_main_category
         if interest_form.is_valid():
-            try:
-                obj = interest_form.save(commit=False)
-                obj.created_by = request.user
-                obj.save()
-                messages.success(request, f"Interest rate {interest_modal_action.lower()}ed successfully!")
-                if selected_main_category_id:
-                    return redirect(f"/hq/loan-manage/management/?main_category={selected_main_category_id}")
-                return redirect('hq:loan_management')
-            except IntegrityError as e:
-                if 'loan_loaninterest_main_category_id_rate_of_f2429aff_uniq' in str(e):
-                    messages.error(request, "This interest rate already exists for the selected main category. Please use a different interest rate.")
-                else:
-                    messages.error(request, "A database error occurred. Please try again.")
+            obj = interest_form.save(commit=False)
+            obj.created_by = request.user
+            obj.save()
+            messages.success(request, f"Interest rate {interest_modal_action.lower()}ed successfully!")
+            if selected_main_category_id:
+                return redirect(f"/hq/loan-manage/management/?main_category={selected_main_category_id}")
+            return redirect('hq:loan_management')
+
         else:
             messages.error(request, "Failed to save interest rate. Please check the form.")
     elif interest_id:
@@ -3107,12 +3007,12 @@ def loan_management(request):
 
         if request.POST.get('tenure_id'):
             tenure = get_object_or_404(LoanTenure, tenure_id=request.POST['tenure_id'])
-            tenure_form = LoanTenureForm(request.POST, instance=tenure, main_category=selected_main_category, user=request.user)
+            tenure_form = LoanTenureForm(request.POST, instance=tenure, main_category=selected_main_category)
 
             tenure_modal_action = 'Edit'
             tenure_modal_title = 'Edit Loan Tenure'
         else:
-            tenure_form = LoanTenureForm(request.POST, main_category=selected_main_category, user=request.user)
+            tenure_form = LoanTenureForm(request.POST, main_category=selected_main_category)
 
             tenure_modal_action = 'Add'
             tenure_modal_title = 'Add Loan Tenure'
@@ -3129,13 +3029,13 @@ def loan_management(request):
             messages.error(request, "Failed to save loan tenure. Please check the form.")
     elif tenure_id:
         tenure = get_object_or_404(LoanTenure, tenure_id=tenure_id)
-        tenure_form = LoanTenureForm(instance=tenure, main_category=selected_main_category, user=request.user)
+        tenure_form = LoanTenureForm(instance=tenure, main_category=selected_main_category)
 
         tenure_modal_action = 'Edit'
         tenure_modal_title = 'Edit Loan Tenure'
         show_tenure_modal = True
     elif request.GET.get('add_tenure') == '1':
-        tenure_form = LoanTenureForm(main_category=selected_main_category, user=request.user)
+        tenure_form = LoanTenureForm(main_category=selected_main_category)
 
         tenure_modal_action = 'Add'
         tenure_modal_title = 'Add Loan Tenure'
@@ -3329,24 +3229,16 @@ class LoanDisbursementList(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        
-        # Get branches and agents created by the logged-in HQ user
-        user_branches = Branch.objects.filter(_get_filter_kwargs(self.request))
-        user_branch_ids = user_branches.values_list('branch_id', flat=True)
-        user_agents = Agent.objects.filter(branch_id__in=user_branch_ids)
-        
         # if self.request.user.is_headquater_admin or self.request.user.has_perm('loan.view_disbursementlog'):
         context['loan_disbursement'] = LoanApplication.objects.filter(
             status='hq_approved'
-        ).filter(
-            Q(branch__in=user_branches) | Q(agent__in=user_agents)
         ).select_related(
             'customer', 'branch', 'agent'
         ).prefetch_related(
             'loan_details__loan_category', 
             'loan_details__tenure', 
             'loan_details__interest_rate'
-        ).order_by('-submitted_at')
+        )
         return context
 
 @require_permissions_for_class('loan.view_disbursementlog')
@@ -3356,16 +3248,8 @@ class LoanDisbursementDetail(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         loan_ref_no = self.kwargs.get('loan_ref_no')
-        
-        # Get branches and agents created by the logged-in HQ user
-        user_branches = Branch.objects.filter(_get_filter_kwargs(self.request))
-        user_branch_ids = user_branches.values_list('branch_id', flat=True)
-        user_agents = Agent.objects.filter(branch_id__in=user_branch_ids)
-        
         try:
-            loan_application = LoanApplication.objects.filter(
-                Q(branch__in=user_branches) | Q(agent__in=user_agents)
-            ).select_related(
+            loan_application = LoanApplication.objects.select_related(
                 'customer', 'branch', 'agent'
             ).prefetch_related(
                 'loan_details__loan_category', 'loan_details__tenure', 'loan_details__interest_rate', 'periods'
@@ -3380,15 +3264,7 @@ class LoanDisbursementDetail(LoginRequiredMixin, TemplateView):
     def post(self, request, *args, **kwargs):
         loan_ref_no = self.kwargs.get('loan_ref_no')
         try:
-            # Get branches and agents created by the logged-in HQ user
-            user_branches = Branch.objects.filter(_get_filter_kwargs(request))
-            user_branch_ids = user_branches.values_list('branch_id', flat=True)
-            user_agents = Agent.objects.filter(branch_id__in=user_branch_ids)
-            
-            # Filter loan application to only allow actions on user's branches/agents
-            loan_app = LoanApplication.objects.filter(
-                Q(branch__in=user_branches) | Q(agent__in=user_agents)
-            ).get(loan_ref_no=loan_ref_no)
+            loan_app = LoanApplication.objects.get(loan_ref_no=loan_ref_no)
             if loan_app.status != 'hq_approved':
                 return JsonResponse({
                     'success': False,
@@ -3460,15 +3336,7 @@ class DisbursementHold(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
        context = super().get_context_data(**kwargs)
-       
-       # Get branches and agents created by the logged-in HQ user
-       user_branches = Branch.objects.filter(_get_filter_kwargs(self.request))
-       user_branch_ids = user_branches.values_list('branch_id', flat=True)
-       user_agents = Agent.objects.filter(branch_id__in=user_branch_ids)
-       
-       context['loan_disbursement'] = LoanApplication.objects.filter(status='disbursed').filter(
-           Q(branch__in=user_branches) | Q(agent__in=user_agents)
-       ).select_related('customer', 'branch', 'agent',).prefetch_related('loan_details__loan_category', 'loan_details__tenure', 'loan_details__interest_rate')
+       context['loan_disbursement'] = LoanApplication.objects.filter(status='disbursed').select_related('customer', 'branch', 'agent',).prefetch_related('loan_details__loan_category', 'loan_details__tenure', 'loan_details__interest_rate')
        return context
 
 @require_permissions_for_class('loan.view_disbursementlog')
@@ -3478,16 +3346,8 @@ class DisbursementHoldDetail(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         loan_ref_no = self.kwargs.get('loan_ref_no')
-        
-        # Get branches and agents created by the logged-in HQ user
-        user_branches = Branch.objects.filter(_get_filter_kwargs(self.request))
-        user_branch_ids = user_branches.values_list('branch_id', flat=True)
-        user_agents = Agent.objects.filter(branch_id__in=user_branch_ids)
-        
         try:
-            loan_application = LoanApplication.objects.filter(
-                Q(branch__in=user_branches) | Q(agent__in=user_agents)
-            ).select_related(
+            loan_application = LoanApplication.objects.select_related(
                 'customer', 'branch', 'agent'
             ).prefetch_related(
                 'loan_details__loan_category', 'loan_details__tenure', 'loan_details__interest_rate', 'periods'
@@ -3512,18 +3372,12 @@ class DisbursedAndFundRelease(LoginRequiredMixin, TemplateView):
         request = self.request
         selected_branch_id = request.GET.get('branch_id') or ''
 
-        # Get branches and agents created by the logged-in HQ user
-        user_branches = Branch.objects.filter(_get_filter_kwargs(request))
-        user_branch_ids = user_branches.values_list('branch_id', flat=True)
-        user_agents = Agent.objects.filter(branch_id__in=user_branch_ids)
-
         # Base queryset: all disbursed loans
         qs = LoanApplication.objects.filter(status='disbursed_fund_released') \
-            .filter(Q(branch__in=user_branches) | Q(agent__in=user_agents)) \
             .select_related('customer', 'branch', 'agent') \
             .prefetch_related('loan_details__loan_category', 'loan_details__tenure', 'loan_details__interest_rate')
 
-        # Apply branch filter if provided (only from user's branches)
+        # Apply branch filter if provided
         if selected_branch_id:
             qs = qs.filter(branch__branch_id=selected_branch_id)
 
@@ -3725,9 +3579,6 @@ class HQWallet(LoginRequiredMixin, View):
     balance_form_class = WalletBalanceForm
     transfer_form_class = BranchTransferForm
 
-    
-    from demo.hq.decorators import hq_method_setup
-    @hq_method_setup
     def get(self, request, *args, **kwargs):
         # NOTE: Multiple HQ accounts can exist (CASH and BANK). Do not assume a singleton wallet.
         # Ensure a default CASH HQ account exists for cash transfers
@@ -3736,24 +3587,15 @@ class HQWallet(LoginRequiredMixin, View):
         # Initialize balance form
         balance_form = self.balance_form_class(user=request.user)
 
-        # Get branches and agents created by the logged-in HQ user
-        user_branches = Branch.objects.filter(_get_filter_kwargs(request))
-        user_branch_ids = user_branches.values_list('branch_id', flat=True)
-        user_agents = Agent.objects.filter(branch_id__in=user_branch_ids)
-        
-        # Get recent transactions filtered by user hierarchy
+        # Get recent transactions
         hq_transactions = HeadquartersTransactions.objects.select_related('wallet') \
-                                                    .order_by('-transaction_date')
+                                                     .order_by('-transaction_date')[:50]
         
-        # cheking for any filter added into this by the decorator and execute it
-        hq_transactions = _get_filtered_response(self, hq_transactions)
-        hq_transactions = hq_transactions.distinct()[:50]
         # NEW APPROACH: Get branch names through FundTransfers -> BranchTransaction
         try:
-            # Get all fund transfers for these HQ transactions filtered by user hierarchy
+            # Get all fund transfers for these HQ transactions
             fund_transfers = FundTransfers.objects.filter(
-                hq_transaction__in=hq_transactions,
-                branch_transaction__branch__in=user_branches
+                hq_transaction__in=hq_transactions
             ).select_related('branch_transaction__branch')
             
             # Create a mapping of HQ transaction IDs to branch names
@@ -3766,7 +3608,7 @@ class HQWallet(LoginRequiredMixin, View):
                 elif ft.hq_transaction_id and ft.transfer_to:
                     # Fallback: use transfer_to field if branch_transaction is None
                     try:
-                        branch = Branch.objects.get(_get_filter_kwargs(request), branch_id=ft.transfer_to)
+                        branch = Branch.objects.get(branch_id=ft.transfer_to)
                         hq_to_branch_display[ft.hq_transaction_id] = f"{branch.branch_name} ({branch.branch_id})"
                     except Branch.DoesNotExist:
                         hq_to_branch_display[ft.hq_transaction_id] = f"Unknown Branch ({ft.transfer_to})"
@@ -3821,7 +3663,7 @@ class HQWallet(LoginRequiredMixin, View):
         try:
             from branch.models import BranchAccount
             accounts_data = {}
-            for acc in BranchAccount.objects.select_related('branch').filter(type='BANK', branch__in=user_branches):
+            for acc in BranchAccount.objects.select_related('branch').filter(type='BANK'):
                 bid = str(acc.branch.branch_id)
                 accounts_data.setdefault(bid, []).append({
                     'id': acc.id,
@@ -3830,12 +3672,11 @@ class HQWallet(LoginRequiredMixin, View):
         except Exception:
             accounts_data = {}
         
-        # Get recent fund transfers with related data filtered by user hierarchy
+        # Get recent fund transfers with related data
         recent_transfers = FundTransfers.objects.select_related(
             'hq_transaction', 'branch_transaction__branch'
         ).filter(
-            hq_transaction__isnull=False,  # Only show transfers initiated from HQ
-            branch_transaction__branch__in=user_branches
+            hq_transaction__isnull=False  # Only show transfers initiated from HQ
         ).order_by('-transfer_date')[:10]
         
         # Calculate monthly income and expenses
@@ -3846,32 +3687,23 @@ class HQWallet(LoginRequiredMixin, View):
         today = datetime.now().date()
         first_day_of_month = today.replace(day=1)
         
-        # Total balances by account type filtered by logged-in user
-        cash_balance = HeadquartersWallet.objects.filter( _get_filter_kwargs(request), type='CASH').aggregate(total=Sum('balance'))['total'] or 0.00
-        account_balance = HeadquartersWallet.objects.filter( _get_filter_kwargs(request), type='BANK').aggregate(total=Sum('balance'))['total'] or 0.00
-        # Calculate monthly income (credits) filtered by user hierarchy
+        # Total balances by account type
+        cash_balance = HeadquartersWallet.objects.filter(type='CASH').aggregate(total=Sum('balance'))['total'] or 0.00
+        account_balance = HeadquartersWallet.objects.filter(type='BANK').aggregate(total=Sum('balance'))['total'] or 0.00
+        # Calculate monthly income (credits)
         monthly_income = HeadquartersTransactions.objects.filter(
             transaction_type='credit',
             transaction_date__date__gte=first_day_of_month
-        )
+        ).aggregate(total=Sum('amount'))['total'] or 0.00
         
-        # cheking for any filter added into this by the decorator and execute it
-        monthly_income = _get_filtered_response(self, monthly_income)
-        monthly_income = monthly_income.distinct().aggregate(total=Sum('amount'))['total'] or 0.00
-        # Calculate monthly expenses (debits) filtered by user hierarchy
+        # Calculate monthly expenses (debits)
         monthly_expenses = HeadquartersTransactions.objects.filter(
             transaction_type='debit',
             transaction_date__date__gte=first_day_of_month
-        )
-        
-        # cheking for any filter added into this by the decorator and execute it
-        monthly_expenses = _get_filtered_response(self, monthly_expenses)
-        monthly_expenses = monthly_expenses.distinct().aggregate(total=Sum('amount'))['total'] or 0.00
+        ).aggregate(total=Sum('amount'))['total'] or 0.00
 
-        # Compute wallet summary across HQ accounts created by logged-in user
-        aggregates = HeadquartersWallet.objects.filter(
-            _get_filter_kwargs(request)
-        ).aggregate(
+        # Compute wallet summary across all HQ accounts
+        aggregates = HeadquartersWallet.objects.aggregate(
             total_balance=Sum('balance'),
             last_updated=Max('last_updated'),
             created_at=Min('created_at'),
@@ -3883,8 +3715,8 @@ class HQWallet(LoginRequiredMixin, View):
             'created_at': aggregates['created_at'],
         }
         
-        # Build HQ BANK accounts payload filtered by logged-in user
-        bank_qs = HeadquartersWallet.objects.filter(_get_filter_kwargs(request), type='BANK')
+        # Build HQ BANK accounts payload
+        bank_qs = HeadquartersWallet.objects.filter(type='BANK')
         bank_accounts = []
         for acc in bank_qs:
             bank_accounts.append({
@@ -3977,8 +3809,7 @@ class HQWallet(LoginRequiredMixin, View):
                     name=name,
                     bank_name=bank_name if inferred_type == 'BANK' else None,
                     account_number=account_number if inferred_type == 'BANK' else None,
-                    balance=initial_balance,
-                    created_by=request.user
+                    balance=initial_balance
                 )
 
                 # Create corresponding HQ transaction for opening balance
@@ -4137,8 +3968,8 @@ class HQWallet(LoginRequiredMixin, View):
                 selected_branch = None
 
         # Ensure a default CASH HQ account exists before binding transfer form
-        if not HeadquartersWallet.objects.filter(_get_filter_kwargs(request), type='CASH').exists():
-            HeadquartersWallet.objects.get_or_create(created_by=request.user, type='CASH', defaults={'name': 'Cash', 'balance': 0.00})
+        if not HeadquartersWallet.objects.filter(type='CASH').exists():
+            HeadquartersWallet.objects.get_or_create(type='CASH', defaults={'name': 'Cash', 'balance': 0.00})
         transfer_form = self.transfer_form_class(
             request.POST,
             request=request,
@@ -4417,15 +4248,8 @@ class EmiLoanListView(TemplateView):
     def get_context_data(self, **kwargs):
         from django.core.paginator import Paginator
         context = super().get_context_data(**kwargs)
-        
-        # Get branches and agents created by the logged-in HQ user
-        user_branches = Branch.objects.filter(_get_filter_kwargs(self.request))
-        user_branch_ids = user_branches.values_list('branch_id', flat=True)
-        user_agents = Agent.objects.filter(branch_id__in=user_branch_ids)
-        
         # Base queryset: only disbursed loans eligible for EMI servicing
         qs = LoanApplication.objects.filter(status='disbursed_fund_released') \
-            .filter(Q(branch__in=user_branches) | Q(agent__in=user_agents)) \
             .select_related('customer', 'branch', 'agent') \
             .prefetch_related('loan_details__loan_category', 'loan_details__tenure', 'loan_details__interest_rate') \
             .order_by('-disbursed_at')
@@ -4481,8 +4305,8 @@ class EmiLoanListView(TemplateView):
         query_params.pop('page', None)
         query_string = query_params.urlencode()
 
-        # Provide branches for the filter UI (only user's branches)
-        context['branches'] = user_branches.order_by('branch_name')
+        # Provide branches for the filter UI
+        context['branches'] = Branch.objects.all().order_by('branch_name')
         context['selected_branch_id'] = selected_branch_id
         context['selected_loan_ref_no'] = selected_loan_ref_no
         context['emi_options'] = emi_options
@@ -4507,19 +4331,8 @@ class EmiScheduleView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         loan_ref_no = self.kwargs.get('loan_ref_no')
-        
-        # Get branches and agents created by the logged-in HQ user
-        user_branches = Branch.objects.filter(_get_filter_kwargs(self.request))
-        user_branch_ids = user_branches.values_list('branch_id', flat=True)
-        user_agents = Agent.objects.filter(branch_id__in=user_branch_ids)
-        
-        # Fetch loan and its EMI schedule (only from user's branches/agents)
-        loan_app = get_object_or_404(
-            LoanApplication.objects.filter(
-                Q(branch__in=user_branches) | Q(agent__in=user_agents)
-            ).select_related('customer', 'branch'), 
-            loan_ref_no=loan_ref_no
-        )
+        # Fetch loan and its EMI schedule
+        loan_app = get_object_or_404(LoanApplication.objects.select_related('customer', 'branch'), loan_ref_no=loan_ref_no)
         base_qs = LoanEMISchedule.objects.filter(loan_application=loan_app).order_by('installment_date')
 
         # Filter by schedule status if provided
@@ -4569,23 +4382,13 @@ class EmiScheduleView(LoginRequiredMixin, TemplateView):
 @login_required
 @require_permission('loan.change_loancategory')
 def loan_close_requests_list(request):
-    """HQ view: list LoanCloseRequest from user's branches/agents with optional status filter."""
+    """HQ view: list all LoanCloseRequest across branches with optional status filter."""
     from django.core.paginator import Paginator
     status_filter = (request.GET.get('status') or '').strip().lower()
     valid_status = {'pending', 'approved', 'rejected', 'cancelled'}
 
-    # Get branches and agents created by the logged-in HQ user
-    user_branches = Branch.objects.filter(_get_filter_kwargs(request))
-    user_branch_ids = user_branches.values_list('branch_id', flat=True)
-    user_agents = Agent.objects.filter(branch_id__in=user_branch_ids)
-
     qs = (
         LoanCloseRequest.objects
-        .filter(
-            Q(branch__in=user_branches) | 
-            Q(loan_application__branch__in=user_branches) | 
-            Q(loan_application__agent__in=user_agents)
-        )
         .select_related('loan_application__customer', 'loan_application', 'branch', 'requested_by')
         .order_by('-requested_at')
     )
@@ -4639,20 +4442,7 @@ def loan_close_request_action(request, request_id):
     """HQ view: action on a LoanCloseRequest.
     Accepts form field 'action' = 'approve' (default) or 'reject'.
     """
-    # Get branches and agents created by the logged-in HQ user
-    user_branches = Branch.objects.filter(_get_filter_kwargs(request))
-    user_branch_ids = user_branches.values_list('branch_id', flat=True)
-    user_agents = Agent.objects.filter(branch_id__in=user_branch_ids)
-    
-    # Filter loan close request to only allow actions on user's branches/agents
-    lcr = get_object_or_404(
-        LoanCloseRequest.objects.filter(
-            Q(branch__in=user_branches) | 
-            Q(loan_application__branch__in=user_branches) | 
-            Q(loan_application__agent__in=user_agents)
-        ),
-        request_id=request_id
-    )
+    lcr = get_object_or_404(LoanCloseRequest, request_id=request_id)
 
     # Only pending requests can be transitioned
     if lcr.status != 'pending':
@@ -4697,7 +4487,6 @@ def loan_close_request_action(request, request_id):
                     'request_id': lcr.request_id,
                     'approved_at': lcr.approved_at,
                     'branch_name': getattr(lcr.branch, 'branch_name', ''),
-                    'settings': settings
                 }
                 # HTML and text body
                 html_content = render_to_string('loan/loan_close_email.html', context)
@@ -4705,7 +4494,7 @@ def loan_close_request_action(request, request_id):
                     f"Dear {context['customer_name']}, your loan close request "
                     f"{lcr.request_id} for {la.loan_ref_no} has been approved."
                 )
-                from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', None) 
+                from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', None) or 'no-reply@sundaram.local'
                 msg = EmailMultiAlternatives(subject, text_content, from_email, [recipient])
                 msg.attach_alternative(html_content, "text/html")
 
@@ -4798,20 +4587,11 @@ def hq_dashboard_data(request):
         ny = year + 1 if month == 12 else year
         next_start = timezone.datetime(ny, nm, 1, 0, 0, 0, tzinfo=tz)
 
-    # Get branches and agents created by the logged-in HQ user
-    user_branches = Branch.objects.filter(_get_filter_kwargs(request))
-    user_branch_ids = user_branches.values_list('branch_id', flat=True)
-    user_agents = Agent.objects.filter(branch_id__in=user_branch_ids)
-
-    base_qs = LoanApplication.objects.filter(submitted_at__gte=start, submitted_at__lt=next_start).filter(
-        Q(branch__in=user_branches) | Q(agent__in=user_agents)
-    )
+    base_qs = LoanApplication.objects.filter(submitted_at__gte=start, submitted_at__lt=next_start)
 
     savings_base_qs = SavingsAccountApplication.objects.filter(
         submitted_at__gte=start,
         submitted_at__lt=next_start,
-    ).filter(
-        Q(branch__in=user_branches) | Q(agent__in=user_agents)
     )
 
     # Cards
@@ -4827,8 +4607,6 @@ def hq_dashboard_data(request):
         disbursed_at__gte=start,
         disbursed_at__lt=next_start,
         status__in=disbursed_statuses,
-    ).filter(
-        Q(branch__in=user_branches) | Q(agent__in=user_agents)
     ).count()
     rejected = base_qs.filter(status='hq_rejected').count()
 
@@ -4856,9 +4634,7 @@ def hq_dashboard_data(request):
         pny = py + 1 if pm == 12 else py
         prev_next = timezone.datetime(pny, pnm, 1, 0, 0, 0, tzinfo=tz)
 
-    prev_qs = LoanApplication.objects.filter(submitted_at__gte=prev_start, submitted_at__lt=prev_next).filter(
-        Q(branch__in=user_branches) | Q(agent__in=user_agents)
-    )
+    prev_qs = LoanApplication.objects.filter(submitted_at__gte=prev_start, submitted_at__lt=prev_next)
     prev_applied = prev_qs.count()
     prev_pending = prev_qs.filter(status='branch_approved').count()
     prev_approved = prev_qs.filter(status='hq_approved').count()
@@ -4868,16 +4644,12 @@ def hq_dashboard_data(request):
         disbursed_at__gte=prev_start,
         disbursed_at__lt=prev_next,
         status__in=disbursed_statuses,
-    ).filter(
-        Q(branch__in=user_branches) | Q(agent__in=user_agents)
     ).count()
     prev_rejected = prev_qs.filter(status='hq_rejected').count()
 
     savings_prev_qs = SavingsAccountApplication.objects.filter(
         submitted_at__gte=prev_start,
         submitted_at__lt=prev_next,
-    ).filter(
-        Q(branch__in=user_branches) | Q(agent__in=user_agents)
     )
     savings_prev_applied = savings_prev_qs.count()
     savings_prev_pending = savings_prev_qs.filter(status='branch_approved').count()
@@ -4961,12 +4733,8 @@ def hq_dashboard_data(request):
             labels.append(month_abbr[m])
             finance_labels.append(month_abbr[m])
             # status trends
-            applied_series.append(LoanApplication.objects.filter(submitted_at__gte=m_start, submitted_at__lt=m_next).filter(
-                Q(branch__in=user_branches) | Q(agent__in=user_agents)
-            ).count())
-            approved_series.append(LoanApplication.objects.filter(submitted_at__gte=m_start, submitted_at__lt=m_next, status='hq_approved').filter(
-                Q(branch__in=user_branches) | Q(agent__in=user_agents)
-            ).count())
+            applied_series.append(LoanApplication.objects.filter(submitted_at__gte=m_start, submitted_at__lt=m_next).count())
+            approved_series.append(LoanApplication.objects.filter(submitted_at__gte=m_start, submitted_at__lt=m_next, status='hq_approved').count())
             disbursed_series.append(
                 LoanApplication.objects.filter(
                     branch__status=True,
@@ -4974,19 +4742,13 @@ def hq_dashboard_data(request):
                     disbursed_at__gte=m_start,
                     disbursed_at__lt=m_next,
                     status__in=disbursed_statuses,
-                ).filter(
-                    Q(branch__in=user_branches) | Q(agent__in=user_agents)
                 ).count()
             )
 
             # financial trends
-            loan_sum = LoanApplication.objects.filter(submitted_at__gte=m_start, submitted_at__lt=m_next).filter(
-                Q(branch__in=user_branches) | Q(agent__in=user_agents)
-            ).aggregate(total=Sum('loan_details__loan_amount'))['total'] or 0
+            loan_sum = LoanApplication.objects.filter(submitted_at__gte=m_start, submitted_at__lt=m_next).aggregate(total=Sum('loan_details__loan_amount'))['total'] or 0
             loan_amount_series.append(float(loan_sum))
-            emi_sum = LoanEMISchedule.objects.filter(installment_date__gte=m_start, installment_date__lt=m_next).filter(
-                Q(loan_application__branch__in=user_branches) | Q(loan_application__agent__in=user_agents)
-            ).aggregate(total=Sum('installment_amount'))['total'] or 0
+            emi_sum = LoanEMISchedule.objects.filter(installment_date__gte=m_start, installment_date__lt=m_next).aggregate(total=Sum('installment_amount'))['total'] or 0
             emi_scheduled_series.append(float(emi_sum))
             emi_col_sum = EmiCollectionDetail.objects.filter(
                 verified_at__isnull=False,
@@ -4995,8 +4757,7 @@ def hq_dashboard_data(request):
                 collected=True,
                 status='verified',
             ).filter(
-                (Q(collected_by_agent__in=user_agents) | Q(collected_by_branch__branch__in=user_branches)) &
-                (Q(collected_by_agent__isnull=False) | Q(collected_by_branch__isnull=False))
+                Q(collected_by_agent__isnull=False) | Q(collected_by_branch__isnull=False)
             ).aggregate(total=Sum('amount_received'))['total'] or 0
             emi_collected_series.append(float(emi_col_sum))
     elif time_range == 'day':
@@ -5007,12 +4768,8 @@ def hq_dashboard_data(request):
             h_next = h_start + timedelta(hours=1)
             labels.append(f"{h:02d}")
             finance_labels.append(f"{h:02d}")
-            applied_series.append(LoanApplication.objects.filter(submitted_at__gte=h_start, submitted_at__lt=h_next).filter(
-                Q(branch__in=user_branches) | Q(agent__in=user_agents)
-            ).count())
-            approved_series.append(LoanApplication.objects.filter(submitted_at__gte=h_start, submitted_at__lt=h_next, status='hq_approved').filter(
-                Q(branch__in=user_branches) | Q(agent__in=user_agents)
-            ).count())
+            applied_series.append(LoanApplication.objects.filter(submitted_at__gte=h_start, submitted_at__lt=h_next).count())
+            approved_series.append(LoanApplication.objects.filter(submitted_at__gte=h_start, submitted_at__lt=h_next, status='hq_approved').count())
             disbursed_series.append(
                 LoanApplication.objects.filter(
                     branch__status=True,
@@ -5020,18 +4777,12 @@ def hq_dashboard_data(request):
                     disbursed_at__gte=h_start,
                     disbursed_at__lt=h_next,
                     status__in=disbursed_statuses,
-                ).filter(
-                    Q(branch__in=user_branches) | Q(agent__in=user_agents)
                 ).count()
             )
 
-            loan_sum = LoanApplication.objects.filter(submitted_at__gte=h_start, submitted_at__lt=h_next).filter(
-                Q(branch__in=user_branches) | Q(agent__in=user_agents)
-            ).aggregate(total=Sum('loan_details__loan_amount'))['total'] or 0
+            loan_sum = LoanApplication.objects.filter(submitted_at__gte=h_start, submitted_at__lt=h_next).aggregate(total=Sum('loan_details__loan_amount'))['total'] or 0
             loan_amount_series.append(float(loan_sum))
-            emi_sum = LoanEMISchedule.objects.filter(installment_date__gte=h_start, installment_date__lt=h_next).filter(
-                Q(loan_application__branch__in=user_branches) | Q(loan_application__agent__in=user_agents)
-            ).aggregate(total=Sum('installment_amount'))['total'] or 0
+            emi_sum = LoanEMISchedule.objects.filter(installment_date__gte=h_start, installment_date__lt=h_next).aggregate(total=Sum('installment_amount'))['total'] or 0
             emi_scheduled_series.append(float(emi_sum))
             emi_col_sum = EmiCollectionDetail.objects.filter(
                 verified_at__isnull=False,
@@ -5040,8 +4791,7 @@ def hq_dashboard_data(request):
                 collected=True,
                 status='verified',
             ).filter(
-                (Q(collected_by_agent__in=user_agents) | Q(collected_by_branch__branch__in=user_branches)) &
-                (Q(collected_by_agent__isnull=False) | Q(collected_by_branch__isnull=False))
+                Q(collected_by_agent__isnull=False) | Q(collected_by_branch__isnull=False)
             ).aggregate(total=Sum('amount_received'))['total'] or 0
             emi_collected_series.append(float(emi_col_sum))
     else:
@@ -5054,12 +4804,8 @@ def hq_dashboard_data(request):
             d_next = d_start + timedelta(days=1)
             labels.append(str(d))
             finance_labels.append(str(d))
-            applied_series.append(LoanApplication.objects.filter(submitted_at__gte=d_start, submitted_at__lt=d_next).filter(
-                Q(branch__in=user_branches) | Q(agent__in=user_agents)
-            ).count())
-            approved_series.append(LoanApplication.objects.filter(submitted_at__gte=d_start, submitted_at__lt=d_next, status='hq_approved').filter(
-                Q(branch__in=user_branches) | Q(agent__in=user_agents)
-            ).count())
+            applied_series.append(LoanApplication.objects.filter(submitted_at__gte=d_start, submitted_at__lt=d_next).count())
+            approved_series.append(LoanApplication.objects.filter(submitted_at__gte=d_start, submitted_at__lt=d_next, status='hq_approved').count())
             disbursed_series.append(
                 LoanApplication.objects.filter(
                     branch__status=True,
@@ -5067,18 +4813,12 @@ def hq_dashboard_data(request):
                     disbursed_at__gte=d_start,
                     disbursed_at__lt=d_next,
                     status__in=disbursed_statuses,
-                ).filter(
-                    Q(branch__in=user_branches) | Q(agent__in=user_agents)
                 ).count()
             )
 
-            loan_sum = LoanApplication.objects.filter(submitted_at__gte=d_start, submitted_at__lt=d_next).filter(
-                Q(branch__in=user_branches) | Q(agent__in=user_agents)
-            ).aggregate(total=Sum('loan_details__loan_amount'))['total'] or 0
+            loan_sum = LoanApplication.objects.filter(submitted_at__gte=d_start, submitted_at__lt=d_next).aggregate(total=Sum('loan_details__loan_amount'))['total'] or 0
             loan_amount_series.append(float(loan_sum))
-            emi_sum = LoanEMISchedule.objects.filter(installment_date__gte=d_start, installment_date__lt=d_next).filter(
-                Q(loan_application__branch__in=user_branches) | Q(loan_application__agent__in=user_agents)
-            ).aggregate(total=Sum('installment_amount'))['total'] or 0
+            emi_sum = LoanEMISchedule.objects.filter(installment_date__gte=d_start, installment_date__lt=d_next).aggregate(total=Sum('installment_amount'))['total'] or 0
             emi_scheduled_series.append(float(emi_sum))
             emi_col_sum = EmiCollectionDetail.objects.filter(
                 verified_at__isnull=False,
@@ -5087,8 +4827,7 @@ def hq_dashboard_data(request):
                 collected=True,
                 status='verified',
             ).filter(
-                (Q(collected_by_agent__in=user_agents) | Q(collected_by_branch__branch__in=user_branches)) &
-                (Q(collected_by_agent__isnull=False) | Q(collected_by_branch__isnull=False))
+                Q(collected_by_agent__isnull=False) | Q(collected_by_branch__isnull=False)
             ).aggregate(total=Sum('amount_received'))['total'] or 0
             emi_collected_series.append(float(emi_col_sum))
 
@@ -5121,9 +4860,7 @@ def hq_dashboard_data(request):
                 'date': (la.submitted_at.strftime('%Y-%m-%d') if la.submitted_at else ''),
                 'status': la.status,
             }
-            for la in LoanApplication.objects.filter(
-                Q(branch__in=user_branches) | Q(agent__in=user_agents)
-            ).order_by('-submitted_at')[:5]
+            for la in LoanApplication.objects.order_by('-submitted_at')[:5]
         ],
         'recentBranches': [
             {
@@ -5133,7 +4870,7 @@ def hq_dashboard_data(request):
                 'date': (b.created_at.strftime('%Y-%m-%d') if b.created_at else ''),
                 'status': 'Active' if b.status else 'Inactive',
             }
-            for b in (user_branches.filter(status=True)
+            for b in (Branch.objects.filter(status=True)
                                  .annotate(app_count=Count('loan_applications'))
                                  .order_by('-app_count', '-created_at')[:5])
         ],

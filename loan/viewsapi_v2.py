@@ -92,6 +92,8 @@ class ShopBankAccountsAPI(APIView):
 class NewLoanApplicationAPIV2(APIView):
     parser_classes = (MultiPartParser, FormParser)
 
+    from demo.demo_credit import decrement_demo_credit
+    @decrement_demo_credit
     @method_decorator(csrf_exempt)
     def post(self, request, *args, **kwargs):
         max_retries = 3
@@ -403,21 +405,6 @@ class NewLoanApplicationAPIV2(APIView):
                                 shop_bank_account.current_balance = (Decimal(shop_bank_account.current_balance) + Decimal(data['down_payment'])).quantize(Decimal('0.01'))
                                 shop_bank_account.save(update_fields=['current_balance', 'updated_at'])
                                 print("[Shop Bank Account] Done Updating Shop Bank Account ---------------------------------------------------")
-
-                    headquarter_employee_id = request.user.id
-                    if agent_id and agent:
-                        print("Agent found")
-                        headquarter_employee_id = agent.branch.created_by.id 
-                    if branch_manager_id and created_by_branch_manager:
-                        print("Branch manager found")
-                        headquarter_employee_id = created_by_branch_manager.created_by
-                    print(headquarter_employee_id)
-                    headquarter_employee = HeadquarterEmployee.objects.filter(id=headquarter_employee_id).first()
-                    if headquarter_employee:
-                        demo_credit = headquarter_employee.demo_credit
-                        if demo_credit>0:
-                            headquarter_employee.demo_credit = demo_credit - 1
-                            headquarter_employee.save(update_fields=['demo_credit'])
 
                 # --- Generate Logo --------------------------------------------------
                 
