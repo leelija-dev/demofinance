@@ -168,6 +168,8 @@ def filter_by_parent_hq(model_class, return_empty_on_fail=False):
     def decorator(method):
         @wraps(method)
         def wrapper(self, request, *args, **kwargs):
+            if not settings.IS_DEMO:
+                return method(self, request, *args, **kwargs)
             # 1. Resolve parent HQ user completely inside the decorator
             parent_hq_user = None
 
