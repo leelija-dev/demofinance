@@ -23,8 +23,10 @@ from .views import landing_page, TrialCheckView
 
 urlpatterns = [
     path('', landing_page, name='landing'),
+    path('blog/', include('blog.urls', namespace='blog')),
     path('trial-check/', TrialCheckView.as_view(), name='trial_check'),
     path('admin/', admin.site.urls),
+    path('ckeditor5/', include('django_ckeditor_5.urls')),
     path('hq/', include('headquater.urls', namespace='hq')),
     path('branch/', include('branch.urls', namespace='branch')),
     path('agent/', include('agent.urls', namespace='agent')),

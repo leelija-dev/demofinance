@@ -1,0 +1,244 @@
+{% extends "hq/base.html" %}
+{% load static %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'blog/css/blog-admin.css' %}">
+{% endblock extra_head %}
+
+{% block title %}Blog Management - {{ setting.COMPANY_NAME }}{% endblock title %}
+{% block page_id %}BlogAdminList{% endblock page_id %}
+
+{% block content %}
+<div class="blog-admin-container">
+  <!-- Page Header -->
+  <div class="page-header mb-8">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <div class="flex items-center space-x-3">
+          <div class="page-header-icon">
+            <i class="fas fa-blog"></i>
+          </div>
+          <div>
+            <h1 class="page-header-title">Blog Management</h1>
+            <p class="page-header-subtitle">Manage your blog posts, categories, and tags</p>
+          </div>
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-3">
+        <a href="{% url 'blog:create' %}" class="action-btn action-btn-primary">
+          <i class="fas fa-plus mr-2"></i>Create Post
+        </a>
+        <a href="{% url 'blog:category_create' %}" class="action-btn action-btn-success">
+          <i class="fas fa-folder-plus mr-2"></i>Add Category
+        </a>
+        <a href="{% url 'blog:tag_create' %}" class="action-btn action-btn-purple">
+          <i class="fas fa-tag mr-2"></i>Add Tag
+        </a>
+      </div>
+    </div>
+  </div>
+
+  {% if messages %}
+    <div class="mb-6 space-y-2">
+      {% for message in messages %}
+        <div class="message-alert message-{{ message.tags }}">
+          <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% elif message.tags == 'success' %}fa-check-circle{% else %}fa-info-circle{% endif %} mr-3"></i>
+          <span>{{ message }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stats-card stats-card-blue">
+      <div class="stats-card-icon">
+        <i class="fas fa-file-alt"></i>
+      </div>
+      <div class="stats-card-content">
+        <p class="stats-card-label">Total Posts</p>
+        <p class="stats-card-value">{{ total_posts }}</p>
+      </div>
+    </div>
+    <div class="stats-card stats-card-green">
+      <div class="stats-card-icon">
+        <i class="fas fa-check-circle"></i>
+      </div>
+      <div class="stats-card-content">
+        <p class="stats-card-label">Published</p>
+        <p class="stats-card-value">{{ published_posts }}</p>
+      </div>
+    </div>
+    <div class="stats-card stats-card-yellow">
+      <div class="stats-card-icon">
+        <i class="fas fa-edit"></i>
+      </div>
+      <div class="stats-card-content">
+        <p class="stats-card-label">Drafts</p>
+        <p class="stats-card-value">{{ draft_posts }}</p>
+      </div>
+    </div>
+    <div class="stats-card stats-card-purple">
+      <div class="stats-card-icon">
+        <i class="fas fa-eye"></i>
+      </div>
+      <div class="stats-card-content">
+        <p class="stats-card-label">Total Views</p>
+        <p class="stats-card-value">{{ total_views }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Blog Posts Table -->
+  <div class="admin-table-container">
+    <div class="admin-table-header">
+      <div class="flex items-center justify-between">
+        <h2 class="admin-table-title">All Blog Posts</h2>
+        <div class="flex items-center space-x-3">
+          <div class="relative">
+            <input type="text" placeholder="Search posts..." class="search-input" id="searchInput">
+            <i class="fas fa-search search-icon"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    {% if blogs %}
+      <div class="overflow-x-auto">
+        <table class="admin-table" id="blogTable">
+          <thead>
+            <tr>
+              <th>Blog Post</th>
+              <th>Author</th>
+              <th>Category</th>
+              <th>Status</th>
+              <th>Featured</th>
+              <th>Views</th>
+              <th>Created</th>
+              <th class="text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for blog in blogs %}
+              <tr class="admin-table-row" data-title="{{ blog.title|lower }}">
+                <td>
+                  <div class="flex items-start space-x-3">
+                    {% if blog.featured_image %}
+                      <img src="{{ blog.featured_image.url }}" alt="{{ blog.title }}" class="blog-thumbnail">
+                    {% else %}
+                      <div class="blog-thumbnail-placeholder">
+                        <i class="fas fa-image"></i>
+                      </div>
+                    {% endif %}
+                    <div class="flex-1 min-w-0">
+                      <p class="blog-title">{{ blog.title }}</p>
+                      <p class="blog-slug">{{ blog.slug }}</p>
+                      {% if blog.tags.all %}
+                        <div class="flex flex-wrap gap-1 mt-1">
+                          {% for tag in blog.tags.all %}
+                            <span class="tag-badge">
+                              <i class="fas fa-tag mr-1"></i>{{ tag.name }}
+                            </span>
+                          {% endfor %}
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="flex items-center space-x-2">
+                    <div class="author-avatar">
+                      <span>{{ blog.author.username|slice:":1"|upper }}</span>
+                    </div>
+                    <span class="author-name">{{ blog.author.username }}</span>
+                  </div>
+                </td>
+                <td>
+                  {% if blog.category %}
+                    <span class="category-badge">
+                      <i class="fas fa-folder mr-1"></i>{{ blog.category.name }}
+                    </span>
+                  {% else %}
+                    <span class="text-sm text-gray-400">-</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <span class="status-badge status-{{ blog.status }}">
+                    <i class="fas {% if blog.status == 'published' %}fa-check-circle{% else %}fa-clock{% endif %} mr-1"></i>
+                    {{ blog.get_status_display }}
+                  </span>
+                </td>
+                <td>
+                  {% if blog.featured %}
+                    <i class="fas fa-star text-yellow-500 text-lg"></i>
+                  {% else %}
+                    <i class="far fa-star text-gray-300 text-lg"></i>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="flex items-center space-x-1">
+                    <i class="fas fa-eye text-gray-400"></i>
+                    <span class="views-count">{{ blog.views }}</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="created-date">
+                    {{ blog.created_at|date:"M d, Y" }}
+                  </div>
+                </td>
+                <td>
+                  <div class="flex items-center justify-center space-x-2">
+                    <a href="{% url 'blog:detail' blog.slug %}" class="action-icon action-icon-view" title="View">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M320 96C239.2 96 174.5 132.8 127.4 176.6C80.6 220.1 49.3 272 34.4 307.7C31.1 315.6 31.1 324.4 34.4 332.3C49.3 368 80.6 420 127.4 463.4C174.5 507.1 239.2 544 320 544C400.8 544 465.5 507.2 512.6 463.4C559.4 419.9 590.7 368 605.6 332.3C608.9 324.4 608.9 315.6 605.6 307.7C590.7 272 559.4 220 512.6 176.6C465.5 132.9 400.8 96 320 96zM176 320C176 240.5 240.5 176 320 176C399.5 176 464 240.5 464 320C464 399.5 399.5 464 320 464C240.5 464 176 399.5 176 320zM320 256C320 291.3 291.3 320 256 320C244.5 320 233.7 317 224.3 311.6C223.3 322.5 224.2 333.7 227.2 344.8C240.9 396 293.6 426.4 344.8 412.7C396 399 426.4 346.3 412.7 295.1C400.5 249.4 357.2 220.3 311.6 224.3C316.9 233.6 320 244.4 320 256z"/></svg>
+                    </a>
+                    <a href="{% url 'blog:edit' blog.slug %}" class="action-icon action-icon-edit" title="Edit">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M535.6 85.7C513.7 63.8 478.3 63.8 456.4 85.7L432 110.1L529.9 208L554.3 183.6C576.2 161.7 576.2 126.3 554.3 104.4L535.6 85.7zM236.4 305.7C230.3 311.8 225.6 319.3 222.9 327.6L193.3 416.4C190.4 425 192.7 434.5 199.1 441C205.5 447.5 215 449.7 223.7 446.8L312.5 417.2C320.7 414.5 328.2 409.8 334.4 403.7L496 241.9L398.1 144L236.4 305.7zM160 128C107 128 64 171 64 224L64 480C64 533 107 576 160 576L416 576C469 576 512 533 512 480L512 384C512 366.3 497.7 352 480 352C462.3 352 448 366.3 448 384L448 480C448 497.7 433.7 512 416 512L160 512C142.3 512 128 497.7 128 480L128 224C128 206.3 142.3 192 160 192L256 192C273.7 192 288 177.7 288 160C288 142.3 273.7 128 256 128L160 128z"/></svg>
+                    </a>
+                    <a href="{% url 'blog:delete' blog.slug %}" class="action-icon action-icon-delete" title="Delete">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M232.7 69.9L224 96L128 96C110.3 96 96 110.3 96 128C96 145.7 110.3 160 128 160L512 160C529.7 160 544 145.7 544 128C544 110.3 529.7 96 512 96L416 96L407.3 69.9C402.9 56.8 390.7 48 376.9 48L263.1 48C249.3 48 237.1 56.8 232.7 69.9zM512 208L128 208L149.1 531.1C150.7 556.4 171.7 576 197 576L443 576C468.3 576 489.3 556.4 490.9 531.1L512 208z"/></svg>
+                    </a>
+                  </div>  
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-state-icon">
+          <i class="fas fa-blog"></i>
+        </div>
+        <h3 class="empty-state-title">No Blog Posts Found</h3>
+        <p class="empty-state-description">Create your first blog post to get started!</p>
+        <a href="{% url 'blog:create' %}" class="action-btn action-btn-primary">
+          <i class="fas fa-plus mr-2"></i>Create Your First Post
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Search functionality
+  const searchInput = document.getElementById('searchInput');
+  const tableRows = document.querySelectorAll('#blogTable tbody tr');
+  
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      const searchTerm = this.value.toLowerCase();
+      
+      tableRows.forEach(row => {
+        const title = row.getAttribute('data-title') || '';
+        if (title.includes(searchTerm)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    });
+  }
+});
+</script>
+{% endblock content %}

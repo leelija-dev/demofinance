@@ -1,0 +1,742 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="description" content="{{ blog.title }} - {{ setting.COMPANY_NAME }}">
+  <meta name="keywords" content="blog, finance, loans, insights">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow">
+  <title>{{ blog.title }} - {{ setting.COMPANY_NAME }}</title>
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="{% static setting.COMPANY_LOGO_TRANSPARENT_URL %}">
+  <!-- Google Font & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <style>
+    /* RESET */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f9fafc;
+      color: #1e293b;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    a { text-decoration: none; color: inherit; }
+    .container { 
+      max-width: 1440px; 
+      margin: 0 auto; 
+      padding: 0 16px; 
+      width: 100%;
+    }
+
+    /* BREADCRUMB */
+    .breadcrumb {
+      background: #ffffff;
+      border-bottom: 1px solid #eef2f6;
+      padding: 16px 0;
+      font-size: 14px;
+      color: #64748b;
+      text-align: left;
+    }
+    .breadcrumb a { color: #0a66c2; }
+    .breadcrumb i { margin: 0 8px; font-size: 12px; }
+
+    /* HERO */
+    .hero {
+      background: linear-gradient(135deg, #0a2540 0%, #1a3a5c 100%);
+      color: white;
+      padding: 48px 0 40px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      top: -30%; right: -10%;
+      width: 400px; height: 400px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .hero .container { position: relative; z-index: 2; }
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 20px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      font-weight: 500;
+      opacity: 0.8;
+      justify-content: center;
+    }
+    .hero-meta i { margin-right: 6px; }
+    .hero h1 {
+      font-size: 38px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      line-height: 1.2;
+      max-width: 800px;
+      margin: 0 auto 20px;
+      text-align: center;
+    }
+    .hero-author {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 8px;
+      justify-content: center;
+    }
+    .hero-author .avatar {
+      width: 48px; height: 48px;
+      background: #2d5f8b;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 20px;
+      color: white;
+      border: 2px solid rgba(255,255,255,0.2);
+    }
+    .hero-author .info .name { font-weight: 600; font-size: 17px; }
+    .hero-author .info .role { font-size: 14px; opacity: 0.7; }
+    .share-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .share-bar span { font-size: 14px; opacity: 0.7; margin-right: 4px; }
+    .share-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 38px; height: 38px;
+      border-radius: 40px;
+      background: rgba(255,255,255,0.08);
+      color: white;
+      transition: 0.2s;
+      border: 1px solid rgba(255,255,255,0.1);
+      font-size: 15px;
+    }
+    .share-btn:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); }
+
+    /* BLOG LAYOUT: TOC LEFT, CONTENT CENTER, SIDEBAR RIGHT */
+    .blog-wrapper {
+      display: flex;
+      gap: 40px;
+      margin: 48px auto 64px;
+      align-items: flex-start;
+      justify-content: center;
+      max-width: 1440px;
+      padding: 0 16px;
+    }
+
+    /* LEFT TOC */
+    .toc-left {
+      flex: 0 0 220px;
+      position: sticky;
+      top: 40px;
+      align-self: flex-start;
+    }
+    .toc-left .toc-card {
+      background: white;
+      border-radius: 16px;
+      padding: 20px 18px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+      border: 1px solid #edf2f7;
+    }
+    .toc-left .toc-card h4 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0a2540;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .toc-left .toc-card h4 i { color: #0a66c2; font-size: 14px; }
+    .toc-left .toc-item {
+      display: block;
+      padding: 6px 0 6px 0;
+      font-size: 14px;
+      color: #475569;
+      border-bottom: 1px solid #f1f5f9;
+      transition: 0.15s;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .toc-left .toc-item:last-child { border-bottom: none; }
+    .toc-left .toc-item:hover { color: #0a66c2; padding-left: 6px; }
+    .toc-left .toc-item.sub { padding-left: 16px; font-size: 13px; font-weight: 400; color: #64748b; }
+    .toc-left .toc-item.sub:hover { color: #0a66c2; padding-left: 22px; }
+
+    /* MAIN CONTENT */
+    .blog-main {
+      flex: 1;
+      min-width: 0;
+      max-width: 900px;
+    }
+    .content-card {
+      background: white;
+      border-radius: 20px;
+      padding: 40px 44px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.04);
+      border: 1px solid #edf2f7;
+      width: 100%;
+    }
+    .featured-img {
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 32px;
+      background: #eef2f6;
+    }
+    .featured-img img { width: 100%; height: auto; display: block; }
+    .excerpt-box {
+      background: #f6faff;
+      border-left: 5px solid #0a66c2;
+      padding: 20px 24px;
+      border-radius: 0 12px 12px 0;
+      margin-bottom: 32px;
+      font-style: italic;
+      color: #1e293b;
+      font-size: 17px;
+      font-weight: 400;
+      line-height: 1.7;
+    }
+    .prose { font-size: 17px; color: #1e293b; }
+    .prose h2 {
+      font-size: 28px;
+      font-weight: 700;
+      margin: 40px 0 16px;
+      color: #0a2540;
+      letter-spacing: -0.3px;
+    }
+    .prose h3 {
+      font-size: 22px;
+      font-weight: 600;
+      margin: 32px 0 12px;
+      color: #1e293b;
+    }
+    .prose p { margin-bottom: 20px; line-height: 1.8; color: #334155; }
+    .prose ul, .prose ol { margin: 0 0 24px 20px; }
+    .prose li { margin-bottom: 8px; }
+    .prose blockquote {
+      border-left: 4px solid #0a66c2;
+      background: #f8fafc;
+      padding: 20px 24px;
+      margin: 28px 0;
+      border-radius: 0 12px 12px 0;
+      font-style: italic;
+      color: #334155;
+    }
+    .prose a { color: #0a66c2; text-decoration: underline; text-underline-offset: 2px; }
+    .tag-section {
+      margin-top: 40px;
+      padding-top: 24px;
+      border-top: 1px solid #e9edf2;
+    }
+    .tag-section h3 { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
+    .tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag-list a {
+      background: #f1f5f9;
+      padding: 6px 16px;
+      border-radius: 40px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #1e293b;
+      transition: 0.15s;
+      border: 1px solid transparent;
+    }
+    .tag-list a:hover { background: #e2e8f0; border-color: #cbd5e1; }
+    .author-bio {
+      margin-top: 40px;
+      padding-top: 28px;
+      border-top: 1px solid #e9edf2;
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+    .author-bio .avatar-lg {
+      width: 56px; height: 56px;
+      background: linear-gradient(135deg, #0a66c2, #3b82f6);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+    .author-bio .bio-text h4 { font-size: 18px; font-weight: 600; }
+    .author-bio .bio-text p { font-size: 15px; color: #475569; margin-top: 4px; }
+
+    /* RIGHT SIDEBAR */
+    .blog-sidebar {
+      flex: 0 0 280px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+    .sidebar-card {
+      background: white;
+      border-radius: 20px;
+      padding: 24px 28px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.04);
+      border: 1px solid #edf2f7;
+    }
+    .sidebar-card h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #0a2540;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .sidebar-card h3 i { color: #0a66c2; }
+    .share-widget .share-btn-w {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 12px;
+      font-weight: 500;
+      font-size: 14px;
+      color: white;
+      margin-bottom: 10px;
+      transition: 0.2s;
+      border: none;
+      width: 100%;
+      cursor: pointer;
+    }
+    .share-widget .share-btn-w i { font-size: 16px; }
+    .share-widget .fb { background: #1877f2; }
+    .share-widget .tw { background: #000; }
+    .share-widget .li { background: #0a66c2; }
+    .share-widget .em { background: #64748b; }
+    .share-widget .share-btn-w:hover { opacity: 0.85; transform: translateY(-2px); }
+    .stats-card {
+      background: linear-gradient(135deg, #0a2540, #1a3a5c);
+      color: white;
+      border: none;
+    }
+    .stats-card h3 { color: white; }
+    .stats-card h3 i { color: #8ab4f8; }
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-size: 14px;
+    }
+    .stat-row:last-child { border: none; }
+    .stat-row span:last-child { font-weight: 600; }
+
+    /* ACTION BUTTONS */
+    .action-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 12px;
+      font-weight: 500;
+      font-size: 14px;
+      background: #f1f5f9;
+      color: #1e293b;
+      margin-bottom: 10px;
+      transition: 0.2s;
+      border: 1px solid #e2e8f0;
+      width: 100%;
+      cursor: pointer;
+    }
+    .action-btn:hover { background: #e2e8f0; transform: translateY(-2px); }
+    .action-btn.liked { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+
+    /* RELATED */
+    .related-section { 
+      margin: 48px auto 64px; 
+      max-width: 1280px;
+      padding: 0 24px;
+    }
+    .related-section h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #0a2540;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    .related-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 24px;
+    }
+    .related-card {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+      border: 1px solid #edf2f7;
+      transition: 0.2s;
+    }
+    .related-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.08); }
+    .related-card .img-wrap {
+      height: 150px;
+      background: #eef2f6;
+      overflow: hidden;
+    }
+    .related-card .img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+    .related-card .body { padding: 16px 18px; }
+    .related-card .body .cat {
+      font-size: 11px;
+      font-weight: 600;
+      color: #0a66c2;
+      background: #eef6ff;
+      padding: 2px 12px;
+      border-radius: 40px;
+      display: inline-block;
+      margin-bottom: 8px;
+    }
+    .related-card .body h4 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+    .related-card .body p { font-size: 13px; color: #64748b; }
+    .related-card .body .readmore {
+      margin-top: 12px;
+      font-weight: 600;
+      font-size: 13px;
+      color: #0a66c2;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .related-card .body .readmore i { transition: 0.15s; }
+    .related-card:hover .readmore i { transform: translateX(4px); }
+
+    /* BACK TO TOP */
+    #backToTop {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      width: 44px; height: 44px;
+      border-radius: 40px;
+      background: #0a66c2;
+      color: white;
+      border: none;
+      font-size: 18px;
+      box-shadow: 0 4px 16px rgba(10,102,194,0.3);
+      cursor: pointer;
+      opacity: 0;
+      visibility: hidden;
+      transition: 0.25s;
+    }
+    #backToTop.visible { opacity: 1; visibility: visible; }
+
+    /* RESPONSIVE */
+    @media (max-width: 1024px) {
+      .blog-wrapper { 
+        flex-direction: column; 
+        align-items: center;
+      }
+      .toc-left {
+        flex: none;
+        width: 100%;
+        max-width: 800px;
+        position: relative;
+        top: 0;
+        order: -1;
+      }
+      .toc-left .toc-card { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center; padding: 16px 20px; }
+      .toc-left .toc-card h4 { margin-bottom: 0; width: 100%; }
+      .toc-left .toc-item { border-bottom: none; padding: 4px 0; }
+      .toc-left .toc-item.sub { padding-left: 8px; }
+      .blog-main { width: 100%; max-width: 800px; }
+      .blog-sidebar { 
+        flex: none; 
+        width: 100%; 
+        max-width: 800px;
+        display: grid; 
+        grid-template-columns: 1fr 1fr; 
+        gap: 24px; 
+      }
+    }
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 28px; }
+      .content-card { padding: 24px; }
+      .blog-sidebar { grid-template-columns: 1fr; }
+      .author-bio { flex-direction: column; }
+      .related-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 500px) {
+      .hero h1 { font-size: 24px; }
+      .related-grid { grid-template-columns: 1fr; }
+      .toc-left .toc-card { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- BREADCRUMB -->
+<div class="breadcrumb">
+  <div class="container">
+    <a href="{% url 'landing' %}"><i class="fas fa-home"></i> Home</a> <i class="fas fa-chevron-right"></i>
+    <a href="{% url 'blog:list' %}">Blog</a> <i class="fas fa-chevron-right"></i>
+    <span style="color:#1e293b;font-weight:500;">{{ blog.title }}</span>
+  </div>
+</div>
+
+
+
+<!-- BLOG WRAPPER: TOC LEFT | MAIN | SIDEBAR RIGHT -->
+<div class="blog-wrapper">
+
+  <!-- LEFT TOC -->
+  <aside class="toc-left">
+    <div class="toc-card">
+      <h4><i class="fas fa-list-ul"></i> Table of Contents</h4>
+      <nav id="tableOfContents">
+        <a class="toc-item" href="#content-start">Article Content</a>
+      </nav>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="blog-main">
+    <div class="content-card">
+      <!-- featured image -->
+      {% if blog.featured_image %}
+      <div class="featured-img">
+        <img src="{{ blog.featured_image.url }}" alt="{{ blog.title }}" />
+      </div>
+      {% endif %}
+
+      {% if blog.excerpt %}
+      <div class="excerpt-box" id="content-start">
+        {{ blog.excerpt }}
+      </div>
+      {% endif %}
+
+      <div class="prose">
+        {{ blog.content|safe }}
+      </div>
+
+      <!-- Tags -->
+      {% if blog.tags.all %}
+      <div class="tag-section">
+        <h3><i class="fas fa-tags" style="color:#0a66c2;"></i> Tags</h3>
+        <div class="tag-list">
+          {% for tag in blog.tags.all %}
+          <a href="{% url 'blog:tag' tag.slug %}">#{{ tag.name }}</a>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Author Bio -->
+      <div class="author-bio" id="author-bio-section">
+        <div class="avatar-lg">{{ blog.author.username|first|upper }}</div>
+        <div class="bio-text">
+          <h4>{{ blog.author.username }}</h4>
+          <p>Author & Finance Expert. Passionate about sharing insights on finance, loans, and smart money management. Helping you make informed financial decisions.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT SIDEBAR -->
+  <aside class="blog-sidebar">
+    <!-- Share widget -->
+    <div class="sidebar-card share-widget">
+      <h3><i class="fas fa-share-alt"></i> Share this article</h3>
+      <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" class="share-btn-w fb"><i class="fab fa-facebook-f"></i> Facebook</a>
+      <a href="https://twitter.com/intent/tweet?url={{ request.build_absolute_uri }}&text={{ blog.title }}" target="_blank" class="share-btn-w tw"><i class="fab fa-twitter"></i> Twitter</a>
+      <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ request.build_absolute_uri }}" target="_blank" class="share-btn-w li"><i class="fab fa-linkedin-in"></i> LinkedIn</a>
+      <a href="mailto:?subject={{ blog.title }}&body=Check out this article: {{ request.build_absolute_uri }}" class="share-btn-w em"><i class="fas fa-envelope"></i> Email</a>
+    </div>
+
+    <!-- Like & Save -->
+    <div class="sidebar-card">
+      <h3><i class="fas fa-heart"></i> Interact</h3>
+      <button id="likeBtn" class="action-btn">
+        <i class="far fa-heart"></i> Like
+      </button>
+      <button class="action-btn">
+        <i class="far fa-bookmark"></i> Save
+      </button>
+    </div>
+
+    <!-- Stats -->
+    <div class="sidebar-card stats-card">
+      <h3><i class="fas fa-chart-simple"></i> Article stats</h3>
+      <div class="stat-row"><span>Reading time</span><span>{% widthratio blog.content|length 5 1 as word_count %}{% widthratio word_count 200 1 as reading_time %}{{ reading_time|default:5 }} min</span></div>
+      <div class="stat-row"><span>Views</span><span>{{ blog.views }}</span></div>
+      <div class="stat-row"><span>Published</span><span>{{ blog.published_at|date:"M d, Y" }}</span></div>
+      <div class="stat-row"><span>Likes</span><span>{{ blog.likes }}</span></div>
+    </div>
+  </aside>
+</div>
+
+<!-- RELATED POSTS -->
+{% if related_posts %}
+<div class="related-section">
+  <h2><i class="fas fa-newspaper" style="color:#0a66c2;"></i> Related articles</h2>
+  <div class="related-grid">
+    {% for related_post in related_posts %}
+    <div class="related-card">
+      {% if related_post.featured_image %}
+      <div class="img-wrap"><img src="{{ related_post.featured_image.url }}" alt="{{ related_post.title }}" /></div>
+      {% endif %}
+      <div class="body">
+        {% if related_post.category %}
+        <span class="cat">{{ related_post.category.name }}</span>
+        {% endif %}
+        <h4>{{ related_post.title }}</h4>
+        <p>{{ related_post.excerpt|default:related_post.content|truncatewords:15 }}</p>
+        <a href="{% url 'blog:detail' related_post.slug %}" class="readmore">Read <i class="fas fa-arrow-right"></i></a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- BACK TO TOP -->
+<button id="backToTop"><i class="fas fa-arrow-up"></i></button>
+
+<script>
+  // Back to top
+  const btn = document.getElementById('backToTop');
+  window.addEventListener('scroll', function() {
+    if (window.scrollY > 400) btn.classList.add('visible');
+    else btn.classList.remove('visible');
+  });
+  btn.addEventListener('click', function() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // TOC smooth scroll
+  document.querySelectorAll('.toc-item').forEach(item => {
+    item.addEventListener('click', function(e) {
+      e.preventDefault();
+      const targetId = this.getAttribute('href')?.substring(1);
+      if (targetId) {
+        const target = document.getElementById(targetId);
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+
+  // Generate table of contents from headings
+  const tableOfContents = document.getElementById('tableOfContents');
+  if (tableOfContents) {
+    const content = document.querySelector('.prose');
+    if (content) {
+      const headings = content.querySelectorAll('h2, h3');
+      if (headings.length > 0) {
+        tableOfContents.innerHTML = '<a class="toc-item" href="#content-start">Article Content</a>';
+        headings.forEach((heading, index) => {
+          const id = 'heading-' + index;
+          heading.id = id;
+          
+          const link = document.createElement('a');
+          link.href = '#' + id;
+          link.textContent = heading.textContent;
+          link.className = 'toc-item';
+          
+          if (heading.tagName === 'H3') {
+            link.classList.add('sub');
+          }
+          
+          link.addEventListener('click', (e) => {
+            e.preventDefault();
+            heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          });
+          
+          tableOfContents.appendChild(link);
+        });
+      }
+    }
+  }
+
+  // Like button functionality
+  const likeBtn = document.getElementById('likeBtn');
+  if (likeBtn) {
+    const blogSlug = '{{ blog.slug }}';
+    const likedKey = 'liked_' + blogSlug;
+    const isLiked = localStorage.getItem(likedKey);
+    
+    if (isLiked === 'true') {
+      likeBtn.classList.add('liked');
+      likeBtn.querySelector('i').classList.remove('far');
+      likeBtn.querySelector('i').classList.add('fas');
+    }
+    
+    likeBtn.addEventListener('click', function() {
+      const icon = this.querySelector('i');
+      
+      if (this.classList.contains('liked')) {
+        this.classList.remove('liked');
+        icon.classList.remove('fas');
+        icon.classList.add('far');
+        localStorage.setItem(likedKey, 'false');
+        
+        fetch(`/blog/{{ blog.slug }}/unlike/`, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json',
+          },
+        }).catch(err => console.log('Unlike failed:', err));
+      } else {
+        this.classList.add('liked');
+        icon.classList.remove('far');
+        icon.classList.add('fas');
+        localStorage.setItem(likedKey, 'true');
+        
+        fetch(`/blog/{{ blog.slug }}/like/`, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json',
+          },
+        }).catch(err => console.log('Like failed:', err));
+      }
+    });
+  }
+  
+  // Helper function to get CSRF token
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+</script>
+
+</body>
+</html>

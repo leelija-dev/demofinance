@@ -1,0 +1,225 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="description" content="Blog - {{ setting.COMPANY_NAME }}">
+  <meta name="keywords" content="blog, finance, loans, insights">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow">
+  <title>Blog - {{ setting.COMPANY_NAME }}</title>
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="{% static setting.COMPANY_LOGO_TRANSPARENT_URL %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet" />
+  <link rel="stylesheet" href="{% static 'main/css/output.css' %}" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+  a.active {
+  color: #007bff;
+  font-weight: bold;
+  }
+  </style>
+</head>
+<body class="m-0">
+  <!-- Navbar -->
+  <nav class="bg-white shadow fixed w-full top-0 left-0 z-50">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-fit py-2">
+        <!-- Logo -->
+        <div class="flex items-center space-x-3">
+          <img src="{% static setting.COMPANY_LOGO_URL %}"
+               class="md:h-50 h-20 md:w-50 w-32 object-contain"
+               alt="Logo" />
+        </div>
+        <div class="flex gap-8">
+          <!-- Desktop Menu -->
+          <div class="hidden slg:flex items-center space-x-8">
+            <a href="{% url 'landing' %}" class="hover:text-blue-600">Home</a>
+            <a href="#about-us" class="hover:text-blue-600">About Us</a>
+            <a href="{% url 'blog:list' %}" class="text-blue-600 font-semibold">Blog</a>
+            <a href="#contact-us" class="block hover:text-blue-600">Contact Us</a>
+          </div>
+          <!-- Contact -->
+          <div class="hidden slg:flex items-center space-x-3">
+            <div class="bg-blue-600 p-2 rounded">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                   fill="none"
+                   viewBox="0 0 24 24"
+                   stroke-width="2"
+                   stroke="white"
+                   class="w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 16.5a2.5 2.5 0 00-2.5-2.5H5.5A2.5 2.5 0 003 16.5v2A2.5 2.5 0 005.5 21h13a2.5 2.5 0 002.5-2.5v-2z" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-xs text-gray-500">Contact for support</p>
+              <p class="font-bold">+91 {{ setting.COMPANY_CONTACT }}</p>
+            </div>
+          </div>
+        </div>
+        <!-- Mobile Hamburger -->
+        <div class="flex slg:hidden items-center">
+          <button id="menu-btn" class="focus:outline-none">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <!-- Overlay -->
+  <div id="overlay" class="fixed slg:hidden inset-0 bg-black bg-opacity-50 hidden z-40"></div>
+  <!-- Mobile Sidebar -->
+  <div id="mobile-menu"
+       class="fixed slg:hidden block top-0 left-0 w-64 h-full bg-white shadow-lg transform -translate-x-full transition-transform duration-300 ease-in-out z-50">
+    <div class="p-4 flex justify-between items-center border-b">
+      <h2 class="text-xl font-bold">Menu</h2>
+      <button id="close-menu" class="focus:outline-none">
+        <svg xmlns="http://www.w3.org/2000/svg"
+             class="h-6 w-6"
+             fill="none"
+             viewBox="0 0 24 24"
+             stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+    <nav class="p-4 space-y-4">
+      <a href="{% url 'landing' %}" class="block hover:text-blue-600">Home</a>
+      <a href="#about-us" class="block hover:text-blue-600">About Us</a>
+      <a href="{% url 'blog:list' %}" class="block text-blue-600 font-semibold">Blog</a>
+      <a href="#contact-us" class="block hover:text-blue-600">Contact Us</a>
+    </nav>
+    <div class="p-4 mt-4 border-t">
+      <div class="flex items-center space-x-3">
+        <div class="bg-blue-600 p-2 rounded">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               fill="none"
+               viewBox="0 0 24 24"
+               stroke-width="2"
+               stroke="white"
+               class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 16.5a2.5 2.5 0 00-2.5-2.5H5.5A2.5 2.5 0 003 16.5v2A2.5 2.5 0 005.5 21h13a2.5 2.5 0 002.5-2.5v-2z" />
+          </svg>
+        </div>
+        <div>
+          <p class="text-xs text-gray-500">Contact for support</p>
+          <p class="font-bold">+91 {{ setting.COMPANY_CONTACT }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Blog Header -->
+  <section class="bg-gradient-to-r from-blue-600 to-blue-400 text-white py-20 pt-32">
+    <div class="container mx-auto px-6 text-center">
+      <h1 class="text-4xl md:text-5xl font-bold mb-4">Our Blog</h1>
+      <p class="text-xl opacity-90 max-w-2xl mx-auto">
+        Stay updated with the latest financial insights, tips, and news to help you make informed decisions.
+      </p>
+    </div>
+  </section>
+
+  <!-- Blog Content -->
+  <section class="px-6 py-16 bg-[#f8f8f8] min-h-screen">
+    <div class="container mx-auto">
+      <!-- Filter Categories -->
+      <div class="flex flex-wrap justify-center gap-4 mb-12">
+        <a href="{% url 'blog:list' %}" class="px-6 py-2 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors">
+          All Posts
+        </a>
+        {% for category in categories %}
+        <a href="{% url 'blog:category' category.slug %}" class="px-6 py-2 rounded-full bg-white text-gray-700 font-semibold hover:bg-blue-600 hover:text-white transition-colors shadow">
+          {{ category.name }}
+        </a>
+        {% endfor %}
+      </div>
+
+      <!-- Blog Grid -->
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        {% for blog in blogs %}
+        <div class="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 group">
+          <div class="relative overflow-hidden h-56">
+            {% if blog.featured_image %}
+            <img class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
+                 src="{{ blog.featured_image.url }}"
+                 alt="{{ blog.title }}" />
+            {% else %}
+            <img class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
+                 src="{% static 'main/images/girl-image.jpg' %}"
+                 alt="{{ blog.title }}" />
+            {% endif %}
+            <div class="absolute top-4 left-4 bg-gradient-to-r from-blue-600 to-blue-400 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-md">
+              {{ blog.published_at|date:"M d, Y" }}
+            </div>
+            {% if blog.category %}
+            <div class="absolute top-4 right-4 bg-white/90 backdrop-blur-sm text-blue-600 px-3 py-1 rounded-full text-xs font-bold">
+              {{ blog.category.name }}
+            </div>
+            {% endif %}
+          </div>
+          <div class="p-6">
+            <a href="{% url 'blog:detail' blog.slug %}">
+              <h3 class="xl:text-[1.5rem] slg:text-[1.3rem] text-[1.1rem] font-bold text-gray-800 mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                {{ blog.title }}
+              </h3>
+            </a>
+            <p class="text-gray-600 text-sm mb-4 line-clamp-3">
+              {{ blog.excerpt|default:blog.content|truncatewords:20 }}
+            </p>
+            <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+              <a href="{% url 'blog:detail' blog.slug %}" class="inline-flex items-center gap-2 text-blue-600 font-semibold hover:text-blue-800 transition-colors group/link">
+                Read More
+                <i class="fa-solid fa-arrow-right transform group-hover/link:translate-x-1 transition-transform"></i>
+              </a>
+              <div class="flex items-center gap-2 text-gray-500">
+                <i class="fa-solid fa-eye"></i>
+                <span class="text-sm font-medium">{{ blog.views }} views</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-12">
+          <h3 class="text-2xl font-bold text-gray-700 mb-4">No Blog Posts Found</h3>
+          <p class="text-gray-600">Check back later for new content!</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // Mobile menu functionality
+    const menuBtn = document.getElementById('menu-btn');
+    const closeMenuBtn = document.getElementById('close-menu');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const overlay = document.getElementById('overlay');
+
+    if (menuBtn) {
+      menuBtn.addEventListener('click', () => {
+        mobileMenu.classList.remove('-translate-x-full');
+        overlay.classList.remove('hidden');
+      });
+    }
+
+    if (closeMenuBtn) {
+      closeMenuBtn.addEventListener('click', () => {
+        mobileMenu.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+      });
+    }
+
+    if (overlay) {
+      overlay.addEventListener('click', () => {
+        mobileMenu.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+      });
+    }
+  </script>
+</body>
+</html>

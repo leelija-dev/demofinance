@@ -45,9 +45,9 @@
             <div class="flex gap-8">
               <!-- Desktop Menu -->
               <div class="hidden slg:flex items-center space-x-8">
-                <a href="{% url 'landing' %}" class="text-blue-600 font-semibold">Home</a>
+                <a href="#" class="text-blue-600 font-semibold">Home</a>
                 <a id="about-us-link" href="#about-us" class="hover:text-blue-600">About Us</a>
-                <a href="{% url 'blog:list' %}" class="hover:text-blue-600">Blog</a>
+                <a href="#blog" class="hover:text-blue-600">Blog</a>
                 <a href="#contact-us" class="block hover:text-blue-600">Contact Us</a>
               </div>
               <!-- Contact -->
@@ -97,9 +97,9 @@
           </button>
         </div>
         <nav class="p-4 space-y-4">
-          <a href="{% url 'landing' %}" class="block text-blue-600 font-semibold">Home</a>
+          <a href="#" class="block text-blue-600 font-semibold">Home</a>
           <a href="#about-us" class="block hover:text-blue-600">About Us</a>
-          <a href="{% url 'blog:list' %}" class="block hover:text-blue-600">Blog</a>
+          <a href="#blog" class="block hover:text-blue-600">Blog</a>
           <a href="#contact-us" class="block hover:text-blue-600">Contact Us</a>
         </nav>
         <div class="p-4 mt-4 border-t">
@@ -806,61 +806,76 @@
             <span class="w-fit mx-auto uppercase xll:text-[1.3rem] lg:text-[1.2rem] text-[1.1rem] leading-[1.2rem] text-[#018cd5] slg:text-left text-center block">Latest News</span>
             <h2 class="text-center text-h2-xs sm:text-h2-sm md:text-h2-md slg:text-h2-lg lgg:text-h2-lgg xl:text-h2-xl 2xl:text-h2-2xl slg:mb-4 mb-2 font-semibold">Our Latest Insights</h2>
           </div>
-          <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {% for blog in featured_blogs %}
-            <div class="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 group">
-              <div class="relative overflow-hidden h-56">
-                {% if blog.featured_image %}
-                <img class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
-                     src="{{ blog.featured_image.url }}"
-                     alt="{{ blog.title }}" />
-                {% else %}
-                <img class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
-                     src="{% static 'main/images/girl-image.jpg' %}"
-                     alt="{{ blog.title }}" />
-                {% endif %}
-                <div class="absolute top-4 left-4 bg-gradient-to-r from-blue-600 to-blue-400 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-md">
-                  {{ blog.published_at|date:"M d, Y" }}
+          <div class="flex sm:flex-nowrap flex-wrap sm:gap-0 gap-8 sm:justify-start justify-center">
+            <div class="bg-white sm:w-[33.33%] min-[700px] flex flex-col-reverse xs:w-[300px] w-[250px] shadow-[0_0_22px_#ccc8c8] sm:shadow-none">
+              <div class="px-4 slg:py-6 py-4 w-full h-1/2 flex content-between flex-wrap">
+                <div class="w-full">
+                  <span class="xll:text-[1.3rem] xl:text-[1.2rem] text-[1rem] leading-[1.2rem] text-[#018cd5] slg:text-left text-center block xl:mb-3 mb-2">Advices</span>
+                  <h3 class="xl:text-[2rem] slg:text-[1.4rem] text-[1rem] xl:leading-[2.4rem] slg:leading-[1.5rem] leading-[1.3rem] slg:mb-4 mb-2">How to Appear More Confident And Attractive</h3>
                 </div>
-                {% if blog.category %}
-                <div class="absolute top-4 right-4 bg-white/90 backdrop-blur-sm text-blue-600 px-3 py-1 rounded-full text-xs font-bold">
-                  {{ blog.category.name }}
-                </div>
-                {% endif %}
-              </div>
-              <div class="p-6">
-                <a href="{% url 'blog:detail' blog.slug %}">
-                  <h3 class="xl:text-[1.5rem] slg:text-[1.3rem] text-[1.1rem] font-bold text-gray-800 mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                    {{ blog.title }}
-                  </h3>
-                </a>
-                <p class="text-gray-600 text-sm mb-4 line-clamp-3">
-                  {{ blog.excerpt|default:blog.content|truncatewords:20 }}
-                </p>
-                <div class="flex items-center justify-between pt-4 border-t border-gray-100">
-                  <a href="{% url 'blog:detail' blog.slug %}" class="inline-flex items-center gap-2 text-blue-600 font-semibold hover:text-blue-800 transition-colors group/link">
-                    Read More
-                    <i class="fa-solid fa-arrow-right transform group-hover/link:translate-x-1 transition-transform"></i>
+                <div class="border-black border-t-[1px] xl:py-5 slg:py-3 pt-2 flex justify-between w-full">
+                  <a href="#" class="w-fit flex gap-3 xl:text-[1.4rem] slg:text-[1rem] text-[0.8rem] items-center">Read More
+                    <i class="fa-solid fa-arrow-right-long slg:text-[1.4rem] text-[1rem]"></i>
                   </a>
-                  <div class="flex items-center gap-2 text-gray-500">
-                    <i class="fa-solid fa-eye"></i>
-                    <span class="text-sm font-medium">{{ blog.views }} views</span>
+                  <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-comment xl:text-[1.7rem] slg:text-[1.2rem] text-[1rem] text-white drop-shadow-[0_0_1px_black]"></i><span class="xl:text-[1.2rem] text-[0.8rem]">3</span>
                   </div>
                 </div>
               </div>
+              <div class="overflow-hidden w-full relative h-1/2 before:content-['23jan'] before:absolute before:text-white before:z-10 xl:before:text-[1.1rem] before:text-[0.8rem] before:top-[5%] before:w-fit before:h-fit slg:before:px-5 before:px-4 before:py-2 before:flex before:justify-center before:items-center before:bg-[linear-gradient(276deg,rgb(0,64,255)_0%,rgba(0,183,255,0.66)_100%)] before:left-[5%]">
+                <img class="w-full h-auto object-cover"
+                     width="10"
+                     height="10"
+                     src="{% static "main/images/girl-image.jpg" %}"
+                     alt="" />
+              </div>
             </div>
-            {% empty %}
-            <div class="col-span-full text-center py-12">
-              <h3 class="text-2xl font-bold text-gray-700 mb-4">No Blog Posts Found</h3>
-              <p class="text-gray-600">Check back later for new content!</p>
+            <div class="bg-white sm:w-[33.33%] min-[700px] flex sm:flex-col flex-col-reverse xs:w-[300px] w-[250px] shadow-[0_0_22px_#ccc8c8] sm:shadow-none">
+              <div class="px-4 slg:py-6 py-4 w-full h-1/2 flex content-between flex-wrap">
+                <div class="w-full">
+                  <span class="xll:text-[1.3rem] xl:text-[1.2rem] text-[1rem] leading-[1.2rem] text-[#018cd5] slg:text-left text-center block xl:mb-3 mb-2">Advices</span>
+                  <h3 class="xl:text-[2rem] slg:text-[1.4rem] text-[1rem] xl:leading-[2.4rem] slg:leading-[1.5rem] leading-[1.3rem] slg:mb-4 mb-2">How to Appear More Confident And Attractive</h3>
+                </div>
+                <div class="border-black border-t-[1px] xl:py-5 slg:py-3 pt-2 flex justify-between w-full">
+                  <a href="#" class="w-fit flex gap-3 xl:text-[1.4rem] slg:text-[1rem] text-[0.8rem] items-center">Read More
+                    <i class="fa-solid fa-arrow-right-long slg:text-[1.4rem] text-[1rem]"></i>
+                  </a>
+                  <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-comment xl:text-[1.7rem] slg:text-[1.2rem] text-[1rem] text-white drop-shadow-[0_0_1px_black]"></i><span class="xl:text-[1.2rem] text-[0.8rem]">3</span>
+                  </div>
+                </div>
+              </div>
+              <div class="overflow-hidden w-full relative h-1/2 before:content-['23jan'] before:absolute before:text-white before:z-10 xl:before:text-[1.1rem] before:text-[0.8rem] before:top-[5%] before:w-fit before:h-fit slg:before:px-5 before:px-4 before:py-2 before:flex before:justify-center before:items-center before:bg-[linear-gradient(276deg,rgb(0,64,255)_0%,rgba(0,183,255,0.66)_100%)] before:left-[5%]">
+                <img class="w-full h-auto object-cover"
+                     width="10"
+                     height="10"
+                     src="{% static "main/images/girl-image.jpg" %}"
+                     alt="" />
+              </div>
             </div>
-            {% endfor %}
-          </div>
-          <div class="text-center mt-12">
-            <a href="{% url 'blog:list' %}" class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-400 text-white px-8 py-4 rounded-full font-semibold hover:from-blue-700 hover:to-blue-500 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-              View All Articles
-              <i class="fa-solid fa-arrow-right"></i>
-            </a>
+            <div class="bg-white sm:w-[33.33%] min-[700px] flex flex-col-reverse xs:w-[300px] w-[250px] shadow-[0_0_22px_#ccc8c8] sm:shadow-none">
+              <div class="px-4 slg:py-6 py-4 w-full h-1/2 flex content-between flex-wrap">
+                <div class="w-full">
+                  <span class="xll:text-[1.3rem] xl:text-[1.2rem] text-[1rem] leading-[1.2rem] text-[#018cd5] slg:text-left text-center block xl:mb-3 mb-2">Advices</span>
+                  <h3 class="xl:text-[2rem] slg:text-[1.4rem] text-[1rem] xl:leading-[2.4rem] slg:leading-[1.5rem] leading-[1.3rem] slg:mb-4 mb-2">How to Appear More Confident And Attractive</h3>
+                </div>
+                <div class="border-black border-t-[1px] xl:py-5 slg:py-3 pt-2 flex justify-between w-full">
+                  <a href="#" class="w-fit flex gap-3 xl:text-[1.4rem] slg:text-[1rem] text-[0.8rem] items-center">Read More
+                    <i class="fa-solid fa-arrow-right-long slg:text-[1.4rem] text-[1rem]"></i>
+                  </a>
+                  <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-comment xl:text-[1.7rem] slg:text-[1.2rem] text-[1rem] text-white drop-shadow-[0_0_1px_black]"></i><span class="xl:text-[1.2rem] text-[0.8rem]">3</span>
+                  </div>
+                </div>
+              </div>
+              <div class="overflow-hidden w-full relative h-1/2 before:content-['23jan'] before:absolute before:text-white before:z-10 xl:before:text-[1.1rem] before:text-[0.8rem] before:top-[5%] before:w-fit before:h-fit slg:before:px-5 before:px-4 before:py-2 before:flex before:justify-center before:items-center before:bg-[linear-gradient(276deg,rgb(0,64,255)_0%,rgba(0,183,255,0.66)_100%)] before:left-[5%]">
+                <img class="w-full h-auto object-cover"
+                     width="10"
+                     height="10"
+                     src="{% static "main/images/girl-image.jpg" %}"
+                     alt="" />
+              </div>
+            </div>
           </div>
         </div>
       </section>

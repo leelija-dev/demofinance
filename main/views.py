@@ -4,9 +4,25 @@ from django.views import View
 from django.contrib import messages
 from django.utils import timezone
 from headquater.models import HeadquarterEmployee
+from blog.models import Blog
 
 def landing_page(request):
-    return render(request, 'landing.html')
+    # Get featured blog posts for the landing page
+    featured_blogs = Blog.objects.filter(
+        status=Blog.Status.PUBLISHED,
+        featured=True
+    ).select_related('author', 'category')[:3]
+    
+    # If no featured blogs, get the latest 3 published blogs
+    if not featured_blogs:
+        featured_blogs = Blog.objects.filter(
+            status=Blog.Status.PUBLISHED
+        ).select_related('author', 'category')[:3]
+    
+    context = {
+        'featured_blogs': featured_blogs,
+    }
+    return render(request, 'landing.html', context)
 
 class TrialCheckView(View):
     """View for non-admin users to check their trial days by email"""

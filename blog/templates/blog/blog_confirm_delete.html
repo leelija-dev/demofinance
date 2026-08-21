@@ -1,0 +1,105 @@
+{% extends "hq/base.html" %}
+{% load static %}
+
+{% block title %}Delete Blog Post - {{ setting.COMPANY_NAME }}{% endblock title %}
+{% block page_id %}BlogDelete{% endblock page_id %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'blog/css/blog-admin.css' %}">
+{% endblock extra_head %}
+
+{% block content %}
+<!-- Main Content -->
+<div class="p-6 md:p-8 lg:p-10 max-w-3xl mx-auto">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="flex items-center space-x-4 mb-2">
+      <a href="{% url 'blog:admin_list' %}" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+        <i class="fas fa-arrow-left text-xl"></i>
+      </a>
+      <div>
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+          Delete Blog Post
+        </h1>
+        <p class="mt-2 text-gray-600 dark:text-gray-400">Permanently remove this blog post from the system</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Warning Card -->
+  <div class="warning-card">
+    <!-- Warning Header -->
+    <div class="warning-header">
+      <div class="flex items-center space-x-4">
+        <div class="w-12 h-12 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
+          <i class="fas fa-exclamation-triangle text-red-600 dark:text-red-400 text-xl"></i>
+        </div>
+        <div>
+          <h2 class="text-xl font-bold text-red-900 dark:text-red-100">Are you sure you want to delete "{{ blog.title }}"?</h2>
+          <p class="text-red-700 dark:text-red-300 mt-1">This action cannot be undone. The blog post will be permanently removed from the system.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Blog Post Details -->
+    <div class="form-section">
+      <div class="section-header">
+        <h2 class="section-title">Blog Post Details</h2>
+      </div>
+      
+      <div class="details-card">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Title</p>
+            <p class="font-medium text-gray-900 dark:text-white">{{ blog.title }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Author</p>
+            <p class="font-medium text-gray-900 dark:text-white">{{ blog.author.username }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Status</p>
+            <span class="status-badge {% if blog.status == 'published' %}status-published{% else %}status-draft{% endif %}">
+              {{ blog.get_status_display }}
+            </span>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Created</p>
+            <p class="font-medium text-gray-900 dark:text-white">{{ blog.created_at|date:"F d, Y" }}</p>
+          </div>
+          {% if blog.category %}
+            <div>
+              <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Category</p>
+              <p class="font-medium text-gray-900 dark:text-white">{{ blog.category.name }}</p>
+            </div>
+          {% endif %}
+          <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Views</p>
+            <p class="font-medium text-gray-900 dark:text-white">{{ blog.views }}</p>
+          </div>
+        </div>
+        
+        {% if blog.excerpt %}
+          <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Excerpt</p>
+            <p class="text-gray-700 dark:text-gray-300">{{ blog.excerpt }}</p>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Action Buttons -->
+      <form method="post" class="mt-6">
+        {% csrf_token %}
+        <div class="flex flex-wrap gap-4">
+          <button type="submit" class="btn-primary bg-red-600 hover:bg-red-700">
+            <i class="fas fa-trash-alt mr-2"></i>Yes, Delete Permanently
+          </button>
+          <a href="{% url 'blog:admin_list' %}" class="btn-secondary">
+            <i class="fas fa-times mr-2"></i>Cancel
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock content %}

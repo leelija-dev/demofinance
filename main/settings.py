@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'rest_framework',  # Added for DRF
     'cloudinary',  # Cloudinary for image storage
     'cloudinary_storage',  # Cloudinary storage backend
+    'django_ckeditor_5',  # Django CKEditor 5 for rich text editing
     
     # Local apps
     'main',  # Add this line to include the main app for management commands
@@ -66,6 +67,7 @@ INSTALLED_APPS = [
     'loan.apps.LoanConfig',
     'savings.apps.SavingsConfig',
     'data_import.apps.DataImportConfig',
+    'blog.apps.BlogConfig',
 ]
 
 AUTH_USER_MODEL = 'headquater.HeadquarterEmployee'
@@ -253,7 +255,7 @@ CSRF_COOKIE_SAMESITE = 'Lax'
 # Company Branding Settings
 COMPANY_NAME = os.environ.get('COMPANY_NAME', 'LEELIJA FINANCE')
 COMPANY_NAME_INIT = " ".join([word[0].upper() for word in COMPANY_NAME.split()])
-COMPANY_LOGO = os.environ.get('COMPANY_LOGO', 'leelija-Photoroom.png')   # ← This is what you asked to store
+COMPANY_LOGO = os.environ.get('COMPANY_LOGO', 'Nidhisoft-logo.png')   # ← This is what you asked to store
 # COMPANY_LOGO = os.environ.get('COMPANY_LOGO', 'company-logo.png')   # ← This is what you asked to store
 COMPANY_LOGO_TRANSPARENT = os.environ.get('COMPANY_LOGO_TRANSPARENT', 'leelija-Photoroom.png')   
 COMPANY_CONTACT = os.environ.get('COMPANY_CONTACT', '70031 50015')
@@ -264,4 +266,31 @@ COMPANY_LOGO_URL = f"main/images/{COMPANY_LOGO}"
 COMPANY_LOGO_TRANSPARENT_URL = f"main/images/{COMPANY_LOGO_TRANSPARENT}"
 
 
-IS_DEMO = os.environ.get('IS_DEMO', False).strip().lower() == "true"
+IS_DEMO = os.environ.get('IS_DEMO', 'False').strip().lower() == "true"
+
+# CKEditor 5 Configuration
+CKEDITOR_5_CONFIGS = {
+    'default': {
+        'toolbar': [
+            'heading', '|',
+            'bold', 'italic', 'underline', 'strikethrough', '|',
+            'bulletedList', 'numberedList', '|',
+            'outdent', 'indent', '|',
+            'link', 'imageUpload', 'insertTable', '|',
+            'blockQuote', 'codeBlock', '|',
+            'undo', 'redo'
+        ],
+        'language': 'en',
+        'image': {
+            'upload': {
+                'types': ['png', 'jpeg', 'gif', 'webp']
+            }
+        },
+        'table': {
+            'contentToolbar': ['tableColumn', 'tableRow', 'mergeTableCells']
+        },
+        'height': 400,
+        'width': '100%',
+    }
+}
+CKEDITOR_5_FILE_STORAGE = 'media/ckeditor5/'
