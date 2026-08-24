@@ -11,6 +11,7 @@ urlpatterns = [
     path('admin/delete/<slug:slug>/', views.blog_delete, name='delete'),
     path('admin/category/create/', views.category_create, name='category_create'),
     path('admin/tag/create/', views.tag_create, name='tag_create'),
+    path('admin/faq/<int:faq_id>/delete/', views.faq_delete, name='faq_delete'),
     
     # Public views
     path('', views.blog_list, name='list'),

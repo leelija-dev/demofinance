@@ -121,3 +121,36 @@ class Blog(models.Model):
     @property
     def is_published(self):
         return self.status == self.Status.PUBLISHED
+
+
+class FAQ(models.Model):
+    """FAQ model for blog posts - allows multiple FAQs per blog post"""
+    blog = models.ForeignKey(
+        Blog,
+        on_delete=models.CASCADE,
+        related_name="faqs"
+    )
+    question = models.CharField(
+        max_length=255,
+        help_text="The FAQ question"
+    )
+    answer = models.TextField(
+        help_text="The FAQ answer"
+    )
+    order = models.PositiveIntegerField(
+        default=0,
+        help_text="Order in which the FAQ should appear"
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True
+    )
+
+    class Meta:
+        ordering = ['order', 'created_at']
+        verbose_name_plural = "FAQs"
+
+    def __str__(self):
+        return self.question

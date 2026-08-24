@@ -12,15 +12,34 @@
   <link rel="icon" type="image/x-icon" href="{% static setting.COMPANY_LOGO_TRANSPARENT_URL %}">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap"
-        rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="{% static 'main/css/output.css' %}" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
-  a.active {
-  color: #007bff;
-  font-weight: bold;
-  }
+    body {
+      font-family: 'Poppins', 'Urbanist', sans-serif;
+      background-color: #f8fafc;
+    }
+    .article-card {
+      transition: all 0.3s ease;
+    }
+    .article-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    .search-input:focus {
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+    }
+    .read-time {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+    
+    /* Active state for navbar links */
+    a.active {
+      color: #0a66c2 !important;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body class="m-0">
@@ -31,16 +50,22 @@
         <!-- Logo -->
         <div class="flex items-center space-x-3">
           <img src="{% static setting.COMPANY_LOGO_URL %}"
-               class="md:h-50 h-20 md:w-50 w-32 object-contain"
+               class="md:h-14 h-10 md:w-14 w-10"
                alt="Logo" />
+          <div>     
+            <h1 class="text-xl font-bold">{{ setting.COMPANY_NAME }}</h1>
+            <p class="text-xs text-gray-500">Finance Service</p>
+          </div>
+        </div>
+        <div>
         </div>
         <div class="flex gap-8">
           <!-- Desktop Menu -->
           <div class="hidden slg:flex items-center space-x-8">
             <a href="{% url 'landing' %}" class="hover:text-blue-600">Home</a>
-            <a href="#about-us" class="hover:text-blue-600">About Us</a>
-            <a href="{% url 'blog:list' %}" class="text-blue-600 font-semibold">Blog</a>
-            <a href="#contact-us" class="block hover:text-blue-600">Contact Us</a>
+            <a id="about-us-link" href="{% url 'landing' %}#about-us" class="hover:text-blue-600">About Us</a>
+            <a href="{% url 'blog:list' %}" class="hover:text-blue-600">Blog</a>
+            <a href="{% url 'landing' %}#contact-us" class="block hover:text-blue-600">Contact Us</a>
           </div>
           <!-- Contact -->
           <div class="hidden slg:flex items-center space-x-3">
@@ -90,9 +115,9 @@
     </div>
     <nav class="p-4 space-y-4">
       <a href="{% url 'landing' %}" class="block hover:text-blue-600">Home</a>
-      <a href="#about-us" class="block hover:text-blue-600">About Us</a>
-      <a href="{% url 'blog:list' %}" class="block text-blue-600 font-semibold">Blog</a>
-      <a href="#contact-us" class="block hover:text-blue-600">Contact Us</a>
+      <a href="{% url 'landing' %}#about-us" class="block hover:text-blue-600">About Us</a>
+      <a href="{% url 'blog:list' %}" class="block hover:text-blue-600">Blog</a>
+      <a href="{% url 'landing' %}#contact-us" class="block hover:text-blue-600">Contact Us</a>
     </nav>
     <div class="p-4 mt-4 border-t">
       <div class="flex items-center space-x-3">
@@ -114,84 +139,195 @@
     </div>
   </div>
 
-  <!-- Blog Header -->
-  <section class="bg-gradient-to-r from-blue-600 to-blue-400 text-white py-20 pt-32">
-    <div class="container mx-auto px-6 text-center">
-      <h1 class="text-4xl md:text-5xl font-bold mb-4">Our Blog</h1>
-      <p class="text-xl opacity-90 max-w-2xl mx-auto">
-        Stay updated with the latest financial insights, tips, and news to help you make informed decisions.
-      </p>
-    </div>
-  </section>
-
-  <!-- Blog Content -->
-  <section class="px-6 py-16 bg-[#f8f8f8] min-h-screen">
-    <div class="container mx-auto">
-      <!-- Filter Categories -->
-      <div class="flex flex-wrap justify-center gap-4 mb-12">
-        <a href="{% url 'blog:list' %}" class="px-6 py-2 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors">
-          All Posts
-        </a>
-        {% for category in categories %}
-        <a href="{% url 'blog:category' category.slug %}" class="px-6 py-2 rounded-full bg-white text-gray-700 font-semibold hover:bg-blue-600 hover:text-white transition-colors shadow">
-          {{ category.name }}
-        </a>
-        {% endfor %}
+  <!-- Main Content -->
+  <main class="px-4 sm:px-6 lg:px-8 slg:pt-16 pt-[8rem] pb-[5rem] min-h-screen">
+    <!-- Search and Filter Section -->
+    <section class="bg-[#f8fafc] py-6 mt-6 relative z-10">
+      <div class="container mx-auto">
+        <div class="bg-white rounded-xl shadow-md p-4 max-w-5xl mx-auto border border-gray-100">
+          <form method="GET" action="{% url 'blog:list' %}" class="flex flex-col md:flex-row gap-4 items-center">
+            <!-- Search Bar -->
+            <div class="relative flex-[2] w-full">
+              <input type="text" 
+                     name="search" 
+                     value="{{ search_query }}"
+                     placeholder="Search articles..." 
+                     class="search-input w-full pl-12 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 transition-all bg-gray-50 text-base">
+            </div>
+            
+            <!-- Category Dropdown -->
+            <div class="relative w-full md:w-20">
+              <select name="category" 
+                      class="w-full pl-4 pr-8 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 transition-all appearance-none bg-gray-50 cursor-pointer text-base">
+                <option value="">All Categories</option>
+                {% for category in categories %}
+                <option value="{{ category.slug }}" {% if category_filter == category.slug %}selected{% endif %}>
+                  {{ category.name }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+          </form>
+        </div>
       </div>
+    </section>
 
-      <!-- Blog Grid -->
-      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-        {% for blog in blogs %}
-        <div class="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 group">
-          <div class="relative overflow-hidden h-56">
-            {% if blog.featured_image %}
-            <img class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
-                 src="{{ blog.featured_image.url }}"
-                 alt="{{ blog.title }}" />
-            {% else %}
-            <img class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
-                 src="{% static 'main/images/girl-image.jpg' %}"
-                 alt="{{ blog.title }}" />
-            {% endif %}
-            <div class="absolute top-4 left-4 bg-gradient-to-r from-blue-600 to-blue-400 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-md">
-              {{ blog.published_at|date:"M d, Y" }}
+    <!-- Featured Article -->
+    {% if featured_post %}
+    <section class="py-6">
+      <div class="container mx-auto">
+        <div class="bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-100 max-w-5xl mx-auto">
+          <div class="flex flex-col lg:flex-row">
+            <!-- Featured Image -->
+            <div class="lg:w-1/2 relative h-56 lg:h-auto min-h-[300px]">
+              {% if featured_post.featured_image %}
+              <img src="{{ featured_post.featured_image.url }}" 
+                   alt="{{ featured_post.title }}" 
+                   class="w-full h-full object-cover">
+              {% else %}
+              <img src="{% static 'main/images/girl-image.jpg' %}" 
+                   alt="{{ featured_post.title }}" 
+                   class="w-full h-full object-cover">
+              {% endif %}
+              <div class="absolute top-6 left-6 z-20">
+                <span class="bg-blue-600 text-white px-5 py-3 rounded-xl text-sm font-bold shadow-xl">
+                  Featured
+                </span>
+              </div>
             </div>
-            {% if blog.category %}
-            <div class="absolute top-4 right-4 bg-white/90 backdrop-blur-sm text-blue-600 px-3 py-1 rounded-full text-xs font-bold">
-              {{ blog.category.name }}
-            </div>
-            {% endif %}
-          </div>
-          <div class="p-6">
-            <a href="{% url 'blog:detail' blog.slug %}">
-              <h3 class="xl:text-[1.5rem] slg:text-[1.3rem] text-[1.1rem] font-bold text-gray-800 mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                {{ blog.title }}
-              </h3>
-            </a>
-            <p class="text-gray-600 text-sm mb-4 line-clamp-3">
-              {{ blog.excerpt|default:blog.content|truncatewords:20 }}
-            </p>
-            <div class="flex items-center justify-between pt-4 border-t border-gray-100">
-              <a href="{% url 'blog:detail' blog.slug %}" class="inline-flex items-center gap-2 text-blue-600 font-semibold hover:text-blue-800 transition-colors group/link">
-                Read More
-                <i class="fa-solid fa-arrow-right transform group-hover/link:translate-x-1 transition-transform"></i>
-              </a>
-              <div class="flex items-center gap-2 text-gray-500">
-                <i class="fa-solid fa-eye"></i>
-                <span class="text-sm font-medium">{{ blog.views }} views</span>
+            
+            <!-- Featured Content -->
+            <div class="lg:w-1/2 p-8 lg:p-10 flex flex-col justify-center">
+              <div class="flex items-center gap-4 mb-4">
+                <span class="text-gray-500 text-sm">
+                  {{ featured_post.published_at|date:"F d, Y" }}
+                </span>
+              </div>
+              
+              <h2 class="text-2xl lg:text-3xl font-bold mb-4 text-gray-800 leading-tight">
+                {{ featured_post.title }}
+              </h2>
+              
+              <p class="text-gray-600 text-base mb-6 line-clamp-3">
+                {{ featured_post.excerpt|default:featured_post.content|truncatewords:25 }}
+              </p>
+              
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                    <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <p class="font-medium text-gray-800 text-base">{{ featured_post.author.get_full_name|default:featured_post.author.username }}</p>
+                    <p class="text-gray-500 text-sm">Author</p>
+                  </div>
+                </div>
+                
+                <a href="{% url 'blog:detail' featured_post.slug %}" 
+                   class="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors text-base">
+                  Read Article 
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                  </svg>
+                </a>
               </div>
             </div>
           </div>
         </div>
-        {% empty %}
-        <div class="col-span-full text-center py-12">
-          <h3 class="text-2xl font-bold text-gray-700 mb-4">No Blog Posts Found</h3>
-          <p class="text-gray-600">Check back later for new content!</p>
-        </div>
-        {% endfor %}
       </div>
-    </div>
-  </section>
+    </section>
+    {% endif %}
+
+    <!-- Article Grid -->
+    <section class="py-8">
+      <div class="container mx-auto">
+        <div class="flex items-center justify-between mb-8">
+          <h2 class="text-2xl font-bold text-gray-800">Latest Articles</h2>
+          <p class="text-gray-500 text-base">Showing {{ blogs|length }} articles</p>
+        </div>
+        
+        {% if blogs %}
+        <div class="grid md:grid-cols-3 gap-3 max-w-5xl mx-auto">
+          {% for blog in blogs %}
+          <div class="article-card bg-white rounded-xl overflow-hidden shadow-md border border-gray-100 hover:shadow-lg">
+            <div class="flex flex-col h-full">
+              <!-- Article Image -->
+              <div class="sm:w-2/5 relative h-auto sm:h-auto min-h-[180px]">
+                {% if blog.category %}
+                <div class="absolute top-2 left-4">
+                    <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium">
+                      {{ blog.category.name }}
+                    </span>
+                </div>
+                {% endif %}
+                {% if blog.featured_image %}
+                <img src="{{ blog.featured_image.url }}" 
+                     alt="{{ blog.title }}" 
+                     class="w-full h-full object-cover">
+                {% else %}
+                <img src="{% static 'main/images/girl-image.jpg' %}" 
+                     alt="{{ blog.title }}" 
+                     class="w-full h-full object-cover">
+                {% endif %}
+              </div>
+              
+              <!-- Article Content -->
+              <div class="sm:w-3/5 p-6 flex flex-col justify-between">
+                <div>
+                  <div class="flex items-center gap-3 mb-3">
+                    <span class="text-gray-500 text-sm">
+                      {{ blog.published_at|date:"F d, Y" }}
+                    </span>
+                  </div>
+                  
+                  <h3 class="text-lg font-bold text-gray-800 mb-3 line-clamp-2 hover:text-blue-600 transition-colors">
+                    <a href="{% url 'blog:detail' blog.slug %}">{{ blog.title }}</a>
+                  </h3>
+                  
+                  <p class="text-gray-600 text-sm mb-4 line-clamp-2">
+                    {{ blog.excerpt|default:blog.content|truncatewords:15 }}
+                  </p>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                      <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                      </svg>
+                    </div>
+                    <span class="text-sm text-gray-600">{{ blog.author.get_full_name|default:blog.author.username }}</span>
+                  </div>
+                  
+                  <a href="{% url 'blog:detail' blog.slug %}" 
+                     class="inline-flex items-center gap-1 text-blue-600 font-semibold hover:text-blue-800 transition-colors text-sm">
+                    Read 
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-16">
+          <div class="bg-white rounded-xl p-12 shadow-md border border-gray-100 max-w-md mx-auto">
+            <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <h3 class="text-xl font-bold text-gray-700 mb-3">No Articles Found</h3>
+            <p class="text-gray-500 text-base">Try adjusting your search or filter criteria</p>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </section>
+  </main>
 
   <script>
     // Mobile menu functionality
@@ -200,26 +336,133 @@
     const mobileMenu = document.getElementById('mobile-menu');
     const overlay = document.getElementById('overlay');
 
-    if (menuBtn) {
+    if (menuBtn && mobileMenu && overlay) {
       menuBtn.addEventListener('click', () => {
         mobileMenu.classList.remove('-translate-x-full');
         overlay.classList.remove('hidden');
       });
     }
 
-    if (closeMenuBtn) {
+    if (closeMenuBtn && mobileMenu && overlay) {
       closeMenuBtn.addEventListener('click', () => {
         mobileMenu.classList.add('-translate-x-full');
         overlay.classList.add('hidden');
       });
     }
 
-    if (overlay) {
+    if (overlay && mobileMenu) {
       overlay.addEventListener('click', () => {
         mobileMenu.classList.add('-translate-x-full');
         overlay.classList.add('hidden');
       });
     }
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        const href = this.getAttribute('href');
+        if (href !== '#' && href.startsWith('#')) {
+          e.preventDefault();
+          const targetId = href.substring(1);
+          const targetElement = document.getElementById(targetId);
+          
+          if (targetElement) {
+            // If we're on the blog page and clicking a link that goes to landing page sections
+            if (this.href.includes('landing')) {
+              window.location.href = this.href;
+            } else {
+              targetElement.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+              });
+            }
+          }
+        }
+      });
+    });
+
+    // Auto-submit search form on input change
+    const searchForm = document.querySelector('form[method="GET"]');
+    const searchInput = document.querySelector('input[name="search"]');
+    const categorySelect = document.querySelector('select[name="category"]');
+
+    if (searchForm && searchInput) {
+      // Submit on Enter key
+      searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          searchForm.submit();
+        }
+      });
+
+      // Debounced submit on input change
+      let timeout;
+      searchInput.addEventListener('input', function() {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+          searchForm.submit();
+        }, 500); // Wait 500ms after user stops typing
+      });
+    }
+
+    if (searchForm && categorySelect) {
+      categorySelect.addEventListener('change', function() {
+        searchForm.submit();
+      });
+    }
+
+    // Set active state for navbar links based on current page
+    document.addEventListener("DOMContentLoaded", function () {
+      const currentPath = window.location.pathname;
+      const navLinks = document.querySelectorAll('nav a[href]');
+      
+      navLinks.forEach(link => {
+        const linkPath = new URL(link.href).pathname;
+        
+        // Remove active class from all links first
+        link.classList.remove('active');
+        
+        // Add active class if current path matches link path
+        if (currentPath === linkPath) {
+          link.classList.add('active');
+        }
+        
+        // Special case for landing page - check if current path is root or landing
+        if ((currentPath === '/' || currentPath === '/landing/' || currentPath === '/landing') && 
+            (link.href.includes('landing') || linkPath === '/')) {
+          link.classList.add('active');
+        }
+        
+        // Special case for blog pages - any page starting with /blog
+        if (currentPath.startsWith('/blog') && link.href.includes('/blog')) {
+          link.classList.add('active');
+        }
+      });
+    });
+    
+    // Re-check active state on URL changes (for SPA-like navigation)
+    window.addEventListener('popstate', function() {
+      const currentPath = window.location.pathname;
+      const navLinks = document.querySelectorAll('nav a[href]');
+      
+      navLinks.forEach(link => {
+        const linkPath = new URL(link.href).pathname;
+        link.classList.remove('active');
+        
+        if (currentPath === linkPath) {
+          link.classList.add('active');
+        }
+        
+        if ((currentPath === '/' || currentPath === '/landing/' || currentPath === '/landing') && 
+            (link.href.includes('landing') || linkPath === '/')) {
+          link.classList.add('active');
+        }
+        
+        if (currentPath.startsWith('/blog') && link.href.includes('/blog')) {
+          link.classList.add('active');
+        }
+      });
+    });
   </script>
 </body>
 </html>

@@ -12,6 +12,34 @@
 .django-ckeditor-widget {
   width: 100% !important;
 }
+
+/* FAQ Drag and Drop Styles */
+.draggable-faq {
+  cursor: move;
+  transition: opacity 0.2s ease;
+}
+
+.draggable-faq.dragging {
+  opacity: 0.5;
+  background: #e5e7eb;
+}
+
+.drag-handle {
+  cursor: grab;
+  user-select: none;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.draggable-faq:hover {
+  border-color: #3b82f6;
+}
+
+.draggable-faq.drag-over {
+  border-top: 3px solid #3b82f6;
+}
 </style>
 {% endblock extra_head %}
 
@@ -151,6 +179,73 @@
             </div>
           {% endif %}
         </div>
+      </div>
+
+      <!-- FAQ Section -->
+      <div class="form-section">
+        <div class="section-header">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="section-title">FAQs</h2>
+              <p class="section-description">Add frequently asked questions for this blog post</p>
+            </div>
+            <button type="button" id="add-faq" class="btn-secondary text-sm">
+              <i class="fas fa-plus mr-2"></i>Add FAQ
+            </button>
+          </div>
+        </div>
+        
+        <div id="faq-formset-container">
+          {{ faq_formset.management_form }}
+          <div id="faq-forms" class="space-y-4">
+            {% for form in faq_formset %}
+              <div class="faq-form p-4 bg-gray-50 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 relative" data-faq-index="{{ forloop.counter0 }}">
+                <div class="flex justify-between items-start mb-4">
+                  <span class="faq-number text-sm font-medium text-gray-700 dark:text-gray-300">FAQ #{{ forloop.counter }}</span>
+                  <button type="button" class="delete-faq flex items-center gap-2 px-3 py-1.5 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg text-sm font-medium transition-colors">
+                    <i class="fas fa-trash-alt"></i>
+                    <span>Delete</span>
+                  </button>
+                </div>
+                <div class="space-y-4">
+                  <div class="form-group">
+                    <label for="{{ form.question.id_for_label }}" class="form-label required-field">Question</label>
+                    {{ form.question }}
+                    {% if form.question.errors %}
+                      <div class="error-message">
+                        <i class="fas fa-exclamation-circle mr-2"></i>{{ form.question.errors }}
+                      </div>
+                    {% endif %}
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="{{ form.answer.id_for_label }}" class="form-label required-field">Answer</label>
+                    {{ form.answer }}
+                    {% if form.answer.errors %}
+                      <div class="error-message">
+                        <i class="fas fa-exclamation-circle mr-2"></i>{{ form.answer.errors }}
+                      </div>
+                    {% endif %}
+                  </div>
+                  
+                  {{ form.id }}
+                  {{ form.order }}
+                  <input type="hidden" name="faqs-{{ forloop.counter0 }}-DELETE" id="id_faqs-{{ forloop.counter0 }}-DELETE">
+                </div>
+              </div>
+            {% empty %}
+              <p class="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+                No FAQs added yet. Click "Add FAQ" to add your first FAQ.
+              </p>
+            {% endfor %}
+          </div>
+        </div>
+        
+        {% if faq_formset.non_form_errors %}
+          <div class="error-message mt-4">
+            <i class="fas fa-exclamation-circle mr-2"></i>{{ faq_formset.non_form_errors }}
+          </div>
+        {% endif %}
       </div>
 
       <!-- Media Section -->
@@ -328,6 +423,281 @@ document.addEventListener('DOMContentLoaded', function() {
       alert('Please fill in all required fields marked with *');
     }
   });
+  
+  // FAQ Formset Management
+  const faqFormsContainer = document.getElementById('faq-forms');
+  const addFaqButton = document.getElementById('add-faq');
+  const totalFormsInput = document.getElementById('id_faqs-TOTAL_FORMS');
+  
+  // Function to update FAQ numbers
+  function updateFaqNumbers() {
+    const forms = faqFormsContainer.querySelectorAll('.faq-form:not([style*="display: none"])');
+    forms.forEach((form, index) => {
+      const numberSpan = form.querySelector('.faq-number');
+      if (numberSpan) {
+        numberSpan.textContent = `FAQ #${index + 1}`;
+      }
+    });
+  }
+  
+  // Function to update FAQ order values
+  function updateFaqOrder() {
+    const forms = faqFormsContainer.querySelectorAll('.faq-form:not([style*="display: none"])');
+    forms.forEach((form, index) => {
+      const orderInput = form.querySelector('input[name$="-order"]');
+      if (orderInput) {
+        orderInput.value = index;
+      }
+    });
+  }
+  
+  // Initialize FAQ numbers and order on page load
+  if (faqFormsContainer) {
+    updateFaqNumbers();
+    updateFaqOrder();
+    
+    // Make FAQ forms draggable
+    makeDraggable(faqFormsContainer);
+  }
+  
+  // Function to make FAQ forms draggable
+  function makeDraggable(container) {
+    const forms = container.querySelectorAll('.faq-form');
+    
+    forms.forEach(form => {
+      // Skip if already draggable
+      if (form.classList.contains('draggable-faq')) {
+        return;
+      }
+      
+      // Add drag handle
+      const header = form.querySelector('.flex.justify-between.items-start');
+      if (header && !header.querySelector('.drag-handle')) {
+        const dragHandle = document.createElement('div');
+        dragHandle.className = 'drag-handle cursor-move mr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1';
+        dragHandle.innerHTML = '<i class="fas fa-grip-vertical"></i>';
+        header.insertBefore(dragHandle, header.firstChild);
+        
+        // Make form draggable
+        form.classList.add('draggable-faq');
+        form.setAttribute('draggable', 'true');
+        
+        // Add drag events
+        form.addEventListener('dragstart', handleDragStart);
+        form.addEventListener('dragend', handleDragEnd);
+        form.addEventListener('dragover', handleDragOver);
+        form.addEventListener('dragleave', handleDragLeave);
+        form.addEventListener('drop', handleDrop);
+      }
+    });
+  }
+  
+  let draggedItem = null;
+  
+  function handleDragStart(e) {
+    draggedItem = this;
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+  }
+  
+  function handleDragEnd(e) {
+    this.classList.remove('dragging');
+    draggedItem = null;
+    
+    // Remove any drag-over classes
+    const forms = faqFormsContainer.querySelectorAll('.faq-form');
+    forms.forEach(form => form.classList.remove('drag-over'));
+    
+    // Update FAQ numbers and order after reordering
+    updateFaqNumbers();
+    updateFaqOrder();
+  }
+  
+  function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    
+    // Add visual feedback
+    this.classList.add('drag-over');
+    
+    return false;
+  }
+  
+  function handleDragLeave(e) {
+    this.classList.remove('drag-over');
+  }
+  
+  function handleDrop(e) {
+    e.stopPropagation();
+    
+    // Remove visual feedback
+    this.classList.remove('drag-over');
+    
+    if (draggedItem !== this) {
+      // Get all visible forms
+      const forms = Array.from(faqFormsContainer.querySelectorAll('.faq-form:not([style*="display: none"])'));
+      const draggedIndex = forms.indexOf(draggedItem);
+      const droppedIndex = forms.indexOf(this);
+      
+      if (draggedIndex < droppedIndex) {
+        // Move down
+        this.parentNode.insertBefore(draggedItem, this.nextSibling);
+      } else {
+        // Move up
+        this.parentNode.insertBefore(draggedItem, this);
+      }
+    }
+    
+    return false;
+  }
+  
+  // Function to create a new FAQ form
+  function createFaqForm(index) {
+    const template = document.createElement('div');
+    template.className = 'faq-form p-4 bg-gray-50 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 relative';
+    template.dataset.faqIndex = index;
+    
+    // Get current FAQ number (existing forms + 1)
+    const existingForms = faqFormsContainer.querySelectorAll('.faq-form:not([style*="display: none"])');
+    const faqNumber = existingForms.length + 1;
+    
+    template.innerHTML = `
+      <div class="flex justify-between items-start mb-4">
+        <span class="faq-number text-sm font-medium text-gray-700 dark:text-gray-300">FAQ #${faqNumber}</span>
+        <button type="button" class="delete-faq flex items-center gap-2 px-3 py-1.5 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg text-sm font-medium transition-colors">
+          <i class="fas fa-trash-alt"></i>
+          <span>Delete</span>
+        </button>
+      </div>
+      <div class="space-y-4">
+        <div class="form-group">
+          <label for="id_faqs-${index}-question" class="form-label required-field">Question</label>
+          <input type="text" name="faqs-${index}-question" id="id_faqs-${index}-question" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200" placeholder="Enter your question" maxlength="255">
+        </div>
+        
+        <div class="form-group">
+          <label for="id_faqs-${index}-answer" class="form-label required-field">Answer</label>
+          <textarea name="faqs-${index}-answer" id="id_faqs-${index}-answer" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200 resize-none" rows="3" placeholder="Enter the answer to the question"></textarea>
+        </div>
+        
+        <input type="hidden" name="faqs-${index}-id" id="id_faqs-${index}-id">
+        <input type="hidden" name="faqs-${index}-order" id="id_faqs-${index}-order" value="${index}">
+        <input type="hidden" name="faqs-${index}-DELETE" id="id_faqs-${index}-DELETE">
+      </div>
+    `;
+    
+    return template;
+  }
+  
+  // Add new FAQ form
+  addFaqButton.addEventListener('click', function() {
+    const currentIndex = parseInt(totalFormsInput.value);
+    const newForm = createFaqForm(currentIndex);
+    
+    faqFormsContainer.appendChild(newForm);
+    totalFormsInput.value = currentIndex + 1;
+    
+    // Make the new form draggable
+    makeDraggable(faqFormsContainer);
+    
+    // Update FAQ numbers and order values
+    updateFaqNumbers();
+    updateFaqOrder();
+  });
+  
+  // Function to update FAQ numbers
+  function updateFaqNumbers() {
+    const forms = faqFormsContainer.querySelectorAll('.faq-form:not([style*="display: none"])');
+    forms.forEach((form, index) => {
+      const numberSpan = form.querySelector('.text-sm.font-medium.text-gray-700');
+      if (numberSpan) {
+        numberSpan.textContent = `FAQ #${index + 1}`;
+      }
+    });
+  }
+  
+  // Delete FAQ form
+  faqFormsContainer.addEventListener('click', function(e) {
+    if (e.target.closest('.delete-faq')) {
+      const faqForm = e.target.closest('.faq-form');
+      const idInput = faqForm.querySelector('input[name$="-id"]');
+      
+      if (idInput && idInput.value) {
+        // Existing FAQ - confirm and delete via AJAX
+        if (confirm('Are you sure you want to permanently delete this FAQ?')) {
+          const faqId = idInput.value;
+          
+          // Send AJAX request to delete the FAQ
+          fetch(`/blog/admin/faq/${faqId}/delete/`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+          })
+          .then(response => {
+            if (response.ok) {
+              // Remove the form from DOM
+              faqForm.remove();
+              
+              // Update form indices
+              updateFormIndices();
+              
+              // Update FAQ numbers and order values
+              updateFaqNumbers();
+              updateFaqOrder();
+              
+              // Re-apply draggability
+              makeDraggable(faqFormsContainer);
+            } else {
+              alert('Failed to delete FAQ. Please try again.');
+            }
+          })
+          .catch(error => {
+            console.error('Error deleting FAQ:', error);
+            alert('Failed to delete FAQ. Please try again.');
+          });
+        }
+      } else {
+        // New FAQ - just remove from DOM
+        faqForm.remove();
+        
+        // Update form indices
+        updateFormIndices();
+        
+        // Update FAQ numbers and order values
+        updateFaqNumbers();
+        updateFaqOrder();
+        
+        // Re-apply draggability
+        makeDraggable(faqFormsContainer);
+      }
+    }
+  });
+  
+  // Function to update form indices after deletion
+  function updateFormIndices() {
+    const forms = faqFormsContainer.querySelectorAll('.faq-form:not([style*="display: none"])');
+    forms.forEach((form, index) => {
+      form.dataset.faqIndex = index;
+      const inputs = form.querySelectorAll('input, textarea, label');
+      inputs.forEach(input => {
+        if (input.id) {
+          const oldId = input.id;
+          const newId = oldId.replace(/faqs-\d+/, `faqs-${index}`);
+          input.id = newId;
+          if (input.name) {
+            input.name = input.name.replace(/faqs-\d+/, `faqs-${index}`);
+          }
+        }
+        if (input.htmlFor) {
+          input.htmlFor = input.htmlFor.replace(/faqs-\d+/, `faqs-${index}`);
+        }
+      });
+    });
+    
+    totalFormsInput.value = forms.length;
+  }
 });
 </script>
 {{ form.media.js }}

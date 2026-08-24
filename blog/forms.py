@@ -1,7 +1,8 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Blog, Category, Tag
+from .models import Blog, Category, Tag, FAQ
 from django_ckeditor_5.widgets import CKEditor5Widget
+from django.forms import inlineformset_factory
 
 
 class BlogForm(forms.ModelForm):
@@ -253,3 +254,59 @@ class TagForm(forms.ModelForm):
             raise ValidationError("Either provide a tag name or a slug.")
         
         return cleaned_data
+
+
+class FAQForm(forms.ModelForm):
+    """Form for creating and editing FAQs"""
+    
+    class Meta:
+        model = FAQ
+        fields = ['question', 'answer', 'order']
+        widgets = {
+            'question': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200',
+                'placeholder': 'Enter your question',
+                'maxlength': 255
+            }),
+            'answer': forms.Textarea(attrs={
+                'class': 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200 resize-none',
+                'rows': 3,
+                'placeholder': 'Enter the answer to the question'
+            }),
+            'order': forms.HiddenInput(),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['question'].help_text = "Required: 1-255 characters"
+        self.fields['answer'].help_text = "Required: Minimum 2 characters"
+    
+    def clean_question(self):
+        question = self.cleaned_data.get('question')
+        if question:
+            if len(question) < 1:
+                raise ValidationError("Question must be at least 1 character long.")
+            if len(question) > 255:
+                raise ValidationError("Question cannot exceed 255 characters.")
+        return question
+    
+    def clean_answer(self):
+        answer = self.cleaned_data.get('answer')
+        if answer:
+            if len(answer) < 2:
+                raise ValidationError("Answer must be at least 2 characters long.")
+        return answer
+
+
+# Create an inline formset for FAQs to be used with BlogForm
+FAQFormSet = inlineformset_factory(
+    Blog,
+    FAQ,
+    form=FAQForm,
+    extra=1,  # Number of empty forms to display
+    can_delete=True,  # Allow deletion of FAQs
+    min_num=0,  # Minimum number of forms
+    max_num=20,  # Maximum number of FAQs per blog post
+    validate_min=True,
+    validate_max=True
+)

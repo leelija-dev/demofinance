@@ -22,8 +22,8 @@
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
       <style>
       a.active {
-      color: #007bff;
-      font-weight: bold;
+      color: #0a66c2 !important;
+      font-weight: 600;
       }
       </style>
     </head>
@@ -35,19 +35,19 @@
             <!-- Logo -->
             <div class="flex items-center space-x-3">
               <img src="{% static setting.COMPANY_LOGO_URL %}"
-                   class="md:h-50 h-20 md:w-50 w-32 object-contain"
-                   alt="Logo" />
-              <!-- <div>
+                   class="md:h-14 h-10 md:w-14 w-10"
+                   alt="Logo" height="10" width="10"/>
+              <div>
                 <h1 class="text-xl font-bold">{{ setting.COMPANY_NAME }}</h1>
                 <p class="text-xs text-gray-500">Finance Service</p>
-              </div> -->
+              </div>
             </div>
             <div class="flex gap-8">
               <!-- Desktop Menu -->
               <div class="hidden slg:flex items-center space-x-8">
-                <a href="{% url 'landing' %}" class="text-blue-600 font-semibold">Home</a>
+                <a href="{% url 'landing' %}" class="hover:text-blue-600">Home</a>
                 <a id="about-us-link" href="#about-us" class="hover:text-blue-600">About Us</a>
-                <a href="{% url 'blog:list' %}" class="hover:text-blue-600">Blog</a>
+                <a id="blog-link" href="#blog" class="hover:text-blue-600">Blog</a>
                 <a href="#contact-us" class="block hover:text-blue-600">Contact Us</a>
               </div>
               <!-- Contact -->
@@ -97,9 +97,9 @@
           </button>
         </div>
         <nav class="p-4 space-y-4">
-          <a href="{% url 'landing' %}" class="block text-blue-600 font-semibold">Home</a>
+          <a href="{% url 'landing' %}" class="block hover:text-blue-600">Home</a>
           <a href="#about-us" class="block hover:text-blue-600">About Us</a>
-          <a href="{% url 'blog:list' %}" class="block hover:text-blue-600">Blog</a>
+          <a id="blog-link-mobile" href="#blog" class="block hover:text-blue-600">Blog</a>
           <a href="#contact-us" class="block hover:text-blue-600">Contact Us</a>
         </nav>
         <div class="p-4 mt-4 border-t">
@@ -388,26 +388,7 @@
           </div>
         </div>
       </section>
-      <section class="bg-gradient-to-r from-blue-500 to-blue-700 flex items-center justify-center py-8">
-        <div class="w-full max-w-6xl px-4">
-          <div class="flex flex-wrap justify-center items-center xll:gap-10 gap-8">
-            <!-- Logo 1 -->
-            <img src="{% static "main/images/logo-1.png" %}" alt="ELFA" class="h-10 md:h-14 object-contain" />
-            <!-- Logo 2 -->
-            <img src="{% static "main/images/logo-1.png" %}" alt="Voiceware" class="h-10 md:h-14 object-contain" />
-            <!-- Logo 3 -->
-            <img src="{% static "main/images/logo-1.png" %}"
-                 alt="Global Finance"
-                 class="h-10 md:h-14 object-contain" />
-            <!-- Logo 4 -->
-            <img src="{% static "main/images/logo-1.png" %}"
-                 alt="Finance Strategy"
-                 class="h-10 md:h-14 object-contain" />
-            <!-- Logo 5 -->
-            <img src="{% static "main/images/logo-1.png" %}" alt="Copixel" class="h-10 md:h-14 object-contain" />
-          </div>
-        </div>
-      </section>
+      <!--  -->
       <section class="px-6 slg:py-24 py-10 bg-[#f9f9f9] min-h-screen h-auto flex justify-center items-center">
         <div class="container mx-auto">
           <!-- Heading and Description -->
@@ -800,6 +781,7 @@
           </div>
         </div>
       </section>
+      {% if featured_blogs %}
       <section id="blog" class="px-6 slg:py-24 py-10 bg-[#f8f8f8] min-h-screen h-auto flex justify-center items-center">
         <div class="container mx-auto">
           <div class="w-full slg:mb-14 mb-6">
@@ -857,13 +839,14 @@
             {% endfor %}
           </div>
           <div class="text-center mt-12">
-            <a href="{% url 'blog:list' %}" class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-400 text-white px-8 py-4 rounded-full font-semibold hover:from-blue-700 hover:to-blue-500 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+            <a href="{% url 'blog:list' %}" class="inline-flex items-center gap-2 bg-[#018cd5] text-white px-8 py-4 rounded-full font-semibold hover:bg-[#017bc5] transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1">
               View All Articles
               <i class="fa-solid fa-arrow-right"></i>
             </a>
           </div>
         </div>
       </section>
+      {% endif %}
       <section id="contact-us" class="px-6 slg:py-24 py-10 bg-white">
         <div class="container mx-auto">
           <div class="grid lg:grid-cols-2 gap-8">
@@ -1319,12 +1302,23 @@
         });
       }
 
+      // Check if blog section exists
+      const blogSection = document.getElementById("blog");
+
       // Function to handle initial page load with hash
       function handleInitialHash() {
         if (window.location.hash) {
           const hash = window.location.hash.substring(1); // Remove the #
-          const offset =
-            hash === "about-us" ? 80 : hash === "blog" ? 100 : hash === "contact-us" ? 120 : 0;
+          let offset = 0;
+          if (hash === "about-us") {
+            offset = 80;
+          } else if (hash === "blog") {
+            const blogSection = document.getElementById("blog");
+            if (!blogSection) return; // Don't scroll to blog section if it doesn't exist
+            offset = 100;
+          } else if (hash === "contact-us") {
+            offset = 120;
+          }
 
           // Scroll after a tiny delay to ensure DOM is ready
           setTimeout(() => {
@@ -1346,13 +1340,16 @@
         });
       });
 
-      document.querySelectorAll('a[href="#blog"]').forEach((link) => {
-        link.addEventListener("click", (e) => {
-          e.preventDefault();
-          smoothScrollTo("blog", 100);
-          setActiveLink("blog");
+      // Blog link event listener (only if blog section exists)
+      if (blogSection) {
+        document.querySelectorAll('a[href="#blog"]').forEach((link) => {
+          link.addEventListener("click", (e) => {
+            e.preventDefault();
+            smoothScrollTo("blog", 100);
+            setActiveLink("blog");
+          });
         });
-      });
+      }
 
       document.querySelectorAll('a[href="#contact-us"]').forEach((link) => {
         link.addEventListener("click", (e) => {
@@ -1385,7 +1382,11 @@
       }, observerOptions);
 
       // Observe the sections
-      document.querySelectorAll("#about-us, #blog, #contact-us").forEach((section) => {
+      const sectionsToObserve = ["#about-us", "#contact-us"];
+      if (blogSection) {
+        sectionsToObserve.push("#blog");
+      }
+      document.querySelectorAll(sectionsToObserve.join(", ")).forEach((section) => {
         observer.observe(section);
       });
 
@@ -1502,6 +1503,91 @@
             el.classList.add("hidden");
           });
         }
+      });
+      </script>
+      
+      <script>
+      // Set active state for navbar links based on current page
+      document.addEventListener("DOMContentLoaded", function () {
+        const currentPath = window.location.pathname;
+        const currentHash = window.location.hash;
+        const navLinks = document.querySelectorAll('nav a[href]');
+        
+        navLinks.forEach(link => {
+          const linkPath = new URL(link.href).pathname;
+          const linkHash = new URL(link.href).hash;
+          
+          // Remove active class from all links first
+          link.classList.remove('active');
+          
+          // Add active class if current path matches link path
+          if (currentPath === linkPath) {
+            link.classList.add('active');
+          }
+          
+          // Special case for landing page - check if current path is root or landing
+          if ((currentPath === '/' || currentPath === '/landing/' || currentPath === '/landing') && 
+              (link.href.includes('landing') || linkPath === '/')) {
+            link.classList.add('active');
+          }
+          
+          // Special case for blog section on landing page
+          if ((currentPath === '/' || currentPath === '/landing/' || currentPath === '/landing') && 
+              linkHash === '#blog' && currentHash === '#blog') {
+            link.classList.add('active');
+          }
+          
+          // Special case for blog pages - any page starting with /blog
+          if (currentPath.startsWith('/blog') && link.href.includes('/blog') && !link.href.includes('#blog')) {
+            link.classList.add('active');
+          }
+        });
+      });
+      
+      // Re-check active state on URL changes (for SPA-like navigation)
+      window.addEventListener('popstate', function() {
+        const currentPath = window.location.pathname;
+        const currentHash = window.location.hash;
+        const navLinks = document.querySelectorAll('nav a[href]');
+        
+        navLinks.forEach(link => {
+          const linkPath = new URL(link.href).pathname;
+          const linkHash = new URL(link.href).hash;
+          link.classList.remove('active');
+          
+          if (currentPath === linkPath) {
+            link.classList.add('active');
+          }
+          
+          if ((currentPath === '/' || currentPath === '/landing/' || currentPath === '/landing') && 
+              (link.href.includes('landing') || linkPath === '/')) {
+            link.classList.add('active');
+          }
+          
+          if ((currentPath === '/' || currentPath === '/landing/' || currentPath === '/landing') && 
+              linkHash === '#blog' && currentHash === '#blog') {
+            link.classList.add('active');
+          }
+          
+          if (currentPath.startsWith('/blog') && link.href.includes('/blog') && !link.href.includes('#blog')) {
+            link.classList.add('active');
+          }
+        });
+      });
+      
+      // Update active state on hash change
+      window.addEventListener('hashchange', function() {
+        const currentHash = window.location.hash;
+        const navLinks = document.querySelectorAll('nav a[href]');
+        
+        navLinks.forEach(link => {
+          const linkHash = new URL(link.href).hash;
+          link.classList.remove('active');
+          
+          if (linkHash === currentHash && currentHash) {
+            link.classList.add('active');
+          }
+        });
       });
       </script>
     </body>

@@ -1,24 +1,54 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.urls import reverse
-from .models import Blog, Category, Tag
-from .forms import BlogForm, CategoryForm, TagForm
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+from .models import Blog, Category, Tag, FAQ
+from .forms import BlogForm, CategoryForm, TagForm, FAQFormSet
 from headquater.decorators import require_super_admin
 
 
 def blog_list(request):
     """Display all published blog posts"""
+    # Get search query
+    search_query = request.GET.get('search', '')
+    category_filter = request.GET.get('category', '')
+    
+    # Start with published blogs ordered by most recent first
     blogs = Blog.objects.filter(status=Blog.Status.PUBLISHED).select_related(
         'author', 'category'
-    ).prefetch_related('tags')
+    ).prefetch_related('tags').order_by('-published_at', '-created_at')
+    
+    # Apply search filter
+    if search_query:
+        blogs = blogs.filter(
+            title__icontains=search_query
+        )
+    
+    # Apply category filter
+    if category_filter:
+        blogs = blogs.filter(category__slug=category_filter)
+    
+    # Get featured post (most recent featured post) - only show featured when no filters are applied
+    featured_post = None
+    if not search_query and not category_filter:
+        featured_post = blogs.filter(featured=True).first()
+    
+    # Always show all blogs in the main grid (including featured if it exists)
+    # This ensures that even if there's only one article, it will be shown
+    regular_blogs = blogs
     
     categories = Category.objects.all()
     tags = Tag.objects.all()
     
     context = {
-        'blogs': blogs,
+        'blogs': regular_blogs,
+        'featured_post': featured_post,
         'categories': categories,
         'tags': tags,
+        'search_query': search_query,
+        'category_filter': category_filter,
     }
     return render(request, 'blog/blog_list.html', context)
 
@@ -37,9 +67,13 @@ def blog_detail(request, slug):
         category=blog.category
     ).exclude(id=blog.id)[:3]
     
+    # Get FAQs for this blog post
+    faqs = blog.faqs.all().order_by('order', 'created_at')
+    
     context = {
         'blog': blog,
         'related_posts': related_posts,
+        'faqs': faqs,
     }
     return render(request, 'blog/blog_detail.html', context)
 
@@ -81,7 +115,9 @@ def blog_create(request):
     """Create a new blog post - Super Admin only"""
     if request.method == 'POST':
         form = BlogForm(request.POST, request.FILES)
-        if form.is_valid():
+        faq_formset = FAQFormSet(request.POST)
+        
+        if form.is_valid() and faq_formset.is_valid():
             blog = form.save(commit=False)
             blog.author = request.user
             # Auto-generate slug if not provided (already handled in form clean_slug)
@@ -92,16 +128,41 @@ def blog_create(request):
             
             blog.save()
             form.save_m2m()  # Save many-to-many relationships
+            
+            # Save FAQs
+            faq_formset.instance = blog
+            faqs = faq_formset.save(commit=False)
+            
+            # Set order based on form values (managed by JavaScript drag-and-drop)
+            for faq in faqs:
+                if faq.order is None:
+                    # Fallback to index if order is not set
+                    faq.order = 0
+                faq.save()
+            
+            # Handle deleted FAQs
+            for obj in faq_formset.deleted_objects:
+                obj.delete()
+            
             messages.success(request, 'Blog post created successfully!')
             return redirect('blog:list')
         else:
-            # If form is not valid, the errors will be displayed in the template
-            pass
+            # Debug: print formset errors if any
+            if not faq_formset.is_valid():
+                for form in faq_formset:
+                    for field, errors in form.errors.items():
+                        for error in errors:
+                            messages.error(request, f'FAQ {field} error: {error}')
+                if faq_formset.non_form_errors():
+                    for error in faq_formset.non_form_errors():
+                        messages.error(request, f'FAQ formset error: {error}')
     else:
         form = BlogForm()
+        faq_formset = FAQFormSet()
     
     context = {
         'form': form,
+        'faq_formset': faq_formset,
         'title': 'Create New Blog Post',
         'categories': Category.objects.all(),
         'tags': Tag.objects.all(),
@@ -116,7 +177,9 @@ def blog_edit(request, slug):
     
     if request.method == 'POST':
         form = BlogForm(request.POST, request.FILES, instance=blog)
-        if form.is_valid():
+        faq_formset = FAQFormSet(request.POST, instance=blog)
+        
+        if form.is_valid() and faq_formset.is_valid():
             updated_blog = form.save(commit=False)
             
             # Update published_at if status changed to published
@@ -126,16 +189,40 @@ def blog_edit(request, slug):
             
             updated_blog.save()
             form.save_m2m()
+            
+            # Save FAQs
+            faqs = faq_formset.save(commit=False)
+            
+            # Set order based on form values (managed by JavaScript drag-and-drop)
+            for faq in faqs:
+                if faq.order is None:
+                    # Fallback to index if order is not set
+                    faq.order = 0
+                faq.save()
+            
+            # Handle deleted FAQs
+            for obj in faq_formset.deleted_objects:
+                obj.delete()
+            
             messages.success(request, 'Blog post updated successfully!')
-            return redirect('blog:detail', slug=updated_blog.slug)
+            return redirect('blog:admin_list')
         else:
-            # If form is not valid, the errors will be displayed in the template
-            pass
+            # Debug: print formset errors if any
+            if not faq_formset.is_valid():
+                for form in faq_formset:
+                    for field, errors in form.errors.items():
+                        for error in errors:
+                            messages.error(request, f'FAQ {field} error: {error}')
+                if faq_formset.non_form_errors():
+                    for error in faq_formset.non_form_errors():
+                        messages.error(request, f'FAQ formset error: {error}')
     else:
         form = BlogForm(instance=blog)
+        faq_formset = FAQFormSet(instance=blog)
     
     context = {
         'form': form,
+        'faq_formset': faq_formset,
         'blog': blog,
         'title': 'Edit Blog Post',
         'categories': Category.objects.all(),
@@ -229,3 +316,18 @@ def tag_create(request):
         'title': 'Create New Tag',
     }
     return render(request, 'blog/tag_form.html', context)
+
+
+@require_super_admin
+@csrf_exempt
+def faq_delete(request, faq_id):
+    """Delete a single FAQ via AJAX - Super Admin only"""
+    if request.method == 'POST':
+        try:
+            faq = get_object_or_404(FAQ, id=faq_id)
+            faq.delete()
+            return JsonResponse({'success': True, 'message': 'FAQ deleted successfully'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=400)
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=405)
