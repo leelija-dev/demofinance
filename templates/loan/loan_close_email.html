@@ -58,7 +58,14 @@
         <!-- Optional link to portal (replace href with your actual portal URL) -->
         <!-- <a class="btn" href="https://your-portal.example.com">View details</a> -->
 
-        <p class="footer">This is an automated message. Please do not reply if not required.</p>
+        <p class="footer">
+          {{settings.COMPANY_NAME}}<br/>
+          {{settings.COMPANY_ADDRESS}}<br/>
+          Phone: +91 {{settings.COMPANY_CONTACT}}<br/>
+          Email: {{settings.COMPANY_EMAIL}}<br/>
+          <br/>
+          This is an automated message. Please do not reply if not required.
+        </p>
       </div>
     </div>
   </body>

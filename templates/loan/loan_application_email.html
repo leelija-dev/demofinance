@@ -232,7 +232,11 @@
      {% endif %}
      {% endif %}
     <div class="footer">
-        This is an automated notification from {{settings.COMPANY_NAME.title()}} Loan Management System.
+        <p>{{settings.COMPANY_NAME}}</p>
+        <p>{{settings.COMPANY_ADDRESS}}</p>
+        <p>Phone: +91 {{settings.COMPANY_CONTACT}}</p>
+        <p>Email: {{settings.COMPANY_EMAIL}}</p>
+        <p style="margin-top: 12px;">This is an automated notification from {{settings.COMPANY_NAME.title()}} Loan Management System.</p>
     </div>
 </div>
 </body>

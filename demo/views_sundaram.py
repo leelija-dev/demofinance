@@ -4487,6 +4487,7 @@ def loan_close_request_action(request, request_id):
                     'request_id': lcr.request_id,
                     'approved_at': lcr.approved_at,
                     'branch_name': getattr(lcr.branch, 'branch_name', ''),
+                    'settings': settings,
                 }
                 # HTML and text body
                 html_content = render_to_string('loan/loan_close_email.html', context)

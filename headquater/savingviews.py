@@ -212,7 +212,7 @@ def _send_savings_hq_approved_email_in_background(application_id: str) -> None:
         }
 
         message_text = (
-            "{settings.COMPANY_NAME}\n"
+            f"{settings.COMPANY_NAME}\n"
             "========\n\n"
             "Savings account approved successfully.\n\n"
             f"Application ID: {context['application_id']}\n"

@@ -2191,7 +2191,7 @@ class DisbursementSubmitAPIView(APIView):
 
                 # Create plain text version
                 message_text = (
-                    "{settings.COMPANY_NAME}\n"
+                    f"{settings.COMPANY_NAME}\n"
                     "==================\n\n"
                     "Loan Disbursement Notification\n\n"
                     f"Reference No: {context['loan_ref_no']}\n"
@@ -2201,7 +2201,7 @@ class DisbursementSubmitAPIView(APIView):
                     f"Disbursement Mode: {context['disb_mode']}\n"
                     f"Bank Name: {context['bank_name']}\n"
                     f"Account/UPI: {context['account_number']}\n\n"
-                    "Thank you for choosing {settings.COMPANY_NAME.title()}.\n"
+                    f"Thank you for choosing {settings.COMPANY_NAME.title()}.\n"
                 )
 
                 # Create HTML version

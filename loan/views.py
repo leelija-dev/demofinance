@@ -837,7 +837,7 @@ class NewLoanApplicationAPI(APIView):
                                 'settings':settings,
                             }
                             message_text = (
-                                "{settings.COMPANY_NAME}\n"
+                                f"{settings.COMPANY_NAME}\n"
                                 "=========\n\n"
                                 "A new loan application has been submitted.\n\n"
                                 f"Reference No: {loan_application.loan_ref_no}\n"
