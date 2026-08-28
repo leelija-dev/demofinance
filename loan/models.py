@@ -527,7 +527,7 @@ class LoanCategory(models.Model):
         verbose_name = "Loan Category"
         verbose_name_plural = "Loan Categories"
         ordering = ['name']
-        unique_together = [('main_category', 'name')]
+        # unique_together = [('main_category', 'name')]
     
     def clean(self):
         super().clean()
@@ -544,12 +544,23 @@ class LoanCategory(models.Model):
                 raise ValidationError(
                     "The combination of main_category, name, and created_by must be unique in Demo mode."
                 )
+        else:
+            queryset = LoanCategory.objects.filter(main_category=self.main_category, name=self.name)
+            
+            # Exclude current instance if updating
+            if self.pk:
+                queryset = queryset.exclude(pk=self.pk)
+                
+            if queryset.exists():
+                raise ValidationError(
+                    "The combination of main_category, name already exist."
+                )
 
     def save(self, *args, **kwargs):
-        self.full_clean() # Forces clean() execution before database insertion
         if not self.category_id:
             short_uuid = str(uuid.uuid4())[:8].upper()
             self.category_id = f"LoanCAT-{short_uuid}"
+        self.full_clean() # Forces clean() execution before database insertion
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -577,7 +588,7 @@ class LoanInterest(models.Model):
         verbose_name = "Loan Interest Rate"
         verbose_name_plural = "Loan Interest Rates"
         ordering = ['rate_of_interest']
-        unique_together = [('main_category', 'rate_of_interest')]
+        # unique_together = [('main_category', 'rate_of_interest')]
     
     def clean(self):
         super().clean()
@@ -594,12 +605,25 @@ class LoanInterest(models.Model):
                 raise ValidationError(
                     "The combination of main_category, rate_of_interest, and created_by must be unique in Demo mode."
                 )
+        else:
+            # Standard production strict 2-column constraint
+            queryset = LoanInterest.objects.filter(
+                main_category=self.main_category, 
+                rate_of_interest=self.rate_of_interest
+            )
+            if self.pk:
+                queryset = queryset.exclude(pk=self.pk)
+                
+            if queryset.exists():
+                raise ValidationError(
+                    "Loan Interest Rate with this Main category and Rate of interest already exists."
+                )
 
     def save(self, *args, **kwargs):
-        self.full_clean() # Forces clean() execution before database insertion
         if not self.interest_id:
             short_uuid = str(uuid.uuid4())[:8].upper()
             self.interest_id = f"LoanINT-{short_uuid}"
+        self.full_clean() # Forces clean() execution before database insertion
         super().save(*args, **kwargs)
     
     def __str__(self):
@@ -631,7 +655,7 @@ class LoanTenure(models.Model):
         verbose_name = "Loan Tenure"
         verbose_name_plural = "Loan Tenures"
         ordering = ['value', 'unit']
-        unique_together = [('interest_rate', 'value', 'unit')]
+        # unique_together = [('interest_rate', 'value', 'unit')]
 
     def clean(self):
         super().clean()
@@ -648,12 +672,23 @@ class LoanTenure(models.Model):
                 raise ValidationError(
                     "The combination of interest_rate, value, unit, and created_by must be unique in Demo mode."
                 )
+        else:
+            queryset = LoanTenure.objects.filter(interest_rate=self.interest_rate, value=self.value, unit=self.unit)
+            
+            # Exclude current instance if updating
+            if self.pk:
+                queryset = queryset.exclude(pk=self.pk)
+                
+            if queryset.exists():
+                raise ValidationError(
+                    "The combination of interest_rate, value and unit already exist."
+                )
 
     def save(self, *args, **kwargs):
-        self.full_clean() # Forces clean() execution before database insertion
         if not self.tenure_id:
             short_uuid = str(uuid.uuid4())[:8].upper()
             self.tenure_id = f"TEN-{short_uuid}"
+        self.full_clean() # Forces clean() execution before database insertion
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -739,7 +774,7 @@ class Deductions(models.Model):
     class Meta:
         verbose_name = 'Deduction'
         verbose_name_plural = 'Deductions'
-        unique_together = ('main_category', 'deduction_name', 'deduction_type')
+        # unique_together = ('main_category', 'deduction_name', 'deduction_type')
     
     def clean(self):
         super().clean()
@@ -755,13 +790,24 @@ class Deductions(models.Model):
             if queryset.exists():
                 raise ValidationError(
                     "The combination of main_category, deduction_name, deduction_type, and created_by must be unique in Demo mode."
+                )    
+        else:
+            queryset = LoanTenure.objects.filter(main_category=self.main_category, deduction_name=self.deduction_name, deduction_type=self.deduction_type)
+            
+            # Exclude current instance if updating
+            if self.pk:
+                queryset = queryset.exclude(pk=self.pk)
+                
+            if queryset.exists():
+                raise ValidationError(
+                    "The combination of main_category, deduction_name and deduction_type combination already exist."
                 )        
 
     def save(self, *args, **kwargs):
-        self.full_clean() # Forces clean() execution before database insertion
         if not self.deduction_id:
             short_uuid = str(uuid.uuid4())[:8].upper()
             self.deduction_id = f"DED-{short_uuid}"
+        self.full_clean() # Forces clean() execution before database insertion
         super().save(*args, **kwargs)
     
     def __str__(self):
@@ -942,7 +988,7 @@ class ProductSubCategory(models.Model):
         verbose_name = 'Product Sub Category'
         verbose_name_plural = 'Product Sub Categories'
         ordering = ['name']
-        unique_together = [('main_category', 'name')]
+        # unique_together = [('main_category', 'name')]
     
     def clean(self):
         super().clean()
@@ -958,13 +1004,24 @@ class ProductSubCategory(models.Model):
             if queryset.exists():
                 raise ValidationError(
                     "The combination of main_category, name, and created_by must be unique in Demo mode."
+                )   
+        else:
+            queryset = LoanTenure.objects.filter(main_category=self.main_category, name=self.name)
+            
+            # Exclude current instance if updating
+            if self.pk:
+                queryset = queryset.exclude(pk=self.pk)
+                
+            if queryset.exists():
+                raise ValidationError(
+                    "The combination of main_category and name combination already exist."
                 )                
 
     def save(self, *args, **kwargs):
-        self.full_clean() # Forces clean() execution before database insertion
         if not self.sub_category_id:
             short_uuid = str(uuid.uuid4())[:8].upper()
             self.sub_category_id = f"PRODSUB-{short_uuid}"
+        self.full_clean() # Forces clean() execution before database insertion
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -995,7 +1052,7 @@ class Product(models.Model):
         verbose_name = 'Product'
         verbose_name_plural = 'Products'
         ordering = ['name']
-        unique_together = [('sub_category', 'name')]
+        # unique_together = [('sub_category', 'name')]
     
     def clean(self):
         super().clean()
@@ -1011,15 +1068,26 @@ class Product(models.Model):
             if queryset.exists():
                 raise ValidationError(
                     "The combination of sub_category, name, and created_by must be unique in Demo mode."
+                )      
+        else:
+            queryset = LoanTenure.objects.filter(sub_category=self.sub_category, name=self.name)
+            
+            # Exclude current instance if updating
+            if self.pk:
+                queryset = queryset.exclude(pk=self.pk)
+                
+            if queryset.exists():
+                raise ValidationError(
+                    "The combination of sub_category and name combination already exist."
                 )        
 
         
 
     def save(self, *args, **kwargs):
-        self.full_clean() # Forces clean() execution before database insertion
         if not self.product_id:
             short_uuid = str(uuid.uuid4())[:8].upper()
             self.product_id = f"PROD-{short_uuid}"
+        self.full_clean() # Forces clean() execution before database insertion
         super().save(*args, **kwargs)
 
     def __str__(self):

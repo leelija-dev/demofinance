@@ -32,7 +32,7 @@ from .decorators import (
     require_branch_management_access, require_permissions_for_class, require_permission
 )
 
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.http import HttpResponseForbidden
 from django.views.decorators.http import require_http_methods
 import logging
@@ -3004,21 +3004,32 @@ def loan_management(request):
             modal_title = 'Add Loan Category'
         show_modal = True
         if form.is_valid():
-            cat = form.save(commit=False)
-            cat.created_by = request.user
+            try:
+                cat = form.save(commit=False)
+                cat.created_by = request.user
 
-            if request.POST.get('category_id'):
-                cat.main_category = original_main_category
-            elif selected_main_category:
-                # Always set main_category from URL parameter when creating new category
-                # This ensures it's set even when the form field is disabled
-                cat.main_category = selected_main_category
+                if request.POST.get('category_id'):
+                    cat.main_category = original_main_category
+                elif selected_main_category:
+                    # Always set main_category from URL parameter when creating new category
+                    # This ensures it's set even when the form field is disabled
+                    cat.main_category = selected_main_category
 
-            cat.save()
-            messages.success(request, f"Loan category {modal_action.lower()}ed successfully!")
-            if selected_main_category_id:
-                return redirect(f"/hq/loan-manage/management/?main_category={selected_main_category_id}")
-            return redirect('hq:loan_management')
+                cat.save()
+                messages.success(request, f"Loan category {modal_action.lower()}ed successfully!")
+                if selected_main_category_id:
+                    return redirect(f"/hq/loan-manage/management/?main_category={selected_main_category_id}")
+                return redirect('hq:loan_management')
+                
+            except ValidationError as e:
+                # Extracts the specific clean() messages and passes them to the UI
+                if hasattr(e, 'message_dict'):
+                    for field, errors in e.message_dict.items():
+                        for error in errors:
+                            messages.error(request, f"{error}")
+                else:
+                    for error in e.messages:
+                        messages.error(request, f"{error}")
         else:
             messages.error(request, "Failed to save loan category. Please check the form.")
             # If there's a validation error and we have a selected main category, 
@@ -3077,6 +3088,16 @@ def loan_management(request):
                 if selected_main_category_id:
                     return redirect(f"/hq/loan-manage/management/?main_category={selected_main_category_id}")
                 return redirect('hq:loan_management')
+                
+            except ValidationError as e:
+                # Extracts the specific clean() messages and passes them to the UI
+                if hasattr(e, 'message_dict'):
+                    for field, errors in e.message_dict.items():
+                        for error in errors:
+                            messages.error(request, f"{error}")
+                else:
+                    for error in e.messages:
+                        messages.error(request, f"{error}")
             except IntegrityError as e:
                 if 'loan_loaninterest_main_category_id_rate_of_f2429aff_uniq' in str(e):
                     messages.error(request, "This interest rate already exists for the selected main category. Please use a different interest rate.")
@@ -3118,13 +3139,24 @@ def loan_management(request):
             tenure_modal_title = 'Add Loan Tenure'
         show_tenure_modal = True
         if tenure_form.is_valid():
-            obj = tenure_form.save(commit=False)
-            obj.created_by = request.user
-            obj.save()
-            messages.success(request, f"Loan tenure {tenure_modal_action.lower()}ed successfully!")
-            if selected_main_category_id:
-                return redirect(f"/hq/loan-manage/management/?main_category={selected_main_category_id}")
-            return redirect('hq:loan_management')
+            try:
+                obj = tenure_form.save(commit=False)
+                obj.created_by = request.user
+                obj.save()
+                messages.success(request, f"Loan tenure {tenure_modal_action.lower()}ed successfully!")
+                if selected_main_category_id:
+                    return redirect(f"/hq/loan-manage/management/?main_category={selected_main_category_id}")
+                return redirect('hq:loan_management')
+                
+            except ValidationError as e:
+                # Extracts the specific clean() messages and passes them to the UI
+                if hasattr(e, 'message_dict'):
+                    for field, errors in e.message_dict.items():
+                        for error in errors:
+                            messages.error(request, f"{error}")
+                else:
+                    for error in e.messages:
+                        messages.error(request, f"{error}")
         else:
             messages.error(request, "Failed to save loan tenure. Please check the form.")
     elif tenure_id:
