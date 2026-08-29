@@ -3194,13 +3194,23 @@ def loan_management(request):
             if selected_main_category:
                 deduction_form.instance.main_category = selected_main_category
             if deduction_form.is_valid():
-                obj = deduction_form.save(commit=False)
-                obj.created_by = request.user
-                obj.save()
-                messages.success(request, f"Deduction {deduction_modal_action.lower()}ed successfully!")
-                if selected_main_category_id:
-                    return redirect(f"/hq/loan-manage/management/?main_category={selected_main_category_id}")
-                return redirect('hq:loan_management')
+                try:
+                    obj = deduction_form.save(commit=False)
+                    obj.created_by = request.user
+                    obj.save()
+                    messages.success(request, f"Deduction {deduction_modal_action.lower()}ed successfully!")
+                    if selected_main_category_id:
+                        return redirect(f"/hq/loan-manage/management/?main_category={selected_main_category_id}")
+                    return redirect('hq:loan_management')
+                except ValidationError as e:
+                    # Extracts the specific clean() messages and passes them to the UI
+                    if hasattr(e, 'message_dict'):
+                        for field, errors in e.message_dict.items():
+                            for error in errors:
+                                messages.error(request, f"{error}")
+                    else:
+                        for error in e.messages:
+                            messages.error(request, f"{error}")
 
             else:
                 messages.error(request, "Failed to save deduction. Please check the form.")

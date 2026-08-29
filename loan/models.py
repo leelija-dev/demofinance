@@ -781,7 +781,7 @@ class Deductions(models.Model):
         
         # Enforce the 3-column constraint in application logic if IS_DEMO is True
         if getattr(settings, 'IS_DEMO', False):
-            queryset = LoanTenure.objects.filter(main_category=self.main_category, deduction_name=self.deduction_name, deduction_type=self.deduction_type, created_by=self.created_by)
+            queryset = Deductions.objects.filter(main_category=self.main_category, deduction_name=self.deduction_name, deduction_type=self.deduction_type, created_by=self.created_by)
             
             # Exclude current instance if updating
             if self.pk:
@@ -792,7 +792,7 @@ class Deductions(models.Model):
                     "The combination of main_category, deduction_name, deduction_type, and created_by must be unique in Demo mode."
                 )    
         else:
-            queryset = LoanTenure.objects.filter(main_category=self.main_category, deduction_name=self.deduction_name, deduction_type=self.deduction_type)
+            queryset = Deductions.objects.filter(main_category=self.main_category, deduction_name=self.deduction_name, deduction_type=self.deduction_type)
             
             # Exclude current instance if updating
             if self.pk:
@@ -995,7 +995,7 @@ class ProductSubCategory(models.Model):
         
         # Enforce the 3-column constraint in application logic if IS_DEMO is True
         if getattr(settings, 'IS_DEMO', False):
-            queryset = LoanTenure.objects.filter(main_category=self.main_category, name=self.name, created_by=self.created_by)
+            queryset = ProductSubCategory.objects.filter(main_category=self.main_category, name=self.name, created_by=self.created_by)
             
             # Exclude current instance if updating
             if self.pk:
@@ -1006,7 +1006,7 @@ class ProductSubCategory(models.Model):
                     "The combination of main_category, name, and created_by must be unique in Demo mode."
                 )   
         else:
-            queryset = LoanTenure.objects.filter(main_category=self.main_category, name=self.name)
+            queryset = ProductSubCategory.objects.filter(main_category=self.main_category, name=self.name)
             
             # Exclude current instance if updating
             if self.pk:
@@ -1059,7 +1059,7 @@ class Product(models.Model):
         
         # Enforce the 3-column constraint in application logic if IS_DEMO is True
         if getattr(settings, 'IS_DEMO', False):
-            queryset = LoanTenure.objects.filter(sub_category=self.sub_category, name=self.name, created_by=self.created_by)
+            queryset = Product.objects.filter(sub_category=self.sub_category, name=self.name, created_by=self.created_by)
             
             # Exclude current instance if updating
             if self.pk:
@@ -1070,7 +1070,7 @@ class Product(models.Model):
                     "The combination of sub_category, name, and created_by must be unique in Demo mode."
                 )      
         else:
-            queryset = LoanTenure.objects.filter(sub_category=self.sub_category, name=self.name)
+            queryset = Product.objects.filter(sub_category=self.sub_category, name=self.name)
             
             # Exclude current instance if updating
             if self.pk:
