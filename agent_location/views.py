@@ -122,10 +122,20 @@ class HQAgentLocationMapView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['branches'] = Branch.objects.all().order_by('branch_name')
+        
+        # Filter branches based on trial admin restrictions
+        if hasattr(self.request.user, 'trial_expiry_date') and self.request.user.trial_expiry_date:
+            # Trial admin can only see branches they created
+            branches = Branch.objects.filter(created_by=self.request.user).order_by('branch_name')
+        else:
+            # Regular admin can see all branches
+            branches = Branch.objects.all().order_by('branch_name')
+        
+        context['branches'] = branches
         context['selected_branch_id'] = (self.request.GET.get('branch_id') or '').strip()
         context['api_url'] = '/hq/agent-location/api/locations/'
         context['portal'] = 'hq'
+        context['is_trial_admin'] = hasattr(self.request.user, 'trial_expiry_date') and self.request.user.trial_expiry_date is not None
         return context
 
 
@@ -141,12 +151,45 @@ class HQAgentLocationListAPI(LoginRequiredMixin, View):
         status_filter = request.GET.get('status', 'active')
         search = request.GET.get('q', '')
         branch_id = (request.GET.get('branch_id') or '').strip()
-        agents = list_agent_locations(
-            branch=None,
-            branch_id=branch_id or None,
-            status=status_filter,
-            search=search,
-        )
+        
+        # For trial admin, restrict to branches they created
+        if hasattr(request.user, 'trial_expiry_date') and request.user.trial_expiry_date:
+            # If branch_id is provided, verify it belongs to the trial admin
+            if branch_id:
+                try:
+                    branch = Branch.objects.get(branch_id=branch_id, created_by=request.user)
+                    agents = list_agent_locations(
+                        branch=branch,
+                        branch_id=branch_id,
+                        status=status_filter,
+                        search=search,
+                    )
+                except Branch.DoesNotExist:
+                    # Trial admin trying to access a branch they didn't create
+                    return JsonResponse({'success': False, 'message': 'Branch not found.'}, status=404)
+            else:
+                # No branch filter, but restrict to trial admin's branches
+                # We need to get all branches created by this trial admin
+                trial_branch_ids = Branch.objects.filter(created_by=request.user).values_list('branch_id', flat=True)
+                # For now, return empty if no branch filter for trial admin
+                # Or we could aggregate across all their branches
+                agents = list_agent_locations(
+                    branch=None,
+                    branch_id=None,
+                    status=status_filter,
+                    search=search,
+                )
+                # Filter agents to only those from trial admin's branches
+                agents = [agent for agent in agents if agent.get('branch_id') in trial_branch_ids]
+        else:
+            # Regular admin can see all branches
+            agents = list_agent_locations(
+                branch=None,
+                branch_id=branch_id or None,
+                status=status_filter,
+                search=search,
+            )
+        
         return JsonResponse({
             'success': True,
             'agents': agents,
