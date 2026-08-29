@@ -52,14 +52,15 @@
        'manualMessageCenter': 'Notifications',
        'BranchManagement': 'BranchManagement',
        'AgentManagement': 'AgentManagement',
+       'AgentLocations': 'AgentManagement',
        'CustomerManagement': 'CustomerManagement',
        'LoanCloseManagement': 'LoanCloseManagement',
-      'BlogManagement': 'BlogManagement',
-      'BlogAdminList': 'BlogManagement',
-      'BlogCreate': 'BlogManagement',
-      'CategoryCreate': 'BlogManagement',
-      'TagCreate': 'BlogManagement',
-      'BlogPublicList': 'BlogManagement',
+       'BlogManagement': 'BlogManagement',
+       'BlogAdminList': 'BlogManagement',
+       'BlogCreate': 'BlogManagement',
+       'CategoryCreate': 'BlogManagement',
+       'TagCreate': 'BlogManagement',
+       'BlogPublicList': 'BlogManagement',
      },
      init() {
        let persisted = localStorage.getItem('branchSidebarSelected');
@@ -242,6 +243,9 @@ x-init="init()"
               <ul :class="sidebarToggle ? 'lg:hidden' : 'flex'" class="flex flex-col gap-1 mt-2 menu-dropdown pl-9">
                 <li>
                   <a href="{% url 'hq:hq_agent_list' %}" class="menu-dropdown-item group" :class="page === 'AgentManagement' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">Agent List</a>
+                </li>
+                <li>
+                  <a href="{% url 'hq:agent_location_map' %}" class="menu-dropdown-item group" :class="page === 'AgentLocations' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'">Agent Locations</a>
                 </li>
               </ul>
             </div>

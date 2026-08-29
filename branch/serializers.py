@@ -9,37 +9,39 @@ from loan.models import EmiCollectionDetail
 from savings.models import SavingsCollection
 
 class AgentSerializer(serializers.ModelSerializer):
-    photo = serializers.ImageField(max_length=None, use_url=True, required=False)
-    id_proof = serializers.ImageField(max_length=None, use_url=True, required=False)
+    photo = serializers.SerializerMethodField()
+    id_proof = serializers.SerializerMethodField()
     password = serializers.CharField(write_only=True, required=False)
     branch = serializers.PrimaryKeyRelatedField(queryset=Agent._meta.get_field('branch').related_model.objects.all(), required=False)
     unverified_collected_amount = serializers.SerializerMethodField()
 
     class Meta:
         model = Agent
-        fields = ['agent_id', 'full_name', 'email', 'phone', 'area', 'id_proof', 'photo', 'status', 'is_demo', 'password', 'branch', 'unverified_collected_amount']
+        fields = ['agent_id', 'full_name', 'email', 'phone', 'area', 'status', 'is_demo', 'password', 'branch', 'unverified_collected_amount', 'photo', 'id_proof']
         read_only_fields = ['agent_id']
+
+    def get_photo(self, obj):
+        try:
+            photo = getattr(obj, 'photo', None)
+            if photo and hasattr(photo, 'name') and photo.name:
+                # Return the file name instead of URL to avoid Cloudinary issues
+                return str(photo.name)
+        except Exception:
+            pass
+        return None
+
+    def get_id_proof(self, obj):
+        try:
+            id_proof = getattr(obj, 'id_proof', None)
+            if id_proof and hasattr(id_proof, 'name') and id_proof.name:
+                # Return the file name instead of URL to avoid Cloudinary issues
+                return str(id_proof.name)
+        except Exception:
+            pass
+        return None
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        photo = getattr(instance, 'photo', None)
-        if photo:
-            # path = photo.name
-            # if path.startswith('media/'):
-            #     path = path[6:]
-            # data['photo'] = f'/media/{path}'
-            data['photo'] = photo.url
-        else:
-            data['photo'] = None
-        id_proof = getattr(instance, 'id_proof', None)
-        if id_proof:
-            # path = id_proof.name
-            # if path.startswith('media/'):
-            #     path = path[6:]
-            # data['id_proof'] = f'/media/{path}'
-            data['id_proof'] = id_proof.url
-        else:
-            data['id_proof'] = None
         return data
 
     def get_unverified_collected_amount(self, obj):

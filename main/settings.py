@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     'headquater.apps.HeadquaterConfig',
     'branch.apps.BranchConfig',
     'agent.apps.AgentConfig',
+    'agent_location.apps.AgentLocationConfig',
     'loan.apps.LoanConfig',
     'savings.apps.SavingsConfig',
     'data_import.apps.DataImportConfig',

@@ -129,6 +129,7 @@ from .empview import (
 )
 
 from agent.views_shop import ShopView, ShopDetailView, ShopBankAccountCreateAPI, ShopCreateAPI, ShopAssignAgentAPI, BranchAgentsAPI
+from agent_location import views as agent_location_views
 app_name = 'branch'
 
 # handler403 = permission_denied_view
@@ -353,4 +354,10 @@ urlpatterns += [
     path('savings/api/application/<str:application_id>/pdf/', SavingsApplicationPDFDownloadAPI.as_view(), name='api_savings_application_pdf'),
     path('savings/api/customer-lookup/', BranchCustomerLookupAPI.as_view(), name='api_savings_customer_lookup'),
     path('savings/api/master-data/', BranchSavingsMasterDataAPI.as_view(), name='api_savings_master_data'),
+]
+
+# Agent location tracking for branch portal
+urlpatterns += [
+    path('agent-location/', agent_location_views.BranchAgentLocationMapView.as_view(), name='agent_location_map'),
+    path('agent-location/api/locations/', agent_location_views.BranchAgentLocationListAPI.as_view(), name='agent_location_api'),
 ]

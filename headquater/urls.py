@@ -37,6 +37,7 @@ from .savingviews import (
     HQSavingsSurrenderAccountDetailView,
 )
 from loan.views import LoanNocPDF, LoanCategoryListAPI
+from agent_location import views as agent_location_views
 
 # from branch.views import RepaymentView, upcomingEMIView, EmiScheduleView, upcomingEMIAPIView
 
@@ -161,4 +162,10 @@ urlpatterns += [
 
 urlpatterns += [
     path('generate-loan-pdf/<str:loan_ref_no>/', generate_loan_pdf, name='generate_loan_pdf'),
+]
+
+# Agent location tracking for HQ portal
+urlpatterns += [
+    path('agent-location/', agent_location_views.HQAgentLocationMapView.as_view(), name='agent_location_map'),
+    path('agent-location/api/locations/', agent_location_views.HQAgentLocationListAPI.as_view(), name='agent_location_api'),
 ]

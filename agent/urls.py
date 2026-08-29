@@ -30,6 +30,7 @@ from loan.viewsapi import AssignedEmiListAPIView, OverdueEmiList
 from loan.viewsapp_cards import AutoPaymentCheckoutView, AutoPaymentSuccessView, NewLoanApplicationCardsView
 from loan.viewsapi_v2 import NewLoanApplicationAPIV2, ShopBankAccountsAPI
 from loan.otp_apis import PANVerificationAPI, SendMobileOTPAPI, VerifyMobileOTPAPI, SendAadhaarOTPAPI, VerifyAadhaarOTPAPI
+from agent_location import views as agent_location_views
 
 from savings.views import (
     AgentSavingsCollectionsAccountsListView,
@@ -187,4 +188,9 @@ urlpatterns += [
     path('api/edit-customer/<str:customer_id>/', LoanApplicationEdit.as_view(), name='api_edit_customer'),
     path('services/auto-payment/', AutoPaymentCheckoutView.as_view(), name='auto_payment'),
     path('services/auto-payment/success/', AutoPaymentSuccessView.as_view(), name='auto_payment_success'),
+]
+
+# Agent location tracking for agent portal
+urlpatterns += [
+    path('location/api/ping/', agent_location_views.AgentLocationPingAPI.as_view(), name='agent_location_ping'),
 ]
