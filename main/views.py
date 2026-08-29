@@ -3,21 +3,24 @@ from django.shortcuts import render
 from django.views import View
 from django.contrib import messages
 from django.utils import timezone
+from django.conf import settings
 from headquater.models import HeadquarterEmployee
 from blog.models import Blog
 
 def landing_page(request):
-    # Get featured blog posts for the landing page
-    featured_blogs = Blog.objects.filter(
-        status=Blog.Status.PUBLISHED,
-        featured=True
-    ).select_related('author', 'category')[:3]
-    
-    # If no featured blogs, get the latest 3 published blogs
-    if not featured_blogs:
+    # Get featured blog posts for the landing page (only in non-demo mode)
+    featured_blogs = []
+    if not getattr(settings, 'IS_DEMO', False):
         featured_blogs = Blog.objects.filter(
-            status=Blog.Status.PUBLISHED
+            status=Blog.Status.PUBLISHED,
+            featured=True
         ).select_related('author', 'category')[:3]
+        
+        # If no featured blogs, get the latest 3 published blogs
+        if not featured_blogs:
+            featured_blogs = Blog.objects.filter(
+                status=Blog.Status.PUBLISHED
+            ).select_related('author', 'category')[:3]
     
     context = {
         'featured_blogs': featured_blogs,

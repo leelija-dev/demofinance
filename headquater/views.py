@@ -4798,6 +4798,7 @@ def hq_dashboard_data(request):
     """
     from calendar import monthrange, month_abbr
     from headquater.models import Branch
+    from django.db.models import Q
     now = timezone.now()
     tz = timezone.get_current_timezone()
 
@@ -4980,7 +4981,7 @@ def hq_dashboard_data(request):
     emi_scheduled_series = []
     emi_collected_series = []
 
-    from django.db.models import Sum, Q
+    from django.db.models import Sum
     from loan.models import LoanEMISchedule, EmiCollectionDetail
 
     if time_range == 'year':

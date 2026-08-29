@@ -47,7 +47,9 @@
               <div class="hidden slg:flex items-center space-x-8">
                 <a href="{% url 'landing' %}" class="hover:text-blue-600">Home</a>
                 <a id="about-us-link" href="#about-us" class="hover:text-blue-600">About Us</a>
+                {% if not settings.IS_DEMO %}
                 <a id="blog-link" href="#blog" class="hover:text-blue-600">Blog</a>
+                {% endif %}
                 <a href="#contact-us" class="block hover:text-blue-600">Contact Us</a>
               </div>
               <!-- Contact -->
@@ -99,7 +101,9 @@
         <nav class="p-4 space-y-4">
           <a href="{% url 'landing' %}" class="block hover:text-blue-600">Home</a>
           <a href="#about-us" class="block hover:text-blue-600">About Us</a>
+          {% if not settings.IS_DEMO %}
           <a id="blog-link-mobile" href="#blog" class="block hover:text-blue-600">Blog</a>
+          {% endif %}
           <a href="#contact-us" class="block hover:text-blue-600">Contact Us</a>
         </nav>
         <div class="p-4 mt-4 border-t">
@@ -781,7 +785,7 @@
           </div>
         </div>
       </section>
-      {% if featured_blogs %}
+      {% if featured_blogs and not settings.IS_DEMO %}
       <section id="blog" class="px-6 slg:py-24 py-10 bg-[#f8f8f8] min-h-screen h-auto flex justify-center items-center">
         <div class="container mx-auto">
           <div class="w-full slg:mb-14 mb-6">

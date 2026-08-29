@@ -540,6 +540,7 @@ x-init="init()"
         </ul>
       </div>
 
+      {% if user.is_superuser and not user.trial_expiry_date and not settings.IS_DEMO %}
       <div>
         <h3 class="mb-4 text-xs uppercase leading-[20px] text-gray-400">
           <span
@@ -568,7 +569,7 @@ x-init="init()"
         </h3>
 
         <ul class="flex flex-col gap-4 mb-6">
-          {% if user.is_superuser %}
+          {% if user.is_superuser and not user.trial_expiry_date and not settings.IS_DEMO %}
           <li>
             <a href="#" @click="selectMenu('BlogManagement')" class="menu-item group" :class="(selected === 'BlogManagement') ? 'menu-item-active' : 'menu-item-inactive'">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="(selected === 'BlogManagement') ? 'menu-item-icon-active' : 'menu-item-icon-inactive'">
@@ -591,5 +592,6 @@ x-init="init()"
           {% endif %}
         </ul>
       </div>
+      {% endif %}
   </div>
 </aside>
