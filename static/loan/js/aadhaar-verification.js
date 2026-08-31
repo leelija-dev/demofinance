@@ -361,11 +361,11 @@ class AadhaarVerification {
                     this.showCustomerDetailsPopup(data.customer_data, data.loan_history, data.customer_blocked);
                 } else {
                     // Proceed with OTP verification
-                    this.mockAadhaarVerification();
-                    // this.otpSent = true;
-                    // this.showSuccess('OTP sent to your Aadhaar-linked mobile number');
-                    // this.startCountdown();
-                    // this.showOTPSection();
+                    // this.mockAadhaarVerification();
+                    this.otpSent = true;
+                    this.showSuccess('OTP sent to your Aadhaar-linked mobile number');
+                    this.startCountdown();
+                    this.showOTPSection();
                 }
             } else {
                 const isNewApplicationCardsFlow = window.location && window.location.pathname && window.location.pathname.includes('new-application-cards');
@@ -885,8 +885,8 @@ class AadhaarVerification {
                 this.closeCustomerModal();
                 // Populate data to Alpine variables
                 this.populateExistingCustomerData(customerData);
-                // this.sendOTP(true);
-                this.mockAadhaarVerification();
+                this.sendOTP(true);
+                // this.mockAadhaarVerification();
 
                 setTimeout(() => {
                     this.moveToNextStep();
