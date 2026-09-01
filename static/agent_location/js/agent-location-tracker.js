@@ -5,8 +5,9 @@
 (function () {
   'use strict';
 
-  // Only run on agent portal pages (including login for permission request)
+  // Only run on agent portal pages (excluding login)
   if (!window.location.pathname.startsWith('/agent/')) return;
+  if (window.location.pathname.indexOf('/agent/login') === 0) return;
   if (!navigator.geolocation) return;
 
   const PING_URL = '/agent/location/api/ping/';
@@ -15,7 +16,6 @@
 
   let timer = null;
   let inFlight = false;
-  const isLoginPage = window.location.pathname.indexOf('/agent/login') === 0;
 
   function getCookie(name) {
     const value = `; ${document.cookie}`;
@@ -77,34 +77,12 @@
 
   document.addEventListener('visibilitychange', function () {
     if (document.hidden) stop();
-    else if (!isLoginPage) start();
+    else start();
   });
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() {
-      if (isLoginPage) {
-        // On login page, only request permission once (no interval)
-        navigator.geolocation.getCurrentPosition(function() {}, function() {}, {
-          enableHighAccuracy: true,
-          timeout: 15000,
-          maximumAge: 60000,
-        });
-      } else {
-        // On other pages, start full tracking
-        start();
-      }
-    });
+    document.addEventListener('DOMContentLoaded', start);
   } else {
-    if (isLoginPage) {
-      // On login page, only request permission once (no interval)
-      navigator.geolocation.getCurrentPosition(function() {}, function() {}, {
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 60000,
-      });
-    } else {
-      // On other pages, start full tracking
-      start();
-    }
+    start();
   }
 })();
