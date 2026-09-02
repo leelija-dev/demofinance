@@ -1,0 +1,478 @@
+/* Equifax IDCR credit report — modal view + A4 print/PDF */
+
+/* Spacing scale: 4 / 6 / 8 / 10 / 12 / 16 px */
+.idcr-report {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    line-height: 1.4;
+    color: #111;
+    background: #fff;
+    width: 100%;
+    max-width: 210mm;
+    margin: 0 auto;
+    padding: 4px 8px 12px;
+}
+
+.idcr-report * {
+    box-sizing: border-box;
+}
+
+.idcr-mock-banner {
+    padding: 8px 12px;
+    margin: 0 0 12px;
+    background: #fff7ed;
+    color: #c2410c;
+    font-size: 10px;
+    border: 1px solid #fed7aa;
+    border-radius: 4px;
+}
+
+.idcr-header {
+    padding: 0 0 8px;
+    margin: 0 0 12px;
+    border-bottom: 2px solid #003A70;
+}
+
+.idcr-header-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px 16px;
+}
+
+.idcr-print-datetime {
+    font-size: 10px;
+    font-weight: 600;
+    color: #444;
+    text-align: right;
+    margin: 0;
+    padding: 0;
+    line-height: 1.5;
+    flex-shrink: 0;
+}
+
+.idcr-print-date-line,
+.idcr-print-time-line {
+    white-space: nowrap;
+}
+
+.idcr-print-lbl {
+    font-weight: 600;
+    color: #333;
+}
+
+.idcr-header-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #111;
+    margin: 0;
+    padding: 0;
+}
+
+.idcr-header-sub {
+    font-size: 11px;
+    font-weight: 600;
+    color: #003A70;
+    margin: 4px 0 0;
+    padding: 0;
+}
+
+.idcr-section {
+    margin: 0 0 12px;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.idcr-section:last-child {
+    margin-bottom: 0;
+}
+
+.idcr-section-compact {
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+
+.idcr-section-flow {
+    break-inside: auto;
+    page-break-inside: auto;
+}
+
+.idcr-section-hd {
+    padding: 7px 12px;
+    margin: 0;
+    background: #003A70;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.3;
+    break-after: avoid;
+    page-break-after: avoid;
+}
+
+.idcr-section-bd {
+    padding: 10px 12px;
+    margin: 0;
+    background: #fff;
+}
+
+.idcr-top-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 0 0 12px;
+    align-items: stretch;
+}
+
+.idcr-top-row .idcr-section {
+    margin-bottom: 0;
+    height: 100%;
+}
+
+.idcr-cols-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px 12px;
+}
+
+.idcr-cols-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px 10px;
+}
+
+.idcr-kv {
+    font-size: 10px;
+    padding: 2px 0;
+    margin: 0;
+    word-break: break-word;
+}
+
+.idcr-kv-lbl {
+    color: #666;
+}
+
+.idcr-kv-val {
+    color: #111;
+    font-weight: 600;
+}
+
+.idcr-table-wrap {
+    overflow-x: auto;
+    margin: 0;
+    padding: 0;
+}
+
+.idcr-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10px;
+    table-layout: auto;
+    margin: 0;
+}
+
+.idcr-table th {
+    background: #003A70;
+    color: #fff;
+    font-weight: 600;
+    text-align: left;
+    padding: 6px 10px;
+    border: 1px solid #999;
+}
+
+.idcr-table td {
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    color: #111;
+    vertical-align: top;
+    word-break: break-word;
+}
+
+.idcr-table tr:nth-child(even) td {
+    background: #f9f9f9;
+}
+
+.idcr-score-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px 24px;
+    align-items: flex-start;
+    padding: 2px 0;
+}
+
+.idcr-score-num {
+    font-size: 32px;
+    font-weight: 700;
+    color: #003A70;
+    line-height: 1;
+    margin: 0 0 6px;
+    padding: 0;
+}
+
+.idcr-badge {
+    display: inline-block;
+    margin: 0;
+    padding: 3px 10px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #fff;
+    border-radius: 10px;
+}
+
+.idcr-account {
+    border: 1px solid #ccc;
+    border-top: 3px solid #003A70;
+    padding: 10px 12px;
+    margin: 0 0 10px;
+    break-inside: auto;
+    page-break-inside: auto;
+}
+
+.idcr-account:last-child {
+    margin-bottom: 0;
+}
+
+.idcr-account-hd {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin: 0 0 8px;
+    padding: 0 0 8px;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.idcr-ph-title {
+    font-size: 10px;
+    font-weight: 700;
+    color: #003A70;
+    margin: 8px 0 6px;
+    padding: 0;
+    break-after: avoid;
+    page-break-after: avoid;
+}
+
+.idcr-ph-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8.5px;
+    margin: 0 0 6px;
+    table-layout: fixed;
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+
+.idcr-ph-table:last-child {
+    margin-bottom: 0;
+}
+
+.idcr-ph-table td {
+    border: 1px solid #ccc;
+    padding: 3px 4px;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.idcr-ph-label {
+    background: #e8e8e8;
+    font-weight: 600;
+    text-align: left;
+    white-space: nowrap;
+    padding: 3px 6px !important;
+    width: 108px;
+}
+
+.idcr-ph-month {
+    background: #f0f0f0;
+    font-weight: 600;
+}
+
+.idcr-ph-bad {
+    color: #dc2626;
+    font-weight: 700;
+}
+
+.idcr-empty {
+    font-size: 10px;
+    color: #666;
+    margin: 0;
+    padding: 4px 0;
+}
+
+/* Print window shell (Save as PDF / window.print) */
+body.idcr-print-body {
+    margin: 0;
+    padding: 0;
+    background: #fff;
+}
+
+/* Inner frame — always applies edge spacing even when print dialog Margins = None */
+.idcr-print-frame {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 210mm;
+    margin: 0 auto;
+    padding: 12mm 10mm;
+    background: #fff;
+}
+
+/* Modal container — align inner report padding with dialog */
+#creditReportModalBody {
+    padding: 16px 20px 20px !important;
+}
+
+#creditReportModalBody .idcr-report {
+    padding: 0;
+    max-width: 100%;
+}
+
+/* Print / Save-as-PDF */
+@media print {
+    @page {
+        size: A4 portrait;
+        margin: 0;
+    }
+
+    html.idcr-print-root,
+    body.idcr-print-body {
+        width: auto !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+    }
+
+    /* Content inset — works when browser print Margins is set to None */
+    .idcr-print-frame {
+        box-sizing: border-box !important;
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 12mm 10mm !important;
+        background: #fff !important;
+    }
+
+    .idcr-report {
+        max-width: none !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .idcr-mock-banner {
+        margin-bottom: 10px;
+        padding: 6px 10px;
+    }
+
+    .idcr-header {
+        margin-bottom: 10px;
+        padding-bottom: 6px;
+    }
+
+    .idcr-header-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 8px 12px;
+    }
+
+    .idcr-print-datetime {
+        font-size: 9px;
+        color: #444 !important;
+        text-align: right !important;
+        line-height: 1.45;
+    }
+
+    .idcr-mock-banner {
+        display: none !important;
+    }
+
+    .idcr-section {
+        margin-bottom: 10px;
+    }
+
+    .idcr-section-hd {
+        padding: 6px 10px;
+    }
+
+    .idcr-section-bd {
+        padding: 8px 10px;
+    }
+
+    .idcr-section-flow .idcr-section-bd {
+        padding: 8px 10px 10px;
+    }
+
+    .idcr-top-row {
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+
+    .idcr-cols-3 {
+        gap: 8px 10px;
+    }
+
+    .idcr-cols-4 {
+        gap: 6px 8px;
+    }
+
+    .idcr-section-hd,
+    .idcr-table th {
+        background: #003A70 !important;
+        color: #fff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .idcr-top-row,
+    .idcr-cols-3 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .idcr-cols-4 {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .idcr-table-wrap {
+        overflow: visible !important;
+    }
+
+    .idcr-table th,
+    .idcr-table td {
+        padding: 5px 8px;
+    }
+
+    .idcr-account {
+        padding: 8px 10px;
+        margin-bottom: 8px;
+    }
+
+    .idcr-account-hd {
+        margin-bottom: 6px;
+        padding-bottom: 6px;
+    }
+
+  /* Keep section header with body when a page break occurs */
+    .idcr-section-hd {
+        break-after: avoid;
+        page-break-after: avoid;
+    }
+
+    .idcr-ph-table {
+        width: 100% !important;
+        font-size: 8px;
+        margin-bottom: 5px;
+    }
+
+    .idcr-ph-table td {
+        padding: 2px 3px;
+    }
+
+    .idcr-ph-label {
+        padding: 2px 5px !important;
+        width: 100px;
+    }
+}

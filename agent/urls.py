@@ -29,7 +29,7 @@ from loan.views import (
 from loan.viewsapi import AssignedEmiListAPIView, OverdueEmiList
 from loan.viewsapp_cards import AutoPaymentCheckoutView, AutoPaymentSuccessView, NewLoanApplicationCardsView
 from loan.viewsapi_v2 import NewLoanApplicationAPIV2, ShopBankAccountsAPI
-from loan.otp_apis import PANVerificationAPI, SendMobileOTPAPI, VerifyMobileOTPAPI, SendAadhaarOTPAPI, VerifyAadhaarOTPAPI
+from loan.otp_apis import PANVerificationAPI, SendMobileOTPAPI, VerifyMobileOTPAPI, SendAadhaarOTPAPI, VerifyAadhaarOTPAPI, CreditBureauPreCheckAPI
 from agent_location import views as agent_location_views
 
 from savings.views import (
@@ -126,6 +126,9 @@ urlpatterns = [
     path('api/get-draft/', GetDraftAPI.as_view(), name='get_draft'),
     path('api/delete-draft/', DeleteDraftAPI.as_view(), name='delete_draft'),
     path('api/verify-bank-account/', BankAccountVerificationAPI.as_view(), name='verify_bank_account'),
+
+    # credit bureau check #
+    path('api/credit-precheck/', CreditBureauPreCheckAPI.as_view(), name='credit_precheck'),
 ]
 
 urlpatterns += [

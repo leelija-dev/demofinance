@@ -270,6 +270,27 @@ COMPANY_LOGO_TRANSPARENT_URL = f"main/images/{COMPANY_LOGO_TRANSPARENT}"
 
 IS_DEMO = os.environ.get('IS_DEMO', 'False').strip().lower() == "true"
 
+
+
+
+# Surepass Credit Bureau API
+SUREPASS_API_TOKEN = os.environ.get('SUREPASS_API_TOKEN', '')
+SUREPASS_API_BASE_URL = os.environ.get('SUREPASS_API_BASE_URL', 'https://kyc-api.surepass.app')
+SUREPASS_EQUIFAX_ENDPOINT = os.environ.get('SUREPASS_EQUIFAX_ENDPOINT', '/api/v1/credit-report-v2/fetch-report')
+SUREPASS_CIBIL_ENDPOINT = os.environ.get('SUREPASS_CIBIL_ENDPOINT', '/api/v1/credit-report-cibil/fetch-report')
+SUREPASS_TIMEOUT_SECONDS = int(os.environ.get('SUREPASS_TIMEOUT_SECONDS', '30'))
+FORCE_SUREPASS_MOCK = os.environ.get('FORCE_SUREPASS_MOCK', 'false').strip().lower() == 'true'
+
+# CIBIL Business Rules
+CIBIL_MIN_SCORE = int(os.getenv('CIBIL_MIN_SCORE', '650'))
+CIBIL_REVIEW_SCORE = int(os.getenv('CIBIL_REVIEW_SCORE', '600'))
+CIBIL_ENFORCE_MIN_SCORE = os.environ.get('CIBIL_ENFORCE_MIN_SCORE', 'false').strip().lower() == 'true'
+
+# Credit Pre-check
+CREDIT_PRECHECK_VALID_DAYS = int(os.getenv('CREDIT_PRECHECK_VALID_DAYS', '30'))
+
+
+
 # CKEditor 5 Configuration
 CKEDITOR_5_CONFIGS = {
     'default': {

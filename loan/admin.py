@@ -2,7 +2,7 @@ from django.contrib import admin
 from .models import (
     LoanApplication, CustomerDetail, CustomerAddress, CustomerLoanDetail,
     CustomerDocument, DocumentRequest, DocumentReupload, DocumentReview, LoanCategory, LoanInterest, LoanTenure,
-    LoanEMISchedule, EmiCollectionDetail, LoanPeriod
+    LoanEMISchedule, EmiCollectionDetail, LoanPeriod, CreditBureauCheck
 )
 
 # Register your models here.
@@ -150,3 +150,11 @@ class EmiCollectionDetailAdmin(AllFieldsListDisplayAdmin):
 @admin.register(LoanPeriod)
 class LoanPeriodAdmin(AllFieldsListDisplayAdmin):
     search_fields = ['loan_application__loan_ref_no']
+
+
+@admin.register(CreditBureauCheck)
+class CreditBureauCheckAdmin(admin.ModelAdmin):
+    list_display = ['loan_application', 'customer', 'score', 'status', 'decision', 'fetched_by', 'fetched_at']
+    list_filter = ['status', 'decision', 'fetched_at']
+    search_fields = ['loan_application__loan_ref_no', 'customer__full_name', 'pan_number']
+    readonly_fields = ['fetched_at']

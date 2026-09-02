@@ -23,6 +23,7 @@ from .views import (
     RejectApplicationAPIView,
     BranchApplicationDetailAPI,
     DocumentRequestHqAPI,
+    CreditCheckRefreshAPI,
     DocumentReuploadBranchAPI,
     BranchApplicationApprovedViewByHQAPI,
     BranchApplicationRejectedViewByHQAPI,
@@ -84,6 +85,7 @@ from loan.views import (
 )
 from branch.viewsapp import NewLoanApplicationCardsView
 from loan.viewsapi_v2 import NewLoanApplicationAPIV2
+from loan.otp_apis import CreditBureauPreCheckAPI
 
 from savings.views import (
     BranchNewSavingsApplication,
@@ -236,6 +238,9 @@ urlpatterns = [
     path('loan/new-loan-application-pdf/', NewLaonApplicationPdf.as_view(), name='new_loan_application_pdf'),
     path('loan/loan-disbursed-pdf/', DisburLoadPDF.as_view(), name='loan_disbursed_pdf'),
 
+    # credit bureau check apis #
+    path('api/credit-check/refresh/', CreditCheckRefreshAPI.as_view(), name='api_credit_check_refresh'),
+    path('api/credit-precheck/', CreditBureauPreCheckAPI.as_view(), name='api_credit_precheck'),
 ]
 
 # after applied form details edit #

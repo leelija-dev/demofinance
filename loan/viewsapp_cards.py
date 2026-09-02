@@ -53,6 +53,7 @@ class NewLoanApplicationCardsView(AgentSessionRequiredMixin, TemplateView):
             context['default_shop_id'] = ''
 
         context['page_title'] = 'New Loan Application - Card Based'
+        context['show_credit_precheck'] = True
 
         return render(request, self.template_name, context)
 

@@ -353,6 +353,7 @@ class NewLaonApplication(TemplateView):
             context["is_active"] = False
             context["error_message"] = "Authentication required."
 
+        context["show_credit_precheck"] = True
         return render(request, self.template_name, context)
 
 
@@ -1396,6 +1397,74 @@ class BranchApplicationDetailAPI(APIView):
             if not isOld
             else customer_detail_snapshot.get(field_name, "")
         )
+
+
+class CreditCheckRefreshAPI(APIView):
+    """Fetch the credit check for a loan application.
+
+    mode='saved' (default): return the latest saved credit check (any bureau,
+    incl. the Equifax pre-application check) without calling the bureau API;
+    falls back to a live pull only if nothing usable is saved.
+    mode='live': force a fresh Surepass bureau pull (existing behaviour).
+    """
+
+    def post(self, request, *args, **kwargs):
+        logged_user_id = request.session.get('logged_user_id')
+        if not logged_user_id:
+            return Response({'detail': 'Authentication required.'}, status=status.HTTP_403_FORBIDDEN)
+        try:
+            branch_manager = BranchEmployee.objects.get(id=logged_user_id)
+            loan_ref_no = request.data.get('loan_ref_no')
+            if not loan_ref_no:
+                return Response({'detail': 'loan_ref_no is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            loan_app = LoanApplication.objects.filter(
+                loan_ref_no=loan_ref_no, branch=branch_manager.branch
+            ).first()
+            if not loan_app:
+                return Response({'detail': 'Loan application not found for this branch.'}, status=status.HTTP_404_NOT_FOUND)
+
+            rejected_statuses = {'rejected_by_branch', 'reject', 'hq_rejected'}
+            mode = str(request.data.get('mode') or 'saved').strip().lower()
+
+            if mode != 'live':
+                saved = find_saved_credit_check(loan_app)
+                if saved:
+                    return Response({
+                        'success': True,
+                        'source': 'saved',
+                        'credit_check': serialize_credit_check(saved),
+                    }, status=status.HTTP_200_OK)
+                # Nothing saved for this customer — fall through to a live pull.
+
+            if loan_app.status in rejected_statuses:
+                return Response({
+                    'success': False,
+                    'detail': 'Credit fetch is disabled for rejected applications.',
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            check = run_credit_check_for_loan(
+                loan_ref_no,
+                fetched_by=f"branch:{branch_manager.first_name or ''} {branch_manager.last_name or ''}".strip(),
+            )
+            if not check:
+                return Response({
+                    'success': False,
+                    'detail': 'Could not run CIBIL check (missing PAN or service unavailable).'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response({
+                'success': True,
+                'source': 'live',
+                'credit_check': serialize_credit_check(check),
+            }, status=status.HTTP_200_OK)
+        except BranchEmployee.DoesNotExist:
+            return Response({'detail': 'Branch manager not found.'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            import traceback
+            print('CreditCheckRefreshAPI error:', traceback.format_exc())
+            return Response({'detail': f'Internal server error: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 class BranchApplicationRejectedViewByHQAPI(APIView):

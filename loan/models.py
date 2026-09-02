@@ -1509,3 +1509,54 @@ class ShopBankAccount(models.Model):
     def __str__(self):
         return f"{self.bank_name} - {self.account_number}"
 
+
+############### CIBIL credit bureau check (Surepass) ##################
+
+class CreditBureauCheck(models.Model):
+    """Audit record of a CIBIL score pull (via Surepass) for a loan application.
+
+    A new row is created per pull, so the full history is retained (RBI audit
+    trail). The latest row (by fetched_at) is the one used for display and for
+    the approval business rule.
+    """
+
+    STATUS_CHOICES = [
+        ('success', 'Success'),
+        ('no_history', 'No Credit History'),
+        ('failed', 'Failed'),
+    ]
+    DECISION_CHOICES = [
+        ('pass', 'Pass'),
+        ('manual_review', 'Manual Review'),
+        ('fail', 'Fail'),
+    ]
+
+    loan_application = models.ForeignKey(
+        'LoanApplication', on_delete=models.CASCADE, related_name='credit_checks',
+        null=True, blank=True,
+        help_text="Null for pre-application checks; linked when the application is submitted."
+    )
+    customer = models.ForeignKey(
+        CustomerDetail, on_delete=models.SET_NULL, null=True, blank=True, related_name='credit_checks'
+    )
+    bureau = models.CharField(max_length=50, default='EQUFAX (Surepass)')
+    pan_number = models.CharField(max_length=20, blank=True, null=True)
+    score = models.IntegerField(null=True, blank=True, help_text="Equifax score (300-900). Null if no history / failed.")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='failed')
+    decision = models.CharField(max_length=20, choices=DECISION_CHOICES, default='manual_review')
+    remarks = models.TextField(blank=True, null=True)
+    raw_response = models.JSONField(null=True, blank=True, help_text="Full bureau/API response for audit.")
+    fetched_by = models.CharField(max_length=100, blank=True, null=True, help_text="Who/what triggered the pull.")
+    fetched_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-fetched_at']
+        indexes = [
+            models.Index(fields=['loan_application', '-fetched_at']),
+        ]
+        verbose_name = "Credit Bureau Check"
+        verbose_name_plural = "Credit Bureau Checks"
+
+    def __str__(self):
+        ref = self.loan_application_id or f"pre-app:{self.pan_number or '?'}"
+        return f"{ref} - {self.bureau} {self.score if self.score is not None else 'N/A'} ({self.decision})"

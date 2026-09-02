@@ -487,3 +487,82 @@ class PANVerificationAPI(APIView):
                 'success': False,
                 'message': f'Internal server error: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class CreditBureauPreCheckAPI(APIView):
+    """Pre-application credit bureau check (Equifax via Surepass).
+
+    Called from the new-application form BEFORE the application is submitted.
+    The result is NOT saved to the database here — it is held in the session
+    and persisted (linked to the loan) only when the application is actually
+    submitted. If no application is created, nothing is stored.
+    """
+
+    def post(self, request, *args, **kwargs):
+        try:
+            # Must be a logged-in agent or branch manager
+            agent_id = request.session.get('agent_id')
+            branch_manager_id = request.session.get('logged_user_id')
+            if not agent_id and not branch_manager_id:
+                return Response({
+                    'success': False,
+                    'message': 'Authentication required.'
+                }, status=status.HTTP_403_FORBIDDEN)
+
+            data = request.data
+            full_name = (data.get('full_name') or '').strip()
+            pan_number = (data.get('pan_number') or '').strip().upper()
+            mobile = (data.get('contact') or data.get('mobile') or '').strip()
+            gender = (data.get('gender') or '').strip()
+
+            if not re.match(r'^[A-Z]{5}[0-9]{4}[A-Z]$', pan_number):
+                return Response({
+                    'success': False,
+                    'message': 'Invalid PAN format. Format: 5 letters, 4 digits, 1 letter'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            from loan.services.credit import (
+                PENDING_PRECHECK_SESSION_KEY,
+                run_pre_application_credit_check,
+                serialize_transient_check,
+                summarize_credit_report,
+            )
+
+            fetched_by = f"agent:{agent_id}" if agent_id else f"branch:{branch_manager_id}"
+            payload, error = run_pre_application_credit_check(
+                name=full_name,
+                pan=pan_number,
+                mobile=mobile,
+                gender=gender,
+                fetched_by=f"pre_application|{fetched_by}",
+            )
+
+            if payload is None:
+                return Response({'success': False, 'message': error or 'Credit check failed.'},
+                                status=status.HTTP_400_BAD_REQUEST)
+            if payload.get('status') == 'failed':
+                return Response({
+                    'success': False,
+                    'message': error or 'Credit check failed.',
+                    'credit_check': serialize_transient_check(payload),
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Hold the result in the session; it is saved to the database only
+            # if/when the loan application is submitted.
+            request.session[PENDING_PRECHECK_SESSION_KEY] = payload
+            request.session.modified = True
+
+            return Response({
+                'success': True,
+                'message': 'Credit check completed.',
+                'credit_check': serialize_transient_check(payload),
+                'report': summarize_credit_report(payload.get('raw_response')),
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"Credit bureau pre-check error: {str(e)}")
+            return Response({
+                'success': False,
+                'message': 'An unexpected error occurred. Please try again.'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

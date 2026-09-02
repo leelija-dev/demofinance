@@ -82,6 +82,7 @@ class NewLoanApplication(AgentSessionRequiredMixin, TemplateView):
             context['is_active'] = False
             context['error_message'] = 'Authentication required.'
         
+        context['show_credit_precheck'] = True
         return render(request, self.template_name, context)
 
 class LoanApplicationView(AgentSessionRequiredMixin, TemplateView):

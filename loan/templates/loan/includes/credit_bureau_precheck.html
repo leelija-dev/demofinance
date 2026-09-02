@@ -1,0 +1,225 @@
+{% load static %}
+<!-- Credit Bureau Check (Equifax) — pre-application -->
+<div class="w-full px-2.5 my-2">
+    <div class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-gradient-to-r from-brand-500/[0.06] via-transparent to-transparent dark:from-brand-500/[0.08] p-5 shadow-theme-xs">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-start gap-3 flex-1 min-w-[260px]">
+                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-500/10 text-brand-500">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M9 12.75L11.25 15 15 9.75M12 3l7.5 3v5.25c0 4.97-3.2 8.6-7.5 9.75-4.3-1.15-7.5-4.78-7.5-9.75V6L12 3z"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <h4 class="text-sm font-semibold text-gray-800 dark:text-white/90">Credit Bureau Check</h4>
+                        <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full text-white" style="background:#003A70;">Equifax</span>
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        Check the customer's credit score before submitting. Fill
+                        <b>Full Name</b>, <b>Contact</b>, <b>Gender</b> and <b>PAN Number</b> above first.
+                    </p>
+                    <p class="mt-0.5 text-[11px] text-gray-400 dark:text-gray-500">
+                        The result is saved with this application only when it is submitted.
+                    </p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4 flex-wrap">
+                <div id="creditPrecheckResult" class="text-sm"></div>
+                <button type="button" id="creditPrecheckBtn"
+                    class="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-brand-500 rounded-lg shadow-theme-xs hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    <svg id="creditPrecheckSpinner" class="hidden h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    </svg>
+                    <svg id="creditPrecheckBtnIcon" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/>
+                    </svg>
+                    <span id="creditPrecheckBtnLabel">Check Credit Score</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Full credit report modal -->
+<div id="creditReportModal" class="fixed inset-0 z-99999 hidden bg-black/50 p-4 overflow-y-auto">
+    <div class="mx-auto my-8 w-full rounded-2xl bg-white dark:bg-gray-900 shadow-xl" style="width:210mm; max-width:210mm;">
+        <div class="flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-800">
+            <h3 class="text-base font-semibold text-gray-800 dark:text-white/90">Retail Credit Report (IDCR) &mdash; Equifax</h3>
+            <div class="flex items-center gap-3">
+                <button type="button" id="creditReportDownloadPdf"
+                    class="text-gray-700 dark:text-gray-200 text-xs font-semibold px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">
+                    Download PDF
+                </button>
+                <button type="button" id="creditReportModalClose" class="text-gray-400 hover:text-gray-600 dark:hover:text-white text-2xl leading-none">&times;</button>
+            </div>
+        </div>
+        <div id="creditReportModalBody" class="max-h-[75vh] overflow-y-auto"></div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="{% static 'loan/css/credit-report-idcr.css' %}">
+
+<script src="{% static 'loan/js/credit-report-modal.js' %}"></script>
+<script>
+    (function () {
+        // URL can be passed by the including template; otherwise detect from path.
+        const CREDIT_PRECHECK_URL = '{{ credit_precheck_url|default:"" }}' ||
+            (window.location.pathname.indexOf('/branch/') === 0
+                ? '/branch/api/credit-precheck/'
+                : '/agent/api/credit-precheck/');
+        const btn = document.getElementById('creditPrecheckBtn');
+        const resultEl = document.getElementById('creditPrecheckResult');
+        const modal = document.getElementById('creditReportModal');
+        const modalBody = document.getElementById('creditReportModalBody');
+        const modalClose = document.getElementById('creditReportModalClose');
+        const downloadPdfBtn = document.getElementById('creditReportDownloadPdf');
+        if (!btn) return;
+
+        let lastReport = null;
+        let lastCheck = null;
+
+        if (downloadPdfBtn) {
+            downloadPdfBtn.addEventListener('click', function () {
+                if (lastReport && window.printCreditReport) {
+                    window.printCreditReport(lastReport, lastCheck);
+                }
+            });
+        }
+
+        function openReportModal() {
+            if (!lastReport) return;
+            modalBody.innerHTML = window.buildCreditReportHtml(lastReport, lastCheck);
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeReportModal() {
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+        modalClose.addEventListener('click', closeReportModal);
+        modal.addEventListener('click', function (e) { if (e.target === modal) closeReportModal(); });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeReportModal(); });
+        resultEl.addEventListener('click', function (e) {
+            if (e.target.closest('#viewCreditReportBtn')) openReportModal();
+        });
+
+        const btnLabel = document.getElementById('creditPrecheckBtnLabel');
+        const btnSpinner = document.getElementById('creditPrecheckSpinner');
+        const btnIcon = document.getElementById('creditPrecheckBtnIcon');
+
+        function setBtnState(loading, label) {
+            btn.disabled = loading;
+            if (btnSpinner) btnSpinner.classList.toggle('hidden', !loading);
+            if (btnIcon) btnIcon.classList.toggle('hidden', loading);
+            if (btnLabel && label) btnLabel.textContent = label;
+        }
+
+        function renderCreditResult(cc) {
+            if (!cc) return;
+            const viewBtn = lastReport
+                ? '<button type="button" id="viewCreditReportBtn" class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-brand-500 border border-brand-300 rounded-lg hover:bg-brand-500 hover:text-white transition-colors">' +
+                  '<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>' +
+                  'Full Report</button>'
+                : '';
+            if (cc.status === 'no_history' || cc.score === null || cc.score === undefined) {
+                resultEl.innerHTML = '<div class="flex items-center gap-2 flex-wrap">' +
+                    '<span class="inline-block px-2.5 py-1 text-xs font-semibold rounded-full bg-orange-400 text-white">No Credit History &middot; Manual Review</span>' +
+                    viewBtn + '</div>';
+                return;
+            }
+            let badgeClass = 'bg-orange-400', label = 'Manual Review';
+            if (cc.decision === 'pass') { badgeClass = 'bg-success-500'; label = 'Pass'; }
+            else if (cc.decision === 'fail') { badgeClass = 'bg-error-500'; label = 'Below Minimum'; }
+            resultEl.innerHTML = '<div class="flex items-center gap-3 flex-wrap">' +
+                '<div class="text-right leading-tight">' +
+                    '<div class="text-2xl font-bold text-gray-800 dark:text-white">' + cc.score + '</div>' +
+                    '<div class="text-[10px] uppercase tracking-wider text-gray-400">Score</div>' +
+                '</div>' +
+                '<span class="inline-block px-2.5 py-1 text-xs font-semibold rounded-full text-white ' + badgeClass +
+                '" title="Min score: ' + cc.min_score + ' | Review band: ' + cc.review_score + '-' + (cc.min_score - 1) + '">' + label + '</span>' +
+                viewBtn + '</div>';
+        }
+
+        function friendlyCreditFailureReason(message) {
+            const raw = String(message || '').trim();
+            if (!raw) return 'Could not fetch Equifax report. Please try again.';
+            const msg = raw.replace(/^Surepass\s+EQUIFAX\s+check\s+failed\s*\(\s*/i, '').replace(/\)\s*$/, '').trim() || raw;
+            const lower = msg.toLowerCase();
+            if (lower.includes('verification failed') || lower.includes('verification fail')) {
+                return 'Customer details could not be verified with Equifax. Confirm Full Name, PAN, Contact and Gender match the bureau records exactly, then try again.';
+            }
+            if (lower.includes('whitelist')) {
+                return 'Server IP is not whitelisted in Surepass. Contact admin to whitelist the server IP.';
+            }
+            if (lower.includes('invalid token') || lower.includes('token')) {
+                return 'Equifax API token issue. Contact admin to verify Surepass configuration.';
+            }
+            if (lower.includes('timeout') || lower.includes('timed out') || lower.includes('connection') || lower.includes('network')) {
+                return 'Bureau service is temporarily unavailable. Please try again after some time.';
+            }
+            if (lower.includes('not found') || lower.includes('404') || lower.includes('not enabled')) {
+                return 'Equifax product may not be enabled on Surepass. Contact admin.';
+            }
+            return msg.length > 160 ? msg.slice(0, 157) + '...' : msg;
+        }
+
+        function escapeCreditHtml(value) {
+            return String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function fieldValue(id) {
+            // Prefer an element with the id; fall back to [name=...] (the
+            // cards/v2 form uses Alpine-bound hidden inputs with name only).
+            const el = document.getElementById(id) || document.querySelector('[name="' + id + '"]');
+            return (el && el.value) ? el.value : '';
+        }
+
+        btn.addEventListener('click', function () {
+            const fullName = fieldValue('full_name');
+            const pan = fieldValue('pan_number').toUpperCase();
+            const contact = fieldValue('contact');
+            const gender = fieldValue('gender');
+
+            if (!fullName.trim()) { resultEl.innerHTML = '<span class="text-xs text-error-500">Enter Full Name first.</span>'; return; }
+            if (!/^[A-Z]{5}\d{4}[A-Z]$/.test(pan)) { resultEl.innerHTML = '<span class="text-xs text-error-500">Enter a valid PAN Number first.</span>'; return; }
+            if (!/^\d{10}$/.test(contact)) { resultEl.innerHTML = '<span class="text-xs text-error-500">Enter a valid 10-digit Contact first.</span>'; return; }
+
+            const hadResult = !!lastCheck;
+            setBtnState(true, 'Checking...');
+            resultEl.innerHTML = '';
+
+            fetch(CREDIT_PRECHECK_URL, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({ full_name: fullName, pan_number: pan, contact: contact, gender: gender })
+            })
+            .then(resp => resp.json().then(json => ({ ok: resp.ok, json })))
+            .then(({ ok, json }) => {
+                if (ok && json.success) {
+                    setBtnState(false, 'Re-check Score');
+                    lastReport = json.report || null;
+                    lastCheck = json.credit_check || null;
+                    renderCreditResult(json.credit_check);
+                } else {
+                    setBtnState(false, hadResult ? 'Re-check Score' : 'Check Credit Score');
+                    resultEl.innerHTML = '<span class="text-xs text-error-500 block max-w-[320px] leading-snug">' +
+                        escapeCreditHtml(friendlyCreditFailureReason(json.message)) + '</span>';
+                }
+            })
+            .catch(() => {
+                setBtnState(false, hadResult ? 'Re-check Score' : 'Check Credit Score');
+                resultEl.innerHTML = '<span class="text-xs text-error-500">Credit check failed. Please try again.</span>';
+            });
+        });
+    })();
+</script>

@@ -620,6 +620,13 @@
                   <input type="hidden" name="voter_number" :value="personalInfo.voter_number" />
                 </div>
               </div>
+
+              {% if show_credit_precheck %}
+                <div class="mt-6">
+                  {% include 'loan/includes/credit_bureau_precheck.html' with credit_precheck_url='/branch/api/credit-precheck/' %}
+                </div>
+              {% endif %}
+
               <div class="mt-8 flex justify-between gap-2">
                 <button type="button" class="btn btn-secondary" @click="previousStep()" disabled>
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
