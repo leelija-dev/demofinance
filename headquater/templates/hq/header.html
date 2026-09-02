@@ -56,7 +56,7 @@
       </button> -->
       <!-- Application nav menu button -->
       <!-- Daily Transaction Report Button -->
-      <a href="http://127.0.0.1:8000/hq/daily-receipt-payment/"
+      <a href="{% url 'hq:daily_receipts_payments' %}"
          class="inline-flex h-9 items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-colors
                border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-200 dark:hover:bg-blue-900/50">
         <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -65,7 +65,7 @@
        <span class="whitespace-nowrap text-xs">Daily Transaction Report</span>
       </a>
       <!-- Wallet Button -->
-      <a href="http://127.0.0.1:8000/hq/wallet/"
+      <a href="{% url 'hq:wallet' %}"
          class="inline-flex h-9 items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-colors
                border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-200 dark:hover:bg-blue-900/50">
         <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

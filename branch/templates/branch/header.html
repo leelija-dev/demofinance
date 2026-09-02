@@ -37,7 +37,7 @@
       </button>
       <!-- Hamburger Toggle BTN -->
       <!-- Report Button -->
-      <a href="http://127.0.0.1:8000/branch/daily-receipt-payment/"
+      <a href="{% url 'branch:daily_receipts_payments' %}"
          class="inline-flex h-9 items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-colors
                border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-200 dark:hover:bg-blue-900/50
                ">
@@ -47,7 +47,7 @@
        <span class="whitespace-nowrap text-xs"> Daily Transaction Report</span>
       </a>
       <!-- Wallet Button -->
-      <a href="http://127.0.0.1:8000/branch/wallet/"
+      <a href="{% url 'branch:branch_wallet' %}"
          class="inline-flex h-9 items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-colors
                border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-200 dark:hover:bg-blue-900/50
                ">
@@ -57,7 +57,7 @@
         <span class="whitespace-nowrap text-xs">Wallet</span>
       </a>
       <!-- EMI Payments Button -->
-      <a href="http://127.0.0.1:8000/branch/repayment/"
+      <a href="{% url 'branch:emi_payment' %}"
          class="inline-flex h-9 items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-colors
                border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-200 dark:hover:bg-blue-900/50
                ">
