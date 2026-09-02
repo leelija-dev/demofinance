@@ -20,6 +20,7 @@ from .views import (
     EmiLoanListView,
     EmiScheduleView,
     )
+from .viewsreport import HQDailyReceiptsPaymentsView
 
 from .savingviews import (
     saving_management,
@@ -168,4 +169,9 @@ urlpatterns += [
 urlpatterns += [
     path('agent-location/', agent_location_views.HQAgentLocationMapView.as_view(), name='agent_location_map'),
     path('agent-location/api/locations/', agent_location_views.HQAgentLocationListAPI.as_view(), name='agent_location_api'),
+]
+
+# Daily Transaction and Summary Reports (HQ - Branch Wise)
+urlpatterns += [
+    path('daily-receipt-payment/', HQDailyReceiptsPaymentsView.as_view(), name='daily_receipts_payments'),
 ]
